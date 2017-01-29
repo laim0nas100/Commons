@@ -18,6 +18,7 @@ public class TaskExecutor extends ExtTask{
     private int maxCount = 1;
     private int size = 0;
     private int threadsFinished = 0;
+    public boolean neverStop = false;
     private ConcurrentLinkedDeque<Task> tasks = new ConcurrentLinkedDeque<>();
     private ConcurrentLinkedDeque<Thread> threads = new ConcurrentLinkedDeque<>();
 
@@ -54,16 +55,20 @@ public class TaskExecutor extends ExtTask{
     @Override
     protected Void call() throws Exception {
         while(!this.isCancelled()){
+            emptyDeadThreads();
             while(!tasks.isEmpty() && threads.size()<maxCount){
                 Task pollFirst = tasks.pollFirst();
                 startThread(pollFirst);
             }
-            emptyDeadThreads();
+            
             this.updateProgress(threadsFinished, size);
             try {
                 Thread.sleep(refreshDuration);
             } catch (InterruptedException ex) {
                 break;
+            }
+            if(tasks.isEmpty()&&!neverStop){
+               return null; 
             }
         }
         tasks.forEach(task->{
