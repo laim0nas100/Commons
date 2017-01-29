@@ -139,7 +139,7 @@ public class NewEmptyJUnitTest {
         String dir = System.getProperty("user.dir");
         ArrayList<String> list = new ArrayList(FileReader.readFromFile(dir+"/Param.txt"));
         FileReader.writeToFile(dir+"/Log.txt", list);
-        ParametersMap map = new ParametersMap(list);
+        ParametersMap map = new ParametersMap(list,"=");
         map.map.values().forEach(param->{
             Log.write(param.key,"|",param.object);
         });

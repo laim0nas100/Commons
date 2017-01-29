@@ -17,12 +17,14 @@ public class ParametersMap {
     public ParametersMap(){
         map = new HashMap<>();
     }
-    public ParametersMap(Collection<String> list){
+    public ParametersMap(Collection<String> list,String splitter){
         
         map = new HashMap<>();
         list.forEach(line ->{
-            String[] split = line.split("=");
-            if(split.length>1) this.addParameter(split[0], split[1]);
+            String[] split = line.split(splitter);
+            if(split.length>1){
+                this.addParameter(split[0].trim(), split[1].trim());
+            }
         });
         
         
