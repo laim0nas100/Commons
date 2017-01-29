@@ -67,7 +67,7 @@ public class TaskExecutor extends ExtTask{
             } catch (InterruptedException ex) {
                 break;
             }
-            if(tasks.isEmpty()&&!neverStop){
+            if(threads.isEmpty()&&tasks.isEmpty()&&!neverStop){
                return null; 
             }
         }
