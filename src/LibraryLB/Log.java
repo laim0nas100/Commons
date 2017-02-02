@@ -11,8 +11,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  *
@@ -21,11 +21,13 @@ import java.util.Properties;
 public class Log extends PrintStream{
     
     private static final Log INSTANCE = new Log();
-    public final ArrayList<String> list;
+    public final ConcurrentLinkedDeque<String> list;
     protected Log(){
         
         super(new FileOutputStream(FileDescriptor.out));
-        list = new ArrayList<>();
+        list = new ConcurrentLinkedDeque<>();
+
+
     }
     public static Log getInstance(){        
         return INSTANCE;
@@ -64,9 +66,9 @@ public class Log extends PrintStream{
     public static void write(Object...objects){
         String string = "";
         for(Object s:objects){  
-            string+=s.toString();
+            string+=" "+s.toString();
         }
-        Log.writeln(string);
+        Log.writeln(string.substring(1));
     }
     public static void writeln(Object...objects){
             for(Object s:objects){
