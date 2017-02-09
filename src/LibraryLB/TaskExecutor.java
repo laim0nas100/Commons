@@ -7,7 +7,6 @@ package LibraryLB;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import javafx.beans.property.SimpleLongProperty;
 import javafx.concurrent.Task;
 
 /**

@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * @author Laimonas Beniušis
  */
 public class Log extends PrintStream{
-    
+    public static boolean display = true;
     private static final Log INSTANCE = new Log();
     public final ConcurrentLinkedDeque<String> list;
     protected Log(){
@@ -72,7 +72,9 @@ public class Log extends PrintStream{
     }
     public static void writeln(Object...objects){
             for(Object s:objects){
-                Log.INSTANCE.println(s);
+                if(display){
+                    Log.INSTANCE.println(s);
+                }
                 Log.INSTANCE.list.add(s.toString());
             } 
         

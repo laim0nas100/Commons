@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -93,10 +92,10 @@ public class FileReader {
         return finalList;
     }
     public static void writeToFile(String URL,Collection<String> list) throws FileNotFoundException, UnsupportedEncodingException{
-        PrintWriter out = new PrintWriter(URL, "UTF-8");
-        list.forEach(line ->{
-            out.println(line);
-        });
-        out.close();
+        try (PrintWriter out = new PrintWriter(URL, "UTF-8")) {
+            list.forEach(line ->{
+                out.println(line);
+            });
+        }
     }
 }
