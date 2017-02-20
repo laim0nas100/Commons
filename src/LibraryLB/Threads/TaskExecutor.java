@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package LibraryLB;
+package LibraryLB.Threads;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -48,7 +48,7 @@ public class TaskExecutor extends ExtTask{
 
     public void addTask(Task task){
         this.size+=1;
-        this.tasks.addFirst(task);
+        this.tasks.addLast(task);
     }
 
     @Override
