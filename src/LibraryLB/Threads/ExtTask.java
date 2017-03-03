@@ -39,6 +39,11 @@ public abstract class ExtTask extends Task<Void> {
     public long getRefreshDuration(){
         return this.refreshDuration;
     }
+    protected long sleep(long duration) throws InterruptedException{
+        long start = System.currentTimeMillis();
+        Thread.sleep(duration);
+        return (System.currentTimeMillis() - start);
+    }
 
     
 }

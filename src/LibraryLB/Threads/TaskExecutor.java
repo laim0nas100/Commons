@@ -7,6 +7,7 @@ package LibraryLB.Threads;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import javafx.concurrent.Task;
 
 /**
@@ -15,7 +16,7 @@ import javafx.concurrent.Task;
  */
 public class TaskExecutor extends ExtTask{
     private int maxCount = 1;
-    private int size = 0;
+    private AtomicInteger size;
     private int threadsFinished = 0;
     public boolean neverStop = false;
     private ConcurrentLinkedDeque<Task> tasks = new ConcurrentLinkedDeque<>();
@@ -28,11 +29,12 @@ public class TaskExecutor extends ExtTask{
         if(refreshDuration>1){
             this.refreshDuration = refreshDuration;
         }
+        this.size = new AtomicInteger(0);
         
     }
     private void startThread(Runnable run){
         Thread t = new Thread(run);
-        this.threads.addFirst(t);
+        threads.addFirst(t);
         t.start();
     }
     private void emptyDeadThreads(){
@@ -47,7 +49,7 @@ public class TaskExecutor extends ExtTask{
     }
 
     public void addTask(Task task){
-        this.size+=1;
+        this.size.getAndIncrement();
         this.tasks.addLast(task);
     }
 
@@ -60,7 +62,7 @@ public class TaskExecutor extends ExtTask{
                 startThread(pollFirst);
             }
             
-            this.updateProgress(threadsFinished, size);
+            this.updateProgress(threadsFinished, size.get());
             try {
                 Thread.sleep(refreshDuration);
             } catch (InterruptedException ex) {

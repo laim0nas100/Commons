@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 
@@ -45,14 +44,11 @@ public class AutoBackupMaker {
         Files.createDirectories(Paths.get(homeDir));
         ArrayList<Runnable> Runnables = new ArrayList<>();
         files.forEach(file ->{
-            Runnables.add(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Files.copy(file.toPath(), Paths.get(homeDir+file.getName()));
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
+            Runnables.add( () -> {
+                try {
+                    Files.copy(file.toPath(), Paths.get(homeDir+file.getName()));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
             });
         });
@@ -74,22 +70,17 @@ public class AutoBackupMaker {
                 deleteList.add(files.remove(0));
             }
             Log.write(deleteList);
-            run = new Runnable() {
-            @Override
-                public void run() {
-                    deleteList.forEach(fol ->{
-                        try {
-                            deleteFolder(fol);
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    });
-                }
+            run = () -> {
+                deleteList.forEach(fol ->{
+                    try {
+                        deleteFolder(fol);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                });
             };
         }else{
-            run = new Runnable() {
-            @Override
-                public void run() {}
+            run = () -> {
             };
         }
         return run;

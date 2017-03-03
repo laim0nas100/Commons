@@ -1,4 +1,4 @@
-package LibraryLB;
+package LibraryLB.FileManaging;
 /*************************************************************************
  *  Compilation:  javac BinaryStdOut.java
  *  Execution:    java BinaryStdOut
