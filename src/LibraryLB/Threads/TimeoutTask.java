@@ -29,10 +29,10 @@ public class TimeoutTask{
 
         @Override
         public Void call() throws Exception {
-            Log.write("Sleep:"+currentTime.get());
+//            Log.write("Sleep:"+currentTime.get());
             Thread.sleep(timeout);
             currentTime.decrementAndGet();
-            Log.write("Try run:"+currentTime.get());
+//            Log.write("Try run:"+currentTime.get());
             tryRun();
             return null;
         }
@@ -71,7 +71,7 @@ public class TimeoutTask{
         if(initiated){
             if(this.currentTime.get()<=0){
                 while(!this.conditionalCheck.get()){
-                    Log.write("Failed conditional check");
+//                    Log.write("Failed conditional check");
                     Thread.sleep(this.refreshRate);
                     if(!initiated || this.currentTime.get()>0){
                         return;
@@ -79,7 +79,7 @@ public class TimeoutTask{
                 }
                 initiated = false;
                 run.run();
-                Log.write("TimoutTask success");
+//                Log.write("TimoutTask success");
             }  
         }
     }

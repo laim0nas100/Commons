@@ -8,6 +8,8 @@ package testPackage;
 import LibraryLB.Containers.SelfSortingMap;
 import LibraryLB.FileManaging.FileReader;
 import LibraryLB.Parsing.Lexer;
+import LibraryLB.Parsing.LexerWithStrings;
+import LibraryLB.Parsing.StringOperations;
 import LibraryLB.Parsing.Token;
 import java.io.IOException;
 import java.util.Collection;
@@ -53,7 +55,7 @@ public class lexerTest {
         Character c = null;
         System.out.println(Character.isWhitespace(c));
     }
-    @Test
+//    @Test
     public void testNewMap() throws IOException, Lexer.NoSuchLexemeException, Lexer.StringNotTerminatedException{
         SelfSortingMap map = new SelfSortingMap(new Comparator() {
             @Override
@@ -104,7 +106,17 @@ public class lexerTest {
         
                 
     }
-    public void testLexer(){
-        
+    @Test
+    public void testLexer() throws Lexer.NoSuchLexemeException, Lexer.StringNotTerminatedException{
+        String text1= "help \"C:\\\"";
+        String text2 = "ok2 \"ok\"";
+        String text3 = "help \" escape me\\\\   \"";
+        String command = StringOperations.replace(text2, "\\", "\\\\");
+        System.out.println(command);
+        LexerWithStrings lex = new LexerWithStrings(command);
+        Collection<Token> remainingTokens = lex.getRemainingTokens();
+        remainingTokens.forEach(token ->{
+            System.out.println(token);
+        });
     }
 }

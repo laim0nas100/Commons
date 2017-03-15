@@ -86,7 +86,9 @@ public class Lexer {
         Integer[] pos = new Integer[2];
         pos[0] = this.linePos;
         pos[1] = this.charPos+shift;
-        
+        if(this.currentLineLen() == null){
+            return pos;
+        }
         while(pos[1] >= this.currentLineLen()){
             pos[1]-= this.currentLineLen();
             pos[0]+=1;
@@ -151,7 +153,8 @@ public class Lexer {
                 this.advanceByTokenKey(this.keyStringEscape);
                 result += this.getCurrentChar();
                 this.advance(1);
-            }else if(this.tryToMatch(this.keyStringEnd)){
+            }
+            if(this.tryToMatch(this.keyStringEnd)){
                 this.advanceByTokenKey(this.keyStringEnd);
                 break;
             }
@@ -194,11 +197,19 @@ public class Lexer {
     protected Token literal(String value,Integer[] pos){
         return new Literal(TokenType.LITERAL.type,pos,value);
     }
+    protected Token getNextTokenImpl(){
+        return null;
+    }
     public Token getNextToken() throws NoSuchLexemeException, StringNotTerminatedException{
         String buffer = "";
-        Token token = null;
+        Token token = getNextTokenImpl();
+        if(token!=null){
+            return token;
+        }
         Integer[] pos = new Integer[]{this.linePos,this.charPos};
+        
         while(true){
+            
             Character ch = this.getCurrentChar();
             if(ch==null){
                 if(buffer.length()>0){

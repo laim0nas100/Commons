@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package LibraryLB;
+package LibraryLB.Parsing;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -12,7 +12,7 @@ import java.util.Locale;
  *
  * @author Laimonas Beniušis
  */
-public class StringOperations {
+public class StringOperations extends org.apache.commons.lang3.StringUtils {
     
     public static class StringInfo{
         public String string;
@@ -84,5 +84,47 @@ public class StringOperations {
             }
         }
         return count;
+    }
+    
+    
+    
+    public static String trimEnd(String string) {
+        return string.replaceAll("\\s+$", "");
+    }
+    
+    public static String simpleFormat(long number, int numberOfPositions) {
+        boolean positive = true;
+        if(number<0){
+            number*=-1;
+            positive=false;
+        }
+        String result = String.valueOf(number);
+        while (result.length() < numberOfPositions) {
+            result = '0' + result;
+        }
+        result = result.trim();
+        if(!positive){
+            result="-"+result;
+        }
+        return result;
+    }
+    public static String extractNumber(Number number){
+        String result = "";
+        Double numb = number.doubleValue();
+        Long fullPart = (long)Math.floor(numb);
+        numb = numb - fullPart;
+        if(fullPart>0){
+            while(fullPart>0){
+                result = (fullPart % 10) + result;
+                fullPart/=10;
+            }
+        }else{
+            result = "0";        
+        }
+        String numbS = String.valueOf(numb);
+        int index = numbS.indexOf('.');
+        result +=numbS.substring(index,Math.min(numbS.length(),index+4));
+        
+        return result;
     }
 }

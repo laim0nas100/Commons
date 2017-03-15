@@ -17,7 +17,7 @@ public class Literal extends Token {
     }
     @Override
     public String toString(){
-        return super.toString()+"\""+this.value+"\"";
+        return super.toString()+this.value;
     }
     
 }

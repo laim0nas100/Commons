@@ -13,7 +13,7 @@ import LibraryLB.NodeMapAPI.DataMap;
 import LibraryLB.NodeMapAPI.Link;
 import LibraryLB.NodeMapAPI.Node;
 import LibraryLB.Containers.ParametersMap;
-import LibraryLB.StringOperations;
+import LibraryLB.Parsing.StringOperations;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
