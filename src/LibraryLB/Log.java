@@ -76,7 +76,7 @@ public class Log extends PrintStream{
     public static void writeln(Object...objects){
             for(Object s:objects){
                 Runnable r = () ->{
-                    String time =  ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("HH:mm:ss:S"));
+                    String time =  getZonedDateTime("HH:mm:ss:S");
                     String string = time+"["+String.valueOf(s)+"]";
                     if(display){
                         System.out.println(string);
@@ -88,6 +88,9 @@ public class Log extends PrintStream{
                 };
                 exe.submit(r);
             }
+    }
+    public static String getZonedDateTime(String format){
+        return ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(format));
     }
     public static void printProperties(Properties properties){
         Object[] toArray = properties.keySet().toArray();

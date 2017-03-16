@@ -63,13 +63,13 @@ public class StringOperations extends org.apache.commons.lang3.StringUtils {
         double n2 = s2.length();
         n1 = n1*(n1+1)*(n1+2)/6;
         n2 = n2*(n2+1)*(n2+2)/6;
-        totalCount+=correlationRatio2(s1,s2)*2/n1;
-        totalCount+=correlationRatio2(s2,s1)*2/n2;
+        totalCount+=correlationRatio2(s1,s2)/n1;
+        totalCount+=correlationRatio2(s2,s1)/n2;
         String us1 = s1.toUpperCase(Locale.ROOT);
         String us2 = s2.toUpperCase(Locale.ROOT);
         totalCount+=correlationRatio2(us1,us2)/n1;
         totalCount+=correlationRatio2(us2,us1)/n2;
-        return totalCount/6;
+        return totalCount/4;
     }
     private static long correlationRatio2(String s1, String s2){
         long count = 0;
@@ -77,7 +77,6 @@ public class StringOperations extends org.apache.commons.lang3.StringUtils {
             for(int j=i+1; j<=s1.length(); j++){
                 String substring = s1.substring(i, j);
                 if(s2.contains(substring)){
-                    //Log.write("Found:"+substring);
                     int addition = substring.length();
                     count+=addition;
                 }
