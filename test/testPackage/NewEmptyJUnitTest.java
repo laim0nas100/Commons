@@ -58,7 +58,6 @@ public class NewEmptyJUnitTest {
     //
     
     
-    @Test
     public void test4(){
         DataMap map = new DataMap();
         {
@@ -141,31 +140,33 @@ public class NewEmptyJUnitTest {
         FileReader.writeToFile(dir+"/Log.txt", list);
         ParametersMap map = new ParametersMap(list,"=");
         map.map.values().forEach(param->{
-            Log.write(param.key,"|",param.object);
+            Log.print(param.key,"|",param.object);
         });
         Long i = new Long((int) map.defaultGet("int.1", 10));
         Double d = (Double) map.defaultGet("double.1", 0.5);
-        Log.writeln(i,d);
+        Log.println(i,d);
         
     }
+    @Test
     public void hello() {
         //StringInfo info = new StringInfo("LAbas");
         //Log.write(info);
-        Long l1 = Instant.now().toEpochMilli();
-        Log.write();
-        Log.writeln(StringOperations.correlationRatio("321", "54321"));
-        Log.writeln(StringOperations.correlationRatio("321", "654321"));
-        Log.writeln(StringOperations.correlationRatio("321", "7654321"));
-        Log.writeln(StringOperations.correlationRatio("321", "87654321"));
-        Log.writeln(StringOperations.correlationRatio("4321", "987654321"));
-        Log.write();
-        Log.writeln(StringOperations.correlationRatio("HELLO.txt", "hello.txt"));
-        Log.writeln(StringOperations.correlationRatio("hello.logas", "hello.textas"));
-        Log.writeln(StringOperations.correlationRatio("nesusija9", "987654321"));
-        Log.writeln(StringOperations.correlationRatio("EDEN - Fumes", "EDEN - Fume1"));
-        Log.writeln(StringOperations.correlationRatio("123456text.txt", "123456text.txt"));
-        Log.write("Duration "+ (Instant.now().toEpochMilli()-l1));
-        
+        long l1 = System.currentTimeMillis();
+//        Log.disable = false;
+        Log.print();
+        Log.println(StringOperations.correlationRatio("321", "54321"));
+        Log.println(StringOperations.correlationRatio("321", "654321"));
+        Log.println(StringOperations.correlationRatio("321", "7654321"));
+        Log.println(StringOperations.correlationRatio("321", "87654321"));
+        Log.println(StringOperations.correlationRatio("4321", "987654321"));
+        Log.print();
+        Log.println(StringOperations.correlationRatio("HELLO.txt", "hello.txt"));
+        Log.println(StringOperations.correlationRatio("hello.logas", "hello.textas"));
+        Log.println(StringOperations.correlationRatio("nesusija9", "987654321"));
+        Log.println(StringOperations.correlationRatio("EDEN - Fumes", "EDEN - Fume1"));
+        Log.println(StringOperations.correlationRatio("123456text.txt", "123456text.txt"));
+//        Log.print();
+        System.out.println("Duration "+ (System.currentTimeMillis()-l1));
         
     }
 }

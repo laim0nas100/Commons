@@ -5,7 +5,6 @@
  */
 package LibraryLB.FileManaging;
 
-import LibraryLB.Log;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -63,13 +62,11 @@ public class AutoBackupMaker {
         }
         
         files.sort(String.CASE_INSENSITIVE_ORDER);
-        Log.write(files);
         if(files.size()>backupCount){
             ArrayList<String> deleteList = new ArrayList<>();
             while(files.size()>backupCount){
                 deleteList.add(files.remove(0));
             }
-            Log.write(deleteList);
             run = () -> {
                 deleteList.forEach(fol ->{
                     try {
