@@ -5,6 +5,7 @@
  */
 package LibraryLB.Threads;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 
@@ -44,6 +45,14 @@ public abstract class ExtTask extends Task<Void> {
         Thread.sleep(duration);
         return (System.currentTimeMillis() - start);
     }
-
+    public void runOnPlatform(){
+        new Thread( ()->{
+            Platform.runLater(this);
+        }).start();
+        
+    }
+    public Thread toThread(){
+        return new Thread(this);
+    }
     
 }
