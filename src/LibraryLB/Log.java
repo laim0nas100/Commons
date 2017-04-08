@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class Log{
     private PrintStream printStream;
     private boolean console = true;
+    public static boolean timeStamp = true;
     public static boolean display = true;
     public static boolean disable = false;
     private static DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -131,7 +132,10 @@ public class Log{
     }
     private static void logThis(String string, long millis){     
         String time = getZonedDateTime(timeStringFormat,millis);
-        String res = time+"{"+string+"}";
+        String res = string;
+        if(timeStamp){
+            res = time+"{"+res+"}";
+        }
         if(display){
             System.out.println(res);
         }

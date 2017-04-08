@@ -17,7 +17,6 @@ public abstract class ExtTask extends Task<Void> {
     
     @Override
     protected abstract Void call() throws Exception;
-    
     protected String taskDescription;
     protected long refreshDuration = 500;
     public SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
