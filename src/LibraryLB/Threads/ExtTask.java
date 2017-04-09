@@ -5,51 +5,111 @@
  */
 package LibraryLB.Threads;
 
-import javafx.application.Platform;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.concurrent.Task;
 
 /**
- * Custom Task
- * @author Laimonas Beniušis
+ *
+ * @author Lemmin
+ * @param <T>
  */
-public abstract class ExtTask extends Task<Void> {
+public abstract class ExtTask <T> implements Runnable,Future{
     
+    public final SimpleBooleanProperty canceled = new SimpleBooleanProperty(false);
+    public final SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
+    public final SimpleBooleanProperty done = new SimpleBooleanProperty(false);
+    public final SimpleBooleanProperty failed = new SimpleBooleanProperty(false);
+    public ExtTask childTask;
+    private FutureTask task = new FutureTask(() -> call());
+    private InvokeChildTask onInterrupted,onDone,onFailed,onCanceled,onSucceded;
+    public int timesToRun = -1;
+    public int timesRan = 0;
+    public static interface InvokeChildTask{
+        public void handle(ExtTask n);
+    }
     @Override
-    protected abstract Void call() throws Exception;
-    protected String taskDescription;
-    protected long refreshDuration = 500;
-    public SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
-    public Task childTask;
-    public String getTaskDescription() {
-        return taskDescription;
+    public final void run() {
+        if(timesToRun < timesRan && timesToRun >0){
+            return;
+        }
+        try {
+            task = new FutureTask(() -> call());
+            task.get();
+            tryRun(onSucceded);
+        } catch (InterruptedException ex) {
+            tryRun(onInterrupted);
+        } catch (CancellationException ex){
+            tryRun(onCanceled);
+            canceled.set(true);
+        } catch (ExecutionException ex) {
+            tryRun(onFailed);
+            failed.set(true);
+        }
+        tryRun(onDone);
+        timesRan++;
     }
     
-    public void setTaskDescription(String taskDescription) {
-        this.taskDescription = taskDescription;
+    
+    private void tryRun(InvokeChildTask r){
+        if(r != null){
+            try{
+                r.handle(childTask);
+            }catch (Exception e) {}
+            
+        }
     }
-
-    public boolean isPaused() {
-        return paused.get();
-    }
-
-    public void setRefreshDuration(long numb){
-        refreshDuration = numb;
-    }
-    public long getRefreshDuration(){
-        return this.refreshDuration;
-    }
-    protected long sleep(long duration) throws InterruptedException{
-        long start = System.currentTimeMillis();
-        Thread.sleep(duration);
-        return (System.currentTimeMillis() - start);
-    }
-    public void runOnPlatform(){
-        new Thread( ()->{
-            Platform.runLater(this);
-        }).start();
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        canceled.set(true);
         
+        return task.cancel(true);
+    };
+    
+    public boolean cancel(){
+        return this.cancel(true);
     }
+
+    @Override
+    public boolean isCancelled() {
+        return this.canceled.get();
+    }
+
+    @Override
+    public boolean isDone() {
+        return task.isDone();
+    }
+
+    @Override
+    public Object get() throws InterruptedException, ExecutionException {
+        return task.get();
+    }
+
+    @Override
+    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return task.get(timeout, unit);
+    }
+
+    protected abstract T call() throws Exception;
+
+    public final void setOnFailed(InvokeChildTask handle) {
+        this.onFailed = handle;
+    }
+    public final void setOnSucceeded(InvokeChildTask handle) {
+        this.onSucceded = handle;
+    }
+    public final void setOnCancelled(InvokeChildTask handle) {
+        this.onCanceled = handle;
+    }
+    public final void setOnInterrupted(InvokeChildTask handle){
+        this.onInterrupted = handle;
+    }
+
+    
     public Thread toThread(){
         return new Thread(this);
     }

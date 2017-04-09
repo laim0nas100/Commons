@@ -6,34 +6,21 @@
 package LibraryLB.Threads;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
  * @author Lemmin
  */
-public class RepeatableTask implements Callable,Runnable{
+public class RepeatableTask implements Runnable{
     private AtomicBoolean ready = new AtomicBoolean(true);
     private Callable call;
     public RepeatableTask(Runnable task){
-        this.call = (Callable) () -> {
-            task.run();
-            return null;
-        };
-        
+        this.call = Executors.callable(task, null);
     }
     public RepeatableTask(Callable task){
         this.call = task;
-    }
-            
-    @Override
-    public Object call() throws Exception {
-        Object o = null;
-        if(ready.compareAndSet(true, false)){
-            o =  call.call();
-            ready.set(true);
-        }
-        return o;
     }
 
     @Override

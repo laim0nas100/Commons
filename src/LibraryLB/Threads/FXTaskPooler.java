@@ -6,41 +6,37 @@
 package LibraryLB.Threads;
 
 import LibraryLB.Log;
-import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import javafx.concurrent.Task;
 
 /**
  *
  * @author Lemmin
  */
-public class TaskExecutor extends ExtTask{
+public class FXTaskPooler extends FXTask{
     private int maxCount = 1;
-    private AtomicInteger size;
+    private AtomicInteger size = new AtomicInteger(0);
     private int threadsFinished = 0;
-    private CountDownLatch latch;
+    private AtomicBoolean wait = new AtomicBoolean(false);
     public boolean neverStop = false;
-    private ConcurrentLinkedDeque<Task> tasks = new ConcurrentLinkedDeque<>();
-    private ConcurrentLinkedDeque<Task> activeTasks = new ConcurrentLinkedDeque<>();
-    public TaskExecutor(int maxCount, int refreshDuration){
-        if(maxCount>0){
-            this.maxCount = maxCount;
-        }
-        if(refreshDuration>=0){
-            this.refreshDuration = refreshDuration;
-        }
-        this.size = new AtomicInteger(0);
+    private ConcurrentLinkedDeque<RunnableFuture> tasks = new ConcurrentLinkedDeque<>();
+    private ConcurrentLinkedDeque<RunnableFuture> activeTasks = new ConcurrentLinkedDeque<>();
+    public FXTaskPooler(int maxCount, int refreshDuration){
+        this.maxCount = Math.max(1, maxCount);
+        this.refreshDuration = Math.max(0, refreshDuration);
+        
     }
-    public TaskExecutor(int maxCount, int refreshDuration, boolean neverStop){
+    public FXTaskPooler(int maxCount, int refreshDuration, boolean neverStop){
         this(maxCount, refreshDuration);
         this.neverStop = neverStop;
     }
-    private void startThread(Task task){
+    private void startThread(RunnableFuture task){
         if(task == null){
             return;
         }
@@ -48,9 +44,9 @@ public class TaskExecutor extends ExtTask{
         activeTasks.add(task);
     }
     private void emptyDoneTasks(){
-        Iterator<Task> iterator2 = this.activeTasks.iterator();
+        Iterator<RunnableFuture> iterator2 = this.activeTasks.iterator();
         while(iterator2.hasNext()){
-            Task next = iterator2.next();
+            Future next = iterator2.next();
             if(next.isDone()){
                 iterator2.remove();
                 this.threadsFinished+=1;
@@ -58,46 +54,35 @@ public class TaskExecutor extends ExtTask{
         }
     }
 
-    public void submit(Task task){
-        this.size.getAndIncrement();
-        this.tasks.addLast(task);
-    }
-    
     public void submit(Callable call){
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                call.call();
-                return null;
-            }
-        };
-        submit(task);
+        submit(new FutureTask(call));
     }
     public void submit(Runnable run){
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                run.run();
-                return null;
-            }
-        };
-        submit(task);
+        if(run instanceof RunnableFuture){
+            RunnableFuture task = (RunnableFuture)run;
+            this.size.getAndIncrement();
+            this.tasks.addLast(task);
+            endWait();
+        }else{
+            submit(new FutureTask(run,null));
+        }
     }
 
     @Override
     protected Void call() throws Exception {
-//        Log.print("Executor started");
-        prepareLatch();
-        latch.countDown();
+        Log.print("Executor started");
         while(!this.isCancelled()){
-            latch.await();
+            
+            if(tasks.isEmpty() && activeTasks.isEmpty()){
+                requestWait();
+            }
+            await();
             emptyDoneTasks();
             while(!tasks.isEmpty() && activeTasks.size()<maxCount){
-                Task first = tasks.pollFirst();
+                RunnableFuture first = tasks.pollFirst();
                 startThread(first);
-                latch.await();
+                await();
             }
-            
             this.updateProgress(threadsFinished, size.get());
             try {
                 if(refreshDuration>0){
@@ -110,7 +95,7 @@ public class TaskExecutor extends ExtTask{
                return null; 
             }
         }
-//        Log.print("Executor ended");
+        Log.print("Executor ended");
         cancelAllTasks();
         return null;
     }
@@ -118,33 +103,42 @@ public class TaskExecutor extends ExtTask{
     public void cancelAllTasks(){
         Log.print("CANCEL ALL TASKS");
         cancelRunningTasks();
-        for(Task task:tasks){
-            task.cancel();
+        for(Future task:tasks){
+            task.cancel(true);
         }
         
         
     }
     public void cancelRunningTasks(){
-        for(Task task:activeTasks){
-            task.cancel();
+        for(Future task:activeTasks){
+            task.cancel(true);
             Log.print("Cancel active task");
         }
     }
     
-    public void stopEverythingStartThis(Task task){
-        prepareLatch();
+    public void stopEverythingStartThis(Runnable task){
+        
         this.cancelRunningTasks();
         this.tasks.clear();
         this.activeTasks.clear();
         this.submit(task);
-        latch.countDown();
+        
     }
     
     public void clearSubmittedTasks(){
         tasks.clear();
     }
     
-    private void prepareLatch(){
-        this.latch = new CountDownLatch(1);
+    private void requestWait(){
+        wait.set(true);
+    }
+    private synchronized void endWait(){
+        wait.set(false);
+        this.notify();
+    }
+    private synchronized void await() throws InterruptedException{
+        while(wait.get()){
+            wait();
+        }
     }
 }
