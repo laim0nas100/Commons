@@ -28,23 +28,33 @@ public class ExecutorTest {
                 return null;
             }
         };
-        task.setOnFailed( r ->{
+        task.setOnFailed( f ->{
             
         });
         DynamicTaskExecutor executor = new DynamicTaskExecutor();
-        executor.setRunnerSize(8);
+        executor.setRunnerSize(4);
         
-        executor.submit(create("1",500,5));
-        executor.submit(create("2",500,5));
-        executor.submit(create("3",500,5));
-        executor.submit(create("4",500,5));
-        executor.submit(create("5",500,5));
-        executor.submit(create("6",500,5));
+        executor.submit(create("1",1000,5));
+        executor.submit(create("2",1000,5));
+        executor.submit(create("3",1000,5));
+        executor.submit(create("4",1000,5));
+        executor.submit(create("5",1000,5));
+        executor.submit(create("6",1000,5));
         Thread.sleep(1000);
         executor.setRunnerSize(2);
-        executor.submit(create("7",500,5));
-        executor.submit(create("8",500,5));
-        executor.submit(create("9",500,5));
+        executor.submit(create("7",1000,5));
+        executor.submit(create("8",1000,5));
+        executor.submit(create("9",1000,5));
+        ExtTask create = create("10",1000,5);
+        create.setOnSucceeded(f ->{
+            Log.print("Success!!");
+        });
+        create.setOnCancelled(f ->{
+            Log.print("canceled");
+        });
+        executor.submit(create);
+        Thread.sleep(1000);
+        create.cancel();
 //        executor.wakeUpRunners();
         
         Thread.sleep(12000);
@@ -56,14 +66,20 @@ public class ExecutorTest {
         
     }
     
-    public static Callable create(String message,long sleepyTime,int count){
-        return () -> {
-            for(int i=0; i<count; i++){
-                System.out.println(message);
-                Thread.sleep(sleepyTime);
+    public static ExtTask create(String message,long sleepyTime,int count){
+        return new ExtTask() {
+            @Override
+            protected Object call() throws Exception {
+                for(int i=0; i<count; i++){
+                    System.out.println(message);
+                    Thread.sleep(sleepyTime);
+                    if(this.isCancelled()){
+                        return null;
+                    }
+                }
+                return null;
             }
-            return null;
         };
         
-    }
+    };
 }

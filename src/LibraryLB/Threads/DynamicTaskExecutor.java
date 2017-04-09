@@ -59,7 +59,11 @@ public class DynamicTaskExecutor{
     public void setRunnerSize(int size){
         activeCount = Math.max(size, 0);
         while(runners.size() <  activeCount){
-                new Thread(new FutureTask(createRunner())).start(); 
+                TaskRunner runner = createRunner();
+                Thread t = new Thread(new FutureTask(runner));
+                runner.me = t;
+                t.start();
+                
         }
         while(runners.size() > activeCount){
             runners.pollLast().disable();

@@ -5,10 +5,13 @@
  */
 package LibraryLB.Threads;
 
+import LibraryLB.Log;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -24,32 +27,45 @@ public abstract class ExtTask <T> implements Runnable,Future{
     public final SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
     public final SimpleBooleanProperty done = new SimpleBooleanProperty(false);
     public final SimpleBooleanProperty failed = new SimpleBooleanProperty(false);
+    public final SimpleBooleanProperty interrupted = new SimpleBooleanProperty(false);
     public ExtTask childTask;
-    private FutureTask task = new FutureTask(() -> call());
+    private LinkedBlockingDeque<T> result = new LinkedBlockingDeque<>();
     private InvokeChildTask onInterrupted,onDone,onFailed,onCanceled,onSucceded;
     public int timesToRun = -1;
     public int timesRan = 0;
     public static interface InvokeChildTask{
-        public void handle(ExtTask n);
+        public void handle(Runnable r) throws Exception;
     }
     @Override
     public final void run() {
         if(timesToRun < timesRan && timesToRun >0){
             return;
         }
+        boolean ok = true;
         try {
-            task = new FutureTask(() -> call());
-            task.get();
-            tryRun(onSucceded);
+            Log.print("BEGIN");
+            T res = call();
+            if(res!=null)
+                result.offerLast(res);
+            Log.print("AFTER CALL");
         } catch (InterruptedException ex) {
+            
             tryRun(onInterrupted);
-        } catch (CancellationException ex){
-            tryRun(onCanceled);
-            canceled.set(true);
-        } catch (ExecutionException ex) {
+            
+        } catch (Exception ex) {
+            ok = false;
             tryRun(onFailed);
             failed.set(true);
         }
+        if(canceled.get()){
+            ok = false;
+            tryRun(onCanceled);
+        }
+        if(ok){
+            tryRun(onSucceded);
+        }
+        
+        done.set(true);
         tryRun(onDone);
         timesRan++;
     }
@@ -58,16 +74,16 @@ public abstract class ExtTask <T> implements Runnable,Future{
     private void tryRun(InvokeChildTask r){
         if(r != null){
             try{
-                r.handle(childTask);
-            }catch (Exception e) {}
-            
+                r.handle(this.childTask);
+            }catch (Exception e) {}  
+        }else{
+            Log.print("Nothing to try run");
         }
     }
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         canceled.set(true);
-        
-        return task.cancel(true);
+        return false;
     };
     
     public boolean cancel(){
@@ -81,17 +97,17 @@ public abstract class ExtTask <T> implements Runnable,Future{
 
     @Override
     public boolean isDone() {
-        return task.isDone();
+        return done.get();
     }
 
     @Override
     public Object get() throws InterruptedException, ExecutionException {
-        return task.get();
+        return result.pollFirst();
     }
 
     @Override
     public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return task.get(timeout, unit);
+        return result.pollFirst(timeout, unit);
     }
 
     protected abstract T call() throws Exception;
