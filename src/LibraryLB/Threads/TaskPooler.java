@@ -6,15 +6,19 @@
 package LibraryLB.Threads;
 
 import LibraryLB.Log;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -32,7 +36,8 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
     private AtomicInteger size = new AtomicInteger(0);
     private int threadsFinished = 0;
     private AtomicBoolean wait = new AtomicBoolean(false);
-    public boolean neverStop = false;
+    private boolean shutdownCalled = false;
+    private FutureTask shutdownCall = new FutureTask(() -> 0);
     private ConcurrentLinkedDeque<RunnableFuture> tasks = new ConcurrentLinkedDeque<>();
     private ConcurrentLinkedDeque<RunnableFuture> activeTasks = new ConcurrentLinkedDeque<>();
     private void startThread(RunnableFuture task){
@@ -57,13 +62,8 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
     public void run(){
         Log.print("Executor started");
         while(true){
-            
-            if(tasks.isEmpty() && activeTasks.isEmpty()){
-                requestWait();
-            }
-            await();
             emptyDoneTasks();
-            while(!tasks.isEmpty() && activeTasks.size()<maxCount){
+            while(!shutdownCalled && !tasks.isEmpty() && activeTasks.size()<maxCount){
                 RunnableFuture first = tasks.pollFirst();
                 startThread(first);
                 await();
@@ -71,7 +71,12 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
             if(activeTasks.isEmpty()&&tasks.isEmpty()){
                break;
             }
+            if(tasks.isEmpty() && activeTasks.isEmpty()){
+                requestWait();
+            }
+            await();
         }
+        shutdownCall.run();
         Log.print("Executor ended");
         cancelAllTasks();
     }
@@ -123,30 +128,46 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
 
     @Override
     public void shutdown() {
+        shutdownCalled = true;
     }
 
     @Override
     public List<Runnable> shutdownNow() {
-        return null;
+        shutdown();
+        List<Runnable> list = new ArrayList<>();
+        RunnableFuture first = tasks.pollFirst();
+        while(first != null){
+            list.add(first);
+            first = tasks.pollFirst();
+        }
+        return list;
     }
 
     @Override
     public boolean isShutdown() {
-        return false;
+        return shutdownCalled;
     }
 
     @Override
     public boolean isTerminated() {
-        return false;
+        return activeTasks.isEmpty()&&tasks.isEmpty();
     }
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return false;
+        Object get = null;
+        try {
+            get = this.shutdownCall.get(timeout, unit);
+        } catch (ExecutionException | TimeoutException ex) {
+        }
+        return get != null;
     }
 
     @Override
     public void execute(Runnable command) {
+        if(this.shutdownCalled){
+            return;
+        }
         Runnable wake = () ->{
             command.run();
             wakeUp();

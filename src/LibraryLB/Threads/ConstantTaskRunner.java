@@ -12,9 +12,9 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Lemmin
  */
-public class UninterruptedTaskRunner extends TaskRunner{
+public class ConstantTaskRunner extends TaskRunner{
 
-    public UninterruptedTaskRunner(TaskProvider provider, Runnable onRunFinished) {
+    public ConstantTaskRunner(TaskProvider provider, Runnable onRunFinished) {
         super(provider, onRunFinished);
     }
 

@@ -11,7 +11,6 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -19,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class TaskProvider {
     public LinkedBlockingDeque<RunnableFuture> tasks = new LinkedBlockingDeque<>();
+    public Runnable onTaskRequest;
     public void submit(RunnableFuture task, boolean priority){
         if(priority){
            this.tasks.addFirst(task);
@@ -41,9 +41,9 @@ public class TaskProvider {
         
         RunnableFuture t = tasks.pollFirst(1,TimeUnit.MILLISECONDS);
         Log.print("Task request",t!=null);
-//        if(t!=null){
-//            activeTasks.add(t);
-//        }
+        if(onTaskRequest!=null){
+            onTaskRequest.run();
+        }
         return t;
     }
     

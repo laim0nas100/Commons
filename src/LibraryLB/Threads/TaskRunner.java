@@ -32,7 +32,7 @@ public abstract class TaskRunner implements Runnable{
         Log.print("Runner started");
         while(active){
             try{
-                 commenceRun();           
+                commenceRun();           
             }catch (InterruptedException ex){
                 Log.print("INTERRUPTED");
             }
