@@ -21,17 +21,19 @@ public class ExecutorTest {
     
     public static void main(String... args) throws InterruptedException{
         Log.display = true;
-//        create("TEST",100,12).run();
-        ExtTask task = new ExtTask() {
-            @Override
-            protected Object call() throws Exception {
-                return null;
-            }
-        };
-        task.setOnFailed( f ->{
-            
-        });
+        Log.print("START");
         DynamicTaskExecutor executor = new DynamicTaskExecutor();
+//        create("TEST",100,12).run();
+//        ExtTask task = new ExtTask() {
+//            @Override
+//            protected Object call() throws Exception {
+//                return null;
+//            }
+//        };
+//        task.setOnFailed( f ->{
+//            
+//        });
+//        
         executor.setRunnerSize(4);
         
         executor.submit(create("1",1000,5));
@@ -55,8 +57,12 @@ public class ExecutorTest {
         executor.submit(create);
         Thread.sleep(1000);
         create.cancel();
-//        executor.wakeUpRunners();
-        
+//        ExtTask create = create("0",1000,20);
+//        create.setOnInterrupted(r ->{
+//            Log.print("WELP");
+//        });
+//        executor.submit(create);
+
         Thread.sleep(12000);
         executor.setRunnerSize(0);
         Thread.sleep(2000);
@@ -71,7 +77,7 @@ public class ExecutorTest {
             @Override
             protected Object call() throws Exception {
                 for(int i=0; i<count; i++){
-                    System.out.println(message);
+                    Log.println(message+":"+i);
                     Thread.sleep(sleepyTime);
                     if(this.isCancelled()){
                         return null;

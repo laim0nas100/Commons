@@ -12,8 +12,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.beans.property.SimpleBooleanProperty;
 
 /**
@@ -21,33 +23,50 @@ import javafx.beans.property.SimpleBooleanProperty;
  * @author Lemmin
  * @param <T>
  */
-public abstract class ExtTask <T> implements Runnable,Future{
+public abstract class ExtTask <T> implements RunnableFuture{
     
     public final SimpleBooleanProperty canceled = new SimpleBooleanProperty(false);
     public final SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
     public final SimpleBooleanProperty done = new SimpleBooleanProperty(false);
     public final SimpleBooleanProperty failed = new SimpleBooleanProperty(false);
     public final SimpleBooleanProperty interrupted = new SimpleBooleanProperty(false);
+    private AtomicBoolean running = new AtomicBoolean(false);
     public ExtTask childTask;
     private LinkedBlockingDeque<T> result = new LinkedBlockingDeque<>();
     private InvokeChildTask onInterrupted,onDone,onFailed,onCanceled,onSucceded;
-    public int timesToRun = -1;
-    public int timesRan = 0;
+    private int timesToRun = 1;
+    private int timesRan = 0;
     public static interface InvokeChildTask{
         public void handle(Runnable r) throws Exception;
     }
+    
+    public ExtTask(int timesToRun){
+        this.timesToRun = timesToRun;
+    }
+    public ExtTask(){
+        this(1);
+    }
+    
     @Override
     public final void run() {
         if(timesToRun < timesRan && timesToRun >0){
             return;
         }
+        if(!this.running.compareAndSet(false, true)){
+            return;
+        }
+        done.set(false);
+        canceled.set(false);
+        interrupted.set(false);
+        failed.set(false);
+        paused.set(false);
         boolean ok = true;
         try {
-            Log.print("BEGIN");
+//            Log.print("BEGIN");
             T res = call();
             if(res!=null)
-                result.offerLast(res);
-            Log.print("AFTER CALL");
+                result.offerFirst(res);
+//            Log.print("AFTER CALL");
         } catch (InterruptedException ex) {
             
             tryRun(onInterrupted);
@@ -77,7 +96,7 @@ public abstract class ExtTask <T> implements Runnable,Future{
                 r.handle(this.childTask);
             }catch (Exception e) {}  
         }else{
-            Log.print("Nothing to try run");
+//            Log.print("Nothing to try run");
         }
     }
     @Override
@@ -99,14 +118,17 @@ public abstract class ExtTask <T> implements Runnable,Future{
     public boolean isDone() {
         return done.get();
     }
+    
 
     @Override
-    public Object get() throws InterruptedException, ExecutionException {
-        return result.pollFirst();
+    public T get() throws InterruptedException, ExecutionException {
+        T res = result.pollFirst();
+        result.putLast(res);
+        return res;
     }
 
     @Override
-    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return result.pollFirst(timeout, unit);
     }
 
@@ -130,4 +152,20 @@ public abstract class ExtTask <T> implements Runnable,Future{
         return new Thread(this);
     }
     
+    public static ExtTask<Void> create(Runnable run){
+        return new ExtTask<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                return null;
+            }
+        };
+    }
+    public static ExtTask create(Callable call){
+        return new ExtTask() {
+            @Override
+            protected Object call() throws Exception {
+                return call.call();
+            }
+        };
+    }
 }

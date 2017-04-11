@@ -9,28 +9,21 @@ import LibraryLB.Log;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Lemmin
  */
 public class TaskProvider {
-    public AtomicInteger submitted = new AtomicInteger(0);
     public LinkedBlockingDeque<RunnableFuture> tasks = new LinkedBlockingDeque<>();
-    public LinkedBlockingDeque<RunnableFuture> activeTasks = new LinkedBlockingDeque<>();
     public void submit(RunnableFuture task, boolean priority){
-        this.submitted.getAndIncrement();
         if(priority){
            this.tasks.addFirst(task);
         }else{
-            this.tasks.addFirst(task);
+            this.tasks.addLast(task);
         }
         
     }   
@@ -46,11 +39,11 @@ public class TaskProvider {
     
     public RunnableFuture requestTask() throws InterruptedException{
         
-        RunnableFuture t = tasks.poll(1,TimeUnit.MILLISECONDS);
+        RunnableFuture t = tasks.pollFirst(1,TimeUnit.MILLISECONDS);
         Log.print("Task request",t!=null);
-        if(t!=null){
-            activeTasks.add(t);
-        }
+//        if(t!=null){
+//            activeTasks.add(t);
+//        }
         return t;
     }
     

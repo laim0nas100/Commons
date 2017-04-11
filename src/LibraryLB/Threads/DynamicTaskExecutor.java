@@ -7,63 +7,52 @@ package LibraryLB.Threads;
 
 import LibraryLB.Log;
 import java.math.BigInteger;
-import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
  * @author Lemmin
  */
-public class DynamicTaskExecutor{
-    public TaskProvider provider = new TaskProvider();
-    public ConcurrentLinkedDeque<TaskRunner> runners = new ConcurrentLinkedDeque<>();
-    public BigInteger tasksFinished = BigInteger.ZERO;
-    public AtomicInteger sleepingCount = new AtomicInteger(0);
-    
-    public int activeCount = 1;
-    public void submit(Callable cal){
-        provider.submit(cal,false);
-        wakeUpRunners();
-    }
-    public void submit(Runnable run){
-        provider.submit(run,false);
-        wakeUpRunners();
-    }
+public class DynamicTaskExecutor extends AbstractExecutorService{
+    protected TaskProvider provider = new TaskProvider();
+    protected ConcurrentLinkedDeque<TaskRunner> runners = new ConcurrentLinkedDeque<>();
+    protected BigInteger tasksFinished = BigInteger.ZERO;
+    protected BigInteger tasksAdded = BigInteger.ZERO;
+    protected Runnable doOnFinish = () -> increment();
+    protected int activeCount = 1;
+//    public void submit(Callable cal){
+//        provider.submit(cal,false);
+//        wakeUpRunners();
+//    }
+//    public void submit(Runnable run){
+//        provider.submit(run,false);
+//        wakeUpRunners();
+//    }
     public void wakeUpRunners(){
         
         for(TaskRunner runner:runners){
             runner.wakeUp();
         }
-        Iterator<RunnableFuture> iterator = provider.activeTasks.iterator();
-        while(iterator.hasNext()){
-            iterator.next().isDone();
-            iterator.remove();
-        }
     }
-    private synchronized void increment(){
+    protected synchronized void increment(){
         tasksFinished.add(BigInteger.ONE);
     }
-    public TaskRunner createRunner(){
-        Runnable r = () ->{
-            increment();
-        };
-        
-        TaskRunner runner = new TaskRunner(this,r);
+    protected TaskRunner createRunner(Runnable doOnFinish){      
+        TaskRunner runner = new DynamicTaskRunner(provider,doOnFinish);
         runners.add(runner);
+        Thread t = new Thread(runner);
+        runner.me = t;
         return runner;
     }
     public void setRunnerSize(int size){
         activeCount = Math.max(size, 0);
         while(runners.size() <  activeCount){
-                TaskRunner runner = createRunner();
-                Thread t = new Thread(new FutureTask(runner));
-                runner.me = t;
-                t.start();
-                
+            createRunner(this.doOnFinish).me.start();
         }
         while(runners.size() > activeCount){
             runners.pollLast().disable();
@@ -87,9 +76,7 @@ public class DynamicTaskExecutor{
     public void stopEverything(){
         clearPendingTasks();
         cancelAllTasks();
-        for(RunnableFuture task:provider.activeTasks){
-            task.cancel(true);
-        }
+
     }
     public void stopEverythingStartThis(Runnable runnable){
         stopEverything();
@@ -98,6 +85,39 @@ public class DynamicTaskExecutor{
     }
     public void clearPendingTasks(){
         provider.tasks.clear();
+    }
+
+    @Override
+    public void shutdown() {
+        setRunnerSize(0);
+    }
+
+    @Override
+    public List<Runnable> shutdownNow() {
+        return null;
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return false;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return false;
+    }
+
+    @Override
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        return false;
+    
+    }
+
+    @Override
+    public synchronized void execute(Runnable command) {
+        provider.submit(command,false);
+        this.tasksAdded.add(BigInteger.ONE);
+        wakeUpRunners();
     }
     
 }
