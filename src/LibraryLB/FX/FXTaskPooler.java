@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package LibraryLB.Threads;
+package LibraryLB.FX;
 
+import LibraryLB.FX.FXTask;
 import LibraryLB.Log;
 import java.util.Iterator;
 import java.util.concurrent.Callable;

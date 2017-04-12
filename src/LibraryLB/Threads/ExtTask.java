@@ -55,16 +55,19 @@ public abstract class ExtTask <T> implements RunnableFuture{
         p.set(value);
         
     }
-    @Override
-    public final void run() {
-        if(running.get()||(timesRan >= timesToRun && timesToRun > 0)){
-            return;
-        }
+    public void reset(){
         setProperty(done,false);
         setProperty(canceled,false);
         setProperty(interrupted,false);
         setProperty(failed,false);
         setProperty(paused,false);
+    }
+    @Override
+    public final void run() {
+        if(running.get()||(timesRan >= timesToRun && timesToRun > 0)){
+            return;
+        }
+        
         setProperty(running,true);
         try {
             T res = call();

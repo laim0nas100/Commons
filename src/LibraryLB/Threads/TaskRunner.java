@@ -12,23 +12,25 @@ import java.util.concurrent.RunnableFuture;
  *
  * @author Lemmin
  */
-public abstract class TaskRunner implements Runnable{
+public abstract class TaskRunner extends ExtTask implements Comparable{
     public RunnableFuture task;
     public Runnable onRunFinished;
     public TaskProvider provider;
     public volatile boolean active = true;
     public Thread me;
+    public final Long creationTime;
     
     public TaskRunner(TaskProvider provider,Runnable onRunFinished){
         this.provider = provider;
         this.onRunFinished = onRunFinished;
+        this.creationTime = System.currentTimeMillis();
     }
     public void disable(){
         this.active = false;
     }
     public abstract void wakeUp();
     @Override
-    public final void run() {
+    public final Integer call() {
         Log.print("Runner started");
         while(active){
             try{
@@ -38,10 +40,18 @@ public abstract class TaskRunner implements Runnable{
             }
         }
         Log.print("Runner ended");
+        return 0;
     }
     
     protected abstract void commenceRun() throws InterruptedException;
-
+    @Override
+    public int compareTo(Object o) {
+        if(o instanceof TaskRunner){
+            TaskRunner runner = (TaskRunner) o;
+            return this.creationTime.compareTo(runner.creationTime);
+        }
+        return -1; 
+    }
     
     
 }

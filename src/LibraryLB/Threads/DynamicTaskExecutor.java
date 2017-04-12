@@ -13,11 +13,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.IntegerBinding;
-import javafx.collections.FXCollections;
 
 /**
  *
@@ -26,7 +24,7 @@ import javafx.collections.FXCollections;
 public class DynamicTaskExecutor extends AbstractExecutorService{
     protected TaskProvider provider = new TaskProvider();
     protected ConcurrentLinkedDeque<TaskRunner> activeRunners = new ConcurrentLinkedDeque<>();
-    protected ConcurrentLinkedDeque<TaskRunner> disabledRunners = new ConcurrentLinkedDeque<>();
+    protected ConcurrentSkipListSet<TaskRunner> disabledRunners = new ConcurrentSkipListSet<>();
     protected BigInteger tasksFinished = BigInteger.ZERO;
     protected BigInteger tasksAdded = BigInteger.ZERO;
     protected Runnable doOnFinish = () -> increment();
@@ -57,22 +55,30 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
         tasksFinished.add(BigInteger.ONE);
     }
     protected TaskRunner createRunner(Runnable doOnFinish){      
-        TaskRunner runner = null;
+        TaskRunner[] runner = new TaskRunner[1];
         TaskRunner tryMe = disabledRunners.pollLast();
         if(tryMe == null || tryMe.me.isAlive()){
             if(tryMe != null && tryMe.me.isAlive()){
-                disabledRunners.addFirst(tryMe);
+                disabledRunners.add(tryMe);
             }
         }else{
-            runner = tryMe;
+            tryMe.active = true;
+            runner[0] = tryMe;
+            Log.print("Reuse taskrunner");
         }
-        if(runner == null){
-            runner = new DynamicTaskRunner(provider,doOnFinish);   
+        if(runner[0] == null){
+            runner[0] = new DynamicTaskRunner(provider,doOnFinish); 
+            Log.print("Create new taskrunner");
         }
-        activeRunners.add(runner);
-        Thread t = new Thread(runner);
-        runner.me = t;
-        return runner;
+        runner[0].setOnDone(ondone ->{
+            Log.print("Removed runner from set");
+            disabledRunners.remove(runner[0]);
+        });
+        activeRunners.add(runner[0]);
+        Thread t = new Thread(runner[0]);
+        runner[0].me = t;
+        runner[0].reset();
+        return runner[0];
     }
     public void setRunnerSize(int size){
         activeCount = Math.max(size, 0);
@@ -80,7 +86,7 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
             createRunner(this.doOnFinish).me.start();
         }
         while(activeRunners.size() > activeCount){
-            TaskRunner runner = activeRunners.pollLast();
+            TaskRunner runner = activeRunners.pollFirst();
             runner.disable();
             this.disabledRunners.add(runner);
         }

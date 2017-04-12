@@ -5,7 +5,6 @@
  */
 package LibraryLB.Threads;
 
-import LibraryLB.Log;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
