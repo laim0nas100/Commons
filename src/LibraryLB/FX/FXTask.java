@@ -45,9 +45,10 @@ public abstract class FXTask extends Task{
         return (System.currentTimeMillis() - start);
     }
     public void runOnPlatform(){
-        new Thread( ()->{
-            Platform.runLater(this);
-        }).start();
+//        new Thread( ()->{
+          Platform.runLater(this);  
+//        }).start();
+        
         
     }
     public Thread toThread(){

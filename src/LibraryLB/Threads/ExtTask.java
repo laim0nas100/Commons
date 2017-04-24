@@ -37,6 +37,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
     public ExtTask childTask;
     private LinkedBlockingDeque<T> resultDeque = new LinkedBlockingDeque<>();
     private T result;
+    private Thread currentThread;
     private InvokeChildTask onInterrupted,onDone,onFailed,onCanceled,onSucceded;
     private int timesToRun = 1;
     private int timesRan = 0;
@@ -56,25 +57,30 @@ public abstract class ExtTask <T> implements RunnableFuture{
         
     }
     public void reset(){
+        if(running.get()){
+            return;
+        }
         setProperty(done,false);
         setProperty(canceled,false);
         setProperty(interrupted,false);
         setProperty(failed,false);
         setProperty(paused,false);
+        result = null;
+        resultDeque.clear();
     }
     @Override
     public final void run() {
         if(running.get()||(timesRan >= timesToRun && timesToRun > 0)){
             return;
         }
-        
+        currentThread = Thread.currentThread();
         setProperty(running,true);
         try {
             T res = call();
             if(res!=null){
                 resultDeque.offerFirst(res);
             }
-            tryRun(onSucceded);
+            
         } catch (InterruptedException ex) {
             setProperty(interrupted,true);
             tryRun(onInterrupted);          
@@ -82,8 +88,10 @@ public abstract class ExtTask <T> implements RunnableFuture{
             setProperty(failed,true);
             tryRun(onFailed);
         }
-        if(canceled.get()){
+        if(canceled.get()||interrupted.get()){
             tryRun(onCanceled);
+        }else if(!failed.get()){
+            tryRun(onSucceded);
         }
         setProperty(done,true);
         tryRun(onDone);
@@ -97,13 +105,16 @@ public abstract class ExtTask <T> implements RunnableFuture{
             try{
                 r.handle(this.childTask);
             }catch (Exception e) {}  
-        }else{
-//            Log.print("Nothing to try run");
         }
     }
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
+    public boolean cancel(boolean interrupt) {
         setProperty(canceled,true);
+        if(interrupt){
+            if(currentThread != null){
+                currentThread.interrupt();
+            } 
+        }
         return false;
     };
     
@@ -129,8 +140,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
         }else{
             result = resultDeque.pollFirst();
             return result;
-        }
-        
+        } 
     }
 
     @Override
@@ -140,8 +150,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
         }else{
             result = resultDeque.pollFirst(timeout, unit);
             return result;
-        }
-        
+        }  
     }
 
     protected abstract T call() throws Exception;
