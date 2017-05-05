@@ -7,16 +7,11 @@ package LibraryLB.Threads;
 
 import java.util.HashMap;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
 
 /**
  *
@@ -26,14 +21,14 @@ import javafx.beans.property.SimpleObjectProperty;
 public abstract class ExtTask <T> implements RunnableFuture{
     
     public final ReadOnlyBooleanProperty canceled = new SimpleBooleanProperty(false);
-    public final ReadOnlyBooleanProperty paused = new SimpleBooleanProperty(false);
+    public final SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
     public final ReadOnlyBooleanProperty done = new SimpleBooleanProperty(false);
     public final ReadOnlyBooleanProperty failed = new SimpleBooleanProperty(false);
     public final ReadOnlyBooleanProperty interrupted = new SimpleBooleanProperty(false);
     public final ReadOnlyBooleanProperty running = new SimpleBooleanProperty(false);
 
     
-    protected HashMap<String, Object> valueMap = new HashMap<>();
+    public HashMap<String, Object> valueMap = new HashMap<>();
     public ExtTask childTask;
     private LinkedBlockingDeque<T> resultDeque = new LinkedBlockingDeque<>();
     private T result;
@@ -41,6 +36,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
     private InvokeChildTask onInterrupted,onDone,onFailed,onCanceled,onSucceded;
     private int timesToRun = 1;
     private int timesRan = 0;
+    private Exception exception;
     public static interface InvokeChildTask{
         public void handle(Runnable r) throws Exception;
     }
@@ -85,6 +81,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
             setProperty(interrupted,true);
             tryRun(onInterrupted);          
         } catch (Exception ex) {
+            exception = ex;
             setProperty(failed,true);
             tryRun(onFailed);
         }
@@ -197,6 +194,8 @@ public abstract class ExtTask <T> implements RunnableFuture{
     public void addObject(String key, Object object){
         this.valueMap.put(key, object);
     }
-            
+    public Exception getException(){
+        return this.exception;
+    }        
     
 }
