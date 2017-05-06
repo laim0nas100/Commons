@@ -129,25 +129,18 @@ public class FileUtils {
                 FileSystemProvider providerDest = dest.getFileSystem().provider();
                 if(!useStream || (Files.isDirectory(src) || (providerSrc == providerDest))){
                     providerSrc.move(src, dest, options);
+                    progress.set(1);
                 }
                 else{
-                    ExtInputStream stream = new ExtInputStream(src);
-                    this.paused.addListener(listener ->{
-                        if(paused.get()){
-                            stream.waitingTool.requestWait();
-                        }
-                        else{
-                            stream.waitingTool.wakeUp();
-                        }
-                    });                    
-                    stream.progress.addListener(listener ->{
-                        progress.set(stream.progress.get());
+                    ExtTask subtask = FileUtils.copy(src, dest, useStream, options);
+                    subtask.paused.bind(this.paused);
+                    DoubleProperty other = (DoubleProperty) subtask.valueMap.get(PROGRESS_KEY);
+                    progress.bind(other);
+                    subtask.setOnSucceeded(handle ->{
+                        Files.delete(src);
                     });
-                    Files.copy(stream, dest,options); 
-                    
-                    Files.delete(src);
+                    subtask.run();
                 }
-                progress.set(1);
                 return null;
             }
         };

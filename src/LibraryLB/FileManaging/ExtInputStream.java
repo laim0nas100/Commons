@@ -20,7 +20,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 public class ExtInputStream extends InputStream {
     public final SimpleDoubleProperty progress = new SimpleDoubleProperty(0);
     public final ConditionalWait waitingTool = new ConditionalWait();
-    private InputStream stream;
+    private final InputStream stream;
     private final long bytesLength;
     private long bytesRead;
     public ExtInputStream(Path path, OpenOption... options) throws IOException {
