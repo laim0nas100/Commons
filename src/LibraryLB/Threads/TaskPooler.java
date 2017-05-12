@@ -60,7 +60,7 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
 
     @Override
     public void run(){
-        Log.print("Executor started");
+//        Log.print("Executor started");
         while(true){
             emptyDoneTasks();
             while(!shutdownCalled && !tasks.isEmpty() && activeTasks.size()<maxCount){
@@ -77,12 +77,12 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
             await();
         }
         shutdownCall.run();
-        Log.print("Executor ended");
+//        Log.print("Executor ended");
         cancelAllTasks();
     }
 
     public void cancelAllTasks(){
-        Log.print("CANCEL ALL TASKS");
+//        Log.print("CANCEL ALL TASKS");
         cancelRunningTasks();
         for(Future task:tasks){
             task.cancel(true);
@@ -93,7 +93,7 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
     public void cancelRunningTasks(){
         for(Future task:activeTasks){
             task.cancel(true);
-            Log.print("Cancel active task");
+//            Log.print("Cancel active task");
         }
     }
     

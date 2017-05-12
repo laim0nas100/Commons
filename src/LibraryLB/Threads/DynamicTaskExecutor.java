@@ -64,14 +64,14 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
         }else{
             tryMe.active = true;
             runner[0] = tryMe;
-            Log.print("Reuse taskrunner");
+//            Log.print("Reuse taskrunner");
         }
         if(runner[0] == null){
             runner[0] = new DynamicTaskRunner(provider,doOnFinish); 
-            Log.print("Create new taskrunner");
+//            Log.print("Create new taskrunner");
         }
         runner[0].setOnDone(ondone ->{
-            Log.print("Removed runner from set");
+//            Log.print("Removed runner from set");
             disabledRunners.remove(runner[0]);
         });
         activeRunners.add(runner[0]);
@@ -90,7 +90,7 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
             runner.disable();
             this.disabledRunners.add(runner);
         }
-        Log.print("New runner size",this.activeCount);
+//        Log.print("New runner size",this.activeCount);
     }
     
     public void cancelAllTasks(){
@@ -120,19 +120,19 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
 
     @Override
     public void shutdown() {      
-        Log.print("Shutdown call");
+//        Log.print("Shutdown call");
         if(!shutdownCalled){
-            Log.print("Shutdown commance");
+//            Log.print("Shutdown commance");
             Runnable checkEmpty = () ->{
                 if(provider.tasks.isEmpty()){
                     setRunnerSize(0);
                 }
-                Log.print("Update size",provider.tasks.size());
+//                Log.print("Update size",provider.tasks.size());
             };
             checkEmpty.run();
             provider.onTaskRequest = checkEmpty;
             shutdownCalled = true;
-            Log.print("start task");
+//            Log.print("start task");
             terminationTask.toThread().start();
         }
     }

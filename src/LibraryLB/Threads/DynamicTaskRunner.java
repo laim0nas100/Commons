@@ -19,9 +19,9 @@ public class DynamicTaskRunner extends TaskRunner{
     }
     
     private synchronized void sleep() throws InterruptedException{
-        Log.println("Sleeping");
+//        Log.println("Sleeping");
         this.wait(60000);
-        Log.print("Wake up");
+//        Log.print("Wake up");
     }
     @Override
     public synchronized void wakeUp(){

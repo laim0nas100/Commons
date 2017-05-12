@@ -74,7 +74,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
         try {
             T res = call();
             if(res!=null){
-                resultDeque.offerFirst(res);
+                resultDeque.addFirst(res);
             }
             
         } catch (InterruptedException ex) {
@@ -135,7 +135,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
         if(done.get()){
             return result;
         }else{
-            result = resultDeque.pollFirst();
+            result = resultDeque.takeLast();
             return result;
         } 
     }
@@ -145,7 +145,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
         if(done.get()){
             return result;
         }else{
-            result = resultDeque.pollFirst(timeout, unit);
+            result = resultDeque.pollLast(timeout, unit);
             return result;
         }  
     }

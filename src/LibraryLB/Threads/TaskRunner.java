@@ -31,15 +31,15 @@ public abstract class TaskRunner extends ExtTask implements Comparable{
     public abstract void wakeUp();
     @Override
     public final Integer call() {
-        Log.print("Runner started");
+//        Log.print("Runner started");
         while(active){
             try{
                 commenceRun();           
             }catch (InterruptedException ex){
-                Log.print("INTERRUPTED");
+//                Log.print("INTERRUPTED");
             }
         }
-        Log.print("Runner ended");
+//        Log.print("Runner ended");
         return 0;
     }
     

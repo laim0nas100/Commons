@@ -40,7 +40,7 @@ public class TaskProvider {
     public RunnableFuture requestTask() throws InterruptedException{
         
         RunnableFuture t = tasks.pollFirst(1,TimeUnit.MILLISECONDS);
-        Log.print("Task request",t!=null);
+//        Log.print("Task request",t!=null);
         if(onTaskRequest!=null){
             onTaskRequest.run();
         }
