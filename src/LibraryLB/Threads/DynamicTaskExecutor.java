@@ -93,21 +93,26 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
 //        Log.print("New runner size",this.activeCount);
     }
     
-    public void cancelAllTasks(){
-        
+    public void cancelAllTasks(boolean interrupt){
         for(TaskRunner runner:this.activeRunners){
             if(runner.task != null){
-                runner.task.cancel(true);
+                runner.task.cancel(interrupt);
             }
         }
         for(RunnableFuture task:provider.tasks){
-            task.cancel(true);
+            task.cancel(interrupt);
         }
     }
-    public void stopEverything(){
+    public void cancelAllTasks(){
+        cancelAllTasks(true);
+    }
+    public void stopEverything(boolean interrupt){
         clearPendingTasks();
-        cancelAllTasks();
-
+        cancelAllTasks(interrupt);
+    }
+    
+    public void stopEverything(){
+        stopEverything(true);
     }
     public void stopEverythingStartThis(Runnable runnable){
         stopEverything();
