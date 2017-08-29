@@ -5,7 +5,6 @@
  */
 package LibraryLB.Threads;
 
-import LibraryLB.Log;
 import java.util.concurrent.RunnableFuture;
 
 /**

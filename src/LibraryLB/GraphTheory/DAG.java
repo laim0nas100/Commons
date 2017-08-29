@@ -5,7 +5,9 @@
  */
 package LibraryLB.GraphTheory;
 import LibraryLB.Log;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.concurrent.ThreadLocalRandom;
 /**
@@ -24,15 +26,15 @@ public class DAG extends Orgraph{
         }
     }
     
-    public static DAG generateRandomDAGNaive(int linkCount, int maxWeight){
-        HashSet<Integer> triedLinks = new HashSet<>();
+    public static DAG generateRandomDAGNaive(long linkCount, long maxWeight){
+        HashSet<Long> triedLinks = new HashSet<>();
         DAG graph = new DAG();
-        graph.nodes.put(0, new GNode(0));
+        graph.nodes.put(0l, new GNode(0));
         ThreadLocalRandom generator = ThreadLocalRandom.current();
-        Double w = new Double(generator.nextInt(1,maxWeight));
+        Double w = new Double(generator.nextLong(1,maxWeight));
         while(graph.links.size()<linkCount){
-            int nodeFrom = 0;
-            int nodeTo = 0;
+            long nodeFrom = 0;
+            long nodeTo = 0;
             while(nodeTo == nodeFrom){
                 nodeFrom = generator.nextInt(0, graph.nodes.size()+1);
                 nodeTo = generator.nextInt(0, graph.nodes.size()+1);
@@ -45,7 +47,7 @@ public class DAG extends Orgraph{
                 if(graph.addLinkIfNoCycles(link)){
                     triedLinks.add(link.reverse().key());
                     
-                    w = new Double(generator.nextInt(1,maxWeight));
+                    w = new Double(generator.nextLong(1,maxWeight));
                 }   
             }
         }
@@ -53,41 +55,36 @@ public class DAG extends Orgraph{
         
     }
     
-    public static DAG generateRandomDAGBetter(int linkCount, int maxWeight){
+    public static DAG generateRandomDAGBetter(long linkCount, long maxWeight, double batchSize){
         DAG graph = new DAG();
-        graph.nodes.put(0, new GNode(0));
+        graph.nodes.put(0l, new GNode(0));
         ThreadLocalRandom generator = ThreadLocalRandom.current();
         
         while(graph.links.size()<linkCount){
             
-            ArrayList<Integer> possibleCandidates = new ArrayList<>();
+            ArrayList<Long> possibleCandidates = new ArrayList<>();
             possibleCandidates.addAll(graph.nodes.keySet());
             
-            HashSet<Integer> parentSet;
+            HashSet<Long> parentSet;
             
-            Double w = new Double(generator.nextInt(1,maxWeight));
-            int nodeTo = 0;
-            int nodeFrom = 0;
-            
-            nodeFrom = generator.nextInt(0, graph.nodes.size());
+            long nodeFrom = generator.nextInt(0, graph.nodes.size()-1);
             parentSet = Algorithms.getParentSet(graph, nodeFrom);
             parentSet.add(nodeFrom);
             parentSet.addAll(graph.getNode(nodeFrom).linksTo);
-            parentSet.addAll(graph.getNode(nodeFrom).linkedFrom);
+            
             possibleCandidates.removeAll(parentSet);
-            possibleCandidates.add(graph.nodes.size());
-            Log.print(nodeFrom,parentSet,possibleCandidates);
-
-            nodeTo = possibleCandidates.get(generator.nextInt(possibleCandidates.size()));
-
-            graph.addLink(new GLink(nodeFrom,nodeTo,w));
-            Log.print(nodeFrom,nodeTo);
+            possibleCandidates.add((long)graph.nodes.size());
+                
+            long iterLimit = (long)Math.min(batchSize*possibleCandidates.size(), possibleCandidates.size());
+            iterLimit = (long)Math.max(Math.min(linkCount - graph.links.size(), iterLimit), 1);
             
-            
-            Log.print("Size:",graph.links.size());
-            
+            Collections.shuffle(possibleCandidates);
+            ArrayDeque<Long> candidates = new ArrayDeque<>(possibleCandidates);
+            for(long i = 0; i < iterLimit; i++){
+                double w = generator.nextDouble(maxWeight);
+                graph.addLink(new GLink(nodeFrom,candidates.removeFirst(),w));
+            }
         }
-//        Log.print(Algorithms.containsCycleBFS(graph, null));
         return graph;
         
     }

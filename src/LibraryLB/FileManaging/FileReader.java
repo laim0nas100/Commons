@@ -91,6 +91,28 @@ public class FileReader {
         }
         return finalList;
     }
+    
+        public static Collection<String> readFromFile(String URL,String lineComment) throws FileNotFoundException, IOException {
+        LinkedList<String> list = new LinkedList<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL),"UTF-8"))) {
+            reader.lines().forEach((String ln) -> {
+                int indexOf = ln.indexOf(lineComment);      //Find comment start
+                if(indexOf!=0){
+                    String line;
+                    if(indexOf==-1){
+                        line = ln;
+                    }else{
+                        line = ln.substring(0,indexOf);
+                    }
+                    list.add(line);
+                }
+                
+            });
+        }
+        return list;  
+    }
+
+    
     public static void writeToFile(String URL,Collection<String> list) throws FileNotFoundException, UnsupportedEncodingException{
         try (PrintWriter out = new PrintWriter(URL, "UTF-8")) {
             list.forEach(line ->{

@@ -12,14 +12,15 @@ import java.util.HashSet;
  * @author Lemmin
  */
 public class GNode {
+    public GNode(long id){
+        this.ID = id;
+    }
     public GNode(int id){
         this.ID = id;
-        this.linkedFrom = new HashSet<>();
-        this.linksTo = new HashSet<>();
     }
-    public HashSet<Integer> linksTo;
-    public HashSet<Integer> linkedFrom;
-    public int ID;
+    public HashSet<Long> linksTo = new HashSet<>();
+    public HashSet<Long> linkedFrom = new HashSet<>();
+    public long ID;
     
     @Override
     public String toString(){

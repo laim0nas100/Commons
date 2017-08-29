@@ -80,7 +80,7 @@ public class FileUtils {
                         optionList.add(op);
                     }
                 }
-                if(!Files.isDirectory(src) && useStream){
+                if(useStream && !Files.isDirectory(src)){
                     ExtInputStream stream = new ExtInputStream(src);
                     this.paused.addListener(listener ->{
                         if(paused.get()){

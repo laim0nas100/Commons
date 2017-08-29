@@ -1,8 +1,5 @@
 package LibraryLB.Threads.Sync;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  *
  * @author Laimonas Beniušis

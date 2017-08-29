@@ -10,7 +10,7 @@ package LibraryLB.GraphTheory;
  * @author Lemmin
  */
 public class GLink {
-    public GLink(int nodeFrom, int nodeTo, double w){
+    public GLink(long nodeFrom, long nodeTo, double w){
         this.nodeFrom = nodeFrom;
         this.nodeTo = nodeTo;
         this.weight = w;
@@ -19,14 +19,17 @@ public class GLink {
         return new GLink(nodeTo,nodeFrom,weight);
     }
     
-    public int nodeFrom;
-    public int nodeTo;
+    public long nodeFrom;
+    public long nodeTo;
     public double weight;
-    public Integer key(){
+    public Long key(){
         return GLink.hashMe(nodeFrom, nodeTo);
     }
-    public static Integer hashMe(Integer nodeFrom, Integer nodeTo){
-        return (nodeFrom+" ** "+nodeTo).hashCode();
+    public static Long hashMe(Long nodeFrom, Long nodeTo){
+//        Cantor pairing function
+        Double h = 0.5;
+        return (long)(h * (nodeFrom + nodeTo) * (nodeFrom + nodeTo + 1) + nodeTo);
+//        return (nodeFrom+" ** "+nodeTo).hashCode();
     }
 
     @Override

@@ -36,13 +36,13 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
             List<TaskRunner> list = new ArrayList<>();
             list.addAll(disabledRunners);
             list.addAll(activeRunners);
-            Log.print("Termination task running");
+//            Log.print("Termination task running");
             for(TaskRunner runner:list){
                 runner.wakeUp();
                 runner.me.join();
-                Log.print("Joined!!!");
+//                Log.print("Joined!!!");
             }
-            Log.print("Termination task finished");
+//            Log.print("Termination task finished");
             return 0;
         }
     };

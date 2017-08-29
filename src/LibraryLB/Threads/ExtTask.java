@@ -69,6 +69,7 @@ public abstract class ExtTask <T> implements RunnableFuture{
         if(running.get()||(timesRan >= timesToRun && timesToRun > 0)){
             return;
         }
+        timesRan++;
         currentThread = Thread.currentThread();
         setProperty(running,true);
         try {
@@ -92,7 +93,6 @@ public abstract class ExtTask <T> implements RunnableFuture{
         }
         setProperty(done,true);
         tryRun(onDone);
-        timesRan++;
         setProperty(running,false);
     }
     

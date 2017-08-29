@@ -5,12 +5,15 @@
  */
 package LibraryLB.Threads.Sync;
 
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+
 /**
  *
  * @author Lemmin
  */
 public class ConditionalWait {
-    public boolean keepWaiting = false;
+    private volatile boolean keepWaiting = false;
     
     public synchronized void conditionalWait(){
         try{
@@ -18,6 +21,16 @@ public class ConditionalWait {
                 this.wait();
             }
         }catch (InterruptedException e){}
+    }
+    public synchronized void conditionalWait(TimeUnit tu, long timeOut){
+        if(!keepWaiting) return;
+        long waitTime = tu.convert(timeOut, TimeUnit.MILLISECONDS);
+        try {
+            while(keepWaiting){
+                this.wait(waitTime);
+            }
+        } catch (Exception ex) {} 
+        
     }
     public synchronized void wakeUp(){
         keepWaiting = false;

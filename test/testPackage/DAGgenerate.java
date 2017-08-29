@@ -49,7 +49,7 @@ public class DAGgenerate {
         
         
         long time1 = System.currentTimeMillis();
-        DAG dag = DAG.generateRandomDAGBetter(links, 50);
+        DAG dag = DAG.generateRandomDAGBetter(links, 50,0.1);
         time1 = System.currentTimeMillis() - time1;
         long time2 = System.currentTimeMillis();
 //        dag = DAG.generateRandomDAGNaive(links, 50);

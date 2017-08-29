@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class Log{
     private PrintStream printStream;
     private boolean console = true;
+    public static boolean keepBuffer = true;
     public static boolean timeStamp = true;
     public static boolean display = true;
     public static boolean disable = false;
@@ -98,7 +99,7 @@ public class Log{
                 String string = "";
                 if(objects.length>0){
                     for(Object s:objects){
-                        string+=" ,"+s;
+                        string+=", "+s;
                     }
                     string = string.substring(2);
                 }
@@ -139,7 +140,9 @@ public class Log{
         if(display){
             System.out.println(res);
         }
-        Log.INSTANCE.list.add(res);
+        if(keepBuffer){
+            Log.INSTANCE.list.add(res);
+        }
         if(!INSTANCE.console){
             flushBuffer();
         }

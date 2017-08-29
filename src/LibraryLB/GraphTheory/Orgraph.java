@@ -14,15 +14,26 @@ import java.util.HashMap;
  * @author Lemmin
  */
 public class Orgraph {
-    public HashMap<Integer,GNode> nodes;
-    public HashMap<Integer,GLink> links;
+    public HashMap<Long,GNode> nodes;
+    public HashMap<Long,GLink> links;
 
     public Orgraph(){
         this.links = new HashMap<>();
         this.nodes = new HashMap<>();
     }
     
-    public boolean addLink(GLink link){
+    public Orgraph(double[][] matrix){
+        this();
+        int h = matrix.length;
+        int w = matrix[0].length;
+        for(int i = 0; i < h; i++){
+            for(int j = 0; j < w; j++){
+                this.addLink(new GLink(i,j,matrix[i][j]));
+            }
+        }
+    }
+    
+    public final boolean addLink(GLink link){
         GNode n1 = this.createNodeIfAbsent(link.nodeFrom);
         GNode n2 = this.createNodeIfAbsent(link.nodeTo);
         n1.linksTo.add(n2.ID);
@@ -35,7 +46,7 @@ public class Orgraph {
         this.links.put(link.key(), link);
         return collision;
     }
-    public void linkNodes(int nodeFrom, int nodeTo, double weight){
+    public void linkNodes(long nodeFrom, long nodeTo, double weight){
         this.addLink(new GLink(nodeFrom,nodeTo,weight));
     }
     
@@ -44,7 +55,7 @@ public class Orgraph {
         this.linkNodes(link.nodeTo, link.nodeFrom, link.weight);
     } 
     
-    public void removeLink(int nodeFrom, int nodeTo){
+    public void removeLink(long nodeFrom, long nodeTo){
         if(nodes.containsKey(nodeFrom)){
             this.removeConnectionFromNode(nodes.get(nodeFrom), nodeTo);
         }
@@ -55,23 +66,23 @@ public class Orgraph {
         this.removeLink(link.nodeTo,link.nodeFrom);
     }
     
-    public void removeNode(int ID){
+    public void removeNode(long ID){
         if(nodes.containsKey(ID)){
             GNode removeMe = nodes.get(ID);
-            ArrayList<Integer> linksTo = new ArrayList<>();
+            ArrayList<Long> linksTo = new ArrayList<>();
             linksTo.addAll(removeMe.linksTo);
-            for(Integer n : linksTo){
+            for(Long n : linksTo){
                 this.remove2wayLink(new GLink(n,ID,0));
             }
             nodes.remove(ID);
         }
     }
     
-    public boolean linkExists(int nodeFrom, int nodeTo){
+    public boolean linkExists(long nodeFrom, long nodeTo){
         return this.links.containsKey(GLink.hashMe(nodeFrom, nodeTo));
     }
     
-    public Double weight(int nodeFrom, int nodeTo){
+    public Double weight(long nodeFrom, long nodeTo){
         if(linkExists(nodeFrom,nodeTo)){
             return links.get(GLink.hashMe(nodeFrom, nodeTo)).weight;
         }else{
@@ -79,7 +90,7 @@ public class Orgraph {
         }
     }
     
-    public GNode getNode(int ID){
+    public GNode getNode(long ID){
         if(nodes.containsKey(ID)){
             return nodes.get(ID);
         }else{
@@ -87,11 +98,11 @@ public class Orgraph {
         }
     }
     
-    public boolean nodeIsLeaft(int ID){
+    public boolean nodeIsLeaft(long ID){
         return nodes.containsKey(ID) && nodes.get(ID).linksTo.isEmpty();
     }
     
-    private void removeConnectionFromNode(GNode nodeFrom,int linkTo){       
+    private void removeConnectionFromNode(GNode nodeFrom,long linkTo){       
         nodeFrom.linksTo.remove(linkTo);
         if (nodes.containsKey(linkTo)){
             GNode other = nodes.get(linkTo);
@@ -100,7 +111,7 @@ public class Orgraph {
         links.remove(GLink.hashMe(nodeFrom.ID, linkTo));
 
     }
-    private GNode createNodeIfAbsent(int id){
+    private GNode createNodeIfAbsent(long id){
         if (!nodes.containsKey(id)){
             GNode newnode = new GNode(id);
             this.nodes.put(id, newnode);
@@ -124,5 +135,5 @@ public class Orgraph {
             str += n.toString()+"\n";
         }
         return str;
-    }
+    }  
 }

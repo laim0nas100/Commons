@@ -17,10 +17,11 @@ import javafx.beans.property.SimpleBooleanProperty;
  * @author Lemmin
  */
 public class TimeoutTask{
+    
     private final long timeout;
     private final long refreshRate;
-    private AtomicLong currentTime;
-    private boolean initiated;
+    private AtomicLong initTime;
+    private volatile boolean initiated;
     public BooleanProperty conditionalCheck;
     private ArrayList<Runnable> onUpdate = new ArrayList<>();
     private final Runnable run;
@@ -28,10 +29,12 @@ public class TimeoutTask{
 
         @Override
         public Void call() throws Exception {
-//            Log.write("Sleep:"+currentTime.get());
-            Thread.sleep(timeout);
-            currentTime.decrementAndGet();
-//            Log.write("Try run:"+currentTime.get());
+            long timeLeft = getTimeLeft();
+            do{
+                Thread.sleep(timeLeft);
+                timeLeft = getTimeLeft();
+                
+            }while(timeLeft>0);
             tryRun();
             return null;
         }
@@ -45,7 +48,7 @@ public class TimeoutTask{
     public TimeoutTask(long timeout,long refreshRate,Runnable run){
         this.timeout = timeout;
         this.refreshRate = refreshRate;
-        this.currentTime = new AtomicLong(0);
+        this.initTime = new AtomicLong(0);
         initiated = false;
         conditionalCheck = new SimpleBooleanProperty(true);
         this.run = run;
@@ -58,29 +61,31 @@ public class TimeoutTask{
        for(Runnable r:this.onUpdate){
            r.run();
        }
-       currentTime.incrementAndGet();
-       initiated = true;
-       
-       new Thread(new FutureTask(call)).start();
-       
-       
+       this.initTime.set(System.currentTimeMillis());
+       if(!initiated){
+           initiated = true;
+           new Thread(new FutureTask(call)).start();
+       }
        
     }
     private void tryRun() throws InterruptedException{
-        if(initiated){
-            if(this.currentTime.get()<=0){
-                while(!this.conditionalCheck.get()){
+        if(initiated && this.getTimeLeft()<=0){
+            while(!this.conditionalCheck.get()){
 //                    Log.write("Failed conditional check");
-                    Thread.sleep(this.refreshRate);
-                    if(!initiated || this.currentTime.get()>0){
-                        return;
-                    }
+                Thread.sleep(this.refreshRate);
+                if(!initiated || this.getTimeLeft()>0){
+                    return;
                 }
-                initiated = false;
-                run.run();
+            }
+            initiated = false;
+            run.run();
 //                Log.write("TimoutTask success");
-            }  
-        }
+        }  
+        
+    }
+    
+    private long getTimeLeft(){
+        return timeout - (System.currentTimeMillis() - this.initTime.get()) + 1;
     }
     
     public boolean isInAction(){
