@@ -20,8 +20,9 @@ public class TimeoutTask{
     
     private final long timeout;
     private final long refreshRate;
-    private AtomicLong initTime;
-    private volatile boolean initiated;
+    private final long epsilon = 10; //sleep time window
+    private Thread thread;
+    private final AtomicLong initTime;
     public BooleanProperty conditionalCheck;
     private ArrayList<Runnable> onUpdate = new ArrayList<>();
     private final Runnable run;
@@ -29,11 +30,10 @@ public class TimeoutTask{
 
         @Override
         public Void call() throws Exception {
-            long timeLeft = getTimeLeft();
+            long timeLeft = 0;
             do{
-                Thread.sleep(timeLeft);
                 timeLeft = getTimeLeft();
-                
+                Thread.sleep(timeLeft);
             }while(timeLeft>0);
             tryRun();
             return null;
@@ -42,16 +42,16 @@ public class TimeoutTask{
     /**
      *
      * @param timeout Milliseconds to wait until execution
-     * @param refreshRate  Timer update rate (Milliseconds)
+     * @param refreshRate  Timer update rate (Milliseconds) after timeout was reached
      * @param run   Task to execute after timer reaches zero
      */
-    public TimeoutTask(long timeout,long refreshRate,Runnable run){
+    public TimeoutTask(long timeout, long refreshRate, Runnable run){
         this.timeout = timeout;
         this.refreshRate = refreshRate;
         this.initTime = new AtomicLong(0);
-        initiated = false;
         conditionalCheck = new SimpleBooleanProperty(true);
         this.run = run;
+        this.thread = new Thread(new FutureTask(call));
     }
     
     /**
@@ -62,35 +62,38 @@ public class TimeoutTask{
            r.run();
        }
        this.initTime.set(System.currentTimeMillis());
-       if(!initiated){
-           initiated = true;
-           new Thread(new FutureTask(call)).start();
+       if(!thread.isAlive()){
+           this.startNewThread();
        }
-       
     }
+    
+    
+    private void startNewThread(){
+        thread = new Thread(new FutureTask(call));
+        thread.start();
+    }
+    
     private void tryRun() throws InterruptedException{
-        if(initiated && this.getTimeLeft()<=0){
-            while(!this.conditionalCheck.get()){
-//                    Log.write("Failed conditional check");
-                Thread.sleep(this.refreshRate);
-                if(!initiated || this.getTimeLeft()>0){
-                    return;
-                }
+        while(!this.conditionalCheck.get()){
+//          Log.write("Failed conditional check");
+            Thread.sleep(this.refreshRate);
+            if(this.getTimeLeft()>0){
+                startNewThread();
+                return;
             }
-            initiated = false;
-            run.run();
-//                Log.write("TimoutTask success");
-        }  
-        
+        }
+        run.run();
+//      Log.write("TimoutTask success"); 
     }
     
     private long getTimeLeft(){
-        return timeout - (System.currentTimeMillis() - this.initTime.get()) + 1;
+        return timeout - (System.currentTimeMillis() - this.initTime.get()) + epsilon;
     }
     
     public boolean isInAction(){
-        return this.initiated;
+        return this.thread.isAlive();
     }
+    
     public void addOnUpdate(Runnable run){
         this.onUpdate.add(run);
     }
