@@ -147,7 +147,6 @@ public class NewEmptyJUnitTest {
         Log.println(i,d);
         
     }
-    @Test
     public void hello() {
         //StringInfo info = new StringInfo("LAbas");
         //Log.write(info);
@@ -169,4 +168,18 @@ public class NewEmptyJUnitTest {
         System.out.println("Duration "+ (System.currentTimeMillis()-l1));
         
     }
+    @Test
+    public void thread(){
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        });
+        Log.print(t.isAlive());
+ 
+        
+    }
+    
+    
 }

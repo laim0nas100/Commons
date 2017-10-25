@@ -5,7 +5,6 @@
  */
 package LibraryLB.Threads.Sync;
 
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 /**
