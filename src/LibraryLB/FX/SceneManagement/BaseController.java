@@ -22,4 +22,5 @@ public abstract class BaseController implements Initializable{
     } 
     public abstract void exit();
     public abstract void update();
+    public abstract void initialize();
 }

@@ -88,6 +88,7 @@ public class MultiStageManager{
             frame.listenerY = listenerY;
             stage.xProperty().addListener(listenerX);
             stage.yProperty().addListener(listenerY);
+            controller.initialize();
             return frame;
         };
         FutureTask ftask = new FutureTask(call);
