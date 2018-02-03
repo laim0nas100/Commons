@@ -6,10 +6,8 @@
 package LibraryLB;
 
 import java.io.Closeable;
-import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,8 +25,8 @@ public class DelayedLog implements Closeable{
     
     private static final PrinterService serviceERR = new PrinterService(System.err);
     private static final PrinterService serviceOUT = new PrinterService(System.out);
-    private ExecutorService main = Executors.newSingleThreadExecutor();
-    private HashMap<String,PrinterService> map = new HashMap<>();
+    private final ExecutorService main = Executors.newSingleThreadExecutor();
+    private final HashMap<String,PrinterService> map = new HashMap<>();
 
     
     public static class PrinterService implements Closeable{
@@ -58,7 +56,6 @@ public class DelayedLog implements Closeable{
         Callable call = () ->{
             this.getPrintService(file).log(str);
             return null;
-            
         };
         main.submit(call);
     }
@@ -89,6 +86,8 @@ public class DelayedLog implements Closeable{
     
     @Override
     public void close(){
+        serviceERR.executor.shutdown();
+        serviceOUT.executor.shutdown();
         this.main.shutdown();
         for(PrinterService s:map.values()){
             s.close();
