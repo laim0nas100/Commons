@@ -5,12 +5,8 @@
  */
 package LibraryLB.Jobs;
 
-import LibraryLB.Log;
-import LibraryLB.UUIDgenerator.ExtUUID;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,10 +27,7 @@ public class JobsExecutor{
     
     
     private JobEventListener rescanJobs;
-    public JobsExecutor(ExecutorService exe, int jobPool){
-        this(exe);
-        
-    }
+    
     public JobsExecutor(ExecutorService exe){
         jobs = new ConcurrentLinkedDeque<>();
         this.exe = exe;
@@ -42,6 +35,7 @@ public class JobsExecutor{
             addScanRequest();
         };
     }
+    
     public void submit(Job job){
         if(isShutdown){
             throw new Error("Shutdown was called");
@@ -50,14 +44,13 @@ public class JobsExecutor{
         job.addListener(JobEvent.ON_DONE, rescanJobs);
         addScanRequest();
     }
+    
     private synchronized void addScanRequest(){
         Runnable r = () ->{
                 rescanJobs();
             };
         scanner.submit(r);
     }
-    
-    
     
     public void rescanJobs(){
         Iterator<Job> iterator = jobs.iterator();
