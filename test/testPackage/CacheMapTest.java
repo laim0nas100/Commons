@@ -7,7 +7,9 @@ package testPackage;
 
 import LibraryLB.CacheMap;
 import LibraryLB.CacheMap.ParameterCombinator;
+import LibraryLB.CachedValue;
 import LibraryLB.Log;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -103,6 +105,15 @@ public class CacheMapTest {
         time2 = System.nanoTime() - time2;
         
         Log.print(time1,time2);
+        
+    }
+    
+    
+    @Test
+    public void testCache(){
+        CachedValue<List<List<Long>>> value = new CachedValue<>();
+        
+        
         
     }
 }
