@@ -20,12 +20,22 @@ import java.util.Map;
  */
 public abstract class Job implements Runnable{
     
+    public static Job fromRunnable(Runnable run){
+        Job job = new Job() {
+            @Override
+            protected void logic() throws Exception {
+                run.run();
+            }
+        };
+        return job;
+    }
     
-    private Collection<JobDependency> doBefore;
-    private Collection<JobDependency> doAfter;
+    
+    private Collection<JobDependency> doBefore = new HashSet<>();
+    private Collection<JobDependency> doAfter = new HashSet<>();
     private ExtUUID uuid;
     
-    private Map<String,Collection<JobEventListener>> listeners;
+    private Map<String,Collection<JobEventListener>> listeners = new HashMap<>();
     
     
     private boolean canceled = false;
@@ -41,9 +51,6 @@ public abstract class Job implements Runnable{
     
     
     public Job(){
-        listeners = new HashMap<>();
-        doBefore = new HashSet<>();
-        doAfter = new HashSet<>();
         uuid = UUIDgenerator.nextUUID(this.getClass());
         leftToRun = 1;
     }
