@@ -67,6 +67,7 @@ public class TestReflection {
             list.add(3);
             list.add(2);
             list.add(1);
+            array = new Integer[5];
         }
         public TestClass child;
 

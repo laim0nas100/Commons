@@ -25,22 +25,22 @@ import static org.junit.Assert.*;
  * @author Laimonas-Beniusis-PC
  */
 public class CacheMapTest {
-    
+
     public CacheMapTest() {
     }
-    
+
     @BeforeClass
     public static void setUpClass() {
     }
-    
+
     @AfterClass
     public static void tearDownClass() {
     }
-    
+
     @Before
     public void setUp() {
     }
-    
+
     @After
     public void tearDown() {
     }
@@ -48,12 +48,9 @@ public class CacheMapTest {
     // TODO add test methods here.
     // The methods must be annotated with annotation @Test. For example:
     //
-     
-    
-    
-    public long fibb(long fib1, long fib2, int step){
-        
-        if(step<=0){
+    public long fibb(long fib1, long fib2, int step) {
+
+        if (step <= 0) {
             try {
                 Thread.sleep(1);
             } catch (InterruptedException ex) {
@@ -61,40 +58,39 @@ public class CacheMapTest {
             }
             return fib1;
         }
-        return fibb(fib2,fib1+fib2,step-1);
-        
+        return fibb(fib2, fib1 + fib2, step - 1);
+
     }
     CacheMap map = new CacheMap();
-    public void procedure1(int amount){
-        
-        for(int i = 0; i < amount; i++){
-            
+
+    public void procedure1(int amount) {
+
+        for (int i = 0; i < amount; i++) {
+
             ParameterCombinator get = null;
             long result;
-            ParameterCombinator comb = new ParameterCombinator(1,1,100);
-            if(map.containsKey(comb)){
+            ParameterCombinator comb = new ParameterCombinator(1, 1, 100);
+            if (map.containsKey(comb)) {
                 get = map.get(comb);
                 result = (long) get.values[0];
             }
-            if(get==null){
-                result = fibb(1,1,100);
+            if (get == null) {
+                result = fibb(1, 1, 100);
                 get = new ParameterCombinator(result);
                 map.put(comb, get);
             }
         }
-        
-        
-        
+
     }
-    
-    public void procedure2(int amount){
-        for(int i = 0; i < amount; i++){
-            
+
+    public void procedure2(int amount) {
+        for (int i = 0; i < amount; i++) {
+
             long result;
-            result = fibb(1,1,100);
+            result = fibb(1, 1, 100);
         }
     }
-    
+
     @Test
     public void testSimple() {
         long time1 = System.nanoTime();
@@ -103,17 +99,13 @@ public class CacheMapTest {
         long time2 = System.nanoTime();
         procedure1(50);
         time2 = System.nanoTime() - time2;
-        
-        Log.print(time1,time2);
-        
+
+        Log.print(time1, time2);
+
     }
-    
-    
+
     @Test
-    public void testCache(){
-        CachedValue<List<List<Long>>> value = new CachedValue<>();
-        
-        
-        
+    public void testCache() {
+
     }
 }
