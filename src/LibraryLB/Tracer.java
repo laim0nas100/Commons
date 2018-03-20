@@ -5,13 +5,13 @@
  */
 package LibraryLB;
 
+import LibraryLB.Threads.DisposableExecutor;
 import java.io.PrintStream;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
 /**
@@ -43,7 +43,7 @@ public class Tracer {
     }
 
     public static PrintStream stream = System.out;
-    public static ExecutorService service = Executors.newSingleThreadExecutor();
+    public static Executor service = new DisposableExecutor(1);
     public static DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
     public void print(final String str) {
@@ -58,13 +58,18 @@ public class Tracer {
     }
 
     private static void submit(final Thread t, final long millis, final String cls, final Callable<String> str) {
-        Callable run = () -> {
+        Runnable run = () -> {
             String strTime = Instant.ofEpochMilli(millis).atZone(ZoneOffset.systemDefault()).format(format);
-            String s = strTime + " " + cls + " " + t.getName() + " " + str.call();
+            String calledString = "";
+            try {
+                calledString = str.call();
+            } catch (Exception ex) {
+                calledString = ex.getLocalizedMessage();
+            }
+            String s = strTime + " " + cls + " " + t.getName() + " " + calledString;
             stream.println(s);
-            return null;
         };
-        service.submit(run);
+        service.execute(run);
     }
 
     public void dump(final Object o) {
