@@ -14,14 +14,21 @@ import java.lang.reflect.Field;
 public class RefModel extends Ref {
 
     public static <T extends RefModel> T compile(Class<T> rootCls) throws InstantiationException, IllegalAccessException {
+        return compile(5, rootCls);
+    }
+
+    public static <T extends RefModel> T compile(int limit, Class<T> rootCls) throws InstantiationException, IllegalAccessException {
         RefModel newInstance = rootCls.newInstance();
         newInstance.local = "";
         newInstance.relative = "";
-        newInstance.compileInner(null);
+        newInstance.compileInner(null, limit);
         return (T) newInstance;
     }
 
-    private void compileInner(Ref parent) throws IllegalArgumentException, IllegalAccessException, InstantiationException {
+    private void compileInner(Ref parent, int limit) throws IllegalArgumentException, IllegalAccessException, InstantiationException {
+        if (limit <= 0) {
+            return;
+        }
         String substring = "";
         if (parent != null && !parent.relative.isEmpty()) {
             substring = parent.relative + ".";
@@ -37,7 +44,7 @@ public class RefModel extends Ref {
                 ref.relative = substring + ref.local;
                 if (RefModel.class.isAssignableFrom(type)) {
                     RefModel model = (RefModel) ref;
-                    model.compileInner(model);
+                    model.compileInner(model, limit - 1);
                     f.set(this, model);
                 }
             }
