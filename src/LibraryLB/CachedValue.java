@@ -44,5 +44,8 @@ public class CachedValue <T>{
         return this.getterCalled;
     }
     
+    public String toString(){
+        return this.get().toString();
+    }
     
 }

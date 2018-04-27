@@ -21,11 +21,11 @@ public abstract class FXTask extends Task{
     protected long refreshDuration = 500;
     public SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
     public Task childTask;
-    public String getTaskDescription() {
+    public String getDescription() {
         return taskDescription;
     }
     
-    public void setTaskDescription(String taskDescription) {
+    public void setDescription(String taskDescription) {
         this.taskDescription = taskDescription;
     }
     

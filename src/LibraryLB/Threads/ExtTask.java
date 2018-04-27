@@ -69,22 +69,24 @@ public abstract class ExtTask <T> implements RunnableFuture{
         if(running.get()||(timesRan >= timesToRun && timesToRun > 0)){
             return;
         }
-        timesRan++;
-        currentThread = Thread.currentThread();
-        setProperty(running,true);
-        try {
-            T res = call();
-            if(res!=null){
-                resultDeque.addFirst(res);
+        if(!canceled.get()){
+            timesRan++;
+            currentThread = Thread.currentThread();
+            setProperty(running,true);
+            try {
+                T res = call();
+                if(res!=null){
+                    resultDeque.addFirst(res);
+                }
+
+            } catch (InterruptedException ex) {
+                setProperty(interrupted,true);
+                tryRun(onInterrupted);          
+            } catch (Exception ex) {
+                exception = ex;
+                setProperty(failed,true);
+                tryRun(onFailed);
             }
-            
-        } catch (InterruptedException ex) {
-            setProperty(interrupted,true);
-            tryRun(onInterrupted);          
-        } catch (Exception ex) {
-            exception = ex;
-            setProperty(failed,true);
-            tryRun(onFailed);
         }
         if(canceled.get()||interrupted.get()){
             tryRun(onCanceled);
@@ -167,6 +169,18 @@ public abstract class ExtTask <T> implements RunnableFuture{
     public final void setOnDone(InvokeChildTask handle){
         this.onDone = handle;
     }
+    public final void appendOnDone(InvokeChildTask handle){
+        if(this.onDone == null){
+            setOnDone(handle);
+        }else{
+            InvokeChildTask old = onDone;
+            onDone = s ->{
+                old.handle(childTask);
+                handle.handle(childTask);
+            };
+        }
+    }
+    
 
     
     public Thread toThread(){

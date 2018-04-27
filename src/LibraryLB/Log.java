@@ -92,6 +92,7 @@ public class Log{
             return;
         }
         long millis = System.currentTimeMillis();
+        final Thread t = Thread.currentThread();
         
         Runnable r = new Runnable() {
             @Override
@@ -103,7 +104,7 @@ public class Log{
                     }
                     string = string.substring(2);
                 }
-                logThis(string, millis);
+                logThis(string,t, millis);
             }
         };
         INSTANCE.exe.submit(r);
@@ -114,6 +115,7 @@ public class Log{
             return;
         }
         long millis = System.currentTimeMillis();
+        final Thread t = Thread.currentThread();
         Runnable r = new Runnable() {
             @Override
             public void run() {
@@ -126,16 +128,16 @@ public class Log{
                     }
                     string = string.substring(1);
                 }
-                logThis(string, millis);
+                logThis(string,t, millis);
             }
         };
         INSTANCE.exe.submit(r);
     }
-    private static void logThis(String string, long millis){     
+    private static void logThis(String string,Thread thread, long millis){     
         String time = getZonedDateTime(timeStringFormat,millis);
         String res = string;
         if(timeStamp){
-            res = time+"{"+res+"}";
+            res = time+"["+thread.getName()+"] {"+res+"}";
         }
         if(display){
             System.out.println(res);
