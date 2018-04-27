@@ -10,42 +10,38 @@ package LibraryLB;
  * @author Lemmin
  * @param <T> any value
  */
-public class CachedValue <T>{
-    
-    
+public class CachedValue<T> {
+
     private T value;
-    
+
     private long setterCalled = -1;
     private long getterCalled = -1;
-    
-    public CachedValue(){
-        
+
+    public CachedValue() {
+
     }
-    
-    
-    public T get(){
+
+    public T get() {
         this.getterCalled = System.currentTimeMillis();
         return value;
     }
-    
-    public void set(T val){
+
+    public void set(T val) {
         this.setterCalled = System.currentTimeMillis();
         this.value = val;
-        
-        
+
     }
-    
-    
-    public long lastSetterCall(){
+
+    public long lastSetterCall() {
         return this.setterCalled;
     }
-    
-    public long lastGetterCalled(){
+
+    public long lastGetterCalled() {
         return this.getterCalled;
     }
-    
-    public String toString(){
+
+    public String toString() {
         return this.get().toString();
     }
-    
+
 }
