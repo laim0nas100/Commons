@@ -16,34 +16,35 @@ import java.util.concurrent.TimeUnit;
  * @author Lemmin
  */
 public class TaskProvider {
+
     public LinkedBlockingDeque<RunnableFuture> tasks = new LinkedBlockingDeque<>();
     public Runnable onTaskRequest;
-    public void submit(RunnableFuture task, boolean priority){
-        if(priority){
-           this.tasks.addFirst(task);
-        }else{
+
+    public void submit(RunnableFuture task, boolean priority) {
+        if (priority) {
+            this.tasks.addFirst(task);
+        } else {
             this.tasks.addLast(task);
         }
-        
-    }   
-    public void submit(Callable call, boolean priority){
-        
+    }
+
+    public void submit(Callable call, boolean priority) {
+
         submit(new FutureTask(call), priority);
     }
-    public void submit(Runnable run, boolean priority){
-        submit(new FutureTask(run,null), priority);
+
+    public void submit(Runnable run, boolean priority) {
+        submit(new FutureTask(run, null), priority);
     }
 
+    public RunnableFuture requestTask() throws InterruptedException {
 
-    
-    public RunnableFuture requestTask() throws InterruptedException{
-        
-        RunnableFuture t = tasks.pollFirst(1,TimeUnit.MILLISECONDS);
+        RunnableFuture t = tasks.pollFirst(1, TimeUnit.MILLISECONDS);
 //        Log.print("Task request",t!=null);
-        if(onTaskRequest!=null){
+        if (onTaskRequest != null) {
             onTaskRequest.run();
         }
         return t;
     }
-    
+
 }

@@ -10,5 +10,6 @@ package LibraryLB.Jobs;
  * @author Lemmin
  */
 public interface JobEventListener {
+
     public void onEvent(JobEvent event);
 }

@@ -13,33 +13,36 @@ import java.util.HashMap;
  *
  * @author Laimonas-Beniusis-PC
  */
-public class CacheMap extends HashMap<ParameterCombinator,ParameterCombinator>{
-    
-    public static class ParameterCombinator{
+public class CacheMap extends HashMap<ParameterCombinator, ParameterCombinator> {
+
+    public static class ParameterCombinator {
+
         public Object[] values;
-        public ParameterCombinator(Object...vals){
+
+        public ParameterCombinator(Object... vals) {
             this.values = vals;
         }
+
         @Override
-        public boolean equals(Object other){
-            if(other == null || !(other instanceof ParameterCombinator) ){
+        public boolean equals(Object other) {
+            if (other == null || !(other instanceof ParameterCombinator)) {
                 return false;
             }
             Object[] vals = ((ParameterCombinator) other).values;
-            if(values == null && vals == null){
+            if (values == null && vals == null) {
                 return true;
             }
-            if(values.length != vals.length){
+            if (values.length != vals.length) {
                 return false;
             }
             return Arrays.deepEquals(values, vals);
-            
+
         }
 
         @Override
         public int hashCode() {
             int hash = 7;
-            
+
             hash = 59 * hash + Arrays.deepHashCode(this.values);
             return hash;
         }

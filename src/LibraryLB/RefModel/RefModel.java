@@ -13,8 +13,10 @@ import java.lang.reflect.Field;
  */
 public class RefModel extends Ref {
 
+    public static final int DEFAULT_COMPILE_DEPTH = 5;
+
     public static <T extends RefModel> T compile(Class<T> rootCls) throws InstantiationException, IllegalAccessException {
-        return compile(5, rootCls);
+        return compile(DEFAULT_COMPILE_DEPTH, rootCls);
     }
 
     public static <T extends RefModel> T compile(int limit, Class<T> rootCls) throws InstantiationException, IllegalAccessException {

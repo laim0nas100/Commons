@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Lemmin
  */
-public class ConstantTaskRunner extends TaskRunner{
+public class ConstantTaskRunner extends TaskRunner {
 
     public ConstantTaskRunner(TaskProvider provider, Runnable onRunFinished) {
         super(provider, onRunFinished);
@@ -25,11 +25,11 @@ public class ConstantTaskRunner extends TaskRunner{
     @Override
     protected void commenceRun() throws InterruptedException {
         RunnableFuture t = provider.tasks.pollFirst(1, TimeUnit.MINUTES);
-        if(t != null){
+        if (t != null) {
             task = t;
             task.run();
-            onRunFinished.run();       
+            onRunFinished.run();
         }
     }
-    
+
 }

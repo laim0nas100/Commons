@@ -18,9 +18,9 @@ import java.util.Map;
  *
  * @author Lemmin
  */
-public abstract class Job implements Runnable{
-    
-    public static Job fromRunnable(Runnable run){
+public abstract class Job implements Runnable {
+
+    public static Job fromRunnable(Runnable run) {
         Job job = new Job() {
             @Override
             protected void logic() throws Exception {
@@ -29,33 +29,30 @@ public abstract class Job implements Runnable{
         };
         return job;
     }
-    
-    
+
     private Collection<JobDependency> doBefore = new HashSet<>();
     private Collection<JobDependency> doAfter = new HashSet<>();
     private ExtUUID uuid;
-    
-    private Map<String,Collection<JobEventListener>> listeners = new HashMap<>();
-    
-    
+
+    private Map<String, Collection<JobEventListener>> listeners = new HashMap<>();
+
     private boolean canceled = false;
     private boolean failed = false;
     private boolean successfull = false;
     private boolean running = false;
-        
+
     private int leftToRun;
-    
+
     private Job me = this;
-    
+
     private Job canceledRoot;
-    
-    
-    public Job(){
-        uuid = UUIDgenerator.nextUUID(this.getClass());
+
+    public Job() {
+        uuid = UUIDgenerator.nextUUID(this.getClass().hashCode());
         leftToRun = 1;
     }
-    
-    public Job(int timesToRun){
+
+    public Job(int timesToRun) {
         this();
         this.leftToRun = timesToRun;
     }
@@ -66,173 +63,168 @@ public abstract class Job implements Runnable{
         hash = 67 * hash + uuid.hashCode();
         return hash;
     }
-    
+
     @Override
-    public boolean equals(Object o){
-        if(o == null){
+    public boolean equals(Object o) {
+        if (o == null) {
             return false;
         }
-        if(o instanceof Job){
+        if (o instanceof Job) {
             Job other = (Job) o;
             return other.uuid.equals(this.uuid);
         }
         return false;
     }
-    
-    
-    public ExtUUID getUUID(){
+
+    public ExtUUID getUUID() {
         return this.uuid;
     }
-    
-    public void cancel(){
+
+    public void cancel() {
         this.cancel(true);
     }
-    public void cancel(boolean propogate){
-        if(this.canceled){
+
+    public void cancel(boolean propogate) {
+        if (this.canceled) {
             return;
         }
         this.canceled = true;
-        this.fireEvent(new JobEvent(JobEvent.ON_CANCEL,me));
-        if(!propogate){
+        this.fireEvent(new JobEvent(JobEvent.ON_CANCEL, me));
+        if (!propogate) {
             return;
         }
-        for(JobDependency j:this.doAfter){
+        for (JobDependency j : this.doAfter) {
             j.getJob().canceledRoot = me;
             j.getJob().cancel();
-            
+
         }
     }
-    
-    public boolean isReady(){
-        
-        if(this.isDiscardable()){
+
+    public boolean isReady() {
+
+        if (this.isDiscardable()) {
             return false;
         }
-        for(JobDependency job:this.doBefore){
-            if(!job.isCompleted()){
+        for (JobDependency job : this.doBefore) {
+            if (!job.isCompleted()) {
                 return false;
             }
         }
         return true;
     }
-    
-    public boolean isDiscardable(){
-        if(this.isCanceled() || this.isFailed()){
+
+    public boolean isDiscardable() {
+        if (this.isCanceled() || this.isFailed()) {
             return true;
         }
         return this.leftToRun == 0;
     }
-    
-    public boolean isCanceled(){
+
+    public boolean isCanceled() {
         return canceled;
     }
-    
-    public boolean isSuccessfull(){
+
+    public boolean isSuccessfull() {
         return successfull;
     }
-    public boolean isFailed(){
+
+    public boolean isFailed() {
         return failed;
     }
-    
-    public List<Job> getCanceledChain(){
-        
+
+    public List<Job> getCanceledChain() {
+
         LinkedList<Job> chain = new LinkedList<>();
-        if(!isCanceled()){
+        if (!isCanceled()) {
             return chain;
-        }else{
+        } else {
             chain.addLast(me);
         }
-        if(this.canceledRoot!=null){
+        if (this.canceledRoot != null) {
             chain.addAll(canceledRoot.getCanceledChain());
         }
         return chain;
-        
-        
+
     }
-    
-    
-    public boolean isDone(){
-        return ((isCanceled()|| isFailed()) || isSuccessfull());
+
+    public boolean isDone() {
+        return ((isCanceled() || isFailed()) || isSuccessfull());
     }
-    
-    
-    
-    public void addBackward(String onEvent,Job job){
-        DefaultJobDependency jobd1 = new DefaultJobDependency(job,onEvent);
+
+    public void addBackward(String onEvent, Job job) {
+        DefaultJobDependency jobd1 = new DefaultJobDependency(job, onEvent);
         this.doBefore.add(jobd1);
-        DefaultJobDependency jobd2 = new DefaultJobDependency(me,onEvent);
+        DefaultJobDependency jobd2 = new DefaultJobDependency(me, onEvent);
         job.doAfter.add(jobd2);
     }
-    
-    public void addForward(String onEvent,Job job){
-        DefaultJobDependency jobd1 = new DefaultJobDependency(job,onEvent);
+
+    public void addForward(String onEvent, Job job) {
+        DefaultJobDependency jobd1 = new DefaultJobDependency(job, onEvent);
         this.doAfter.add(jobd1);
-        DefaultJobDependency jobd2 = new DefaultJobDependency(me,onEvent);
+        DefaultJobDependency jobd2 = new DefaultJobDependency(me, onEvent);
         job.doBefore.add(jobd2);
     }
-    
-    
-    public void addBackward(Job job){
+
+    public void addBackward(Job job) {
         this.addBackward(JobEvent.ON_SUCCEEDED, job);
     }
-    public void addForward(Job job){
+
+    public void addForward(Job job) {
         this.addForward(JobEvent.ON_SUCCEEDED, job);
     }
 
-    
     protected abstract void logic() throws Exception;
-    
+
     @Override
     public void run() {
-        if(this.running){
+        if (this.running) {
             return;
         }
-        if(!this.isReady() ){
+        if (!this.isReady()) {
             return;
         }
-        
+
         this.running = true;
-        if(leftToRun>0){
+        if (leftToRun > 0) {
             this.leftToRun--;
         }
         Exception e = null;
-        try{
+        try {
             logic();
             this.successfull = true;
-            
-            
-        }catch(Exception ex){
+
+        } catch (Exception ex) {
             this.failed = true;
             e = ex;
-        }finally{
-            if(isSuccessfull()){
-                this.fireEvent(new JobEvent(JobEvent.ON_SUCCEEDED,me));
+        } finally {
+            if (isSuccessfull()) {
+                this.fireEvent(new JobEvent(JobEvent.ON_SUCCEEDED, me));
             }
-            if(isFailed()){
-                this.fireEvent(new JobEvent(JobEvent.ON_FAILED,me,e));
+            if (isFailed()) {
+                this.fireEvent(new JobEvent(JobEvent.ON_FAILED, me, e));
             }
-            this.fireEvent(new JobEvent(JobEvent.ON_DONE,me));
-            if(this.isDiscardable()){
-                this.fireEvent(new JobEvent(JobEvent.ON_FINISHED,me));
+            this.fireEvent(new JobEvent(JobEvent.ON_DONE, me));
+            if (this.isDiscardable()) {
+                this.fireEvent(new JobEvent(JobEvent.ON_FINISHED, me));
             }
             this.running = false;
         }
     }
-    
-    public void addListener(String name, JobEventListener listener){
+
+    public void addListener(String name, JobEventListener listener) {
         Collection<JobEventListener> collection;
-        if(!this.listeners.containsKey(name)){
+        if (!this.listeners.containsKey(name)) {
             collection = new LinkedList<>();
             this.listeners.put(name, collection);
-        }else{
+        } else {
             collection = this.listeners.get(name);
         }
         collection.add(listener);
     }
-    
-    public void fireEvent(JobEvent event){
-        if(this.listeners.containsKey(event.getEventName())){
-            for(JobEventListener listener:this.listeners.get(event.getEventName())){
+
+    public void fireEvent(JobEvent event) {
+        if (this.listeners.containsKey(event.getEventName())) {
+            for (JobEventListener listener : this.listeners.get(event.getEventName())) {
                 listener.onEvent(event);
             }
         }

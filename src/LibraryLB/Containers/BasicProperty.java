@@ -18,19 +18,18 @@ import javafx.beans.value.ObservableValue;
  * @param <V>
  */
 public class BasicProperty<V extends Object> implements Property<V> {
-    
+
     protected final String name;
     protected HashSet<Object> listeners = new HashSet<>();
-    protected HashMap<ObservableValue,HashSet<Object>> bindings = new HashMap<>();
+    protected HashMap<ObservableValue, HashSet<Object>> bindings = new HashMap<>();
     protected V value;
     private boolean changeInit;
-    
-    
-    public BasicProperty(V val){
+
+    public BasicProperty(V val) {
         this.value = val;
-        this.name = val.getClass().getSimpleName()+" "+this.getClass().getSimpleName();
+        this.name = val.getClass().getSimpleName() + " " + this.getClass().getSimpleName();
     }
-    
+
     @Override
     public void addListener(InvalidationListener listener) {
         listeners.add(listener);
@@ -40,7 +39,6 @@ public class BasicProperty<V extends Object> implements Property<V> {
     public void removeListener(InvalidationListener listener) {
         listeners.remove(listener);
     }
-    
 
     @Override
     public void addListener(ChangeListener listener) {
@@ -60,38 +58,37 @@ public class BasicProperty<V extends Object> implements Property<V> {
 
     @Override
     public void setValue(V value) {
-        if(this.changeInit){
+        if (this.changeInit) {
             return;
         }
         this.changeInit = true;
-        
+
         V oldValue = this.value;
         this.value = value;
         // fire listeners
-        for(Object o:this.listeners){
-            if(o instanceof InvalidationListener){
-                InvalidationListener l = (InvalidationListener)o;
+        for (Object o : this.listeners) {
+            if (o instanceof InvalidationListener) {
+                InvalidationListener l = (InvalidationListener) o;
                 l.invalidated(this);
-            }
-            else if(o instanceof ChangeListener){
-                ChangeListener l = (ChangeListener)o;
+            } else if (o instanceof ChangeListener) {
+                ChangeListener l = (ChangeListener) o;
                 l.changed(this, oldValue, value);
             }
         }
-        
+
         this.changeInit = false;
-        
+
     }
 
     @Override
     public void bind(ObservableValue observable) {
-        
-        InvalidationListener l = (obs) ->{
-            if(observable.getValue().getClass().isAssignableFrom(this.value.getClass())){
+
+        InvalidationListener l = (obs) -> {
+            if (observable.getValue().getClass().isAssignableFrom(this.value.getClass())) {
                 this.setValue((V) observable.getValue());
-            }       
+            }
         };
-        if(!this.bindings.containsKey(observable)){
+        if (!this.bindings.containsKey(observable)) {
             this.bindings.put(observable, new HashSet<>());
         }
         HashSet<Object> listenerSet = this.bindings.get(observable);
@@ -101,27 +98,28 @@ public class BasicProperty<V extends Object> implements Property<V> {
 
     @Override
     public void unbind() {
-        for(ObservableValue obsValue:this.bindings.keySet()){
-            unbind(this.bindings.get(obsValue),obsValue);
+        for (ObservableValue obsValue : this.bindings.keySet()) {
+            unbind(this.bindings.get(obsValue), obsValue);
         }
         this.bindings.clear();
     }
-    private void unbind(HashSet<Object> list, ObservableValue p){
-        for(Object o:list){
-            if(o instanceof InvalidationListener){
-                p.removeListener((InvalidationListener)o);
-            }
-            else if(o instanceof ChangeListener){
-                p.removeListener((ChangeListener)o);
+
+    private void unbind(HashSet<Object> list, ObservableValue p) {
+        for (Object o : list) {
+            if (o instanceof InvalidationListener) {
+                p.removeListener((InvalidationListener) o);
+            } else if (o instanceof ChangeListener) {
+                p.removeListener((ChangeListener) o);
             }
         }
     }
-    protected void unbind(ObservableValue p){
-        if(this.bindings.containsKey(p)){
+
+    protected void unbind(ObservableValue p) {
+        if (this.bindings.containsKey(p)) {
             HashSet<Object> list = this.bindings.get(p);
-            unbind(list,p);
+            unbind(list, p);
             this.bindings.remove(p);
-        }else{
+        } else {
 //            Log.print("Not bound to");
         }
     }
@@ -139,7 +137,7 @@ public class BasicProperty<V extends Object> implements Property<V> {
 
     @Override
     public void unbindBidirectional(Property other) {
-        if(this.changeInit){
+        if (this.changeInit) {
             return;
         }
         this.changeInit = true;

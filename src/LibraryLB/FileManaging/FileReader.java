@@ -20,102 +20,103 @@ import java.util.LinkedList;
  * @author Laimonas Beniušis
  */
 public class FileReader {
-    public static Collection<String> readFromFile(String URL) throws UnsupportedEncodingException, FileNotFoundException, IOException{
-       LinkedList<String> list = new LinkedList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL),"UTF-8"))) {
-            reader.lines().forEach((String line) ->{
+
+    public static Collection<String> readFromFile(String URL) throws UnsupportedEncodingException, FileNotFoundException, IOException {
+        LinkedList<String> list = new LinkedList<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
+            reader.lines().forEach((String line) -> {
                 list.add(line);
             });
         }
-       return list;
+        return list;
     }
-    public static Collection<String> readFromFile(String URL,String lineComment, String commentStart, String commentEnd) throws FileNotFoundException, IOException {
+
+    public static Collection<String> readFromFile(String URL, String lineComment, String commentStart, String commentEnd) throws FileNotFoundException, IOException {
         LinkedList<String> list = new LinkedList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL),"UTF-8"))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
             reader.lines().forEach((String ln) -> {
                 int indexOf = ln.indexOf(lineComment);      //Find comment start
-                if(indexOf!=0){
+                if (indexOf != 0) {
                     String line;
-                    if(indexOf==-1){
+                    if (indexOf == -1) {
                         line = ln;
-                    }else{
-                        line = ln.substring(0,indexOf);
+                    } else {
+                        line = ln.substring(0, indexOf);
                     }
                     list.add(line);
                 }
-                
+
             });
         }
         boolean inComment = false;
-        
+
         LinkedList<String> finalList = new LinkedList<>();
         String[] array = list.toArray(new String[1]);
         for (String str : array) {
-            do{
-                if(inComment){
-                    if(str.contains(commentEnd)){
+            do {
+                if (inComment) {
+                    if (str.contains(commentEnd)) {
                         int indexOf = str.indexOf(commentEnd);
-                        str = str.substring(indexOf+commentEnd.length());
+                        str = str.substring(indexOf + commentEnd.length());
                         inComment = false;
-                    }else{
+                    } else {
                         str = "";
                         break;
                     }
                 }
-                if(str.contains(commentStart)){
+                if (str.contains(commentStart)) {
                     int indexOf = str.indexOf(commentStart);
-                    if(str.contains(commentEnd)){
-                        str = str.substring(0,indexOf)+
-                                str.substring(str.indexOf(commentEnd)+commentEnd.length());
-                    }else{
-                        str = str.substring(0,indexOf);
-                        inComment = true; 
+                    if (str.contains(commentEnd)) {
+                        str = str.substring(0, indexOf)
+                                + str.substring(str.indexOf(commentEnd) + commentEnd.length());
+                    } else {
+                        str = str.substring(0, indexOf);
+                        inComment = true;
                     }
-                }else{
+                } else {
                     break;
                 }
-                if(inComment){
-                    if(str.contains(commentEnd)){
+                if (inComment) {
+                    if (str.contains(commentEnd)) {
                         int indexOf = str.indexOf(commentEnd);
-                        str = str.substring(indexOf+commentEnd.length());
+                        str = str.substring(indexOf + commentEnd.length());
                         inComment = false;
-                    }else{
+                    } else {
                         break;
                     }
                 }
-                
-            }while(true);
-            if(str.length()>0){
+
+            } while (true);
+            if (str.length() > 0) {
                 finalList.add(str);
-            }     
+            }
         }
         return finalList;
     }
-    
-        public static Collection<String> readFromFile(String URL,String lineComment) throws FileNotFoundException, IOException {
+
+    public static Collection<String> readFromFile(String URL, String lineComment) throws FileNotFoundException, IOException {
         LinkedList<String> list = new LinkedList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL),"UTF-8"))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
             reader.lines().forEach((String ln) -> {
                 int indexOf = ln.indexOf(lineComment);      //Find comment start
-                if(indexOf!=0){
+                if (indexOf != 0) {
                     String line;
-                    if(indexOf==-1){
+                    if (indexOf == -1) {
                         line = ln;
-                    }else{
-                        line = ln.substring(0,indexOf);
+                    } else {
+                        line = ln.substring(0, indexOf);
                     }
                     list.add(line);
                 }
-                
+
             });
         }
-        return list;  
+        return list;
     }
 
-    
-    public static void writeToFile(String URL,Collection<String> list) throws FileNotFoundException, UnsupportedEncodingException{
+    public static void writeToFile(String URL, Collection<String> list) throws FileNotFoundException, UnsupportedEncodingException {
         try (PrintWriter out = new PrintWriter(URL, "UTF-8")) {
-            list.forEach(line ->{
+            list.forEach(line -> {
                 out.println(line);
             });
         }

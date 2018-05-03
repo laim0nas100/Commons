@@ -5,7 +5,6 @@
  */
 package LibraryLB.Threads;
 
-import LibraryLB.Log;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +20,8 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Lemmin
  */
-public class DynamicTaskExecutor extends AbstractExecutorService{
+public class DynamicTaskExecutor extends AbstractExecutorService {
+
     protected TaskProvider provider = new TaskProvider();
     protected ConcurrentLinkedDeque<TaskRunner> activeRunners = new ConcurrentLinkedDeque<>();
     protected ConcurrentSkipListSet<TaskRunner> disabledRunners = new ConcurrentSkipListSet<>();
@@ -37,7 +37,7 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
             list.addAll(disabledRunners);
             list.addAll(activeRunners);
 //            Log.print("Termination task running");
-            for(TaskRunner runner:list){
+            for (TaskRunner runner : list) {
                 runner.wakeUp();
                 runner.me.join();
 //                Log.print("Joined!!!");
@@ -46,31 +46,34 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
             return 0;
         }
     };
-    public void wakeUpRunners(){      
-        for(TaskRunner runner:activeRunners){
+
+    public void wakeUpRunners() {
+        for (TaskRunner runner : activeRunners) {
             runner.wakeUp();
         }
     }
-    protected synchronized void increment(){
+
+    protected synchronized void increment() {
         tasksFinished.add(BigInteger.ONE);
     }
-    protected TaskRunner createRunner(Runnable doOnFinish){      
+
+    protected TaskRunner createRunner(Runnable doOnFinish) {
         TaskRunner[] runner = new TaskRunner[1];
         TaskRunner tryMe = disabledRunners.pollLast();
-        if(tryMe == null || tryMe.me.isAlive()){
-            if(tryMe != null && tryMe.me.isAlive()){
+        if (tryMe == null || tryMe.me.isAlive()) {
+            if (tryMe != null && tryMe.me.isAlive()) {
                 disabledRunners.add(tryMe);
             }
-        }else{
+        } else {
             tryMe.active = true;
             runner[0] = tryMe;
 //            Log.print("Reuse taskrunner");
         }
-        if(runner[0] == null){
-            runner[0] = new DynamicTaskRunner(provider,doOnFinish); 
+        if (runner[0] == null) {
+            runner[0] = new DynamicTaskRunner(provider, doOnFinish);
 //            Log.print("Create new taskrunner");
         }
-        runner[0].setOnDone(ondone ->{
+        runner[0].setOnDone(ondone -> {
 //            Log.print("Removed runner from set");
             disabledRunners.remove(runner[0]);
         });
@@ -80,56 +83,61 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
         runner[0].reset();
         return runner[0];
     }
-    public void setRunnerSize(int size){
+
+    public void setRunnerSize(int size) {
         activeCount = Math.max(size, 0);
-        while(activeRunners.size() <  activeCount){
+        while (activeRunners.size() < activeCount) {
             createRunner(this.doOnFinish).me.start();
         }
-        while(activeRunners.size() > activeCount){
+        while (activeRunners.size() > activeCount) {
             TaskRunner runner = activeRunners.pollFirst();
             runner.disable();
             this.disabledRunners.add(runner);
         }
 //        Log.print("New runner size",this.activeCount);
     }
-    
-    public void cancelAllTasks(boolean interrupt){
-        for(TaskRunner runner:this.activeRunners){
-            if(runner.task != null){
+
+    public void cancelAllTasks(boolean interrupt) {
+        for (TaskRunner runner : this.activeRunners) {
+            if (runner.task != null) {
                 runner.task.cancel(interrupt);
             }
         }
-        for(RunnableFuture task:provider.tasks){
+        for (RunnableFuture task : provider.tasks) {
             task.cancel(interrupt);
         }
     }
-    public void cancelAllTasks(){
+
+    public void cancelAllTasks() {
         cancelAllTasks(true);
     }
-    public void stopEverything(boolean interrupt){
+
+    public void stopEverything(boolean interrupt) {
         clearPendingTasks();
         cancelAllTasks(interrupt);
     }
-    
-    public void stopEverything(){
+
+    public void stopEverything() {
         stopEverything(true);
     }
-    public void stopEverythingStartThis(Runnable runnable){
+
+    public void stopEverythingStartThis(Runnable runnable) {
         stopEverything();
         provider.submit(runnable, true);
         wakeUpRunners();
     }
-    public void clearPendingTasks(){
+
+    public void clearPendingTasks() {
         provider.tasks.clear();
     }
 
     @Override
-    public void shutdown() {      
+    public void shutdown() {
 //        Log.print("Shutdown call");
-        if(!shutdownCalled){
+        if (!shutdownCalled) {
 //            Log.print("Shutdown commance");
-            Runnable checkEmpty = () ->{
-                if(provider.tasks.isEmpty()){
+            Runnable checkEmpty = () -> {
+                if (provider.tasks.isEmpty()) {
                     setRunnerSize(0);
                 }
 //                Log.print("Update size",provider.tasks.size());
@@ -147,7 +155,7 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
         shutdown();
         List<Runnable> list = Collections.emptyList();
         Runnable run = provider.tasks.pollFirst();
-        while(run != null){
+        while (run != null) {
             list.add(run);
             run = provider.tasks.pollFirst();
         }
@@ -163,8 +171,8 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
     public boolean isTerminated() {
         boolean allDead = isShutdown();
         Iterator<TaskRunner> iterator = this.disabledRunners.iterator();
-        while(allDead){
-            if(iterator.hasNext()){
+        while (allDead) {
+            if (iterator.hasNext()) {
                 allDead = !(iterator.next().me.isAlive());
             }
         }
@@ -175,16 +183,16 @@ public class DynamicTaskExecutor extends AbstractExecutorService{
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         Object get = terminationTask.get(timeout, unit);
         return get != null;
-    
+
     }
 
     @Override
     public synchronized void execute(Runnable command) {
-        if(!shutdownCalled){
-            provider.submit(command,false);
+        if (!shutdownCalled) {
+            provider.submit(command, false);
             this.tasksAdded.add(BigInteger.ONE);
         }
         wakeUpRunners();
     }
-    
+
 }

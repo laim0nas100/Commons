@@ -26,8 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class TaskPooler extends AbstractExecutorService implements Runnable {
 
-    
-
     private int maxCount = 1;
     private AtomicInteger size = new AtomicInteger(0);
     private int threadsFinished = 0;
@@ -36,38 +34,40 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
     private FutureTask shutdownCall = new FutureTask(() -> 0);
     private ConcurrentLinkedDeque<RunnableFuture> tasks = new ConcurrentLinkedDeque<>();
     private ConcurrentLinkedDeque<RunnableFuture> activeTasks = new ConcurrentLinkedDeque<>();
-    private void startThread(RunnableFuture task){
-        if(task == null){
+
+    private void startThread(RunnableFuture task) {
+        if (task == null) {
             return;
         }
         new Thread(task).start();
         activeTasks.add(task);
     }
-    private void emptyDoneTasks(){
+
+    private void emptyDoneTasks() {
         Iterator<RunnableFuture> iterator2 = this.activeTasks.iterator();
-        while(iterator2.hasNext()){
+        while (iterator2.hasNext()) {
             Future next = iterator2.next();
-            if(next.isDone()){
+            if (next.isDone()) {
                 iterator2.remove();
-                this.threadsFinished+=1;
+                this.threadsFinished += 1;
             }
         }
     }
 
     @Override
-    public void run(){
+    public void run() {
 //        Log.print("Executor started");
-        while(true){
+        while (true) {
             emptyDoneTasks();
-            while(!shutdownCalled && !tasks.isEmpty() && activeTasks.size()<maxCount){
+            while (!shutdownCalled && !tasks.isEmpty() && activeTasks.size() < maxCount) {
                 RunnableFuture first = tasks.pollFirst();
                 startThread(first);
                 await();
             }
-            if(activeTasks.isEmpty()&&tasks.isEmpty()){
-               break;
+            if (activeTasks.isEmpty() && tasks.isEmpty()) {
+                break;
             }
-            if(tasks.isEmpty() && activeTasks.isEmpty()){
+            if (tasks.isEmpty() && activeTasks.isEmpty()) {
                 requestWait();
             }
             await();
@@ -77,44 +77,46 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
         cancelAllTasks();
     }
 
-    public void cancelAllTasks(){
+    public void cancelAllTasks() {
 //        Log.print("CANCEL ALL TASKS");
         cancelRunningTasks();
-        for(Future task:tasks){
+        for (Future task : tasks) {
             task.cancel(true);
         }
-        
-        
+
     }
-    public void cancelRunningTasks(){
-        for(Future task:activeTasks){
+
+    public void cancelRunningTasks() {
+        for (Future task : activeTasks) {
             task.cancel(true);
 //            Log.print("Cancel active task");
         }
     }
-    
-    public void stopEverythingStartThis(Runnable task){
-        
+
+    public void stopEverythingStartThis(Runnable task) {
+
         this.cancelRunningTasks();
         this.tasks.clear();
         this.activeTasks.clear();
         this.submit(task);
-        
+
     }
-    
-    public void clearSubmittedTasks(){
+
+    public void clearSubmittedTasks() {
         tasks.clear();
     }
-    
-    private void requestWait(){
+
+    private void requestWait() {
         wait.set(true);
     }
-    private synchronized void wakeUp(){
+
+    private synchronized void wakeUp() {
         wait.set(false);
         this.notifyAll();
     }
-    private synchronized void await(){
-        while(wait.get()){
+
+    private synchronized void await() {
+        while (wait.get()) {
             try {
                 wait();
             } catch (InterruptedException ex) {
@@ -132,7 +134,7 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
         shutdown();
         List<Runnable> list = new ArrayList<>();
         RunnableFuture first = tasks.pollFirst();
-        while(first != null){
+        while (first != null) {
             list.add(first);
             first = tasks.pollFirst();
         }
@@ -146,7 +148,7 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
 
     @Override
     public boolean isTerminated() {
-        return activeTasks.isEmpty()&&tasks.isEmpty();
+        return activeTasks.isEmpty() && tasks.isEmpty();
     }
 
     @Override
@@ -161,18 +163,18 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
 
     @Override
     public void execute(Runnable command) {
-        if(this.shutdownCalled){
+        if (this.shutdownCalled) {
             return;
         }
-        Runnable wake = () ->{
+        Runnable wake = () -> {
             command.run();
             wakeUp();
-            
+
         };
         this.startThread(new FutureTask(Executors.callable(wake)));
     }
-    
-    public TaskPooler(int maxCount){
+
+    public TaskPooler(int maxCount) {
         this.maxCount = Math.max(1, maxCount);
     }
 }

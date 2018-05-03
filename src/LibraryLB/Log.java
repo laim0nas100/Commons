@@ -24,7 +24,8 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Laimonas Beniušis
  */
-public class Log{
+public class Log {
+
     private PrintStream printStream;
     private boolean console = true;
     public static boolean keepBuffer = true;
@@ -35,83 +36,91 @@ public class Log{
     private final ExecutorService exe = Executors.newSingleThreadExecutor();
     private static final Log INSTANCE = new Log();
     public final ConcurrentLinkedDeque<String> list;
-    protected Log(){
-        
+
+    protected Log() {
+
         printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
         list = new ConcurrentLinkedDeque<>();
 
-
     }
-    public static Log getInstance(){        
+
+    public static Log getInstance() {
         return INSTANCE;
     }
-    public static void useTimeFormat(String format, boolean concat){
+
+    public static void useTimeFormat(String format, boolean concat) {
         timeStringFormat = DateTimeFormatter.ofPattern(format);
-        
+
     }
-    public static void changeStream(char c,String...path) throws IOException{
+
+    public static void changeStream(char c, String... path) throws IOException {
         INSTANCE.console = true;
-        switch(c){
-            case('f'):{
-                try {                    
-                    INSTANCE.printStream = new PrintStream( path[0], "UTF-8");
+        switch (c) {
+            case ('f'): {
+                try {
+                    INSTANCE.printStream = new PrintStream(path[0], "UTF-8");
                     INSTANCE.console = false;
-                } catch (FileNotFoundException ex) {}
+                } catch (FileNotFoundException ex) {
+                }
                 break;
             }
-            case('e'):{                
+            case ('e'): {
                 INSTANCE.printStream = new PrintStream(new FileOutputStream(FileDescriptor.err));
                 break;
             }
-            default:{
+            default: {
                 INSTANCE.printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
                 break;
             }
         }
     }
-    public static void flushBuffer(){
-        while(!INSTANCE.list.isEmpty()){
+
+    public static void flushBuffer() {
+        while (!INSTANCE.list.isEmpty()) {
             String string = INSTANCE.list.pollFirst();
             INSTANCE.printStream.println(string);
         }
-        
+
     }
-    public static void close(){
+
+    public static void close() {
         try {
             INSTANCE.exe.shutdown();
             INSTANCE.exe.awaitTermination(10, TimeUnit.SECONDS);
             INSTANCE.printStream.flush();
-            if(!INSTANCE.console){
+            if (!INSTANCE.console) {
                 INSTANCE.printStream.close();
             }
         } catch (InterruptedException ex) {
         }
     }
-    public static void print(Object...objects){
-        if(disable){
+
+    public static void print(Object... objects) {
+        if (disable) {
             return;
         }
         long millis = System.currentTimeMillis();
         final Thread t = Thread.currentThread();
-        
+
         Runnable r = new Runnable() {
             @Override
             public void run() {
                 String string = "";
-                if(objects.length>0){
-                    for(Object s:objects){
-                        string+=", "+s;
+                if (objects.length > 0) {
+                    for (Object s : objects) {
+                        string += ", " + s;
                     }
                     string = string.substring(2);
                 }
-                logThis(string,t, millis);
+                logThis(string, t, millis);
             }
         };
         INSTANCE.exe.submit(r);
-        
+
     }
-    public static void println(Object...objects){
-        if(disable){
+
+    public static void println(Object... objects) {
+        if (disable) {
             return;
         }
         long millis = System.currentTimeMillis();
@@ -120,51 +129,56 @@ public class Log{
             @Override
             public void run() {
                 String string = "";
-                if(objects.length == 1){
+                if (objects.length == 1) {
                     string = String.valueOf(objects[0]);
-                }else if(objects.length> 1){
-                    for(Object s:objects){
-                        string+="\n"+String.valueOf(s);
+                } else if (objects.length > 1) {
+                    for (Object s : objects) {
+                        string += "\n" + String.valueOf(s);
                     }
                     string = string.substring(1);
                 }
-                logThis(string,t, millis);
+                logThis(string, t, millis);
             }
         };
         INSTANCE.exe.submit(r);
     }
-    private static void logThis(String string,Thread thread, long millis){     
-        String time = getZonedDateTime(timeStringFormat,millis);
+
+    private static void logThis(String string, Thread thread, long millis) {
+        String time = getZonedDateTime(timeStringFormat, millis);
         String res = string;
-        if(timeStamp){
-            res = time+"["+thread.getName()+"] {"+res+"}";
+        if (timeStamp) {
+            res = time + "[" + thread.getName() + "] {" + res + "}";
         }
-        if(display){
+        if (display) {
             System.out.println(res);
         }
-        if(keepBuffer){
+        if (keepBuffer) {
             Log.INSTANCE.list.add(res);
         }
-        if(!INSTANCE.console){
+        if (!INSTANCE.console) {
             flushBuffer();
         }
-        
+
     }
-    public static String getZonedDateTime(String format){
+
+    public static String getZonedDateTime(String format) {
         return ZonedDateTime.now(ZoneOffset.systemDefault()).format(DateTimeFormatter.ofPattern(format));
     }
-    public static String getZonedDateTime(DateTimeFormatter format, long millis){
+
+    public static String getZonedDateTime(DateTimeFormatter format, long millis) {
         return Instant.ofEpochMilli(millis).atZone(ZoneOffset.systemDefault()).format(format);
     }
-    public static void printProperties(Properties properties){
+
+    public static void printProperties(Properties properties) {
         Object[] toArray = properties.keySet().toArray();
-        
-        for(Object o:toArray){
+
+        for (Object o : toArray) {
             String property = properties.getProperty((String) o);
-            println(o.toString()+" : "+property);
+            println(o.toString() + " : " + property);
         }
     }
-    public static PrintStream getPrintStream(){
+
+    public static PrintStream getPrintStream() {
         return INSTANCE.printStream;
     }
 }

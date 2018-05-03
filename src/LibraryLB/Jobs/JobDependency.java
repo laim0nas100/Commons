@@ -10,12 +10,14 @@ package LibraryLB.Jobs;
  * @author Lemmin
  */
 public interface JobDependency {
+
     @Override
     public boolean equals(Object o);
+
     @Override
     public int hashCode();
-    
+
     public boolean isCompleted();
-    
+
     public Job getJob();
 }

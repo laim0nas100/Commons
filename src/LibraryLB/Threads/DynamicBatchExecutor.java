@@ -5,52 +5,50 @@
  */
 package LibraryLB.Threads;
 
-import LibraryLB.Log;
-import LibraryLB.Threads.Sync.ConditionalWait;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
  * @author Lemmin
  */
-public class DynamicBatchExecutor extends DynamicTaskExecutor{
-    public DynamicBatchExecutor(int active){
+public class DynamicBatchExecutor extends DynamicTaskExecutor {
+
+    public DynamicBatchExecutor(int active) {
         this.setRunnerSize(active);
     }
     private ArrayDeque<Callable> tasks = new ArrayDeque<>();
-    public void prepareBatch(Callable run){
+
+    public void prepareBatch(Callable run) {
         tasks.add(run);
     }
-    public void executeBatchAndWait(){
-        try{
+
+    public void executeBatchAndWait() {
+        try {
             this.submitBatchAndWait(tasks);
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally{
+        } finally {
             tasks.clear();
         }
-        
+
     }
-    
-    public void submitBatchAndWait(Collection<Callable> tasks) throws InterruptedException{
+
+    public void submitBatchAndWait(Collection<Callable> tasks) throws InterruptedException {
         CountDownLatch l = new CountDownLatch(tasks.size());
-        for(Callable call:tasks){
-            Runnable newCall = () ->{
-                try{
-                   call.call(); 
-                   
-                } catch (Exception ex) {}
+        for (Callable call : tasks) {
+            Runnable newCall = () -> {
+                try {
+                    call.call();
+                } catch (Exception ex) {
+                }
                 l.countDown();
-                
             };
             this.submit(newCall);
         }
         l.await();
-        
+
     }
 }

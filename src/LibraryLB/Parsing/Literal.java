@@ -10,14 +10,17 @@ package LibraryLB.Parsing;
  * @author Lemmin
  */
 public class Literal extends Token {
+
     public String value;
-    public Literal(String id,Integer[] pos, String value) {
-        super(id,pos);
+
+    public Literal(String id, Integer[] pos, String value) {
+        super(id, pos);
         this.value = value;
     }
+
     @Override
-    public String toString(){
-        return super.toString()+this.value;
+    public String toString() {
+        return super.toString() + this.value;
     }
-    
+
 }

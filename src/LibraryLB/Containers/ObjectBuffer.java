@@ -5,7 +5,6 @@
  */
 package LibraryLB.Containers;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -14,53 +13,55 @@ import java.util.Collection;
  * @author Lemmin
  * @param <T>
  */
-public class  ObjectBuffer <T>{
+public class ObjectBuffer<T> {
+
     private ArrayList<T> buffer = new ArrayList<>();
     private Collection flushHere;
     private int flushingSize = 1;
-    public void add(T object){
+
+    public void add(T object) {
         this.buffer.add(object);
         attemptFlush();
     }
-    private void attemptFlush(){
-        if(buffer.size()>= flushingSize){
+
+    private void attemptFlush() {
+        if (buffer.size() >= flushingSize) {
             flush();
         }
     }
-    public void addAll(Collection<T> col){
+
+    public void addAll(Collection<T> col) {
         this.buffer.addAll(col);
         attemptFlush();
-        
+
     }
-    public ObjectBuffer(Collection flushHere, int flushingSize){
+
+    public ObjectBuffer(Collection flushHere, int flushingSize) {
         this.flushHere = flushHere;
         this.flushingSize = Math.max(1, flushingSize);
     }
-    public void flush(){
-//        new Thread(() ->{            
-            ArrayList<T> ok = new ArrayList<>(buffer);
-            buffer.clear();
-            flushHere.addAll(ok);
+
+    public void flush() {
+//        new Thread(() ->{
+        ArrayList<T> ok = new ArrayList<>(buffer);
+        buffer.clear();
+        flushHere.addAll(ok);
 //        }).start();
-        
+
     }
-    public void advancedFlush(){
+
+    public void advancedFlush() {
         ArrayList<T> ok = new ArrayList<>();
         ok.addAll(buffer);
         buffer.clear();
         int size = ok.size();
         int start = 0;
-        int end = Math.min(size, start+flushingSize);
-        do{
+        int end = Math.min(size, start + flushingSize);
+        do {
             flushHere.addAll(ok.subList(start, end));
-            start+=flushingSize;
-            end = Math.min(size, start+flushingSize);
-        }while(start < size);
+            start += flushingSize;
+            end = Math.min(size, start + flushingSize);
+        } while (start < size);
     }
-    
-    
-    
 
-    
-    
 }

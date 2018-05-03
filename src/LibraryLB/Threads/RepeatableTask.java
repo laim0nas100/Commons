@@ -13,19 +13,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author Lemmin
  */
-public class RepeatableTask implements Runnable{
+public class RepeatableTask implements Runnable {
+
     private AtomicBoolean ready = new AtomicBoolean(true);
     private Callable call;
-    public RepeatableTask(Runnable task){
+
+    public RepeatableTask(Runnable task) {
         this.call = Executors.callable(task, null);
     }
-    public RepeatableTask(Callable task){
+
+    public RepeatableTask(Callable task) {
         this.call = task;
     }
 
     @Override
     public void run() {
-        if(ready.compareAndSet(true, false)){
+        if (ready.compareAndSet(true, false)) {
             try {
                 call.call();
                 ready.set(true);
@@ -33,5 +36,5 @@ public class RepeatableTask implements Runnable{
             }
         }
     }
-    
+
 }

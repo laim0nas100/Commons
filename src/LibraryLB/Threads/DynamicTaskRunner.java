@@ -5,44 +5,45 @@
  */
 package LibraryLB.Threads;
 
-import LibraryLB.Log;
 import java.util.concurrent.RunnableFuture;
 
 /**
  *
  * @author Lemmin
  */
-public class DynamicTaskRunner extends TaskRunner{
-    
+public class DynamicTaskRunner extends TaskRunner {
+
     public DynamicTaskRunner(TaskProvider provider, Runnable onRunFinished) {
         super(provider, onRunFinished);
     }
-    
-    private synchronized void sleep() throws InterruptedException{
+
+    private synchronized void sleep() throws InterruptedException {
 //        Log.println("Sleeping");
         this.wait(60000);
 //        Log.print("Wake up");
     }
+
     @Override
-    public synchronized void wakeUp(){
+    public synchronized void wakeUp() {
         this.notifyAll();
     }
+
     @Override
-    public void disable(){
+    public void disable() {
         this.active = false;
         wakeUp();
     }
+
     @Override
-    protected void commenceRun() throws InterruptedException{
+    protected void commenceRun() throws InterruptedException {
         RunnableFuture t = provider.requestTask();
-        if(t==null){
-               sleep(); 
-        }else{
+        if (t == null) {
+            sleep();
+        } else {
             task = t;
             task.run();
-            onRunFinished.run(); 
+            onRunFinished.run();
         }
-        
     }
-    
+
 }

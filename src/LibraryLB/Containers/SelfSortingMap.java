@@ -14,30 +14,32 @@ import java.util.PriorityQueue;
 
 /**
  *
- * @author Lemmin
- * Initialize as a simple map
+ * @author Lemmin Initialize as a simple map
  * @param <K> key
  * @param <V> value
- * 
+ *
  */
-public class SelfSortingMap<K,V> extends HashMap<K,V> {
+public class SelfSortingMap<K, V> extends HashMap<K, V> {
+
     private PriorityQueue<V> list;
 
     /**
      *
      * Initialize as a simple map
+     *
      * @param <K> key
      * @param <V> value
      * @param cmp Comparator to sort items in queue
      */
-    public <K,V> SelfSortingMap(Comparator cmp){
+    public <K, V> SelfSortingMap(Comparator cmp) {
         this.list = new PriorityQueue<>(cmp);
     }
+
     @Override
     public V put(K k, V v) {
-        
-        V prevValue = super.put(k, v); 
-        if(prevValue != null){
+
+        V prevValue = super.put(k, v);
+        if (prevValue != null) {
             this.list.remove(prevValue);
         }
         this.list.add(v);
@@ -46,25 +48,25 @@ public class SelfSortingMap<K,V> extends HashMap<K,V> {
 
     @Override
     public V putIfAbsent(K k, V v) {
-        if(!this.containsKey(k)){
+        if (!this.containsKey(k)) {
             return this.put(k, v);
-        }else{
+        } else {
             return this.get(k);
         }
     }
 
     @Override
     public void putAll(Map map) {
-        throw new UnsupportedOperationException(); 
+        throw new UnsupportedOperationException();
     }
-    
+
     /**
      * returns all values in the order that they were sorted
+     *
      * @return
      */
-    public List<V> getOrderedList(){
+    public List<V> getOrderedList() {
         return new ArrayList(this.list);
     }
 
-    
 }

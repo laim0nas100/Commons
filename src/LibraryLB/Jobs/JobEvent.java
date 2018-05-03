@@ -10,33 +10,36 @@ package LibraryLB.Jobs;
  * @author Lemmin
  */
 public class JobEvent {
+
     public static final String ON_DONE = "onDone";
     public static final String ON_CANCEL = "onCancel";
     public static final String ON_FAILED = "onFailed";
     public static final String ON_FINISHED = "onFinished";
     public static final String ON_SUCCEEDED = "onSucceeded";
-    
+
     private String eventName;
     private Job createdBy;
     private Object data;
-    
-    public String getEventName(){
+
+    public String getEventName() {
         return eventName;
     }
-    public Job getCreator(){
+
+    public Job getCreator() {
         return this.createdBy;
     }
-    
-    public Object getData(){
+
+    public Object getData() {
         return data;
     }
-    public JobEvent(String eventName, Job source){
+
+    public JobEvent(String eventName, Job source) {
         this.eventName = eventName;
         this.createdBy = source;
     }
-    
-    public JobEvent(String eventName, Job source, Object data){
-        this(eventName,source);
+
+    public JobEvent(String eventName, Job source, Object data) {
+        this(eventName, source);
         this.data = data;
     }
 }

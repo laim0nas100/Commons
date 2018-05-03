@@ -18,11 +18,13 @@ import javafx.beans.property.SimpleDoubleProperty;
  * @author Lemmin
  */
 public class ExtInputStream extends InputStream {
+
     public final SimpleDoubleProperty progress = new SimpleDoubleProperty(0);
     public final ConditionalWait waitingTool = new ConditionalWait();
     private final InputStream stream;
     private final long bytesLength;
     private long bytesRead;
+
     public ExtInputStream(Path path, OpenOption... options) throws IOException {
         stream = Files.newInputStream(path, options);
         this.bytesLength = Files.size(path);
@@ -31,57 +33,60 @@ public class ExtInputStream extends InputStream {
     @Override
     public int read() throws IOException {
         waitingTool.conditionalWait();
-        bytesRead+= 1;
-        updateProgress(bytesRead,bytesLength);
+        bytesRead += 1;
+        updateProgress(bytesRead, bytesLength);
         return stream.read();
     }
+
     @Override
-    public int read(byte[] b) throws IOException{
+    public int read(byte[] b) throws IOException {
         waitingTool.conditionalWait();
-        bytesRead+= b.length;
-        updateProgress(bytesRead,bytesLength);
+        bytesRead += b.length;
+        updateProgress(bytesRead, bytesLength);
         return stream.read(b);
     }
+
     @Override
-    public int read(byte[] b, int off, int len) throws IOException{
+    public int read(byte[] b, int off, int len) throws IOException {
         waitingTool.conditionalWait();
-        bytesRead+= b.length;
-        updateProgress(bytesRead,bytesLength);
+        bytesRead += b.length;
+        updateProgress(bytesRead, bytesLength);
         return stream.read(b, off, len);
     }
 
-    private void updateProgress(long done, long total){
+    private void updateProgress(long done, long total) {
         done = Math.min(done, total);
-        progress.set((double)done/total);
+        progress.set((double) done / total);
     }
+
     @Override
     public int available() throws IOException {
         return stream.available();
     }
+
     @Override
-    public void close() throws IOException{
+    public void close() throws IOException {
         stream.close();
     }
+
     @Override
-    public void mark(int readlimit){
+    public void mark(int readlimit) {
         stream.mark(readlimit);
     }
+
     @Override
-    public boolean markSupported(){
+    public boolean markSupported() {
         return stream.markSupported();
     }
-    
+
     @Override
-    public void reset() throws IOException{
+    public void reset() throws IOException {
         stream.reset();
     }
+
     @Override
-    public long skip(long n) throws IOException{
+    public long skip(long n) throws IOException {
         return stream.skip(n);
     }
-    
-    
-    
-    
-    
+
 }

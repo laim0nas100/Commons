@@ -12,30 +12,38 @@ import java.util.concurrent.TimeUnit;
  * @author Lemmin
  */
 public class ConditionalWait {
+
     private volatile boolean keepWaiting = false;
-    
-    public synchronized void conditionalWait(){
-        try{
-            while(keepWaiting){
+
+    public synchronized void conditionalWait() {
+        try {
+            while (keepWaiting) {
                 this.wait();
             }
-        }catch (InterruptedException e){}
+        } catch (InterruptedException e) {
+        }
     }
-    public synchronized void conditionalWait(TimeUnit tu, long timeOut){
-        if(!keepWaiting) return;
+
+    public synchronized void conditionalWait(TimeUnit tu, long timeOut) {
+        if (!keepWaiting) {
+            return;
+        }
         long waitTime = tu.convert(timeOut, TimeUnit.MILLISECONDS);
         try {
-            while(keepWaiting){
+            while (keepWaiting) {
                 this.wait(waitTime);
             }
-        } catch (Exception ex) {} 
-        
+        } catch (Exception ex) {
+        }
+
     }
-    public synchronized void wakeUp(){
+
+    public synchronized void wakeUp() {
         keepWaiting = false;
         this.notifyAll();
     }
-    public synchronized void requestWait(){
+
+    public synchronized void requestWait() {
         keepWaiting = true;
         this.notifyAll();
     }

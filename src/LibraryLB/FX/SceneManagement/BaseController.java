@@ -13,14 +13,17 @@ import javafx.fxml.Initializable;
  *
  * @author Laimonas Beniušis
  */
+public abstract class BaseController implements Initializable {
 
-public abstract class BaseController implements Initializable{
     public Frame frame;
-            
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-    } 
+    }
+
     public abstract void exit();
+
     public abstract void update();
+
     public abstract void initialize();
 }

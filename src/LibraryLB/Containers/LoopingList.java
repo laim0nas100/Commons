@@ -11,28 +11,32 @@ import java.util.ArrayList;
  *
  * @author Laimonas Beniušis
  */
-public class LoopingList<T> extends ArrayList<T>{
-    public int index=-1;
-    public <T> LoopingList(){
+public class LoopingList<T> extends ArrayList<T> {
+
+    public int index = -1;
+
+    public <T> LoopingList() {
         super();
     }
-    public T next(){
-        if(!this.isEmpty()){
+
+    public T next() {
+        if (!this.isEmpty()) {
             index++;
             index %= size();
             return this.get(index);
-        }else{
+        } else {
             return null;
         }
     }
-    public T prev(){
-        if(!this.isEmpty()){
+
+    public T prev() {
+        if (!this.isEmpty()) {
             index--;
-            if(index<0){
-                index = size()-1;
+            if (index < 0) {
+                index = size() - 1;
             }
             return this.get(index);
-        }else{
+        } else {
             return null;
         }
     }

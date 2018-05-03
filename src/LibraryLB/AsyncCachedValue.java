@@ -5,33 +5,33 @@
  */
 package LibraryLB;
 
-import java.util.concurrent.Executor;
-
 /**
  *
  * @author Lemmin
  */
-public abstract class AsyncCachedValue<T> extends CachedValue<T> implements Runnable{
-    
+public abstract class AsyncCachedValue<T> extends CachedValue<T> implements Runnable {
+
     private boolean needsUpdate = false;
-    public void setForUpdate(){
+
+    public void setForUpdate() {
         needsUpdate = true;
     }
-    
-    public boolean getNeedsUpdate(){
+
+    public boolean getNeedsUpdate() {
         return needsUpdate;
     }
-    
+
     public abstract T compute();
-    
+
     @Override
-    public void run(){
-        if(!needsUpdate)return;
+    public void run() {
+        if (!needsUpdate) {
+            return;
+        }
         needsUpdate = false;
         T result = compute();
         this.set(result);
-        
-        
+
     }
-    
+
 }

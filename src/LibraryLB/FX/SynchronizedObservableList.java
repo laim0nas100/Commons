@@ -28,8 +28,10 @@ import javafx.collections.transformation.SortedList;
  * @author Lemmin
  */
 public class SynchronizedObservableList implements ObservableList {
+
     private ObservableList list = FXCollections.observableArrayList();
     private UninterruptibleReadWriteLock lock = new UninterruptibleReadWriteLock();
+
     @Override
     public void addListener(ListChangeListener listener) {
         list.addListener(listener);
@@ -83,7 +85,7 @@ public class SynchronizedObservableList implements ObservableList {
     @Override
     public void remove(int from, int to) {
         lock.lockWrite();
-        list.remove(from, to);        
+        list.remove(from, to);
         lock.unlockWrite();
     }
 
@@ -201,29 +203,29 @@ public class SynchronizedObservableList implements ObservableList {
     }
 
     @Override
-    public void replaceAll(UnaryOperator operator) {      
+    public void replaceAll(UnaryOperator operator) {
         lock.lockWrite();
         list.replaceAll(operator);
-        lock.unlockWrite();        
+        lock.unlockWrite();
     }
 
     @Override
-    public void sort(Comparator c) {        
+    public void sort(Comparator c) {
         lock.lockWrite();
         list.sort(c);
-        lock.unlockWrite(); 
+        lock.unlockWrite();
     }
 
     @Override
     public void clear() {
         lock.lockWrite();
         list.clear();
-        lock.unlockWrite(); 
+        lock.unlockWrite();
     }
 
     @Override
     public Object get(int index) {
-        
+
 //        lock.lockRead();
         Object b = list.get(index);
 //        lock.unlockRead();
@@ -325,7 +327,6 @@ public class SynchronizedObservableList implements ObservableList {
     @Override
     public void removeListener(InvalidationListener listener) {
         list.removeListener(listener);
-    } 
+    }
 
-    
 }

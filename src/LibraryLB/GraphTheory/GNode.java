@@ -12,26 +12,28 @@ import java.util.HashSet;
  * @author Lemmin
  */
 public class GNode {
-    public GNode(long id){
+
+    public GNode(long id) {
         this.ID = id;
     }
-    public GNode(int id){
+
+    public GNode(int id) {
         this.ID = id;
     }
     public HashSet<Long> linksTo = new HashSet<>();
     public HashSet<Long> linkedFrom = new HashSet<>();
     public long ID;
-    
+
     @Override
-    public String toString(){
+    public String toString() {
         String linkStr = "{}";
         String linkedFromStr = "{}";
-        if(!linksTo.isEmpty()){
+        if (!linksTo.isEmpty()) {
             linkStr = linksTo.toString();
         }
-        if(!linkedFrom.isEmpty()){
+        if (!linkedFrom.isEmpty()) {
             linkedFromStr = linkedFrom.toString();
         }
-        return ID + " -> "+ linkStr+" : "+linkedFromStr;
+        return ID + " -> " + linkStr + " : " + linkedFromStr;
     }
 }

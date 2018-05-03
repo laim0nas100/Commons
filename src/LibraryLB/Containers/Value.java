@@ -19,7 +19,6 @@ public class Value<T> {
     public Value() {
     }
 
-    ;
     public Value(T val) {
         this.value = val;
     }
