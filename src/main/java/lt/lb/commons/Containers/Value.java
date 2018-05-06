@@ -31,4 +31,9 @@ public class Value<T> {
         this.value = val;
     }
 
+    @Override
+    public String toString() {
+        return this.value + "";
+    }
+
 }
