@@ -5,14 +5,8 @@
  */
 package lt.lb.commons.Jobs;
 
+import java.util.*;
 import lt.lb.commons.UUIDgenerator;
-import lt.lb.commons.UUIDgenerator.ExtUUID;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -32,7 +26,7 @@ public abstract class Job implements Runnable {
 
     private Collection<JobDependency> doBefore = new HashSet<>();
     private Collection<JobDependency> doAfter = new HashSet<>();
-    private ExtUUID uuid;
+    private String uuid;
 
     private Map<String, Collection<JobEventListener>> listeners = new HashMap<>();
 
@@ -48,7 +42,7 @@ public abstract class Job implements Runnable {
     private Job canceledRoot;
 
     public Job() {
-        uuid = UUIDgenerator.nextUUID(this.getClass().hashCode());
+        uuid = UUIDgenerator.nextUUID("JOB");
         leftToRun = 1;
     }
 
@@ -76,7 +70,7 @@ public abstract class Job implements Runnable {
         return false;
     }
 
-    public ExtUUID getUUID() {
+    public String getUUID() {
         return this.uuid;
     }
 

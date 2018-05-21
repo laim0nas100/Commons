@@ -11,8 +11,8 @@ package lt.lb.commons;
  */
 public class UUIDgenerator {
 
-    private volatile static long val = Long.MIN_VALUE;
-    private volatile static ExtUUID lastUUID = new ExtUUID();
+    private volatile static long val = 0;
+    private volatile static String lastUUID = "";
 
     public static class ExtUUID {
 
@@ -43,17 +43,20 @@ public class UUIDgenerator {
 
     }
 
-    public static synchronized ExtUUID nextUUID(long classID) {
-        ExtUUID uuid = new ExtUUID();
-        uuid.time = System.nanoTime();
-        uuid.clazz = classID;
-        if (lastUUID.time == uuid.time && lastUUID.clazz == uuid.clazz) {
-            val++;
-        }
-        uuid.value = val;
-        lastUUID = uuid;
-        return uuid;
+    public static synchronized String nextUUID(String classID) {
 
+        String next = classID + "_" + System.currentTimeMillis() + "_" + val;
+        if (next.equals(lastUUID)) {
+            val++;
+            next = classID + "_" + System.currentTimeMillis() + "_" + val;
+        }
+        lastUUID = next;
+        return next;
+
+    }
+
+    public static String nextUUID() {
+        return nextUUID("");
     }
 
 }

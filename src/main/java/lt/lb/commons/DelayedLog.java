@@ -5,15 +5,11 @@
  */
 package lt.lb.commons;
 
-import java.io.Closeable;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  *
@@ -62,7 +58,8 @@ public class DelayedLog implements Closeable {
     }
 
     public void logTimeStamp(String file, String str) {
-        str = new Date().toGMTString() + " " + str;
+
+        str = new SimpleDateFormat("d mon yyyy hh:mm:ss GMT ").format(new Date()) + str;
         log(file, str);
     }
 

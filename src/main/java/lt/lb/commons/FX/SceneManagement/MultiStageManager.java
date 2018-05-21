@@ -5,14 +5,10 @@
  */
 package lt.lb.commons.FX.SceneManagement;
 
-import lt.lb.commons.Containers.Value;
-import lt.lb.commons.FX.SceneManagement.Frame.FrameException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.*;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -22,6 +18,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import lt.lb.commons.Containers.Value;
+import lt.lb.commons.FX.SceneManagement.Frame.FrameException;
 
 /**
  *
@@ -69,7 +67,6 @@ public class MultiStageManager {
 
             String type = recourse.toString();
             Frame frame = new Frame(stage, controller, type, finalID);
-            controller.frame = frame;
             frames.put(finalID, frame);
 
             final Value<PosProperty> pos = new Value<>();
