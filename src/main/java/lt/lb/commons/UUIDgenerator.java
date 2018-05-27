@@ -11,48 +11,20 @@ package lt.lb.commons;
  */
 public class UUIDgenerator {
 
-    private volatile static long val = 0;
-    private volatile static String lastUUID = "";
-
-    public static class ExtUUID {
-
-        private long value;
-        private long time;
-        private long clazz;
-
-        @Override
-        public int hashCode() {
-            int hash = 5;
-            hash = 79 * hash + (int) (this.value ^ (this.value >>> 32));
-            hash = 79 * hash + (int) (this.time ^ (this.time >>> 32));
-            hash = 79 * hash + (int) (this.clazz);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == null) {
-                return false;
-            }
-            if (o instanceof ExtUUID) {
-                ExtUUID other = (ExtUUID) o;
-                return (this.clazz == other.clazz && (value == other.value && time == other.time));
-            }
-            return false;
-        }
-
-    }
+    private volatile static long val = 0L;
+    private volatile static long lastTime = 0L;
 
     public static synchronized String nextUUID(String classID) {
 
-        String next = classID + "_" + System.currentTimeMillis() + "_" + val;
-        if (next.equals(lastUUID)) {
+        long time = System.currentTimeMillis();
+        if (lastTime == time) {
             val++;
-            next = classID + "_" + System.currentTimeMillis() + "_" + val;
-        }
-        lastUUID = next;
-        return next;
+        } else {
+            val = 0L;
+            lastTime = time;
 
+        }
+        return classID + "_" + time + "_" + val;
     }
 
     public static String nextUUID() {
