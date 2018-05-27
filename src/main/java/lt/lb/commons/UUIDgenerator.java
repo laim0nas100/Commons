@@ -16,7 +16,7 @@ public class UUIDgenerator {
     private volatile static AtomicLong val = new AtomicLong(0);
     private volatile static AtomicLong lastTime = new AtomicLong(0);
 
-    public static synchronized String nextUUID(String classID) {
+    public static String nextUUID(String classID) {
 
         long time = System.currentTimeMillis();
         long valTo = 0L;
