@@ -5,26 +5,29 @@
  */
 package lt.lb.commons;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  *
  * @author Lemmin
  */
 public class UUIDgenerator {
 
-    private volatile static long val = 0L;
-    private volatile static long lastTime = 0L;
+    private volatile static AtomicLong val = new AtomicLong(0);
+    private volatile static AtomicLong lastTime = new AtomicLong(0);
 
     public static synchronized String nextUUID(String classID) {
 
         long time = System.currentTimeMillis();
-        if (lastTime == time) {
-            val++;
+        long valTo = 0L;
+        if (lastTime.compareAndSet(time, time)) {
+            valTo = val.incrementAndGet();
         } else {
-            val = 0L;
-            lastTime = time;
+            lastTime.set(time);
+            val.set(0L);
 
         }
-        return classID + "_" + time + "_" + val;
+        return classID + "_" + time + "_" + valTo;
     }
 
     public static String nextUUID() {
