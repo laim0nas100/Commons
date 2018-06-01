@@ -31,7 +31,14 @@ public class ArrayBasedCounter {
 
     private boolean isNegative = false;
     private ArrayList<Integer> list;
-    private Integer base = 2;
+    private Integer base = 128;
+
+    public ArrayBasedCounter(int base, int num) {
+        this.base = base;
+        list = new ArrayList<>();
+        isNegative = num < 0;
+        carry(0, num);
+    }
 
     public ArrayBasedCounter(int num) {
         list = new ArrayList<>();
@@ -62,7 +69,20 @@ public class ArrayBasedCounter {
     }
 
     public void dec(int num) {
-        borrow(0, num);
+
+        if (isNegative) {
+            if (num > 0) {
+                carry(0, num);
+            } else {
+                borrow(0, -num);
+            }
+        } else {
+            if (num >= 0) {
+                borrow(0, num);
+            } else {
+                carry(0, -num);
+            }
+        }
     }
 
     public int[] getCurrent() {
@@ -71,6 +91,10 @@ public class ArrayBasedCounter {
             array[i] = list.get(i);
         }
         return array;
+    }
+
+    public int getBase() {
+        return this.base;
     }
 
     private void transitionToNegative(int index, int val) {
@@ -140,7 +164,6 @@ public class ArrayBasedCounter {
         if (toSet < 0) {
             int curVal = val % base;
             int valToBorrow = val / base;
-//            Log.print(index,curVal,valToBorrow);
             if (listVal - curVal < 0) {
                 valToBorrow++;
                 int v = base - curVal;
@@ -158,6 +181,63 @@ public class ArrayBasedCounter {
             }
         }
 
+    }
+
+    public long getValue() throws ArithmeticException {
+        long val = this.getAbsoluteValue(Long.MAX_VALUE);
+        return this.isNegative ? -val : val;
+    }
+
+    public long getAbsoluteValue(long bound) throws ArithmeticException {
+        int[] current = this.getCurrent();
+        long val = 0;
+        int mult = this.base;
+        for (int i = 0; i < current.length; i++) {
+            long toAdd = (long) (current[i] * Math.pow(mult, i));
+            if (val > bound - toAdd) {
+                throw new ArithmeticException("Value overflow");
+            }
+            val += toAdd;
+        }
+
+        return val;
+    }
+
+    public ArrayBasedCounter withOtherBase(int newBase) {
+        ArrayBasedCounter copy = new ArrayBasedCounter(this.base, 0);
+        copy.list.clear();
+        for (Integer i : this.list) {
+            copy.list.add(i);
+        }
+        copy.isNegative = this.isNegative;
+
+        ArrayBasedCounter newCounter = new ArrayBasedCounter(newBase, 0);
+        int dec = 1;
+        while (copy.isBiggerThan(0)) {
+            if (copy.isNegative) {
+                copy.inc(dec);
+            } else {
+                copy.dec(dec);
+            }
+            newCounter.inc(dec);
+        }
+        newCounter.isNegative = this.isNegative;
+        return newCounter;
+    }
+
+    public boolean isBiggerThan(long value) {
+        int[] current = this.getCurrent();
+        long val = 0;
+        int mult = this.base;
+        for (int i = 0; i < current.length; i++) {
+            long toAdd = (long) (current[i] * Math.pow(mult, i));
+            val += toAdd;
+            if (val > value) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
