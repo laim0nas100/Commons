@@ -5,20 +5,11 @@
  */
 package lt.lb.commons;
 
-import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.io.*;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  *
@@ -28,12 +19,13 @@ public class Log {
 
     private PrintStream printStream;
     private boolean console = true;
+    public static boolean instant = false;
     public static boolean keepBuffer = true;
     public static boolean timeStamp = true;
     public static boolean display = true;
     public static boolean disable = false;
     private static DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    private final ExecutorService exe = Executors.newSingleThreadExecutor();
+    private static ExecutorService exe = Executors.newSingleThreadExecutor();
     private static final Log INSTANCE = new Log();
     public final ConcurrentLinkedDeque<String> list;
 
@@ -75,6 +67,13 @@ public class Log {
         }
     }
 
+    public static void await(long timeout, TimeUnit tu) throws InterruptedException {
+        ExecutorService serv = exe;
+        exe = Executors.newSingleThreadExecutor();
+        serv.shutdown();
+        serv.awaitTermination(timeout, tu);
+    }
+
     public static void flushBuffer() {
         while (!INSTANCE.list.isEmpty()) {
             String string = INSTANCE.list.pollFirst();
@@ -86,7 +85,7 @@ public class Log {
     public static void close() {
         try {
             INSTANCE.exe.shutdown();
-            INSTANCE.exe.awaitTermination(10, TimeUnit.SECONDS);
+            INSTANCE.exe.awaitTermination(10, TimeUnit.MINUTES);
             INSTANCE.printStream.flush();
             if (!INSTANCE.console) {
                 INSTANCE.printStream.close();
@@ -115,8 +114,16 @@ public class Log {
                 logThis(string, t, millis);
             }
         };
-        INSTANCE.exe.submit(r);
+        submit(r);
 
+    }
+
+    private static void submit(Runnable run) {
+        if (instant) {
+            run.run();
+        } else {
+            INSTANCE.exe.submit(run);
+        }
     }
 
     public static void println(Object... objects) {
@@ -140,7 +147,7 @@ public class Log {
                 logThis(string, t, millis);
             }
         };
-        INSTANCE.exe.submit(r);
+        submit(r);
     }
 
     private static void logThis(String string, Thread thread, long millis) {
