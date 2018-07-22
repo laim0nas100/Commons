@@ -31,6 +31,10 @@ public final class SkippingListIterator<T> implements ListIterator<T> {
 
     }
 
+    public SkippingListIterator(int i, List<T> list) {
+        this(i, (T t) -> false, list);
+    }
+
     @Override
     public boolean hasNext() {
         return inRange(this.nextIndex());
