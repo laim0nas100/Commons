@@ -6,23 +6,37 @@
 package lt.lb.commons.Containers;
 
 import java.util.*;
+import lt.lb.commons.Log;
+import org.magicwerk.brownies.collections.GapList;
+import org.magicwerk.brownies.collections.IList;
 
 /**
  *
  * @author Lemmin
  */
 public class PagedList<T> implements List<T> {
+    
+    
 
-    protected int pageSize = 8;
-    protected int fullSize;
+    protected long maxRepeatedGet = 1;
+    protected long repeatedGet = 0;
+    protected PageAccess<T> cachedPageAccess;
+    
+    protected int initialPageSize = 16;
+    protected int pageSize = initialPageSize;
+    protected int fullSize = 0;
+    protected ArrayList<T> cachedList;
 
     public PagedList() {
     }
 
-    protected LinkedList<Page<T>> pages = new LinkedList<>();
+    protected IList<Page<T>> pages = new GapList<>();
 
+    
     private static class PageAccess<D> {
 
+        public int from;
+        public int to;
         public int pageNo;
         public int index;
         public Page<D> page;
@@ -37,10 +51,14 @@ public class PagedList<T> implements List<T> {
 
     private static class Page<E> {
 
-        public List<E> items = new ArrayList<>();
+        public List<E> items;
+
+        public Page(int pageSize) {
+            items = new GapList<>(pageSize);
+        }
 
         public Page() {
-            items.size();
+            this(10);
         }
 
         @Override
@@ -49,13 +67,43 @@ public class PagedList<T> implements List<T> {
         }
     }
 
+    
+    protected void maybeChangeSize(){
+        if(fullSize < 100){
+            return;
+        }
+        double divPage = this.size() / (double)pageSize;
+        if(pageSize < divPage){
+            pageSize*=2;
+            mergePages();
+        }else if(divPage*2 <pageSize ){
+            pageSize/=2;
+            mergePages();
+        }
+    }
+    
+    protected void mergePages(){
+        Page<T> adding = null;
+        ListIterator<Page<T>> iter = this.pages.listIterator();
+        while(iter.hasNext()){
+            Page<T> next = iter.next();
+            if(adding == null){
+                adding = next;
+                continue;
+            }
+            int nextSize = next.items.size();
+            if(adding.items.size() + nextSize < this.pageSize){
+                adding.items.addAll(next.items);
+                iter.remove();
+            }else{
+                adding = next;
+            }
+        }
+        
+    }
     @Override
     public int size() {
-        int size = 0;
-        for (Page p : pages) {
-            size += p.items.size();
-        }
-        return size;
+        return fullSize;
     }
 
     @Override
@@ -66,6 +114,10 @@ public class PagedList<T> implements List<T> {
     private PageAccess<T> getPageAccess(int fromIndex) {
         if (fromIndex >= this.size() || fromIndex < 0) {
             throw new NoSuchElementException();
+        }
+        if(this.cachedPageAccess != null && (this.cachedPageAccess.from >= fromIndex && this.cachedPageAccess.to < fromIndex)){
+            this.cachedPageAccess.index = fromIndex - this.cachedPageAccess.from;
+            return this.cachedPageAccess;
         }
         ListIterator<Page<T>> iter = this.pages.listIterator();
         int prog = 0;
@@ -79,6 +131,8 @@ public class PagedList<T> implements List<T> {
             if (prog + newProg > fromIndex) {
                 int subIndex = fromIndex - prog;
                 PageAccess<T> pa = new PageAccess<>();
+                pa.from = prog;
+                pa.to = prog + newProg;
                 pa.index = subIndex;
                 pa.page = page;
                 pa.pageNo = pageNo;
@@ -106,7 +160,7 @@ public class PagedList<T> implements List<T> {
     }
 
     public ArrayList<T> toArrayList() {
-        ArrayList array = new ArrayList<>(this.fullSize);
+        ArrayList<T> array = new ArrayList<>(this.fullSize);
         for (Page p : pages) {
             array.addAll(p.items);
         }
@@ -130,16 +184,22 @@ public class PagedList<T> implements List<T> {
 
     @Override
     public boolean add(T e) {
+        
         if (this.isEmpty()) {
-            Page p = new Page<>();
+            Page p = new Page<>(this.pageSize);
             p.items.add(e);
+            this.repeatedGet = 0;
+            this.fullSize++;
             return this.pages.add(p);
         } else {
+            this.maybeChangeSize();
             Page page = this.pages.getLast();
             if (page.items.size() >= this.pageSize) {
-                page = new Page<>();
+                page = new Page<>(this.pageSize);
                 this.pages.add(page);
             }
+            this.repeatedGet = 0;
+            this.fullSize++;
             page.items.add(e);
             return true;
         }
@@ -186,12 +246,24 @@ public class PagedList<T> implements List<T> {
 
     @Override
     public void clear() {
+        this.repeatedGet = 0;
         this.fullSize = 0;
         this.pages.clear();
+        this.pageSize = initialPageSize;
     }
 
     @Override
     public T get(int index) {
+//        this.repeatedGet++;
+//        if(this.repeatedGet > this.maxRepeatedGet){
+//            if(this.cachedList == null){
+//                this.cachedList = this.toArrayList();
+//            }
+//            
+//            return this.cachedList.get(index);
+//        }else if(this.cachedList != null){
+//            cachedList = null;
+//        }
         PageAccess<T> pageAccess = this.getPageAccess(index);
         return pageAccess.page.items.get(pageAccess.index);
     }
@@ -204,6 +276,7 @@ public class PagedList<T> implements List<T> {
 
     @Override
     public void add(int index, T element) {
+        this.maybeChangeSize();
         PageAccess pageAccess = this.getPageAccess(index);
         Page<T> page = pageAccess.page;
         if (page.items.size() < this.pageSize) {
@@ -211,10 +284,9 @@ public class PagedList<T> implements List<T> {
         } else {
 
             //try previous page
-            //TODO
             if (pageAccess.index == 0) {
                 if (pageAccess.prevPage == null || pageAccess.prevPage.items.size() >= this.pageSize) {
-                    Page<T> p = new Page<>();
+                    Page<T> p = new Page<>(this.pageSize);
                     p.items.add(element);
                     this.pages.add(pageAccess.pageNo, p);
                 } else {
@@ -222,23 +294,54 @@ public class PagedList<T> implements List<T> {
                 }
             } else {
 
-                //try item shifting or split a page!!!
-                if (pageAccess.nextPage == null || pageAccess.nextPage.items.size() >= this.pageSize) {
-                    page = new Page<>();
-                    this.pages.add(pageAccess.pageNo, page);
-                    page.items.add(element);
+                if (pageAccess.index == page.items.size() - 1) {//is last index
+                    if (pageAccess.nextPage == null || pageAccess.nextPage.items.size() >= this.pageSize) {
+                        Page<T> p = new Page<>(this.pageSize);
+                        p.items.add(element);
+                        this.pages.add(pageAccess.pageNo + 1, p);
+                    } else {
+                        pageAccess.nextPage.items.add(0, element);
+                    }
+
+                } else {
+
+                    //try item shifting or split a page!!!
+                    if (pageAccess.nextPage == null || pageAccess.nextPage.items.size() >= this.pageSize) {
+                        Page p = new Page(this.pageSize);
+                        this.pages.add(pageAccess.pageNo,p );
+                        p.items.add(element);
+                    } else {
+                        //Splitting 
+                        Page left = new Page(this.pageSize);
+                        Page right = new Page(this.pageSize);
+                        int i = 0;
+                        for (; i < pageAccess.index; i++) {
+                            left.items.add(page.items.get(i));
+                        }
+                        for (; i < page.items.size(); i++) {
+                            right.items.add(page.items.get(i));
+                        }
+                        page.items = right.items;
+                        this.pages.add(pageAccess.pageNo, left);
+                        left.items.add(element);
+
+                    }
                 }
 
-                throw new IllegalStateException();
             }
 
         }
+        fullSize++;
+        this.repeatedGet = 0;
     }
 
     @Override
     public T remove(int index) {
+        this.maybeChangeSize();
         PageAccess<T> pageAccess = this.getPageAccess(index);
         T removed = pageAccess.page.items.remove(pageAccess.index);
+        this.fullSize--;
+        this.repeatedGet = 0;
         if (pageAccess.page.items.isEmpty()) {
             this.pages.remove(pageAccess.pageNo);
         }
@@ -293,6 +396,22 @@ public class PagedList<T> implements List<T> {
         String s = "";
         for (Page p : pages) {
             s += p.toString();
+        }
+        return s;
+    }
+    
+    public int getPageSize(){
+        return this.pageSize;
+    }
+    
+    public int getPageCount(){
+        return this.pages.size();
+    }
+    
+    public String getPageRepresentation(){
+        String s = "";
+        for(Page p:this.pages){
+            s+= " ["+p.items.size()+"]";
         }
         return s;
     }

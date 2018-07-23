@@ -9,7 +9,7 @@ package lt.lb.commons.RefModel;
  *
  * @author Lemmin
  */
-public class Ref {
+public class Ref<Type> {
 
     protected String local;
     protected String relative;
@@ -21,6 +21,7 @@ public class Ref {
     public Ref() {
     }
 
+    @Override
     public String toString() {
         return get();
     }

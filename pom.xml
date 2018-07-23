@@ -37,6 +37,12 @@
             <version>25.1-jre</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.magicwerk</groupId>
+            <artifactId>brownies-collections</artifactId>
+            <version>0.9.13</version>
+        </dependency>
+
     </dependencies>
     <name>Commons</name>
 </project>

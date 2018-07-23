@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
  *
  * @author Lemmin
  */
-public class RefModel extends Ref {
+public class RefModel<Type> extends Ref<Type> {
 
     public static final int DEFAULT_COMPILE_DEPTH = 5;
 

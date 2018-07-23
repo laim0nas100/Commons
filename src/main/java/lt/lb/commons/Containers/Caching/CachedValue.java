@@ -72,7 +72,7 @@ public class CachedValue<T> extends Value<T> {
         return cached;
     }
 
-    public static CachedValue newValueEmpty() {
+    public static <T> CachedValue<T> newValueEmpty() {
         return newValue(null);
     }
 
@@ -85,7 +85,7 @@ public class CachedValue<T> extends Value<T> {
         return cvt;
     }
 
-    public static CachedValue newValueEmptyTimeLimit(long value, TimeUnit tu) {
+    public static <T> CachedValue<T> newValueEmptyTimeLimit(long value, TimeUnit tu) {
         return newValue(value, tu, null);
     }
 
