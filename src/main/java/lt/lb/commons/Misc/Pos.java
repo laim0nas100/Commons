@@ -25,8 +25,8 @@ public class Pos {
     public Double[] normalized(MinMax[] minmax) {
         Double[] res = new Double[vector.length];
         for (int i = 0; i < vector.length; i++) {
-            Double min = minmax[i].min;
-            Double max = minmax[i].max;
+            Double min = minmax[i].min.doubleValue();
+            Double max = minmax[i].max.doubleValue();
             res[i] = (vector[i] - min) / (max - min);
         }
         return res;

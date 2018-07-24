@@ -20,27 +20,32 @@ public class Interval extends MinMax {
     }
 
     public double getDiff() {
-        return max - min;
+        return max.doubleValue() - min.doubleValue();
     }
 
     public double getAbsDiff() {
         return Math.abs(getDiff());
     }
+    
+    private static double d(Number val){
+        return val.doubleValue();
+    }
 
-    public boolean inRange(double val, boolean minInclusive, boolean maxInclusive) {
+    public boolean inRange(Number val, boolean minInclusive, boolean maxInclusive) {
         boolean inRange = true;
 
+        double v = d(val);
         if (minInclusive) {
-            inRange = val >= min;
+            inRange = v >= d(min);
         } else {
-            inRange = val > min;
+            inRange = v > d(min);
         }
 
         if (inRange) {
             if (maxInclusive) {
-                inRange = val <= max;
+                inRange = v <= d(max);
             } else {
-                inRange = val < max;
+                inRange = v < d(max);
             }
         }
 
@@ -48,24 +53,25 @@ public class Interval extends MinMax {
 
     }
 
-    public boolean inRangeExclusive(double val) {
+    public boolean inRangeExclusive(Number val) {
         return this.inRange(val, false, false);
     }
 
-    public boolean inRangeInclusive(double val) {
+    public boolean inRangeInclusive(Number val) {
         return this.inRange(val, true, true);
     }
 
-    public double clamp(double val) {
-        return Math.min(Math.max(val, min), max);
+    public double clamp(Number val) {
+        return Math.min(Math.max(d(val), min.doubleValue()), max.doubleValue());
     }
 
-    public void expand(double val) {
-        if (this.max < val) {
+    public void expand(Number val) {
+        double v = d(val);
+        if (d(this.max) < v) {
             this.max = val;
         }
 
-        if (this.min > val) {
+        if (d(this.min) > v) {
             this.min = val;
         }
     }

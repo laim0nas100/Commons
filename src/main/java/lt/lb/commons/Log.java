@@ -8,6 +8,7 @@ package lt.lb.commons;
 import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.*;
 
@@ -94,6 +95,28 @@ public class Log {
         }
     }
 
+    public static void printLines(Collection col){
+        if(disable){
+            return;
+        }
+        long millis = System.currentTimeMillis();
+        final Thread t = Thread.currentThread();
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                String string = "";
+                if (col.size() > 0) {
+                    for (Object s : col) {
+                        string +=  s+"\n";
+                    }
+                    string = "\n"+string;
+                }
+                logThis(string, t, millis);
+            }
+        };
+        submit(r);
+    }
+    
     public static void print(Object... objects) {
         if (disable) {
             return;

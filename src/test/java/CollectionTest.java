@@ -31,8 +31,8 @@ public class CollectionTest {
     @Test
     public void test() throws InterruptedException {
         PrefillArrayList<Long> list = new PrefillArrayList<>(0L);
-        for (int i = 5; i < 10; i++) {
-            list.set(i, (long) i * 2);
+        for (int i = 0; i < 10; i++) {
+            list.put(i, (long) i * 2);
         }
         Log.print(list.toString());
 

@@ -11,10 +11,10 @@ package lt.lb.commons.Misc;
  */
 public class MinMax {
 
-    public double min, max;
+    public Number min, max;
 
     public MinMax(Number min, Number max) {
-        this.min = min.doubleValue();
-        this.max = max.doubleValue();
+        this.min = min;
+        this.max= max;
     }
 }

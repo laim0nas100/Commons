@@ -5,7 +5,9 @@ import java.util.ListIterator;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import lt.lb.commons.Containers.PagedHashList;
 import lt.lb.commons.Containers.PagedList;
+import lt.lb.commons.Containers.PrefillArrayMap;
 import lt.lb.commons.Log;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -43,45 +45,91 @@ public class ListBench {
         }
     }
 
+    
+    private void dPrintList(PagedHashList l){
+        Log.print(l.toString());
+        Log.printLines(l.getMappings());
+    }
+//    @Ignore
+    @Test
+    public void testPrefillHash(){
+        PrefillArrayMap<Long> map = new PrefillArrayMap<Long>();
+        for(int i = 0; i < 10; i++){
+            map.put(i, 10L - i);
+        }
+        map.remove(5);
+        map.remove(9);
+        Log.printLines(map.entrySet());
+        Log.print(map);
+    }
+    
+    @Ignore
+    @Test
     public void test() throws InterruptedException {
-        PagedList<Long> list = new PagedList<>();
+        PagedHashList<Long> list = new PagedHashList<>();
         for (int i = 0; i < 10; i++) {
+            dPrintList(list);
             list.add((long) i * 2);
+            
         }
-        Log.print(list.toString());
+        
+        for(int i = 0; i < 10; i++){
+            list.set(i, 10L-i);
+        }
+//        Log.printLines(list.getMappings());
+//        Log.print(list.remove(9)+" ");
+//        dPrintList(list);
+//        
+//        list.add(4,88L);
+        dPrintList(list);
+        
+        Random r = new Random(3);
+        while(!list.isEmpty()){
+            int toRemove =  r.nextInt(list.size());
+            Log.print("remove:"+toRemove,list.remove(toRemove)+" ");
+        dPrintList(list);
+        }
+        
+        int size = 50000;
+        int iterations = 500000;
+        Log.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
+        Log.print(executeBench(80, "BigList read", makeBenchRead(makeList(this.getBank(size, size), new BigList<>()), new Random(10), iterations)));
+        Log.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
+        Log.print(executeBench(80, "PagedHashList read", makeBenchRead(makeList(this.getBank(size, size), new PagedHashList<>()), new Random(10), iterations)));
+        
 
-        ListIterator<Long> listIterator = list.listIterator();
-        while (listIterator.hasNext()) {
-            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
-        }
-        listIterator.remove();
-        Log.print(list.toString());
-        Log.println();
-        while (listIterator.hasPrevious()) {
-            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
-        }
-        Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex());
-        listIterator.add(13L);
-        Log.print(list.toString());
-        Log.println();
-        for (int i = 0; i < 10; i++) {
-            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
-            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
-        }
-        Log.println();
-        Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
-//        listIterator.next();
-        listIterator.add(20L);
-        Log.print(list.toString());
-        list.remove(5);
-        Log.print(list.toString());
-        list.add(7, 25L);
-
-        Log.print(list.toString());
-        //TODO
-        list.add(3, 35L);
-
-        Log.print(list.toString());
+//        ListIterator<Long> listIterator = list.listIterator();
+//        while (listIterator.hasNext()) {
+//            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+//        }
+//        listIterator.remove();
+//        Log.print(list.toString());
+//        Log.println();
+//        while (listIterator.hasPrevious()) {
+//            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
+//        }
+//        Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex());
+//        listIterator.add(13L);
+//        Log.print(list.toString());
+//        Log.println();
+//        for (int i = 0; i < 10; i++) {
+//            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+//            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
+//        }
+//        Log.println();
+//        Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+////        listIterator.next();
+//        listIterator.add(20L);
+//        Log.print(list.toString());
+//        list.remove(5);
+//        Log.print(list.toString());
+//        list.add(7, 25L);
+//
+//        Log.print(list.toString());
+//        //TODO
+//        list.add(3, 35L);
+//
+//        Log.print(list.toString());
         Log.await(1, TimeUnit.HOURS);
 
     }
@@ -192,9 +240,10 @@ public class ListBench {
     }
 
     public static void main(String [] a) throws Exception{
-        new ListBench().listBench();
+        new ListBench().test();
     }
     
+    @Ignore
     @Test
     public void listBench() throws Exception{
         Log.print("List benchmark");

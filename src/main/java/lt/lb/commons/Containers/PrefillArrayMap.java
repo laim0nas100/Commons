@@ -6,30 +6,33 @@
 package lt.lb.commons.Containers;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.function.Predicate;
+import lt.lb.commons.Log;
 
 /**
  *
  * @author Lemmin
  * @param <T>
  */
-public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess {
+public class PrefillArrayMap<T> implements List<T>, Collection<T>, RandomAccess {
 
     private ArrayList<T> list = new ArrayList<>();
+    private int size = 0;
 
     private Predicate<T> nullCheck;
     private T nullValue;
 
-    public PrefillArrayList(Predicate<T> nullCheck, T fillValue) {
+    public PrefillArrayMap(Predicate<T> nullCheck, T fillValue) {
         this.nullCheck = nullCheck;
         this.nullValue = fillValue;
     }
 
-    public PrefillArrayList(T fillValue) {
+    public PrefillArrayMap(T fillValue) {
         this((T t) -> Objects.equals(t, fillValue), fillValue);
     }
 
-    public PrefillArrayList() {
+    public PrefillArrayMap() {
         this((T t) -> t == null, null);
     }
     
@@ -39,9 +42,9 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
 
     @Override
     public boolean isEmpty() {
-        return list.isEmpty();
+        return size == 0;
     }
-
+    
     @Override
     public boolean contains(Object o) {
         return indexOf(o) >= 0;
@@ -64,6 +67,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
 
     @Override
     public boolean add(T e) {
+        this.size++;
         return list.add(e);
     }
 
@@ -105,11 +109,13 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
     @Override
     public void clear() {
         this.list.clear();
+        size= 0;
     }
 
     public void preFill(int toIndex) {
-        while (this.size() <= toIndex) {
-            this.add(nullValue);
+        int curSize = list.size();
+        for(int i = curSize; i <= toIndex; i++){
+            this.list.add(nullValue);
         }
     }
 
@@ -120,16 +126,20 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
 
     @Override
     public int size() {
-        return this.list.size();
+        return this.size;
     }
 
     @Override
     public boolean addAll(int i, Collection<? extends T> clctn) {
+        this.size+= clctn.size();
         return this.list.addAll(i, clctn);
     }
 
     @Override
     public T get(int i) {
+//        if(i >= list.size()){
+//            return this.nullValue;
+//        }
         this.preFill(i);
         return list.get(i);
     }
@@ -137,22 +147,25 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
     @Override
     public T set(int i, T e) {
         this.preFill(i);
+        if(this.isNull(i)){
+            this.size++;
+        }
         return list.set(i, e);
-    }
-    
-    public T put(int i, T e){
-        return this.set(i, e);
     }
 
     @Override
     public void add(int i, T e) {
         this.preFill(i - 1);
+        this.size++;
         list.add(i, e);
     }
 
     @Override
     public T remove(int i) {
-        return list.remove(i);
+        if(!this.isNull(i)){
+            this.size--;
+        }
+        return this.set(i, nullValue);
     }
 
     @Override
@@ -192,16 +205,86 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
 
     @Override
     public List<T> subList(int i, int i1) {
-        List<T> subList = new PrefillArrayList<>(this.nullCheck, this.nullValue);
-        for (int j = 0; i < i1; i++, j++) {
-            subList.set(j, this.get(i));
-        }
-        return subList;
+       throw new UnsupportedOperationException();
     }
 
     @Override
     public String toString() {
         return list.toString();
+    }
+
+    
+    public boolean containsKey(Object key) {
+        if(key instanceof Integer){
+            return !this.isNull((Integer)key);
+        }else{
+            return false;
+        }
+    }
+
+
+    public T put(Integer key, T value) {
+        return this.set(key, value);
+    }
+
+    public void putAll(Map<? extends Integer, ? extends T> m) {
+        for(Map.Entry<? extends Integer, ? extends T> entry:m.entrySet()){
+            this.set(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public Set<Integer> keySet() {
+        Set<Integer> set = new HashSet<>();
+        ListIterator<T> iter = this.listIterator();
+        while(iter.hasNext()){
+            set.add(iter.nextIndex());
+            iter.next();
+        }
+        return set;
+    }
+
+    public Collection<T> values() {
+        Set<T> set = new HashSet<>();
+        ListIterator<T> iter = this.listIterator();
+        while(iter.hasNext()){
+            set.add(iter.next());
+        }
+        return set;
+    }
+
+    public Set<Entry<Integer, T>> entrySet() {
+        Set<Entry<Integer, T>> set = new HashSet<>();
+        for(int i =0; i < list.size(); i++){
+            
+            if(!this.isNull(i)){
+                final Integer key = i;
+                final T value = this.get(key);
+                Entry<Integer,T> en = new Entry() {
+                    @Override
+                    public Object getKey() {
+                        return key;
+                    }
+
+                    @Override
+                    public Object getValue() {
+                        return value;
+                    }
+
+                    @Override
+                    public Object setValue(Object val) {
+                        throw new UnsupportedOperationException();
+                    }
+                    
+                    @Override
+                    public String toString(){
+                        return this.getKey() +" = "+this.getValue();
+                    }
+                };
+                set.add(en);
+            }
+            
+        }
+        return set;
     }
 
 }
