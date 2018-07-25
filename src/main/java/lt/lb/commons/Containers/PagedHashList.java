@@ -20,19 +20,17 @@ public class PagedHashList<T> implements List<T> {
     protected long repeatedGet = 0;
     protected Page<T> cachedPage;
 
-    protected int initialPageSize = 1000;
+    protected int initialPageSize = 4;
     protected int pageSize = initialPageSize;
     protected int fullSize = 0;
     protected ArrayList<T> cachedList;
 
-//    protected Map<Integer, Page<T>> pageHash = new HashMap<>();
-    public PrefillArrayMap<Page<T>> pageHash = new PrefillArrayMap<>();
-
+    protected Map<Integer, Page<T>> pageHash = new HashMap<>();
+//    public PrefillArrayMap<Page<T>> pageHash = new PrefillArrayMap<>();
+//    public Map<Integer, Page<T>> pageHash = new PrefillArrayMap<Page<T>>().asMap();
 
     public PagedHashList() {
     }
-
-    
 
     private static class PageAccess<D> {
 
@@ -50,6 +48,24 @@ public class PagedHashList<T> implements List<T> {
         }
     }
 
+    private void shiftHole(Page nextPage, int holeIndex) {
+        while (true) {
+            //fill hole
+            Log.print("Put:", holeIndex, "Page:", nextPage);
+            this.pageHash.put(holeIndex, nextPage);
+            nextPage.shiftBy(-1);
+            holeIndex = nextPage.to();
+            int nextPageIndex = holeIndex + 1;
+            if (!this.pageHash.containsKey(nextPageIndex)) {
+
+                Page<T> remove = this.pageHash.remove(holeIndex);
+                Log.print("Removed=" + holeIndex, remove);
+                break;
+            }
+            nextPage = this.pageHash.get(nextPageIndex);
+        }
+    }
+
     private static class Page<E> {
 
         public int from;
@@ -62,8 +78,8 @@ public class PagedHashList<T> implements List<T> {
         public Page() {
             this(10);
         }
-        
-        public int to(){
+
+        public int to() {
             return this.from + this.size();
         }
 
@@ -93,11 +109,11 @@ public class PagedHashList<T> implements List<T> {
             }
         }
 
-        public boolean addWithChange(E elem) {
+        public boolean add(E elem) {
             return this.items.add(elem);
         }
 
-        public void addAbsoluteWithChange(int index, E elem) {
+        public void addAbsolute(int index, E elem) {
             if (this.inBounds(index)) {
                 this.items.add(getSubIndex(index), elem);
             } else {
@@ -121,8 +137,7 @@ public class PagedHashList<T> implements List<T> {
 
         public E removeAbsoluteWithChange(int index) {
             if (inBounds(index)) {
-                int sub = index - this.from;
-                return items.remove(sub);
+                return items.remove(getSubIndex(index));
             } else {
                 throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
             }
@@ -155,17 +170,22 @@ public class PagedHashList<T> implements List<T> {
             return Collections.EMPTY_LIST;
         }
         ArrayList<Page<T>> list = new ArrayList<>();
+        Page lastPage = null;
         Page p = this.pageHash.get(startingIndexPage);
-        Log.print("Page:"+ p);
-        while (true) {
-            list.add(p);
-            if (this.pageHash.containsKey(p.to())) {
-                p = this.pageHash.get(p.to());
-                Log.print("Got page:"+p);
-            } else {
-                break;
+        Log.print("Page:" + p);
+        for (int i = 0; i < pageHash.size(); i++) {
+            p = pageHash.get(i);
+            if (lastPage != p && p != null) {
+                lastPage = p;
+                list.add(p);
             }
 
+//            if (this.pageHash.containsKey(p.to())) {
+//                p = this.pageHash.get(p.to());
+//                Log.print("Got page:" + p);
+//            } else {
+//                break;
+//            }
         }
         return list;
     }
@@ -205,7 +225,6 @@ public class PagedHashList<T> implements List<T> {
     }
 
     private Page<T> getPage(int fromIndex) {
-        
 
         if (fromIndex >= this.size() || fromIndex < 0) {
             throw new NoSuchElementException();
@@ -213,9 +232,9 @@ public class PagedHashList<T> implements List<T> {
         if (!this.pageHash.containsKey(fromIndex)) {
             throw new NoSuchElementException();
         }
-        if(this.cachedPage == null){
+        if (this.cachedPage == null) {
             this.cachedPage = this.pageHash.get(fromIndex);
-        }else if(!this.cachedPage.inBounds(fromIndex)){
+        } else if (!this.cachedPage.inBounds(fromIndex)) {
             this.cachedPage = this.pageHash.get(fromIndex);
         }
         return this.cachedPage;
@@ -295,7 +314,7 @@ public class PagedHashList<T> implements List<T> {
                 lastPage.from = lastIndex + 1;
                 lastPage.items.add(e);
             } else {
-                lastPage.addWithChange(e);
+                lastPage.add(e);
             }
             this.repeatedGet = 0;
             this.fullSize++;
@@ -381,11 +400,11 @@ public class PagedHashList<T> implements List<T> {
         if (page.size() < this.pageSize) {
             //are we at the last page
             if (page.to() == this.size()) {
-                page.addAbsoluteWithChange(index, element);
+                page.addAbsolute(index, element);
                 this.pageHash.put(page.to(), page);
             } else {
 
-                page.addAbsoluteWithChange(index, element);
+                page.addAbsolute(index, element);
                 // replace loop
                 /*
                     insert in page A with no change
@@ -411,11 +430,13 @@ public class PagedHashList<T> implements List<T> {
             }
 
         } else {
+            boolean isPageEnd = page.getSubIndex(index) == page.size() - 1;
+            boolean isPageStart = page.getSubIndex(index) == 0;
             //page full
-            //try previousPage
-            if ((page.getSubIndex(index) == 0) && (this.getPage(index - 1).size() < this.pageSize)) {
+            //try previous page
+            if (isPageStart && (this.getPage(index - 1).size() < this.pageSize)) {
                 Page prevPage = this.getPage(index - 1);
-                prevPage.addWithChange(element);
+                prevPage.add(element);
 
                 Page A = prevPage;
                 Page B = null;
@@ -432,10 +453,12 @@ public class PagedHashList<T> implements List<T> {
                     B.shiftBy(1);
                     A = B;
                 }
-            } else if ((page.getSubIndex(index) == page.size() - 1) && (this.getPage(index + 1).size() < this.pageSize)) {//try next page
+                //page full
+                //try next page
+            } else if (isPageEnd && (this.getPage(index + 1).size() < this.pageSize)) {//try next page
                 Page nextPage = this.getPage(index + 1);
                 if (nextPage.size() < this.pageSize) {
-                    nextPage.addAbsoluteWithChange(nextPage.from, element);
+                    nextPage.addAbsolute(nextPage.from, element);
 
                     Page A = nextPage;
                     Page B = null;
@@ -454,65 +477,49 @@ public class PagedHashList<T> implements List<T> {
                     }
                 }
             } else {
-                throw new UnsupportedOperationException("Page slicing not yet supported");
+                //try insert new page in the middle
+                if (isPageEnd || isPageStart) {
+                    Page<T> p = new Page<>();
+                    p.add(element);
+                    p.from = index;
+
+                    Page A = p;
+                    Page B = null;
+
+                    while (true) {
+                        int nextPageIndex = A.to() - 1;
+                        if (!this.pageHash.containsKey(nextPageIndex)) { //
+                            this.pageHash.put(nextPageIndex, A);
+                            break;
+                        }
+                        B = this.pageHash.get(nextPageIndex);
+
+                        this.pageHash.put(B.from, A);
+                        B.shiftBy(1);
+                        A = B;
+                    }
+
+                } else {//alas, we have to split
+                    throw new UnsupportedOperationException("Page slicing not yet supported");
+                }
+
+                //Splitting 
+//            Page left = new Page(this.pageSize);
+//            Page right = new Page(this.pageSize);
+//            int i = 0;
+//            for (; i < pageAccess.index; i++) {
+//                left.items.add(page.items.get(i));
+//            }
+//            for (; i < page.items.size(); i++) {
+//                right.items.add(page.items.get(i));
+//            }
+//            page.items = right.items;
+//            this.pages.add(pageAccess.pageNo, left);
+//            left.items.add(element);
             }
 
         }
 
-//        
-//        Page<T> page = pageAccess.page;
-//        if (page.items.size() < this.pageSize) {
-//            page.items.add(pageAccess.index, element);
-//        } else {
-//
-//            //try previous page
-//            if (pageAccess.index == 0) {
-//                if (pageAccess.prevPage == null || pageAccess.prevPage.items.size() >= this.pageSize) {
-//                    Page<T> p = new Page<>(this.pageSize);
-//                    p.items.add(element);
-//                    this.pages.add(pageAccess.pageNo, p);
-//                } else {
-//                    pageAccess.prevPage.items.add(element);
-//                }
-//            } else {
-//
-//                if (pageAccess.index == page.items.size() - 1) {//is last index
-//                    if (pageAccess.nextPage == null || pageAccess.nextPage.items.size() >= this.pageSize) {
-//                        Page<T> p = new Page<>(this.pageSize);
-//                        p.items.add(element);
-//                        this.pages.add(pageAccess.pageNo + 1, p);
-//                    } else {
-//                        pageAccess.nextPage.items.add(0, element);
-//                    }
-//
-//                } else {
-//
-//                    //try item shifting or split a page!!!
-//                    if (pageAccess.nextPage == null || pageAccess.nextPage.items.size() >= this.pageSize) {
-//                        Page p = new Page(this.pageSize);
-//                        this.pages.add(pageAccess.pageNo, p);
-//                        p.items.add(element);
-//                    } else {
-//                        //Splitting 
-//                        Page left = new Page(this.pageSize);
-//                        Page right = new Page(this.pageSize);
-//                        int i = 0;
-//                        for (; i < pageAccess.index; i++) {
-//                            left.items.add(page.items.get(i));
-//                        }
-//                        for (; i < page.items.size(); i++) {
-//                            right.items.add(page.items.get(i));
-//                        }
-//                        page.items = right.items;
-//                        this.pages.add(pageAccess.pageNo, left);
-//                        left.items.add(element);
-//
-//                    }
-//                }
-//
-//            }
-//
-//        }
         fullSize++;
         this.repeatedGet = 0;
     }
@@ -527,50 +534,33 @@ public class PagedHashList<T> implements List<T> {
             return this.pageHash.remove(index).removeAbsoluteWithChange(index);
         }
         Page<T> page = this.pageHash.get(index);
+        //are we at the last page?
+        if (page.to() == this.size()) {
+            Log.print("Hit last page");
+            removed = page.removeAbsoluteWithChange(index);
+            this.pageHash.remove(page.to());
+            return removed;
+        }
+
         //maybe we hit page end?
         if (index == page.to() - 1) {
+            Log.print("hit page end");
 
             removed = page.removeAbsoluteWithChange(index);
-            Page<T> nextPage = this.pageHash.get(index + 1);
+            int nextPageIndex = index + 1;
+            Page<T> nextPage = this.pageHash.get(nextPageIndex);
 
-            int holeIndex = index;
-
-            while (true) {
-                //fill hole
-                this.pageHash.put(holeIndex, nextPage);
-                holeIndex = nextPage.to();
-                nextPage.shiftBy(-1);
-                if (!this.pageHash.containsKey(holeIndex)) {
-                    this.pageHash.remove(holeIndex - 1);
-                    break;
-                }
-                nextPage = this.pageHash.get(holeIndex);
-            }
+            int holeIndex = page.to();
+            this.shiftHole(nextPage, holeIndex);
         } else {
-            //are we at the last page?
-            if (page.to() == this.size()) {
-                removed = page.removeAbsoluteWithChange(index);
-                this.pageHash.remove(page.to());
-            } else {
-                //shift current page end to the hole
-                int nextPageIndex = page.to();
-                removed = page.removeAbsoluteWithChange(index);
-                Page<T> nextPage = this.pageHash.get(nextPageIndex);
-                this.pageHash.put(index, page);
-                int holeIndex = page.to();
 
-                while (true) {
-                    //fill hole
-                    this.pageHash.put(holeIndex, nextPage);
-                    holeIndex = nextPage.to();
-                    nextPage.shiftBy(-1);
-                    if (!this.pageHash.containsKey(holeIndex)) {
-                        this.pageHash.remove(holeIndex - 1);
-                        break;
-                    }
-                    nextPage = this.pageHash.get(holeIndex);
-                }
-            }
+            Log.print("Shifting required at index:", index);
+            //shift current page end to the hole
+            int nextPageIndex = page.to();
+            removed = page.removeAbsoluteWithChange(index);
+            Page<T> nextPage = this.pageHash.get(nextPageIndex);
+            int holeIndex = page.to();
+            this.shiftHole(nextPage, holeIndex);
 
         }
 
