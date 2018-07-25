@@ -249,8 +249,14 @@ public class ListBench {
 
     public static void main(String[] a) throws Exception {
         Log.instant = true;
-        new ListBench().test();
-//        new ListBench().listBehaviourTest(new PagedHashList<>(), new ArrayList<>(), 1337, 500);
+        Log.keepBuffer = false;
+        Log.disable = true;
+//        new ListBench().test();
+        PagedHashList list = new PagedHashList<>();
+        new ListBench().listBehaviourTest(list, new ArrayList<>(), 1373, 10000);
+
+        Log.printLines(list.getMappings());
+        Log.print(list.getPageCount(), list.getPageSize(), list.getAveragePageSize());
     }
 
     @Ignore
@@ -447,6 +453,7 @@ public class ListBench {
         ListOp.randomAdd.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
 
+        Log.disable = false;
         Log.print("Validation test passed");
 
 //        ListOp.randomRemove.d(safeList, rndSeed, size);

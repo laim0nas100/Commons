@@ -391,13 +391,7 @@ public class PagedHashList<T> implements List<T> {
 
     @Override
     public T get(int index) {
-        this.boundCheck(index);
-        if (this.pageHash.containsKey(index)) {
-            return this.pageHash.get(index).getAbsolute(index);
-        }
-        Log.printLines(this.getMappings());
-        throw new IllegalStateException("Something went wrong, cant find index" + index);
-
+        return this.getPage(index).getAbsolute(index);
     }
 
     @Override
@@ -445,7 +439,7 @@ public class PagedHashList<T> implements List<T> {
                     Page<T> p = new Page<>();
                     p.add(element);
 
-                    Page lastPage = this.getPage(size() - 1);
+                    Page lastPage = this.pageHash.get(size() - 1);
                     while (true) {// shift from end
                         this.pageHash.put(lastPage.to(), lastPage);
                         int prevPageIndex = lastPage.from - 1;
@@ -454,7 +448,7 @@ public class PagedHashList<T> implements List<T> {
                             break;
                         }
 
-                        lastPage = this.getPage(prevPageIndex);
+                        lastPage = this.pageHash.get(prevPageIndex);
                     }
                     this.pageHash.put(0, p);
 
@@ -462,9 +456,9 @@ public class PagedHashList<T> implements List<T> {
                     boolean isPageStart = page.getSubIndex(index) == 0;
 
                     //try previous page
-                    if (isPageStart && (this.getPage(index - 1).size() < this.pageSize)) {
+                    if (isPageStart && (this.pageHash.get(index - 1).size() < this.pageSize)) {
                         Log.print("Insert in page to the left");
-                        Page prevPage = this.getPage(index - 1);
+                        Page prevPage = this.pageHash.get(index - 1);
                         prevPage.add(element);
 
                         this.shiftEndForwards(prevPage);
@@ -652,6 +646,16 @@ public class PagedHashList<T> implements List<T> {
 
     public int getPageCount() {
         return this.getPages().size();
+    }
+
+    public double getAveragePageSize() {
+        double avg = 0;
+        int pageCount = 0;
+        for (Page p : this.getPages()) {
+            pageCount++;
+            avg += p.size();
+        }
+        return avg / pageCount;
     }
 
     public String getPageRepresentation() {
