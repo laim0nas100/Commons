@@ -20,6 +20,10 @@ public class MyRandom extends java.util.Random {
         seed((int) System.currentTimeMillis());
     }
 
+    public MyRandom(int seed) {
+        seed(seed);
+    }
+
     @Override
     public void setSeed(long seed) {
         seed((int) seed);
