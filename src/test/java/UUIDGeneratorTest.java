@@ -18,7 +18,6 @@ import org.junit.*;
  *
  * @author Lemmin
  */
-
 public class UUIDGeneratorTest {
 
     public UUIDGeneratorTest() {
@@ -77,34 +76,35 @@ public class UUIDGeneratorTest {
         Thread.sleep(1000);
 
     }
-    
-    
+
     private static final String constant = "C";
-    public void testUUID2(int times){
+
+    public void testUUID2(int times) {
         long time2 = 0;
         long time1 = System.currentTimeMillis();
-        
-        for(int i = 0; i < times; i++){
+
+        for (int i = 0; i < times; i++) {
             UUID.randomUUID();
         }
         time1 = System.currentTimeMillis() - time1;
-        
+
         time2 = System.currentTimeMillis();
-        for(int i = 0; i < times; i++){
+        for (int i = 0; i < times; i++) {
             UUIDgenerator.nextUUID(constant);
         }
-        
+
         time2 = System.currentTimeMillis() - time2;
-        
-        System.out.println(time1 + " "+time2);
+
+        System.out.println(time1 + " " + time2);
     }
-    
+
+    @Ignore
     @Test
-    public void t(){
+    public void t() {
         int times = 10000000;
         testUUID2(times);
         testUUID2(times);
-        
+
         testUUID2(times);
         testUUID2(times);
     }
