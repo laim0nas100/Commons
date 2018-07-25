@@ -5,8 +5,8 @@
  */
 package lt.lb.commons.Containers;
 
-import java.util.*;
 import java.util.Map.Entry;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
