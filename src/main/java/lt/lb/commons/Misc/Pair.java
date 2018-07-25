@@ -9,22 +9,14 @@ package lt.lb.commons.Misc;
  *
  * @author Laimonas-Beniusis-PC
  */
-public class Pair<Type> {
-
-    public Type g1 = null;
-    public Type g2 = null;
+public class Pair<Type> extends Tuple<Type, Type> {
 
     public Pair(Type g1, Type g2) {
-        this.g1 = g1;
-        this.g2 = g2;
+        super(g1, g2);
     }
 
     public Pair() {
 
-    }
-
-    public boolean full() {
-        return this.g1 != null && this.g2 != null;
     }
 
     public Type getRandom() {
@@ -41,10 +33,5 @@ public class Pair<Type> {
                 return g1;
             }
         }
-    }
-
-    @Override
-    public String toString() {
-        return this.g1 + " , " + this.g2;
     }
 }
