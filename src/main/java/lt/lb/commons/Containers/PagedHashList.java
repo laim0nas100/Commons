@@ -7,9 +7,6 @@ package lt.lb.commons.Containers;
 
 import java.util.*;
 import lt.lb.commons.Log;
-import lt.lb.commons.Misc.Interval;
-import org.magicwerk.brownies.collections.GapList;
-import org.magicwerk.brownies.collections.IList;
 
 /**
  *
@@ -56,7 +53,6 @@ public class PagedHashList<T> implements List<T> {
     private static class Page<E> {
 
         public int from;
-        public int to;
         public List<E> items;
 
         public Page(int pageSize) {
@@ -66,13 +62,17 @@ public class PagedHashList<T> implements List<T> {
         public Page() {
             this(10);
         }
+        
+        public int to(){
+            return this.from + this.size();
+        }
 
         public int size() {
             return items.size();
         }
 
         public boolean inBounds(int index) {
-            return (index >= from) && (index < to);
+            return (index >= from) && (index < to());
         }
 
         public E getAbsolute(int index) {
@@ -80,7 +80,7 @@ public class PagedHashList<T> implements List<T> {
                 int sub = index - this.from;
                 return this.items.get(sub);
             } else {
-                throw new IndexOutOfBoundsException(from + " " + to + " index:" + index);
+                throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
             }
 
         }
@@ -89,21 +89,19 @@ public class PagedHashList<T> implements List<T> {
             if (inBounds(index)) {
                 return this.items.set(getSubIndex(index), newElem);
             } else {
-                throw new IndexOutOfBoundsException(from + " " + to + " index:" + index);
+                throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
             }
         }
 
         public boolean addWithChange(E elem) {
-            this.to++;
             return this.items.add(elem);
         }
 
         public void addAbsoluteWithChange(int index, E elem) {
             if (this.inBounds(index)) {
-                this.to++;
                 this.items.add(getSubIndex(index), elem);
             } else {
-                throw new IndexOutOfBoundsException(from + " " + to + " index:" + index);
+                throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
             }
 
         }
@@ -114,21 +112,19 @@ public class PagedHashList<T> implements List<T> {
 
         public void shiftBy(int shift) {
             this.from += shift;
-            this.to += shift;
         }
 
         @Override
         public String toString() {
-            return this.from + " : " + this.to + " = " + items.toString();
+            return this.from + " : " + this.to() + " = " + items.toString();
         }
 
         public E removeAbsoluteWithChange(int index) {
             if (inBounds(index)) {
                 int sub = index - this.from;
-                to--;
                 return items.remove(sub);
             } else {
-                throw new IndexOutOfBoundsException(from + " " + to + " index:" + index);
+                throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
             }
         }
     }
@@ -163,8 +159,8 @@ public class PagedHashList<T> implements List<T> {
         Log.print("Page:"+ p);
         while (true) {
             list.add(p);
-            if (this.pageHash.containsKey(p.to)) {
-                p = this.pageHash.get(p.to);
+            if (this.pageHash.containsKey(p.to())) {
+                p = this.pageHash.get(p.to());
                 Log.print("Got page:"+p);
             } else {
                 break;
@@ -259,17 +255,17 @@ public class PagedHashList<T> implements List<T> {
         int pSize = p.items.size();
         if (this.pageHash.isEmpty()) {
             p.from = 0;
-            p.to = p.from + pSize;
-            for (int i = p.from; i < p.to; i++) {
+            int to = p.from + pSize;
+            for (int i = p.from; i < to; i++) {
                 this.pageHash.put(i, p);
             }
         } else {
             int hashSize = this.pageHash.size();
             if (index == hashSize) { //insert to end
                 Page<T> prevPage = this.pageHash.get(index - 1);
-                p.from = prevPage.to;
-                p.to = p.from + pSize;
-                for (int i = p.from; i < p.to; i++) {
+                p.from = prevPage.to();
+                int to = p.from + pSize;
+                for (int i = p.from; i < to; i++) {
                     this.pageHash.put(i, p);
                 }
             } else { //do the shift
@@ -286,7 +282,6 @@ public class PagedHashList<T> implements List<T> {
             Page p = new Page<>(this.pageSize);
             p.items.add(e);
             p.from = 0;
-            p.to = 1;
             this.repeatedGet = 0;
             this.fullSize++;
             this.pageHash.put(0, p);
@@ -298,7 +293,6 @@ public class PagedHashList<T> implements List<T> {
             if (lastPage.items.size() >= this.pageSize) {
                 lastPage = new Page<>(this.pageSize);
                 lastPage.from = lastIndex + 1;
-                lastPage.to = lastPage.from + 1;
                 lastPage.items.add(e);
             } else {
                 lastPage.addWithChange(e);
@@ -386,9 +380,9 @@ public class PagedHashList<T> implements List<T> {
         Page<T> page = this.pageHash.get(index);
         if (page.size() < this.pageSize) {
             //are we at the last page
-            if (page.to == this.size()) {
+            if (page.to() == this.size()) {
                 page.addAbsoluteWithChange(index, element);
-                this.pageHash.put(page.to, page);
+                this.pageHash.put(page.to(), page);
             } else {
 
                 page.addAbsoluteWithChange(index, element);
@@ -403,7 +397,7 @@ public class PagedHashList<T> implements List<T> {
                 Page B = null;
 
                 while (true) {
-                    int nextPageIndex = A.to - 1;
+                    int nextPageIndex = A.to() - 1;
                     if (!this.pageHash.containsKey(nextPageIndex)) { //
                         this.pageHash.put(nextPageIndex, A);
                         break;
@@ -427,7 +421,7 @@ public class PagedHashList<T> implements List<T> {
                 Page B = null;
 
                 while (true) {
-                    int nextPageIndex = A.to - 1;
+                    int nextPageIndex = A.to() - 1;
                     if (!this.pageHash.containsKey(nextPageIndex)) { //
                         this.pageHash.put(nextPageIndex, A);
                         break;
@@ -447,7 +441,7 @@ public class PagedHashList<T> implements List<T> {
                     Page B = null;
 
                     while (true) {
-                        int nextPageIndex = A.to - 1;
+                        int nextPageIndex = A.to() - 1;
                         if (!this.pageHash.containsKey(nextPageIndex)) { //
                             this.pageHash.put(nextPageIndex, A);
                             break;
@@ -534,7 +528,7 @@ public class PagedHashList<T> implements List<T> {
         }
         Page<T> page = this.pageHash.get(index);
         //maybe we hit page end?
-        if (index == page.to - 1) {
+        if (index == page.to() - 1) {
 
             removed = page.removeAbsoluteWithChange(index);
             Page<T> nextPage = this.pageHash.get(index + 1);
@@ -544,7 +538,7 @@ public class PagedHashList<T> implements List<T> {
             while (true) {
                 //fill hole
                 this.pageHash.put(holeIndex, nextPage);
-                holeIndex = nextPage.to;
+                holeIndex = nextPage.to();
                 nextPage.shiftBy(-1);
                 if (!this.pageHash.containsKey(holeIndex)) {
                     this.pageHash.remove(holeIndex - 1);
@@ -554,21 +548,21 @@ public class PagedHashList<T> implements List<T> {
             }
         } else {
             //are we at the last page?
-            if (page.to == this.size()) {
+            if (page.to() == this.size()) {
                 removed = page.removeAbsoluteWithChange(index);
-                this.pageHash.remove(page.to);
+                this.pageHash.remove(page.to());
             } else {
                 //shift current page end to the hole
-                int nextPageIndex = page.to;
+                int nextPageIndex = page.to();
                 removed = page.removeAbsoluteWithChange(index);
                 Page<T> nextPage = this.pageHash.get(nextPageIndex);
                 this.pageHash.put(index, page);
-                int holeIndex = page.to;
+                int holeIndex = page.to();
 
                 while (true) {
                     //fill hole
                     this.pageHash.put(holeIndex, nextPage);
-                    holeIndex = nextPage.to;
+                    holeIndex = nextPage.to();
                     nextPage.shiftBy(-1);
                     if (!this.pageHash.containsKey(holeIndex)) {
                         this.pageHash.remove(holeIndex - 1);

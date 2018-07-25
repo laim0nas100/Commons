@@ -21,11 +21,17 @@ public class PrefillArrayMap<T> implements List<T>, Collection<T>, RandomAccess 
     private int size = 0;
 
     private Predicate<T> nullCheck;
+    private Predicate<T> notNull;
     private T nullValue;
 
     public PrefillArrayMap(Predicate<T> nullCheck, T fillValue) {
+        if(!nullCheck.test(fillValue)){
+            throw new IllegalArgumentException("Fill value does not pass nullCheck test");
+        }
         this.nullCheck = nullCheck;
+        this.notNull = nullCheck.negate();
         this.nullValue = fillValue;
+        
     }
 
     public PrefillArrayMap(T fillValue) {
@@ -57,9 +63,9 @@ public class PrefillArrayMap<T> implements List<T>, Collection<T>, RandomAccess 
 
     @Override
     public <T> T[] toArray(T[] a) {
-        int size = this.size();
-        T[] copyOf = Arrays.copyOf(a, size);
-        for (int i = 0; i < size; i++) {
+        int arrSize = this.size();
+        T[] copyOf = Arrays.copyOf(a, arrSize);
+        for (int i = 0; i < arrSize; i++) {
             copyOf[i] = (T) this.get(i);
         }
         return copyOf;
@@ -131,15 +137,18 @@ public class PrefillArrayMap<T> implements List<T>, Collection<T>, RandomAccess 
 
     @Override
     public boolean addAll(int i, Collection<? extends T> clctn) {
-        this.size+= clctn.size();
+        for(T t:clctn){
+            if(notNull.test(t)){
+                size++;
+            }
+        }
+        
+        
         return this.list.addAll(i, clctn);
     }
 
     @Override
     public T get(int i) {
-//        if(i >= list.size()){
-//            return this.nullValue;
-//        }
         this.preFill(i);
         return list.get(i);
     }
@@ -147,24 +156,31 @@ public class PrefillArrayMap<T> implements List<T>, Collection<T>, RandomAccess 
     @Override
     public T set(int i, T e) {
         this.preFill(i);
-        if(this.isNull(i)){
-            this.size++;
+        T set = list.set(i, e);
+        boolean setNull = nullCheck.test(e);
+        boolean wasNull = nullCheck.test(set);
+        if(setNull && !wasNull){
+            size--;
+        }else if(!setNull && wasNull){
+            size++;
         }
-        return list.set(i, e);
+        return set;
     }
+ 
 
     @Override
     public void add(int i, T e) {
         this.preFill(i - 1);
-        this.size++;
+        if(notNull.test(e)){
+            this.size++;
+        }
+        
         list.add(i, e);
     }
 
     @Override
     public T remove(int i) {
-        if(!this.isNull(i)){
-            this.size--;
-        }
+        this.preFill(i);
         return this.set(i, nullValue);
     }
 
