@@ -500,7 +500,36 @@ public class PagedHashList<T> implements List<T> {
                     }
 
                 } else {//alas, we have to split
-                    throw new UnsupportedOperationException("Page slicing not yet supported");
+//                    if (true) {
+//                        throw new UnsupportedOperationException("Page slicing not yet supported");
+//                    }
+
+                    Page lastPage = this.getPage(size() - 1);
+                    //TODO
+                    while (lastPage.from > page.from) {// shift from end 
+                        this.pageHash.put(lastPage.to(), lastPage);
+                        Page newLastPage = this.getPage(lastPage.from-1);
+                        lastPage.shiftBy(1);
+                        lastPage = newLastPage;
+                        
+                    }
+
+                    Page left = new Page(this.pageSize);
+                    Page right = new Page(this.pageSize);
+                    int i = 0;
+                    int subIndex = page.getSubIndex(index);
+                    for (; i < subIndex; i++) {
+                        left.items.add(page.items.get(i));
+                        this.pageHash.put(i + index, left);
+                    }
+                    int itemsSize = page.items.size();
+                    for (; i < itemsSize; i++) {
+                        right.items.add(page.items.get(i));
+                        this.pageHash.put(i + index, right);
+                    }
+                    left.from = page.from;
+                    right.from = left.to();
+
                 }
 
                 //Splitting 

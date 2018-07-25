@@ -68,34 +68,34 @@ public class ListBench {
     public void test() throws InterruptedException {
         PagedHashList<Long> list = new PagedHashList<>();
         for (int i = 0; i < 10; i++) {
-            dPrintList(list);
+//            dPrintList(list);
             list.add((long) i * 2);
             
         }
         
         for(int i = 0; i < 10; i++){
-            list.set(i, 10L-i);
+            list.set(i, i*-1L);
         }
 //        Log.printLines(list.getMappings());
 //        Log.print(list.remove(9)+" ");
 //        dPrintList(list);
 //        
-//        list.add(4,88L);
+        list.add(2,88L);
         dPrintList(list);
         
-        Random r = new Random(3);
-        while(!list.isEmpty()){
-            int toRemove =  r.nextInt(list.size());
-            Log.print("remove:"+toRemove,list.remove(toRemove)+" ");
-        dPrintList(list);
-        }
+//        Random r = new Random(3);
+//        while(!list.isEmpty()){
+//            int toRemove =  r.nextInt(list.size());
+//            Log.print("remove:"+toRemove,list.remove(toRemove)+" ");
+//        dPrintList(list);
+//        }
         
-        int size = 50000;
-        int iterations = 500000;
-        Log.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
-        Log.print(executeBench(80, "BigList read", makeBenchRead(makeList(this.getBank(size, size), new BigList<>()), new Random(10), iterations)));
-        Log.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
-        Log.print(executeBench(80, "PagedHashList read", makeBenchRead(makeList(this.getBank(size, size), new PagedHashList<>()), new Random(10), iterations)));
+//        int size = 50000;
+//        int iterations = 500000;
+//        Log.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
+//        Log.print(executeBench(80, "BigList read", makeBenchRead(makeList(this.getBank(size, size), new BigList<>()), new Random(10), iterations)));
+//        Log.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
+//        Log.print(executeBench(80, "PagedHashList read", makeBenchRead(makeList(this.getBank(size, size), new PagedHashList<>()), new Random(10), iterations)));
         
 
 //        ListIterator<Long> listIterator = list.listIterator();
