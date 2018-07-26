@@ -7,6 +7,7 @@ import lt.lb.commons.Log;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
+import org.magicwerk.brownies.collections.GapList;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -186,9 +187,7 @@ public class ListBench {
     public <T> Supplier<List<T>> makeList(List<T> bank, List<T> newList) {
 
         return () -> {
-            for (T t : bank) {
-                newList.add(t);
-            }
+            newList.addAll(bank);
             return newList;
         };
     }
@@ -250,24 +249,24 @@ public class ListBench {
     public static void main(String[] a) throws Exception {
         Log.instant = true;
         Log.keepBuffer = false;
-        Log.disable = true;
-//        new ListBench().test();
-        PagedHashList list = new PagedHashList<>();
-        new ListBench().listBehaviourTest(list, new ArrayList<>(), 1373, 10000);
-
-        Log.printLines(list.getMappings());
-        Log.print(list.getPageCount(), list.getPageSize(), list.getAveragePageSize());
+//        Log.disable = true;
+        new ListBench().listBench();
+//        PagedHashList list = new PagedHashList<>();
+//        new ListBench().listBehaviourTest(list, new ArrayList<>(), 1373, 800);
+//
+//        Log.printLines(list.getMappings());
+//        Log.print(list.getPageCount(), list.getPageSize(), list.getAveragePageSize());
     }
 
     @Ignore
     @Test
     public void listBench() throws Exception {
         Log.print("List benchmark");
-        int size = 1000;
-        int iterations = 200;
+        int size = 8000;
+        int iterations = 10000;
         int seed = 10;
 //        Class<List>[] lists = new Class[]{ArrayList.class,GapList.class,PagedList.class,BigList.class};
-        Class<List>[] lists = new Class[]{PagedList.class, BigList.class};
+        Class<List>[] lists = new Class[]{PagedHashList.class, BigList.class};
 //        Class<List>[] lists = new Class[]{BigList.class};
         Log.print("Waiting for input");
         Log.print("Start " + System.in.read());
@@ -275,9 +274,15 @@ public class ListBench {
 //        benchBatch(size, iterations, seed,lists);
 //        benchBatch(size * 10, iterations, seed,lists);
 //        benchBatch(size * 100, iterations, seed,lists);
-        benchBatch(size * 10000, iterations, seed, lists);
+//        benchBatch(size * 1000, iterations, seed, lists);
 //        benchBatch(size*5000, iterations, seed, lists);
 //        benchBatch(size*30000, iterations, seed, lists);
+
+    
+int mult = 1000;
+        Log.print(executeBench(100, "ArrayList read", makeBenchRead(makeList(this.getBank(size*mult, seed), new ArrayList<>()), new Random(seed), iterations)));
+        Log.print(executeBench(100, "BigList read", makeBenchRead(makeList(this.getBank(size*mult, seed), new BigList<>(100)), new Random(seed), iterations)));
+        Log.print(executeBench(100, "PagedHashedList read", makeBenchRead(makeList(this.getBank(size*mult, seed), new PagedHashList<>()), new Random(seed), iterations)));
 
     }
 
@@ -422,12 +427,37 @@ public class ListBench {
                 list.remove(l);
             }
         };
+        
+        public static ListOp addAll = (List list, int rngSeed, int size) -> {
+            Random r = new Random(rngSeed);
+            for (int i = 0; i < size; i++) {
+                int l = r.nextInt(list.size());
+                ArrayList<Long> bulkAdd = new ArrayList<>();
+                for(int j = 0; j < l ; j++){
+                    i++;
+                    bulkAdd.add(r.nextLong()% size);
+                }
+                list.addAll(bulkAdd);
+            }
+        };
+        public static ListOp randomAddAll = (List list, int rngSeed, int size) -> {
+            Random r = new Random(rngSeed);
+            for (int i = 0; i < size; i++) {
+                int l = r.nextInt(size);
+                ArrayList<Long> bulkAdd = new ArrayList<>();
+                for(int j = 0; j < l ; j++){
+                    i++;
+                    bulkAdd.add(r.nextLong()% size);
+                }
+                list.addAll(r.nextInt(list.size()),bulkAdd);
+            }
+        };
     }
 
     public void listBehaviourTest(List<Long> toTest, List<Long> safeList, int rndSeed, int size) {
         toTest.clear();
         safeList.clear();
-
+//        Log.disable = true;
         ListOp.add.d(safeList, rndSeed, size);
         ListOp.add.d(toTest, rndSeed, size);
 
@@ -452,9 +482,28 @@ public class ListBench {
         ListOp.randomAdd.d(safeList, rndSeed, size);
         ListOp.randomAdd.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
-
+        
+        Log.print("List is valid after random add");
+        
+        ListOp.addAll.d(safeList, rndSeed, size);
+        ListOp.addAll.d(toTest, rndSeed, size);
+        this.listEquals(safeList, toTest);
+        
+        Log.print("List is valid after add all");
+        safeList.clear();
+        toTest.clear();
+        toTest.add(0L);
+        safeList.add(0L);
         Log.disable = false;
+        
+        ListOp.randomAddAll.d(safeList, rndSeed, size);
+        ListOp.randomAddAll.d(toTest, rndSeed, size);
+        this.listEquals(safeList, toTest);
+        
+        Log.print("List is valid after random add all");
+
         Log.print("Validation test passed");
+        
 
 //        ListOp.randomRemove.d(safeList, rndSeed, size);
 //        ListOp.randomRemove.d(toTest, rndSeed, size);
