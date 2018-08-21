@@ -7,7 +7,6 @@ import lt.lb.commons.Log;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
-import org.magicwerk.brownies.collections.GapList;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -252,18 +251,18 @@ public class ListBench {
 //        Log.disable = true;
         new ListBench().listBench();
 //        PagedHashList list = new PagedHashList<>();
-//        new ListBench().listBehaviourTest(list, new ArrayList<>(), 1373, 800);
-//
+//        new ListBench().listBehaviourTest(new BigList<>(), new PagedHashList<>(), 1373, 100000);
+
 //        Log.printLines(list.getMappings());
-//        Log.print(list.getPageCount(), list.getPageSize(), list.getAveragePageSize());
+//        Log.print(list.getPageCount(), list.getPageSize(), list.getAveragePageSize(), list.size());
     }
 
     @Ignore
     @Test
     public void listBench() throws Exception {
         Log.print("List benchmark");
-        int size = 8000;
-        int iterations = 10000;
+        int size = 5000000;
+        int iterations = 500000;
         int seed = 10;
 //        Class<List>[] lists = new Class[]{ArrayList.class,GapList.class,PagedList.class,BigList.class};
         Class<List>[] lists = new Class[]{PagedHashList.class, BigList.class};
@@ -272,17 +271,18 @@ public class ListBench {
         Log.print("Start " + System.in.read());
 //        benchBatch(size / 10, iterations, seed,lists);
 //        benchBatch(size, iterations, seed,lists);
-//        benchBatch(size * 10, iterations, seed,lists);
+//        benchBatch(size * 10, iterations, seed, lists);
 //        benchBatch(size * 100, iterations, seed,lists);
 //        benchBatch(size * 1000, iterations, seed, lists);
 //        benchBatch(size*5000, iterations, seed, lists);
 //        benchBatch(size*30000, iterations, seed, lists);
 
-    
-int mult = 1000;
-        Log.print(executeBench(100, "ArrayList read", makeBenchRead(makeList(this.getBank(size*mult, seed), new ArrayList<>()), new Random(seed), iterations)));
-        Log.print(executeBench(100, "BigList read", makeBenchRead(makeList(this.getBank(size*mult, seed), new BigList<>(100)), new Random(seed), iterations)));
-        Log.print(executeBench(100, "PagedHashedList read", makeBenchRead(makeList(this.getBank(size*mult, seed), new PagedHashList<>()), new Random(seed), iterations)));
+        int mult = 1;
+        List<Long> bank = this.getBank(size * mult, seed);
+//        Log.print(executeBench(100, "ArrayList read", makeBenchRead(makeList(this.getBank(size * mult, seed), new ArrayList<>()), new Random(seed), iterations)));
+        Log.print(executeBench(150, "BigList read", makeBenchRead(makeList(bank, new BigList<>(20000)), new Random(seed), iterations)));
+        Log.print(executeBench(150, "PagedHashedList read", makeBenchRead(makeList(bank, new PagedHashList<>()), new Random(seed), iterations)));
+        Log.print(executeBench(150, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
 
     }
 
@@ -315,14 +315,21 @@ int mult = 1000;
         };
         return run;
     }
+    Object ob = true;
+
+    public void blackHole(Object o) {
+        if (o == ob) {
+            throw new IllegalStateException();
+        }
+    }
 
     public <T> Runnable makeBenchRead(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
         Runnable run = () -> {
-            Object ob = new Object();
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {
                 Object get = list.get(rnd.nextInt(list.size()));
+                blackHole(get);
             }
         };
         return run;
@@ -384,7 +391,7 @@ int mult = 1000;
 
     public void listEquals(List l1, List l2) {
         if (l1.size() != l2.size()) {
-            throw new IllegalStateException("Size is not equal");
+            throw new IllegalStateException("Size is not equal:" + l1.size() + " " + l2.size());
         }
         int size = l1.size();
         for (int i = 0; i < size; i++) {
@@ -427,15 +434,15 @@ int mult = 1000;
                 list.remove(l);
             }
         };
-        
+
         public static ListOp addAll = (List list, int rngSeed, int size) -> {
             Random r = new Random(rngSeed);
             for (int i = 0; i < size; i++) {
                 int l = r.nextInt(list.size());
                 ArrayList<Long> bulkAdd = new ArrayList<>();
-                for(int j = 0; j < l ; j++){
+                for (int j = 0; j < l; j++) {
                     i++;
-                    bulkAdd.add(r.nextLong()% size);
+                    bulkAdd.add(r.nextLong() % size);
                 }
                 list.addAll(bulkAdd);
             }
@@ -445,11 +452,11 @@ int mult = 1000;
             for (int i = 0; i < size; i++) {
                 int l = r.nextInt(size);
                 ArrayList<Long> bulkAdd = new ArrayList<>();
-                for(int j = 0; j < l ; j++){
+                for (int j = 0; j < l; j++) {
                     i++;
-                    bulkAdd.add(r.nextLong()% size);
+                    bulkAdd.add(r.nextLong() % size);
                 }
-                list.addAll(r.nextInt(list.size()),bulkAdd);
+                list.addAll(r.nextInt(list.size()), bulkAdd);
             }
         };
     }
@@ -478,32 +485,29 @@ int mult = 1000;
 
         this.listEquals(safeList, toTest);
         Log.print("List is valid after random remove");
-
-        ListOp.randomAdd.d(safeList, rndSeed, size);
-        ListOp.randomAdd.d(toTest, rndSeed, size);
-        this.listEquals(safeList, toTest);
-        
-        Log.print("List is valid after random add");
-        
         ListOp.addAll.d(safeList, rndSeed, size);
         ListOp.addAll.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
-        
+
         Log.print("List is valid after add all");
         safeList.clear();
         toTest.clear();
         toTest.add(0L);
         safeList.add(0L);
         Log.disable = false;
-        
+
         ListOp.randomAddAll.d(safeList, rndSeed, size);
         ListOp.randomAddAll.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
-        
         Log.print("List is valid after random add all");
 
+        ListOp.randomAdd.d(safeList, rndSeed, size);
+        ListOp.randomAdd.d(toTest, rndSeed, size);
+        this.listEquals(safeList, toTest);
+
+        Log.print("List is valid after random add");
+
         Log.print("Validation test passed");
-        
 
 //        ListOp.randomRemove.d(safeList, rndSeed, size);
 //        ListOp.randomRemove.d(toTest, rndSeed, size);
