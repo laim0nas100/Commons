@@ -6,10 +6,8 @@
 package lt.lb.commons.Containers;
 
 import java.util.*;
-import lt.lb.commons.Log;
 import lt.lb.commons.Misc.Pair;
 import lt.lb.commons.Misc.Tuple;
-import org.magicwerk.brownies.collections.GapList;
 
 /**
  *
@@ -17,16 +15,13 @@ import org.magicwerk.brownies.collections.GapList;
  */
 public class PagedHashList<T> implements List<T>, RandomAccess {
 
-    protected long pageID;
-
-    protected Page<T> cachedPage;
-
-    protected int initialPageSize = 16;
+    protected int initialPageSize = 512;
+    double pageIncrMult = 2;
     protected int pageSize = initialPageSize;
     protected ArrayList<T> cachedList;
 
 //    protected Map<Integer, Page<T>> pageHash = new HashMap<>();
-    public PrefillArrayMap<Page<T>> pageHash = new PrefillArrayMap<>();
+    public PrefillArrayMap2<Page<T>> pageHash = new PrefillArrayMap2<>();
 //    public Map<Integer, Page<T>> pageHash = new PrefillArrayMap<Page<T>>().asMap();
 
     public PagedHashList() {
@@ -69,13 +64,14 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
 
     }
 
-    private static class Page<E> {
+    private static class Page<E> extends ArrayList<E> {
 
         public int from;
-        public List<E> items;
+//        public List<E> items;
 
         public Page(int pageSize) {
-            items = new ArrayList<>(pageSize);
+            super(pageSize);
+//            items = new ArrayList<>(pageSize);
         }
 
         public Page() {
@@ -86,39 +82,30 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
             return this.from + this.size();
         }
 
-        public int size() {
-            return items.size();
-        }
-
         public boolean inBounds(int index) {
             return (index >= from) && (index < to());
         }
 
         public E getAbsolute(int index) {
-            if (inBounds(index)) {
-                int sub = index - this.from;
-                return this.items.get(sub);
-            } else {
-                throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
-            }
+//            if (inBounds(index)) {
+            return this.get(getSubIndex(index));
+//            } else {
+//                throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
+//            }
 
         }
 
         public E setAbsolute(int index, E newElem) {
             if (inBounds(index)) {
-                return this.items.set(getSubIndex(index), newElem);
+                return this.set(getSubIndex(index), newElem);
             } else {
                 throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
             }
         }
 
-        public boolean add(E elem) {
-            return this.items.add(elem);
-        }
-
         public void addAbsolute(int index, E elem) {
             if (this.inBounds(index)) {
-                this.items.add(getSubIndex(index), elem);
+                this.add(getSubIndex(index), elem);
             } else {
                 throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
             }
@@ -135,12 +122,12 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
 
         @Override
         public String toString() {
-            return this.from + " : " + this.to() + " = " + items.toString();
+            return this.from + " : " + this.to() + " = " + super.toString();
         }
 
         public E removeAbsolute(int index) {
             if (inBounds(index)) {
-                return items.remove(getSubIndex(index));
+                return remove(getSubIndex(index));
             } else {
                 throw new IndexOutOfBoundsException(from + " " + to() + " index:" + index);
             }
@@ -160,17 +147,29 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
     }
 
     protected void maybeChangeSize() {
-        if (this.size() < 100) {
+
+        int size = this.size();
+        if (size < initialPageSize) {
             return;
         }
-        double divPage = this.size() / (double) pageSize;
-        if (pageSize < divPage) {
+        double sqrtSize = Math.sqrt(size);
+        int desiredPages = (int) Math.floor(sqrtSize);
+        if (desiredPages * pageSize < size) {
             pageSize *= 2;
             mergePages();
-        } else if (divPage * 2 < pageSize) {
+        } else if (desiredPages * pageSize < size / 2d) {
             pageSize /= 2;
             mergePages();
         }
+
+//        double divPage = this.size() * pageIncrMult / pageSize;
+//        if (divPage > sqrtSize) {
+//            pageSize *= 2;
+//            mergePages();
+//        } else if (divPage * 2 < sqrtSize) {
+//            pageSize /= 2;
+//            mergePages();
+//        }
     }
 
     private List<Page<T>> getPages(int startingIndexPage) {
@@ -204,21 +203,43 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
         }
 //        Log.print("Merge pages");
 //        Log.printLines(this.getMappings());
-        List<Page<T>> pages = this.getPages();
+        Iterator<Page<T>> pages = this.pageIter(0);
+        List<Page<T>> pagesToSplit = new LinkedList<>();
         List<Tuple<Page<T>, Pair<Integer>>> changeIntervals = new ArrayList<>();
-        int pageCount = pages.size();
-        Page<T> adding = pages.get(0);
+        Page<T> adding = pages.next();
         Page<T> next = null;
         Pair<Integer> pair = null;
-        for (int i = 1; i < pageCount; i++) {
-            next = pages.get(i);
-            if (adding.size() + next.size() < this.pageSize) {
-                adding.items.addAll(next.items);
+        while (pages.hasNext()) {
+            next = pages.next();
+            int nextSize = next.size();
+            boolean fits = adding.size() + nextSize < this.pageSize;
+            boolean toSplit = 2 * nextSize < this.pageSize;
+            if (fits) {
+                adding.addAll(next);
                 if (pair == null) {
                     pair = new Pair<>(next.from, next.to());
                 } else {
                     pair.g2 = next.to();
                 }
+
+            } else if (toSplit) {
+
+                adding.addAll(next);
+                if (pair == null) {
+                    pair = new Pair<>(next.from, next.to());
+                } else {
+                    pair.g2 = next.to();
+                }
+
+                changeIntervals.add(new Tuple<>(adding, pair));
+                pagesToSplit.add(adding);
+                pair = null;
+                if (pages.hasNext()) {
+                    adding = pages.next();
+                } else {
+                    break;
+                }
+
             } else {
                 if (pair != null) {
                     changeIntervals.add(new Tuple<>(adding, pair));
@@ -241,6 +262,9 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
             }
 //            Log.print(ref);
         }
+        for (Page p : pagesToSplit) {
+            this.splitPageInMiddle(p);
+        }
 //        Log.printLines(this.getMappings());
 
     }
@@ -258,17 +282,12 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
     private Page<T> getPage(int fromIndex) {
 
         if (fromIndex >= this.size() || fromIndex < 0) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Size: " + this.size() + " Index:" + fromIndex);
         }
         if (!this.pageHash.containsKey(fromIndex)) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Size: " + this.size() + " Index:" + fromIndex);
         }
-        if (this.cachedPage == null) {
-            this.cachedPage = this.pageHash.get(fromIndex);
-        } else if (!this.cachedPage.inBounds(fromIndex)) {
-            this.cachedPage = this.pageHash.get(fromIndex);
-        }
-        return this.cachedPage;
+        return this.pageHash.get(fromIndex);
 
     }
 
@@ -276,7 +295,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
     public boolean contains(Object o) {
         Iterator<Page<T>> pageIter = this.pageIter(0);
         while (pageIter.hasNext()) {
-            if (pageIter.next().items.contains(o)) {
+            if (pageIter.next().contains(o)) {
                 return true;
             }
         }
@@ -286,7 +305,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
     public ArrayList<T> toArrayList() {
         ArrayList<T> array = new ArrayList<>(this.size());
         for (Page p : this.getPages()) {
-            array.addAll(p.items);
+            array.addAll(p);
         }
         return array;
     }
@@ -294,7 +313,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
     public LinkedList<T> toLinkedList() {
         LinkedList<T> array = new LinkedList<>();
         for (Page p : this.getPages()) {
-            array.addAll(p.items);
+            array.addAll(p);
         }
         return array;
     }
@@ -344,7 +363,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
     public boolean add(T e) {
         if (this.isEmpty()) {
             Page p = new Page<>(this.pageSize);
-            p.items.add(e);
+            p.add(e);
             p.from = 0;
             this.pageHash.put(0, p);
         } else {
@@ -352,10 +371,10 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
             int lastIndex = size() - 1;
             Page<T> lastPage = this.pageHash.get(lastIndex);
 
-            if (lastPage.items.size() >= this.pageSize) {
+            if (lastPage.size() >= this.pageSize) {
                 lastPage = new Page<>(this.pageSize);
                 lastPage.from = lastIndex + 1;
-                lastPage.items.add(e);
+                lastPage.add(e);
             } else {
                 lastPage.add(e);
             }
@@ -395,10 +414,10 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
         }
         if (this.isEmpty()) {
             Page<T> page = new Page<>();
-            page.from = this.size();
-            page.items.addAll(c);
+            page.from = 0;
+            page.addAll(c);
             int to = page.to();
-            for (int i = page.from; i < to; i++) {
+            for (int i = 0; i < to; i++) {
                 this.pageHash.put(i, page);
             }
             this.recursiveMiddleSplit(page);
@@ -407,7 +426,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
             int colSize = c.size();
             if (lastPage.size() + colSize < this.pageSize) {
                 int oldTo = lastPage.to();
-                lastPage.items.addAll(c);
+                lastPage.addAll(c);
                 int to = lastPage.to();
                 for (int i = oldTo; i < to; i++) {
                     this.pageHash.put(i, lastPage);
@@ -415,7 +434,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
             } else {
                 Page<T> page = new Page<>();
                 page.from = this.size();
-                page.items.addAll(c);
+                page.addAll(c);
                 int to = page.to();
                 for (int i = page.from; i < to; i++) {
                     this.pageHash.put(i, page);
@@ -451,14 +470,14 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
             Page<T> rightPage = new Page<>();
             rightPage.from = page.from + leftSize;
             for (int i = leftSize; i < size; i++) {
-                rightPage.add(page.items.get(i));
+                rightPage.add(page.get(i));
 
             }
             for (int i = rightPage.from; i < rightPage.to(); i++) {
                 pageHash.put(i, rightPage);
             }
             for (int i = size - 1; i >= leftSize; i--) {
-                page.items.remove(i);
+                page.remove(i);
             }
 
         }
@@ -488,7 +507,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
 //            Log.print("Add to head");
             Page<T> page = new Page<>(colSize);
 
-            page.items.addAll(c);
+            page.addAll(c);
             ArrayList<Page<T>> refs = new ArrayList<>(colSize);
             for (int i = 0; i < colSize; i++) {
                 refs.add(page);
@@ -508,7 +527,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
 //                Log.print("Just insert new page");
                 Page<T> newPage = new Page<>(colSize);
                 newPage.from = page.from;
-                newPage.items.addAll(c);
+                newPage.addAll(c);
                 ArrayList<Page<T>> refs = new ArrayList<>(colSize);
                 for (int i = 0; i < colSize; i++) {
                     refs.add(newPage);
@@ -527,7 +546,8 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
 //                Log.printLines(this.getMappings());
                 this.splitPageAtSubindex(page, subIndex);
 //                Log.printLines(this.getMappings());
-                this.addAll(index, c);
+                return this.addAll(index, c);
+
             }
 
         }
@@ -793,7 +813,7 @@ public class PagedHashList<T> implements List<T>, RandomAccess {
     public String getPageRepresentation() {
         String s = "";
         for (Page p : this.getPages()) {
-            s += " [" + p.items.size() + "]";
+            s += " [" + p.size() + "]";
         }
         return s;
     }
