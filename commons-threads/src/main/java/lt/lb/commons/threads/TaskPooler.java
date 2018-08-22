@@ -31,7 +31,7 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
     private int threadsFinished = 0;
     private AtomicBoolean wait = new AtomicBoolean(false);
     private boolean shutdownCalled = false;
-    private FutureTask shutdownCall = new FutureTask(() -> 0);
+    private FutureTask<Integer> shutdownCall = new FutureTask<>(() -> 0);
     private ConcurrentLinkedDeque<RunnableFuture> tasks = new ConcurrentLinkedDeque<>();
     private ConcurrentLinkedDeque<RunnableFuture> activeTasks = new ConcurrentLinkedDeque<>();
 
@@ -171,7 +171,7 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
             wakeUp();
 
         };
-        this.startThread(new FutureTask(Executors.callable(wake)));
+        this.startThread(new FutureTask<>(Executors.callable(wake)));
     }
 
     public TaskPooler(int maxCount) {

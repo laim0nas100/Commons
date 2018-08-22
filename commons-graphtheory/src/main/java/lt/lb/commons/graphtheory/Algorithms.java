@@ -199,7 +199,7 @@ public class Algorithms {
                 }
             }
             if (visitNextIteration.isEmpty()) {
-                ArrayDeque temp = newList;
+                ArrayDeque<Long> temp = newList;
                 newList = visitNextIteration;
                 visitNextIteration = temp;
             }

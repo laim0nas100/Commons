@@ -242,7 +242,7 @@ public class ArrayBasedCounter {
 
     @Override
     public String toString() {
-        ArrayList reversed = new ArrayList<>();
+        ArrayList<Integer> reversed = new ArrayList<>();
         reversed.addAll(list);
         Collections.reverse(reversed);
         return reversed.toString();

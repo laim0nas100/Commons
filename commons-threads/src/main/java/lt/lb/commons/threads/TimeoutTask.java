@@ -25,7 +25,7 @@ public class TimeoutTask {
     public BooleanProperty conditionalCheck;
     private ArrayList<Runnable> onUpdate = new ArrayList<>();
     private final Runnable run;
-    private final Callable call = new Callable() {
+    private final Callable<Void> call = new Callable<Void>() {
 
         @Override
         public Void call() throws Exception {
@@ -78,7 +78,7 @@ public class TimeoutTask {
     }
 
     private void startNewThread() {
-        Thread newThread = new Thread(new FutureTask(call));
+        Thread newThread = new Thread(new FutureTask<>(call));
         newThread.start();
         this.thread = newThread;
     }

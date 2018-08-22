@@ -102,7 +102,7 @@ public class BasicProperty<V> implements Property<V> {
         this.bindings.clear();
     }
 
-    private void unbind(HashSet<Object> list, ObservableValue p) {
+    private void unbind(HashSet<Object> list, ObservableValue<V> p) {
         for (Object o : list) {
             if (o instanceof InvalidationListener) {
                 p.removeListener((InvalidationListener) o);
@@ -112,7 +112,7 @@ public class BasicProperty<V> implements Property<V> {
         }
     }
 
-    protected void unbind(ObservableValue p) {
+    protected void unbind(ObservableValue<V> p) {
         if (this.bindings.containsKey(p)) {
             HashSet<Object> list = this.bindings.get(p);
             unbind(list, p);
@@ -128,13 +128,13 @@ public class BasicProperty<V> implements Property<V> {
     }
 
     @Override
-    public void bindBidirectional(Property other) {
+    public void bindBidirectional(Property<V> other) {
         bind(other);
         other.bind(this);
     }
 
     @Override
-    public void unbindBidirectional(Property other) {
+    public void unbindBidirectional(Property<V> other) {
         if (this.changeInit) {
             return;
         }
@@ -153,5 +153,6 @@ public class BasicProperty<V> implements Property<V> {
     public String getName() {
         return this.name;
     }
+
 
 }

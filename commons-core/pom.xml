@@ -8,7 +8,7 @@
     <parent>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commons-parent</artifactId>
-            <version>${project.production.version}</version>
+            <version>local-jar</version>
     </parent>
     <name>Commons Core</name>
     <properties>

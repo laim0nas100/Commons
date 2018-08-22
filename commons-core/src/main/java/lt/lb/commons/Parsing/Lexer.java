@@ -34,9 +34,7 @@ public class Lexer {
 
     public class StringNotTerminatedException extends LexerException {
     }
-    private final Comparator cmp = (Comparator) (Object t, Object t1) -> {
-        String s1 = (String) t;
-        String s2 = (String) t1;
+    private final Comparator<String> cmp = (Comparator<String>) (String s1, String s2) -> {
         int len = s2.length() - s1.length();
         if (len == 0) {
             len = 1;

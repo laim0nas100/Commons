@@ -28,13 +28,13 @@ public class TaskProvider {
         }
     }
 
-    public void submit(Callable call, boolean priority) {
+    public <T> void submit(Callable<T> call, boolean priority) {
 
-        submit(new FutureTask(call), priority);
+        submit(new FutureTask<>(call), priority);
     }
 
     public void submit(Runnable run, boolean priority) {
-        submit(new FutureTask(run, null), priority);
+        submit(new FutureTask<>(run, null), priority);
     }
 
     public RunnableFuture requestTask() throws InterruptedException {

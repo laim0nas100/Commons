@@ -31,7 +31,7 @@ public class SelfSortingMap<K, V> extends HashMap<K, V> {
      * @param <V> value
      * @param cmp Comparator to sort items in queue
      */
-    public <K, V> SelfSortingMap(Comparator cmp) {
+    public SelfSortingMap(Comparator<V> cmp) {
         this.list = new PriorityQueue<>(cmp);
     }
 
@@ -66,7 +66,7 @@ public class SelfSortingMap<K, V> extends HashMap<K, V> {
      * @return
      */
     public List<V> getOrderedList() {
-        return new ArrayList(this.list);
+        return new ArrayList<>(this.list);
     }
 
 }

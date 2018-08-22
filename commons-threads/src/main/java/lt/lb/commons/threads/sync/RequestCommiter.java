@@ -30,7 +30,7 @@ public class RequestCommiter<T> {
     protected LocalDateTime lastRequestAdd = LocalDateTime.now();
     protected Executor commitExecutor;
 
-    protected Callable timeRun = () -> {
+    protected Callable<Void> timeRun = () -> {
 
         long sleepTime = 0;
         do {
@@ -85,7 +85,7 @@ public class RequestCommiter<T> {
         }
     }
 
-    public FutureTask commit() {
+    public FutureTask<T> commit() {
         if (pendingRequests.get() == 0) {
             return lastCommitTask;
         }

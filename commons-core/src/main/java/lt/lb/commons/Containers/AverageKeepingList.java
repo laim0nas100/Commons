@@ -13,7 +13,7 @@ import java.util.ArrayList;
  * @param <T>
  *
  */
-public class AverageKeepingList<T extends java.lang.Number> extends ArrayList {
+public class AverageKeepingList<T extends Number> extends ArrayList<Number> {
 
     public Double average;
 
@@ -23,7 +23,7 @@ public class AverageKeepingList<T extends java.lang.Number> extends ArrayList {
     }
 
     @Override
-    public boolean add(Object e) {
+    public boolean add(Number e) {
         boolean ok = super.add(e); //To change body of generated methods, choose Tools | Templates.
         if (ok) {
             this.average = ajustAverageAdd(this.average, this.size(), (java.lang.Number) e);
@@ -41,8 +41,8 @@ public class AverageKeepingList<T extends java.lang.Number> extends ArrayList {
     }
 
     @Override
-    public Object remove(int index) {
-        Number o = (Number) super.remove(index); //To change body of generated methods, choose Tools | Templates.
+    public Number remove(int index) {
+        Number o = super.remove(index); //To change body of generated methods, choose Tools | Templates.
         if (o != null) {
             this.average = ajustAverageRemove(this.average, this.size(), (java.lang.Number) o);
         }
