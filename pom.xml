@@ -21,6 +21,7 @@
         <module>commons-threads</module>
         <module>commons-jobs</module>
         <module>commons-graphtheory</module>
+        <module>commons-jpa</module>
     </modules>
     
     <dependencyManagement>
