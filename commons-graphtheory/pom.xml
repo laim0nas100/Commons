@@ -7,7 +7,7 @@
     
     <parent>
         <groupId>lt.lb.commons</groupId>
-        <artifactId>commons-parent</artifactId>
+        <artifactId>Commons</artifactId>
         <version>local-jar</version>
     </parent>
     <dependencies>

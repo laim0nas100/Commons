@@ -6,9 +6,9 @@
     <packaging>jar</packaging>
     
     <parent>
-            <groupId>lt.lb.commons</groupId>
-            <artifactId>commons-parent</artifactId>
-            <version>local-jar</version>
+        <groupId>lt.lb.commons</groupId>
+        <artifactId>Commons</artifactId>
+        <version>local-jar</version>
     </parent>
     <name>Commons Core</name>
     <properties>
