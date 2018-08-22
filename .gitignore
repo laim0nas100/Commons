@@ -8,3 +8,6 @@
 /dist/
 /nbproject/
 /target/
+/commons-refmodel - Copy/target/
+/commons-threads/target/
+/commons-jobs/target/
