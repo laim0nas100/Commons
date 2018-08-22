@@ -48,13 +48,6 @@
             <artifactId>brownies-collections</artifactId>
             <version>0.9.13</version>
         </dependency>
-        <dependency>
-            <groupId>lt.lb</groupId>
-            <artifactId>Commons</artifactId>
-            <version>local-jar</version>
-            <scope>test</scope>
-            <type>jar</type>
-        </dependency>
     </dependencies>
     
 </project>
