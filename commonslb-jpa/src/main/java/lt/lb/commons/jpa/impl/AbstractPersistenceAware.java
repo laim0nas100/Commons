@@ -12,7 +12,7 @@ import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.JPACommands;
 import lt.lb.commons.jpa.decorators.IQueryDecorator;
 
-public abstract class PersistenceAware implements JPACommands, EntityManagerAware {
+public abstract class AbstractPersistenceAware implements JPACommands, EntityManagerAware {
 
     @Override
     public <T> void persist(T obj) {
