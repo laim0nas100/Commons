@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>lt.lb.commons</groupId>
-    <artifactId>commons-refmodel</artifactId>
+    <artifactId>commonslb-javafx</artifactId>
     <packaging>jar</packaging>
-    
+    <name>CommonsLB JavaFX</name>
     <parent>
         <groupId>lt.lb.commons</groupId>
         <artifactId>Commons</artifactId>
@@ -14,11 +14,11 @@
         
         <dependency>
             <groupId>lt.lb.commons</groupId>
-            <artifactId>commons-core</artifactId>
+            <artifactId>commonslb-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-threads</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -26,5 +26,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <name>Commons Refmodel</name>
+    
 </project>

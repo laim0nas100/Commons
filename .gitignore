@@ -12,3 +12,11 @@
 /commons-threads/target/
 /commons-jobs/target/
 /commons-jpa/target/
+/commonslb-core/target/
+/commonslb-graphtheory/target/
+/commonslb-javafx/target/
+/commonslb-refmodel/target/
+/lb/target/
+/commonslb-threads/target/
+/commonslb-jpa/target/
+/commonslb-jobs/target/

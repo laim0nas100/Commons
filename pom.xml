@@ -13,37 +13,37 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         
     </properties>
-    <name>Commons</name>
+    <name>CommonsLB</name>
     <modules>
-        <module>commons-core</module>
-        <module>commons-refmodel</module>
-        <module>commons-javafx</module>
-        <module>commons-threads</module>
-        <module>commons-jobs</module>
-        <module>commons-graphtheory</module>
-        <module>commons-jpa</module>
+        <module>commonslb-core</module>
+        <module>commonslb-refmodel</module>
+        <module>commonslb-javafx</module>
+        <module>commonslb-threads</module>
+        <module>commonslb-jobs</module>
+        <module>commonslb-graphtheory</module>
+        <module>commonslb-jpa</module>
     </modules>
     
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>lt.lb.commons</groupId>
-                <artifactId>commons-core</artifactId>
+                <artifactId>commonslb-core</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
                 <groupId>lt.lb.commons</groupId>
-                <artifactId>commons-threads</artifactId>
+                <artifactId>commonslb-threads</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
                 <groupId>lt.lb.commons</groupId>
-                <artifactId>commons-refmodel</artifactId>
+                <artifactId>commonslb-refmodel</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
                 <groupId>lt.lb.commons</groupId>
-                <artifactId>commons-javafx</artifactId>
+                <artifactId>commonslb-javafx</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             
