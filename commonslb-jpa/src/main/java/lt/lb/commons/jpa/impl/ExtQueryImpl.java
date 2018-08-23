@@ -55,15 +55,7 @@ public class ExtQueryImpl<X> implements ExtQuery<X> {
             }
         }
         Collections.sort(cool, (OrderSort o1, OrderSort o2) -> {
-            if (o1.natural == o2.natural) {
-                return o1.priority - o2.priority;
-            } else {
-                if (o1.natural) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            }
+            return o1.getQueueOrder() - o2.getQueueOrder();
 
         });
         for (OrderSort sort : cool) {
