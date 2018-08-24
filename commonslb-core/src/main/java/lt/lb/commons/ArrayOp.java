@@ -5,9 +5,11 @@
  */
 package lt.lb.commons;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  *
@@ -121,6 +123,16 @@ public class ArrayOp {
         Class<T> componentType = (Class<T>) one.getClass().getComponentType();
         return newArray(list, componentType);
 
+    }
+
+    public static <T> int count(Predicate<T> test, T... array) {
+        int count = 0;
+        for (T t : array) {
+            if (test.test(t)) {
+                count++;
+            }
+        }
+        return count;
     }
 
 }
