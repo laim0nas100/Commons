@@ -5,13 +5,15 @@
  */
 package refmodel;
 
+import lt.lb.commons.refmodel.jparef.ListRef;
+import lt.lb.commons.refmodel.jparef.MapRef;
+import lt.lb.commons.refmodel.jparef.SingularRef;
 import java.util.Date;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
 import lt.lb.commons.Log;
 import lt.lb.commons.containers.Value;
 import lt.lb.commons.refmodel.*;
-import lt.lb.commons.refmodel.jpa.*;
 import org.junit.*;
 
 /**
