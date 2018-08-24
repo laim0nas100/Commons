@@ -5,6 +5,7 @@
  */
 package lt.lb.commons.jpa.decorators;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import javax.persistence.EntityManager;
@@ -33,40 +34,45 @@ public class DefaultOrderSort implements OrderSort {
         public T getLimit(T value, boolean lower);
     }
 
+    public static LimitResolver<Date> dateResolver = (Date value, boolean lower) -> {
+        if (lower) {
+            return new Date(value.getTime() - 1);
+        } else {
+            return new Date(value.getTime() + 1);
+        }
+    };
+
+    public static LimitResolver<Number> numberResolver = (Number value, boolean lower) -> {
+        Double dv = value.doubleValue();
+        if (lower) {
+            dv -= 1;
+        } else {
+            dv += 1;
+        }
+//        Class<? extends Number> aClass = value.getClass();
+//        if (aClass.isAssignableFrom(Long.class)) {
+//            return dv.longValue();
+//        } else if (aClass.isAssignableFrom(Integer.class)) {
+//            return dv.intValue();
+//        } else if (aClass.isAssignableFrom(Short.class)) {
+//            return dv.shortValue();
+//        } else if (aClass.isAssignableFrom(Byte.class)) {
+//            return dv.byteValue();
+//        } else if (aClass.isAssignableFrom(Double.class)) {
+//            return dv;
+//        } else if (aClass.isAssignableFrom(Float.class)) {
+//            return dv.floatValue();
+//        }
+
+        return dv;
+    };
+
     public static HashMap<Class, LimitResolver> getLimits() {
         HashMap<Class, LimitResolver> m = new HashMap<>();
 
-        m.put(Date.class, (LimitResolver<Date>) (Date value, boolean lower) -> {
-            if (lower) {
-                return new Date(value.getTime() - 1);
-            } else {
-                return new Date(value.getTime() + 1);
-            }
-        });
-        m.put(Number.class, (LimitResolver<Number>) (Number value, boolean lower) -> {
-            Double dv = value.doubleValue();
-            if (lower) {
-                dv -= 1;
-            } else {
-                dv += 1;
-            }
-            Class<? extends Number> aClass = value.getClass();
-            if (aClass.isAssignableFrom(Long.class)) {
-                return dv.longValue();
-            } else if (aClass.isAssignableFrom(Integer.class)) {
-                return dv.intValue();
-            } else if (aClass.isAssignableFrom(Short.class)) {
-                return dv.shortValue();
-            } else if (aClass.isAssignableFrom(Byte.class)) {
-                return dv.byteValue();
-            } else if (aClass.isAssignableFrom(Double.class)) {
-                return dv;
-            } else if (aClass.isAssignableFrom(Float.class)) {
-                return dv.floatValue();
-            }
+        m.put(Date.class, dateResolver);
+        m.put(Number.class, numberResolver);
 
-            return value;
-        });
         m.put(String.class, (LimitResolver<String>) (String value, boolean lower) -> {
             if (lower) {
                 if (!value.isEmpty()) {
@@ -84,11 +90,12 @@ public class DefaultOrderSort implements OrderSort {
     public static Object resolveValueLimit(Object original, boolean min) {
         Class c = original.getClass();
         HashMap<Class, LimitResolver> limits = getLimits();
-        if (limits.containsKey(c)) {
-            return limits.get(c).getLimit(original, min);
-        } else {
-            throw new IllegalArgumentException(c + " type is not supported by DefaultOrderSort");
+        for(Class clz:limits.keySet()){
+            if(clz.isAssignableFrom(c)){
+                return limits.get(clz).getLimit(original, min);
+            }
         }
+        throw new IllegalArgumentException(c + " type is not supported by DefaultOrderSort");
     }
 
     @Override
