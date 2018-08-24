@@ -8,10 +8,10 @@ package refmodel;
 import java.util.Date;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
-import lt.lb.commons.Containers.Value;
 import lt.lb.commons.Log;
-import lt.lb.commons.RefModel.JPA.*;
-import lt.lb.commons.RefModel.*;
+import lt.lb.commons.containers.Value;
+import lt.lb.commons.refmodel.*;
+import lt.lb.commons.refmodel.jpa.*;
 import org.junit.*;
 
 /**
