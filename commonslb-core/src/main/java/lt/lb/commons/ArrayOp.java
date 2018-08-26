@@ -5,10 +5,7 @@
  */
 package lt.lb.commons;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -56,10 +53,18 @@ public class ArrayOp {
 
     public static <T> T[] makeArray(int size, Class<T> clz) {
         if (clz.isPrimitive()) {
-            throw new IllegalArgumentException("Primitives are not supported");
+            throw new IllegalArgumentException("Primitives, like " + clz.getName() + " are not supported, use makePrimitiveArray()");
         }
         T[] a = (T[]) java.lang.reflect.Array.newInstance(clz, size);
         return a;
+    }
+
+    public static Object makePrimitiveArray(int size, Class clz) {
+        if (clz.isPrimitive()) {
+            return java.lang.reflect.Array.newInstance(clz, size);
+        } else {
+            throw new IllegalArgumentException(clz.getName() + " is not primitive, use makeArray()");
+        }
     }
 
     public static <T> T[] newArray(List<T> list, Class<T> clz) {
