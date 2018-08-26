@@ -5,7 +5,7 @@
  */
 package lt.lb.commons.containers;
 
-import lt.lb.commons.misc.F;
+import java.util.Random;
 
 /**
  *
@@ -21,19 +21,11 @@ public class Pair<Type> extends Tuple<Type, Type> {
 
     }
 
-    public Type getRandom() {
+    public Type getRandomPreferNotNull(Random rnd) {
         if (full()) {
-            if (F.RND.nextBoolean()) {
-                return g1;
-            } else {
-                return g2;
-            }
+            return rnd.nextBoolean() ? g1 : g2;
         } else {
-            if (g1 == null) {
-                return g2;
-            } else {
-                return g1;
-            }
+            return g1 == null ? g2 : g1;
         }
     }
 }

@@ -8,7 +8,10 @@ package lt.lb.commons;
 /**
  *
  * @author Laimonas-Beniusis-PC
+ * @param <From> Type to inspect
+ * @param <What> Type to receive
  */
-public interface Getter<From,What> {
+public interface Getter<From, What> {
+
     public What get(From f);
 }

@@ -5,6 +5,8 @@
  */
 package lt.lb.commons.containers;
 
+import java.util.Objects;
+
 /**
  *
  * @author Lemmin
@@ -30,6 +32,35 @@ public class Tuple<Type1, Type2> {
     @Override
     public String toString() {
         return this.g1 + " , " + this.g2;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 41 * hash + Objects.hashCode(this.g1);
+        hash = 41 * hash + Objects.hashCode(this.g2);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Tuple<?, ?> other = (Tuple<?, ?>) obj;
+        if (!Objects.equals(this.g1, other.g1)) {
+            return false;
+        }
+        if (!Objects.equals(this.g2, other.g2)) {
+            return false;
+        }
+        return true;
     }
 
 }
