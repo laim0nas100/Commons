@@ -95,8 +95,8 @@ public class Log {
         }
     }
 
-    public static void printLines(Collection col){
-        if(disable){
+    public static void printLines(Collection col) {
+        if (disable) {
             return;
         }
         long millis = System.currentTimeMillis();
@@ -104,19 +104,19 @@ public class Log {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                String string = "";
+                LineStringBuilder string = new LineStringBuilder();
                 if (col.size() > 0) {
                     for (Object s : col) {
-                        string +=  s+"\n";
+                        string.appendLine(s);
                     }
-                    string = "\n"+string;
+                    string.prependLine();
                 }
-                logThis(string, t, millis);
+                logThis(string.toString(), t, millis);
             }
         };
         submit(r);
     }
-    
+
     public static void print(Object... objects) {
         if (disable) {
             return;
@@ -127,14 +127,14 @@ public class Log {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                String string = "";
+                LineStringBuilder string = new LineStringBuilder();
                 if (objects.length > 0) {
                     for (Object s : objects) {
-                        string += ", " + s;
+                        string.append(", " + s);
                     }
-                    string = string.substring(2);
+                    string.delete(0, 2);
                 }
-                logThis(string, t, millis);
+                logThis(string.toString(), t, millis);
             }
         };
         submit(r);
