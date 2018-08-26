@@ -7,11 +7,9 @@ package lt.lb.commons.reflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-import lt.lb.commons.ArrayOp;
 
 /**
  *
@@ -126,8 +124,6 @@ public class FieldHolder<T> {
         return f.getType().isPrimitive();
     };
 
-    public static final Class[] NUMBER_TYPES = {Number.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class};
-    public static final Class[] COMMON_TYPES = ArrayOp.merge(NUMBER_TYPES, Character.class, String.class, Date.class, Class.class, Object.class);
-    public static final Predicate<Field> IS_COMMON = IS_PRIMITIVE.or(createPredicateFilter(COMMON_TYPES));
+    public static final Predicate<Field> IS_COMMON = (f) -> FieldFac.isImmutable.test(f.getType());
 
 }

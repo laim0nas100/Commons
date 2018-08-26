@@ -6,9 +6,7 @@
 package lt.lb.commons.reflect;
 
 import java.lang.reflect.Array;
-import java.util.HashMap;
 import java.util.Map;
-import lt.lb.commons.ArrayOp;
 
 /**
  *
@@ -18,8 +16,8 @@ public class ArrayReflectNode extends ReflectNode {
 
     private Class componentType;
 
-    public ArrayReflectNode(String name, Object ob, Class clz) {
-        super(name, ob, clz);
+    public ArrayReflectNode(String name, String fieldName, Object ob, Class clz, ReferenceCounter<ReflectNode> references) {
+        super(name, fieldName, ob, clz, references);
         componentType = this.getRealClass().getComponentType();
         //populate array
         if (!this.isArray() || componentType == null) {
@@ -27,35 +25,40 @@ public class ArrayReflectNode extends ReflectNode {
         }
 
     }
-    
+
     @Override
-    protected void populate() throws Exception{
-        if(this.populated){
+    protected void populate() throws Exception {
+        if (this.populated) {
             return;
         }
         int length = Array.getLength(this.getValue());
 
         Map<String, ReflectNode> map = this.values;
-        int countCommon = ArrayOp.count(cl -> cl.equals(componentType), FieldHolder.COMMON_TYPES);
-        if (countCommon == 0) {
+        boolean isImmutable = FieldFac.isImmutable.test(componentType);
+        if (!isImmutable) {
             map = this.children;
         }
+        Class realComponentClass = null;
         for (int i = 0; i < length; i++) {
             Object get = Array.get(this.getValue(), i);
+            if (realComponentClass == null) {
+                realComponentClass = get.getClass();
+            }
+            boolean compImmutable = FieldFac.isImmutable.test(realComponentClass);
 
             ReflectNode node;
-            if (countCommon > 0) { // found common type
-                node = new FinalReflectNode(this.getName() + ":" + i, get, componentType);
+            if (compImmutable) { // found common type
+                node = new FinalReflectNode(this.getName() + ":" + i, null, get, componentType, this.references);
             } else {
-                node = new ReflectNode(this.getName() + ":" + i, get, componentType);
+                node = new ReflectNode(this.getName() + ":" + i, null, get, componentType, this.references);
             }
             node.parent = this;
             map.put("" + i, node);
         }
         this.populated = true;
     }
-    
-    public Class getComponentType(){
+
+    public Class getComponentType() {
         return this.componentType;
     }
 

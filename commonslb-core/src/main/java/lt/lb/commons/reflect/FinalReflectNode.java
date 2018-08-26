@@ -9,12 +9,12 @@ package lt.lb.commons.reflect;
  *
  * @author Laimonas-Beniusis-PC
  */
-public class FinalReflectNode extends ReflectNode{
-    
-    public FinalReflectNode(String name, Object ob, Class clz) {
-        super(name, ob, clz);
+public class FinalReflectNode extends ReflectNode {
+
+    public FinalReflectNode(String name, String fieldName, Object ob, Class clz, ReferenceCounter<ReflectNode> references) {
+        super(name, fieldName, ob, clz, references);
         populated = true;
         fullyPopulated = true;
     }
-    
+
 }

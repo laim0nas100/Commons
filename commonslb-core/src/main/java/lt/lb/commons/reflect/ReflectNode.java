@@ -6,14 +6,9 @@
 package lt.lb.commons.reflect;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import lt.lb.commons.Getter;
-import lt.lb.commons.Log;
-import lt.lb.commons.Visitor;
+import lt.lb.commons.*;
 
 /**
  *
@@ -25,25 +20,24 @@ public class ReflectNode {
 
     protected ReflectNode parent;
     protected ReflectNode superClassNode;
-    protected ReflectNode hides;
-    protected LinkedHashMap<String, ReflectNode> children = new LinkedHashMap<>();
-    protected LinkedHashMap<String, ReflectNode> values = new LinkedHashMap<>();
+    protected ReflectNode shadows;
+    protected Map<String, ReflectNode> children = new HashMap<>();
+    protected Map<String, ReflectNode> values = new HashMap<>();
+    protected ReferenceCounter<ReflectNode> references = new ReferenceCounter<>();
     protected Object obj;
     protected Class declaredClass;
     protected Class realClass;
+
     protected String name;
-    
-    protected ArrayList<ReflectNode> arrayValues;
-    
+    protected String fieldName;
+    protected boolean repeated;
+
     protected boolean populated = false;
     protected boolean fullyPopulated = false;
 
-    public ReflectNode(String name, Object ob) {
-        this(name, ob, ob.getClass());
-    }
-
-    public ReflectNode(String name, Object ob, Class clz) {
+    public ReflectNode(String name, String fieldName, Object ob, Class clz, ReferenceCounter<ReflectNode> references) {
         this.name = name;
+        this.fieldName = fieldName;
         this.obj = ob;
         this.declaredClass = clz;
         this.realClass = clz;
@@ -53,11 +47,14 @@ public class ReflectNode {
             realClass = ob.getClass();
         }
         holder = new FullFieldHolder<>(realClass);
+        if (references != null) {
+            this.references = references;
+        }
     }
 
     public ReflectNode(Object ob) {
         //root node
-        this(ob.getClass().getSimpleName(), ob);
+        this(ob.getClass().getSimpleName(), null, ob, ob.getClass(), new ReferenceCounter<>());
     }
 
     protected void fullPopulate() {
@@ -67,14 +64,15 @@ public class ReflectNode {
         try {
             populate();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
 
         // populate nested children
-        this.collectThroughSuperNode(n -> n.getChildren(), putHiding);
+        this.collectThroughSuperNode(n -> n.getChildren(), putShadowing);
 
         //populate nested values
-        this.collectThroughSuperNode(n -> n.getValues(), putHiding);
+        this.collectThroughSuperNode(n -> n.getValues(), putShadowing);
 
         this.fullyPopulated = true;
 
@@ -84,39 +82,62 @@ public class ReflectNode {
         if (populated) {
             return;
         }
-        children = new LinkedHashMap<>();
-        values = new LinkedHashMap<>();
+        children.clear();
+        values.clear();
         FieldMap localFields = holder.getLocal().getFields();
 
         for (Map.Entry<String, Field> entry : localFields.entrySet()) {
             Field f = entry.getValue();
             boolean accessible = f.isAccessible();
             f.setAccessible(true);
-            String fieldName = entry.getKey();
+            String nodeFieldName = entry.getKey();
 
             Object value = f.get(obj);
 
             Class type = f.getType();
             if (FieldHolder.IS_COMMON.test(f)) {
-                ReflectNode node = new FinalReflectNode(fieldName, value, type);
-                values.put(fieldName, node);
+                ReflectNode node = new FinalReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                values.put(nodeFieldName, node);
                 node.parent = this;
-            } else if(type.isArray()){
-                ReflectNode node = new ArrayReflectNode(fieldName, value, type);
-                children.put(fieldName, node);
+            } else if (type.isArray()) {
+                ReflectNode node = new ArrayReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                children.put(nodeFieldName, node);
                 node.parent = this;
             } else {
-                ReflectNode node = new ReflectNode(fieldName, value, type);
-                children.put(fieldName, node);
-                node.parent = this;
+                if (this.references.contains(value)) {
+                    ReflectNode get = this.references.get(value);
+                    boolean equalReference = get.getValue() == value;
+                    if (equalReference) {
+                        Log.print("Found equal ref", f);
+                        if (!get.repeated) {
+                            get.repeated = true;
+                        }
+                        children.put(nodeFieldName, new RepeatedReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, get, this.references));
+
+                    } else {
+                        ReflectNode node = new ReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                        children.put(nodeFieldName, node);
+                        node.parent = this;
+                        references.registerIfAbsent(value, node);
+                    }
+                } else {
+                    ReflectNode node = new ReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                    children.put(nodeFieldName, node);
+                    node.parent = this;
+                    if (value != null) {
+                        references.registerIfAbsent(value, node);
+                    }
+
+                }
+
             }
             f.setAccessible(accessible);
         }
         Class superCls = this.getRealClass().getSuperclass();
         if (superCls != null) {
-            String newNodeName = this.getName() + "." + superCls.getSimpleName();
+            String newNodeName = this.getName() + "_" + superCls.getSimpleName();
 
-            this.superClassNode = new ReflectNode(newNodeName, this.obj, superCls);
+            this.superClassNode = new ReflectNode(newNodeName, this.getFieldName(), this.obj, superCls, this.references);
             this.superClassNode.populate();
         }
 
@@ -124,11 +145,11 @@ public class ReflectNode {
 
     }
 
-    protected void setHiddenNested(ReflectNode toHide) {
-        if (this.getHidden() == null) {
-            this.hides = toHide;
+    protected void setShadowedNested(ReflectNode toHide) {
+        if (this.getShadowed() == null) {
+            this.shadows = toHide;
         } else {
-            this.getHidden().setHiddenNested(toHide);
+            this.getShadowed().setShadowedNested(toHide);
         }
     }
 
@@ -160,16 +181,16 @@ public class ReflectNode {
     public static interface NodeGetter extends Getter<ReflectNode, Map<String, ReflectNode>> {
     }
 
-    private static NodeVisitor putIfAbsentVisiter = (map, entry) -> {
+    private static NodeVisitor putIfAbsentVisitor = (map, entry) -> {
         map.putIfAbsent(entry.getKey(), entry.getValue());
     };
 
-    private static NodeVisitor putHiding = (map, entry) -> {
+    private static NodeVisitor putShadowing = (map, entry) -> {
         String key = entry.getKey();
         ReflectNode newChild = entry.getValue();
         if (map.containsKey(key)) {
             ReflectNode child = map.get(key);
-            child.setHiddenNested(newChild);
+            child.setShadowedNested(newChild);
         } else {
             map.put(key, newChild);
         }
@@ -177,7 +198,7 @@ public class ReflectNode {
 
     public Map<String, ReflectNode> getAllChildren() {
         this.fullPopulate();
-        return this.collectThroughSuperNode((ReflectNode f) -> f.getChildren(), putIfAbsentVisiter);
+        return this.collectThroughSuperNode((ReflectNode f) -> f.getChildren(), putIfAbsentVisitor);
     }
 
     public Map<String, ReflectNode> getValues() {
@@ -191,7 +212,7 @@ public class ReflectNode {
 
     public Map<String, ReflectNode> getAllValues() {
         this.fullPopulate();
-        return this.collectThroughSuperNode((ReflectNode f) -> f.getValues(), putIfAbsentVisiter);
+        return this.collectThroughSuperNode((ReflectNode f) -> f.getValues(), putIfAbsentVisitor);
     }
 
     public FieldHolder getStaticFieldHolder() {
@@ -210,6 +231,10 @@ public class ReflectNode {
         return name;
     }
 
+    public final String getFieldName() {
+        return this.fieldName;
+    }
+
     public Object getValue() {
         return this.obj;
     }
@@ -217,27 +242,31 @@ public class ReflectNode {
     public final Class getRealClass() {
         return realClass;
     }
-    
-    public final Class getDeclaredClass(){
+
+    public final Class getDeclaredClass() {
         return this.declaredClass;
     }
 
-    public ReflectNode getHidden() {
+    public ReflectNode getShadowed() {
         this.fullPopulate();
-        return this.hides;
+        return this.shadows;
     }
 
     public final boolean isNull() {
         return obj == null;
     }
 
-    public final boolean isHiding() {
+    public final boolean isShadowing() {
         this.fullPopulate();
-        return hides != null;
+        return shadows != null;
     }
 
     public final boolean isArray() {
         return this.getRealClass().isArray();
+    }
+
+    public final boolean isRepeated() {
+        return this.repeated;
     }
 
 }
