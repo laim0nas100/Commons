@@ -8,6 +8,7 @@ package lt.lb.commons.reflect;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Predicate;
 import lt.lb.commons.containers.Tuple;
 
 /**
@@ -16,26 +17,32 @@ import lt.lb.commons.containers.Tuple;
  */
 public class ReferenceCounter<T> {
 
+    public <T> ReferenceCounter() {
+        this(FieldFactory.isJDKImmutable.negate());
+    }
+
+    public <T> ReferenceCounter(Predicate<Class> supported) {
+        this.supported = supported;
+    }
+
+    private Predicate<Class> supported;
+
     private Map<Class, ConcurrentLinkedDeque<Tuple<Object, T>>> references = new ConcurrentHashMap<>();
 
     public boolean supported(Object ob) {
         if (ob == null) {
             return false;
         }
-        Class cls = ob.getClass();
-        if (FieldFac.isImmutable.test(cls)) {
-            return false;
-        }
-        return true;
+        return supported.test(ob.getClass());
     }
 
     private void assertSupported(Object ob) {
         if (ob == null) {
-            throw new IllegalArgumentException("null values are not supported");
+            throw new IllegalArgumentException("null values are not supported as reference");
         }
-        if (FieldFac.isImmutable.test(ob.getClass())) {
-            throw new IllegalArgumentException(ob.getClass().getName() + " is not supported");
-        };
+        if (!supported(ob.getClass())) {
+            throw new IllegalArgumentException(ob.getClass().getName() + " is not supported as reference");
+        }
 
     }
 

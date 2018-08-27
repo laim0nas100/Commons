@@ -9,7 +9,7 @@ package lt.lb.commons.reflect;
  *
  * @author Lemmin
  */
-public interface FieldResolver {
+public interface IExplicitClone<T> {
 
-    public void cloneField(Object source, Object parentObject, ReferenceCounter refCoounter) throws Exception;
+    public T clone(T value);
 }

@@ -13,8 +13,8 @@ public class RepeatedReflectNode extends FinalReflectNode {
 
     protected ReflectNode ref;
 
-    public RepeatedReflectNode(String name, String fieldName, Object ob, Class clz, ReflectNode ref, ReferenceCounter<ReflectNode> references) {
-        super(name, fieldName, ob, clz, references);
+    public RepeatedReflectNode(FieldFactory fac,String name, String fieldName, Object ob, Class clz, ReflectNode ref, ReferenceCounter<ReflectNode> references) {
+        super(fac, name, fieldName, ob, clz, references);
         this.ref = ref;
         this.repeated = true;
         this.children = ref.children;

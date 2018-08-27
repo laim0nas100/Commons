@@ -5,16 +5,23 @@
  */
 package lt.lb.commons.reflect;
 
+import lt.lb.commons.interfaces.Visitor;
+import lt.lb.commons.interfaces.Getter;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import lt.lb.commons.*;
+import lt.lb.commons.reflect.FieldFactory;
+import lt.lb.commons.reflect.FieldHolder.FieldMap;
+import lt.lb.commons.reflect.ReferenceCounter;
 
 /**
  *
  * @author Laimonas-Beniusis-PC
  */
 public class ReflectNode {
+
+    protected FieldFactory factory;
 
     protected FullFieldHolder holder;
 
@@ -35,12 +42,13 @@ public class ReflectNode {
     protected boolean populated = false;
     protected boolean fullyPopulated = false;
 
-    public ReflectNode(String name, String fieldName, Object ob, Class clz, ReferenceCounter<ReflectNode> references) {
+    public ReflectNode(FieldFactory fac, String name, String fieldName, Object ob, Class clz, ReferenceCounter<ReflectNode> references) {
         this.name = name;
         this.fieldName = fieldName;
         this.obj = ob;
         this.declaredClass = clz;
         this.realClass = clz;
+        this.factory = fac;
         populated = isNull();
         fullyPopulated = isNull();
         if (!isNull() && clz.isInterface()) { //get true class
@@ -52,9 +60,9 @@ public class ReflectNode {
         }
     }
 
-    public ReflectNode(Object ob) {
+    public ReflectNode(FieldFactory fac, Object ob) {
         //root node
-        this(ob.getClass().getSimpleName(), null, ob, ob.getClass(), new ReferenceCounter<>());
+        this(fac, ob.getClass().getSimpleName(), null, ob, ob.getClass(), new ReferenceCounter<>());
     }
 
     protected void fullPopulate() {
@@ -95,39 +103,41 @@ public class ReflectNode {
             Object value = f.get(obj);
 
             Class type = f.getType();
-            if (FieldHolder.IS_COMMON.test(f)) {
-                ReflectNode node = new FinalReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+            if (factory.isImmutable(type)) {// might be object
+                ReflectNode node = new FinalReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
                 values.put(nodeFieldName, node);
                 node.parent = this;
             } else if (type.isArray()) {
-                ReflectNode node = new ArrayReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                ReflectNode node = new ArrayReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
                 children.put(nodeFieldName, node);
                 node.parent = this;
             } else {
-                if (this.references.contains(value)) {
-                    ReflectNode get = this.references.get(value);
-                    boolean equalReference = get.getValue() == value;
-                    if (equalReference) {
-                        Log.print("Found equal ref", f);
-                        if (!get.repeated) {
-                            get.repeated = true;
-                        }
-                        children.put(nodeFieldName, new RepeatedReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, get, this.references));
-
-                    } else {
-                        ReflectNode node = new ReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
-                        children.put(nodeFieldName, node);
-                        node.parent = this;
-                        references.registerIfAbsent(value, node);
-                    }
-                } else {
-                    ReflectNode node = new ReflectNode(this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                if (value == null) {
+                    Log.print("Found null");
+                    ReflectNode node = new FinalReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
                     children.put(nodeFieldName, node);
                     node.parent = this;
-                    if (value != null) {
-                        references.registerIfAbsent(value, node);
-                    }
+                } else {
+                    if (!this.references.supported(value)) {
+                        ReflectNode node = new ReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                        children.put(nodeFieldName, node);
+                        node.parent = this;
+                    } else {
+                        if (this.references.contains(value)) {
+                            ReflectNode get = this.references.get(value);
+                            Log.print("Found equal ref", f);
+                            if (!get.repeated) {
+                                get.repeated = true;
+                            }
+                            children.put(nodeFieldName, new RepeatedReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, get, this.references));
 
+                        } else {
+                            ReflectNode node = new ReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                            children.put(nodeFieldName, node);
+                            node.parent = this;
+                            references.registerIfAbsent(value, node);
+                        }
+                    }
                 }
 
             }
@@ -137,7 +147,7 @@ public class ReflectNode {
         if (superCls != null) {
             String newNodeName = this.getName() + "_" + superCls.getSimpleName();
 
-            this.superClassNode = new ReflectNode(newNodeName, this.getFieldName(), this.obj, superCls, this.references);
+            this.superClassNode = new ReflectNode(factory, newNodeName, this.getFieldName(), this.obj, superCls, this.references);
             this.superClassNode.populate();
         }
 

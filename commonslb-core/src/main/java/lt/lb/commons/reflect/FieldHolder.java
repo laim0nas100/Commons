@@ -7,6 +7,7 @@ package lt.lb.commons.reflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -16,6 +17,10 @@ import java.util.function.Predicate;
  * @author Laimonas-Beniusis-PC
  */
 public class FieldHolder<T> {
+    
+    public static class FieldMap extends HashMap<String, Field> {
+    
+}
 
     private Class<T> cls;
 
@@ -116,14 +121,5 @@ public class FieldHolder<T> {
             return false;
         };
     }
-
-    /**
-     * Only includes primitive values declared by JVM
-     */
-    public static final Predicate<Field> IS_PRIMITIVE = (f) -> {
-        return f.getType().isPrimitive();
-    };
-
-    public static final Predicate<Field> IS_COMMON = (f) -> FieldFac.isImmutable.test(f.getType());
 
 }

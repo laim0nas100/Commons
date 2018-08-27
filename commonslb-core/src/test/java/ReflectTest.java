@@ -1,4 +1,6 @@
 
+import lt.lb.commons.reflect.ReflectNode;
+import lt.lb.commons.reflect.RepeatedReflectNode;
 import com.google.common.collect.Lists;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -6,6 +8,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.reflect.*;
 import org.junit.Test;
+import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -51,6 +54,7 @@ public class ReflectTest {
 
         public DemoEnum en = DemoEnum.one;
         public Float protFloat = 15f;
+
     }
 
     static class CCls2Override extends CClsOverride {
@@ -58,129 +62,57 @@ public class ReflectTest {
         public Float protFloat;
         public Integer[] intArray = new Integer[]{1, 2, 3};
         public double[] dubArray = new double[]{9, 8, 7};
+
+        private DemoEnum[] enumArray = new DemoEnum[]{DemoEnum.one, DemoEnum.two, DemoEnum.three};
         public ArrayList<Integer> intList = Lists.newArrayList(3, 2, 1);
 //        private Map<String, Integer> intMap = new HashMap<>();
 
-        public CCls2Override() {
+        public CCls2Override(Integer value) {
+            if (value == null) {
+                throw new IllegalArgumentException("Value cannot by null");
+            }
 //            intMap.put("one", 1);
 //            intMap.put("two", 2);
         }
 
     }
 
-    public String formatValue(ReflectNode node) {
-
-        String str = "";
-        do {
-            str += node.getName() + "=" + node.getValue();
-            if (!node.isShadowing()) {
-                break;
-            } else {
-                str += " shadows: ";
-                node = node.getShadowed();
-            }
-        } while (true);
-        return str;
-    }
-
-    public String keepPrinting(ReflectNode node) {
-        LineStringBuilder sb = new LineStringBuilder();
-
-        this.keepPrinting(node, "", sb, new ReferenceCounter<>());
-        return sb.toString();
-    }
-
-    public void keepPrinting(ReflectNode node, String indent, LineStringBuilder sb, ReferenceCounter<Boolean> refCounter) {
-        if (node.isNull()) {
-            sb.appendLine(indent, node.getName(), " is null");
-            return;
-        }
-
-        if (node.isArray()) {
-            sb.appendLine(indent, node.getName(), " is array");
-        }
-
-        sb.appendLine(indent, node.getName(), " <v>");
-        for (Map.Entry<String, ReflectNode> n : node.getAllValues().entrySet()) {
-            ReflectNode value = n.getValue();
-            sb.appendLine(indent, "  ", formatValue(value));
-
-        }
-        sb.appendLine(indent, node.getName(), " </v>");
-        sb.appendLine(indent, node.getName(), " <c>");
-        for (Map.Entry<String, ReflectNode> n : node.getAllChildren().entrySet()) {
-            ReflectNode childNode = n.getValue();
-
-            String suff = "";
-            if (childNode.isNull()) {
-                suff += " = null";
-            }
-
-            boolean keepOnPrinting = !childNode.isNull();
-
-            if (refCounter.contains(childNode)) {
-                keepOnPrinting = false;
-            } else if (childNode instanceof RepeatedReflectNode) {
-                refCounter.registerIfAbsent(childNode, true);
-                RepeatedReflectNode rcn = (RepeatedReflectNode) childNode;
-                suff += " is repeated reference. Original at " + rcn.getRef().getName();
-
-                keepOnPrinting = false;
-            }
-//
-            sb.appendLine(indent + "  " + childNode.getName() + suff);
-            if (keepOnPrinting) {
-                keepPrinting(childNode, indent + "  ", sb, refCounter);
-            }
-
-        }
-        sb.appendLine(indent + node.getName() + " </c>");
-    }
+    ReflectionPrint rp = new ReflectionPrint();
 
     @Test
     public void ok() throws Exception {
 
         Log.instant = true;
+        Log.disable = true;
         Log.print("GO GO");
-//        ReflectNode node = new ReflectNode(c);
-//
-//        keepPrinting(node, "");
-//
-//        Log.print("");
-//
-//        keepPrinting(new ReflectNode(new CCls()), "");
-//
-//
-//        Log.print("");
-//
-//        keepPrinting(new ReflectNode(new CClsOverride()),"");
-//
-//        Log.print("");
-//
-//        ReflectNode rn2 = new ReflectNode(new CCls2Override());
-//        keepPrinting(rn2,"");
-//
-//        Log.print();
-//        keepPrinting(rn2.getAllChildren().get("intList"),"");
+        long time = System.currentTimeMillis();
 
-        CCls2Override c1 = new CCls2Override();
-        CCls2Override c2 = new CCls2Override();
-        c1.next = c1;
+        CCls2Override c1 = new CCls2Override(0);
+        c1.dubArray[0] = -1;
+        CCls2Override c2 = new CCls2Override(0);
+        c1.next = c2;
         c1.otherDate = c1.publicDate;
 
-        String keepPrinting = keepPrinting(new ReflectNode(c1));
+        DefaultFieldFactory factory = new DefaultFieldFactory();
 
-        Log.print("\n" + keepPrinting);
-//        c1.packageInt = -1;
-//        CCls clone = new CCls();
-
+//        String keepPrinting = rp.keepPrinting(factory.newReflectNode(c1));
+//        Log.print("\n" + keepPrinting);
         Log.print(c1.equals(c2), Objects.equals(c1, c2));
 
-        CCls clone = new FieldFac().reflectionClone(c1);
-
-        Log.print(keepPrinting);
+        factory.addClassConstructor(CCls2Override.class, () -> new CCls2Override(0));
+        CCls clone = null;
+        clone = factory.reflectionClone(c1);
+        
+        for(int i=0; i < 100000; i++){
+            clone = factory.reflectionClone(clone);
+        }
+        
+//        Log.print(factory.newReflectNode(c2));
         Log.print("CLONED");
-        keepPrinting(new ReflectNode(clone));
+//        rp.keepPrinting(factory.newReflectNode(clone));
+        time = System.currentTimeMillis() - time;
+        Log.disable = false;
+        Log.print("Time spend", time);
         Log.await(1, TimeUnit.HOURS);
     }
 

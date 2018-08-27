@@ -7,6 +7,8 @@ package lt.lb.commons.reflect;
 
 import java.lang.reflect.Array;
 import java.util.Map;
+import lt.lb.commons.reflect.FieldFactory;
+import lt.lb.commons.reflect.ReferenceCounter;
 
 /**
  *
@@ -16,8 +18,8 @@ public class ArrayReflectNode extends ReflectNode {
 
     private Class componentType;
 
-    public ArrayReflectNode(String name, String fieldName, Object ob, Class clz, ReferenceCounter<ReflectNode> references) {
-        super(name, fieldName, ob, clz, references);
+    public ArrayReflectNode(FieldFactory fac, String name, String fieldName, Object ob, Class clz, ReferenceCounter<ReflectNode> references) {
+        super(fac, name, fieldName, ob, clz, references);
         componentType = this.getRealClass().getComponentType();
         //populate array
         if (!this.isArray() || componentType == null) {
@@ -34,7 +36,7 @@ public class ArrayReflectNode extends ReflectNode {
         int length = Array.getLength(this.getValue());
 
         Map<String, ReflectNode> map = this.values;
-        boolean isImmutable = FieldFac.isImmutable.test(componentType);
+        boolean isImmutable = FieldFactory.isJDKImmutable.test(componentType);
         if (!isImmutable) {
             map = this.children;
         }
@@ -44,13 +46,12 @@ public class ArrayReflectNode extends ReflectNode {
             if (realComponentClass == null) {
                 realComponentClass = get.getClass();
             }
-            boolean compImmutable = FieldFac.isImmutable.test(realComponentClass);
 
             ReflectNode node;
-            if (compImmutable) { // found common type
-                node = new FinalReflectNode(this.getName() + ":" + i, null, get, componentType, this.references);
+            if (factory.isImmutable(realClass)) { // found common type
+                node = new FinalReflectNode(factory,this.getName() + ":" + i, null, get, componentType, this.references);
             } else {
-                node = new ReflectNode(this.getName() + ":" + i, null, get, componentType, this.references);
+                node = new ReflectNode(factory, this.getName() + ":" + i, null, get, componentType, this.references);
             }
             node.parent = this;
             map.put("" + i, node);

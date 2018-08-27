@@ -7,9 +7,9 @@ package lt.lb.commons.reflect;
 
 /**
  *
- * @author Lemmin
+ * @author Laimonas-Beniusis-PC
  */
-public interface ExplicitClone<T> {
-
-    public T clone(T value);
+public interface IClassConstructor<T> {
+    public T construct();
+    
 }

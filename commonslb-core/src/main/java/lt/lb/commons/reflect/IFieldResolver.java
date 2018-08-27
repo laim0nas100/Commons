@@ -5,13 +5,13 @@
  */
 package lt.lb.commons.reflect;
 
-import java.lang.reflect.Field;
-import java.util.LinkedHashMap;
+import lt.lb.commons.reflect.ReferenceCounter;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author Lemmin
  */
-public class FieldMap extends LinkedHashMap<String, Field> {
-    
+public interface IFieldResolver {
+
+    public void cloneField(Object source, Object parentObject, ReferenceCounter refCoounter) throws Exception;
 }
