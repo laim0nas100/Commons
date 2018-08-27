@@ -16,7 +16,7 @@ import java.util.Collection;
 public class ObjectBuffer<T> {
 
     private ArrayList<T> buffer = new ArrayList<>();
-    private Collection flushHere;
+    private Collection<T> flushHere;
     private int flushingSize = 1;
 
     public void add(T object) {
@@ -36,7 +36,7 @@ public class ObjectBuffer<T> {
 
     }
 
-    public ObjectBuffer(Collection flushHere, int flushingSize) {
+    public ObjectBuffer(Collection<T> flushHere, int flushingSize) {
         this.flushHere = flushHere;
         this.flushingSize = Math.max(1, flushingSize);
     }
