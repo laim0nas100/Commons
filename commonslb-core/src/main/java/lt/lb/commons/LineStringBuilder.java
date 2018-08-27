@@ -5,20 +5,24 @@
  */
 package lt.lb.commons;
 
+import lt.lb.commons.interfaces.StringBuilderActions.ILineStringBuilder;
+
 /**
  *
  * @author Lemmin
  */
-public class LineStringBuilder implements CharSequence {
+public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 
     private StringBuilder sb = new StringBuilder();
 
+    @Override
     public LineStringBuilder appendLine(Object... objects) {
         this.append(objects);
         sb.append("\n");
         return this;
     }
 
+    @Override
     public LineStringBuilder append(Object... objects) {
         for (Object ob : objects) {
             sb.append(ob);
@@ -36,24 +40,28 @@ public class LineStringBuilder implements CharSequence {
         return this;
     }
 
+    @Override
     public LineStringBuilder insert(int offset, Object... objects) {
         StringBuilder temp = createBuilderOf(objects);
         sb.insert(offset, temp.toString());
         return this;
     }
 
+    @Override
     public LineStringBuilder insertLine(int offset, Object... objects) {
         StringBuilder temp = createBuilderOf(objects).append("\n");
         sb.insert(offset, temp.toString());
         return this;
     }
 
+    @Override
     public LineStringBuilder prepend(Object... objects) {
         StringBuilder temp = createBuilderOf(objects);
         sb.insert(0, temp.toString());
         return this;
     }
 
+    @Override
     public LineStringBuilder prependLine(Object... objects) {
         StringBuilder temp = createBuilderOf(objects).append("\n");
         sb.insert(0, temp.toString());
@@ -107,6 +115,7 @@ public class LineStringBuilder implements CharSequence {
         return this;
     }
 
+    @Override
     public int length() {
         return sb.length();
     }
