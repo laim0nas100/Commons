@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import lt.lb.commons.Log;
+import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.benchmarking.BenchmarkResult;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
@@ -25,21 +27,6 @@ public class ListBench {
         Log.instant = true;
     }
 
-    public static class BenchResult {
-
-        public Long totalTime = 0L;
-        public Long timesRan = 0L;
-        public Double averageTime = null;
-        public Long maxTime = null;
-        public Long minTime = null;
-        public String name = "Bench";
-
-        @Override
-        public String toString() {
-            double mil = 1000000;
-            return name + " Times(ms) Total(s):" + totalTime / (mil * 1000) + " Min:" + minTime / mil + " Max:" + maxTime / mil + " Avg:" + averageTime / mil;
-        }
-    }
 
     private void dPrintList(PagedHashList l) {
         Log.print(l.toString());
@@ -153,37 +140,7 @@ public class ListBench {
         return bank;
     }
 
-    public BenchResult executeBench(int times, String name, Runnable run) {
-        BenchResult res = new BenchResult();
-        res.name = name;
-        for (int i = 0; i < times; i++) {
-            System.gc();
-            long time = execute(run);
-            res.timesRan++;
-            if (res.maxTime == null) {
-                res.maxTime = time;
-                res.minTime = time;
-            } else {
-                if (res.maxTime < time) {
-                    res.maxTime = time;
-                }
-                if (res.minTime > time) {
-                    res.minTime = time;
-                }
-            }
-            res.totalTime += time;
-
-        }
-        res.averageTime = (double) res.totalTime / res.timesRan;
-        return res;
-
-    }
-
-    public long execute(Runnable run) {
-        long time = System.nanoTime();
-        run.run();
-        return System.nanoTime() - time;
-    }
+    
 
     public <T> Supplier<List<T>> makeList(List<T> bank, List<T> newList) {
 
@@ -192,32 +149,32 @@ public class ListBench {
             return newList;
         };
     }
-
+Benchmark b = new Benchmark();
     public void benchBatch(int size, int iterations, int seed, Class<? extends List>... lists) throws InstantiationException, IllegalAccessException {
-
+        
         List<Long> bank = this.getBank(size, 1337);
         Log.print("Size:", size);
         int runCount = 10;
 
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(executeBench(runCount, list.getSimpleName() + " write", makeBenchWrite(makeList(bank, newInstance), new Random(seed), iterations)));
+            Log.print(b.executeBench(runCount, list.getSimpleName() + " write", makeBenchWrite(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(executeBench(runCount, list.getSimpleName() + " read", makeBenchRead(makeList(bank, newInstance), new Random(seed), iterations)));
+            Log.print(b.executeBench(runCount, list.getSimpleName() + " read", makeBenchRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(executeBench(runCount, list.getSimpleName() + " read>>write", makeBenchReadWrite(makeList(bank, newInstance), new Random(seed), iterations)));
+            Log.print(b.executeBench(runCount, list.getSimpleName() + " read>>write", makeBenchReadWrite(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(executeBench(runCount, list.getSimpleName() + " read<<write", makeBenchWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
+            Log.print(b.executeBench(runCount, list.getSimpleName() + " read<<write", makeBenchWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(executeBench(runCount, list.getSimpleName() + " random read write", makeBenchRandomWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
+            Log.print(b.executeBench(runCount, list.getSimpleName() + " random read write", makeBenchRandomWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
 
 //        Log.print(executeBench(10, "ArrayList write", makeBenchWrite(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
@@ -282,9 +239,9 @@ public class ListBench {
         int mult = 1;
         List<Long> bank = this.getBank(size * mult, seed);
 //        Log.print(executeBench(100, "ArrayList read", makeBenchRead(makeList(this.getBank(size * mult, seed), new ArrayList<>()), new Random(seed), iterations)));
-        Log.print(executeBench(150, "BigList read", makeBenchRead(makeList(bank, new BigList<>(20000)), new Random(seed), iterations)));
-        Log.print(executeBench(150, "PagedHashedList read", makeBenchRead(makeList(bank, new PagedHashList<>()), new Random(seed), iterations)));
-        Log.print(executeBench(150, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
+        Log.print(b.executeBench(150, "BigList read", makeBenchRead(makeList(bank, new BigList<>(20000)), new Random(seed), iterations)));
+        Log.print(b.executeBench(150, "PagedHashedList read", makeBenchRead(makeList(bank, new PagedHashList<>()), new Random(seed), iterations)));
+        Log.print(b.executeBench(150, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
 
     }
 
@@ -296,7 +253,7 @@ public class ListBench {
         int seed = 10;
         int iterations = 1000;
         List<Long> bank = this.getBank(size, 1337);
-        Log.print(executeBench(10, "PagedList Write", makeBenchWrite(makeList(bank, l), new Random(seed), iterations)));
+        Log.print(b.executeBench(10, "PagedList Write", makeBenchWrite(makeList(bank, l), new Random(seed), iterations)));
         Log.print("PageCount:" + l.getPageCount(), "PageSize:" + l.getPageSize());
         Log.print(l.getPageRepresentation());
 
