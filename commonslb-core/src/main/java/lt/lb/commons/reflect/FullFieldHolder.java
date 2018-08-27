@@ -9,7 +9,7 @@ package lt.lb.commons.reflect;
  *
  * @author Laimonas-Beniusis-PC
  */
-class FullFieldHolder<T> {
+public class FullFieldHolder<T> {
 
     FieldHolder<T> staticHolder;
     FieldHolder<T> localHolder;

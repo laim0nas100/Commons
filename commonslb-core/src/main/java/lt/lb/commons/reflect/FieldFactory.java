@@ -25,19 +25,19 @@ public abstract class FieldFactory {
     public static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, BigDecimal.class, BigInteger.class};
     public static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class};
     public static final Class[] OTHER_IMMUTABLE_TYPES = {Boolean.class, String.class, Character.class, UUID.class, Pattern.class};
-    public static final Class[] JDK_IMMUTABLE_TYPES = ArrayOp.merge(OTHER_IMMUTABLE_TYPES, NUMBER_TYPES, DATE_TYPES);
-    public static final Predicate<Class> isJDKImmutable = (Class cls) -> {
+    public static final Class[] JVM_IMMUTABLE_TYPES = ArrayOp.merge(OTHER_IMMUTABLE_TYPES, NUMBER_TYPES, DATE_TYPES);
+    public static final Predicate<Class> isJVMImmutable = (Class cls) -> {
         if (cls.isPrimitive()) {
             return true;
         }
-        return (ArrayOp.count(Predicate.isEqual(cls), JDK_IMMUTABLE_TYPES) > 0);
+        return (ArrayOp.count(Predicate.isEqual(cls), JVM_IMMUTABLE_TYPES) > 0);
     };
 
-    public static IFieldResolver makeImmutableFieldResolver(Field f) {
+    private IFieldResolver makeImmutableFieldResolver(Field f) {
         return (sourceObject, parentObject, refCounter) -> f.set(parentObject, f.get(sourceObject));
     }
 
-    public static IFieldResolver makeImmutableArrayFieldResolver(Field f) {
+    private IFieldResolver makeImmutableArrayFieldResolver(Field f) {
         return (sourceObject, parentObject, refCounter) -> {
 
             Class compType = f.getType().getComponentType();
@@ -64,7 +64,7 @@ public abstract class FieldFactory {
         };
     }
 
-    public static IFieldResolver makeEnumFieldResolver(Field f) {
+    private IFieldResolver makeEnumFieldResolver(Field f) {
         return (sourceObject, parentObject, refCounter) -> {
 
 //            Enum en = (Enum) f.get(sourceObject);
@@ -72,6 +72,106 @@ public abstract class FieldFactory {
 //            Log.print("Found enum " + f.toString() + " with name:" + name);
 //            f.set(parentObject, Enum.valueOf((Class<Enum>) f.getType(), name));
             f.set(parentObject, cloneEnum(f.get(sourceObject)));
+        };
+    }
+
+    private IFieldResolver makeMutableArrayFieldResolver(Class compType, Field f) {
+        return new IFieldResolver() {
+            @Override
+            public void cloneField(Object source, Object parentObject, ReferenceCounter refCounter) throws Exception {
+                Object[] sourceArray = (Object[]) f.get(source);
+
+                if (refCounter.contains(sourceArray)) {
+                    Log.print("Found repeating " + compType.getName() + " array reference");
+                    f.set(parentObject, refCounter.get(sourceArray));
+                } else {
+
+                    int length = Array.getLength(sourceArray);
+                    Object[] newArray = ArrayOp.makeArray(length, compType);
+
+                    final boolean isInitializable = isInitializable(compType);
+
+                    for (int i = 0; i < length; i++) {
+                        Object sourceInstance = sourceArray[i];
+
+                        Object newInstance = null;
+
+                        if (sourceInstance != null) {
+                            IFieldResolver rr = null;
+
+                            if (compType.isEnum()) {
+                                newInstance = cloneEnum(sourceInstance);
+                            } else {
+                                if (isInitializable) {
+                                    rr = recursiveResolver(compType);
+                                    newInstance = createNewInstance(compType);
+                                } else { // get real component type
+                                    Class realClass = sourceInstance.getClass();
+                                    newInstance = createNewInstance(realClass);
+                                    rr = recursiveResolver(realClass);
+
+                                }
+
+                                rr.cloneField(sourceInstance, newInstance, refCounter);
+                            }
+
+                            Array.set(newArray, i, newInstance);
+                        }
+
+                    }
+
+                    f.set(parentObject, newArray);
+                    refCounter.registerIfAbsent(sourceArray, newArray);
+                }
+            }
+        };
+    }
+
+    private IFieldResolver makeCompositeFieldResolver(Class fieldType, Field f) {
+        return new IFieldResolver() {
+            @Override
+            public void cloneField(Object sourceObject, Object parentObject, ReferenceCounter refCounter) throws Exception {
+
+                //TODO maybe let call clone() if object is clonable?
+
+                
+                Object sourceInstance = f.get(sourceObject);
+
+                if (refCounter.contains(sourceInstance)) {
+                    Log.print("Found repeating reference");
+                    f.set(parentObject, refCounter.get(sourceInstance));
+
+                } else {
+                    if (predefinedClone.containsKey(fieldType)) {
+                        Log.print("Found predefined clone of " + fieldType.getName());
+                        Object clonedValue = predefinedClone.get(fieldType).clone(sourceInstance);
+                        f.set(parentObject, clonedValue);
+                        return;
+                    }
+                    if (sourceInstance == null) {
+                        Log.print("Found null", f);
+                        f.set(parentObject, null);
+                    } else {
+
+                        Class realClass = fieldType;
+
+                        if (!isInitializable(realClass)) {
+                            realClass = sourceObject.getClass();
+                        }
+                        Object newInstance = createNewInstance(realClass);
+                        refCounter.registerIfAbsent(sourceInstance, newInstance);
+
+                        IFieldResolver rr = recursiveResolver(fieldType);
+
+                        //recursive downward clone
+                        rr.cloneField(sourceInstance, newInstance, refCounter);
+
+                        f.set(parentObject, newInstance);
+                    }
+
+                }
+
+            }
         };
     }
 
@@ -146,7 +246,7 @@ public abstract class FieldFactory {
     }
 
     private IFieldResolver recursiveResolver(final Class startingClass) {
-        if(!this.useCache){
+        if (!this.useCache) {
             return this.recursiveResolverCached(startingClass);
         }
         if (this.cachedFieldResolvers.containsKey(startingClass)) {
@@ -166,12 +266,10 @@ public abstract class FieldFactory {
             for (Field f : holder.getFields().values()) {
                 f.setAccessible(true);
                 final Class fieldType = f.getType();
-                final boolean isInitilizable = isInitializable(fieldType);
-
                 boolean isSingular = !fieldType.isArray();
 
                 IFieldResolver fr = null;
-                //cache resolvers, with [class + name]
+                //TODO cache resolvers, with [class + name]
 
                 if (isSingular) {
                     if (fieldType.isEnum()) {
@@ -181,55 +279,8 @@ public abstract class FieldFactory {
                         Log.print("is immutable", f);
                         fr = makeImmutableFieldResolver(f);
                     } else {
-
                         Log.print("is composite", f);
-                        fr = new IFieldResolver() {
-                            @Override
-                            public void cloneField(Object sourceObject, Object parentObject, ReferenceCounter refCounter) throws Exception {
-
-                                //maybe clone object?
-                                //TODO if repeated reference, don't clone, just assign
-                                // look up predefined resolvers
-                                Object sourceInstance = f.get(sourceObject);
-
-                                if (refCounter.contains(sourceInstance)) {
-                                    Log.print("Found repeating reference");
-                                    f.set(parentObject, refCounter.get(sourceInstance));
-
-                                } else {
-                                    if (predefinedClone.containsKey(fieldType)) {
-                                        Log.print("Found predefined clone of " + fieldType.getName());
-                                        Object clonedValue = predefinedClone.get(fieldType).clone(sourceInstance);
-                                        f.set(parentObject, clonedValue);
-                                        Log.print("After predefined clone set");
-                                        return;
-                                    }
-                                    if (sourceInstance == null) {
-                                        Log.print("Found null", f);
-                                        f.set(parentObject, null);
-                                    } else {
-
-                                        Class realClass = fieldType;
-
-                                        if (!isInitilizable) {
-                                            realClass = sourceObject.getClass();
-                                        }
-                                        Object newInstance = createNewInstance(realClass);
-                                        refCounter.registerIfAbsent(sourceInstance, newInstance);
-
-                                        IFieldResolver rr = recursiveResolver(fieldType);
-
-                                        //recursive downward clone
-                                        rr.cloneField(sourceInstance, newInstance, refCounter);
-
-                                        f.set(parentObject, newInstance);
-                                    }
-
-                                }
-
-                            }
-                        };
-
+                        fr = this.makeCompositeFieldResolver(fieldType, f);
                     }
                 } else { // is array
                     final Class compType = fieldType.getComponentType();
@@ -237,57 +288,8 @@ public abstract class FieldFactory {
                     if (isImmutable(compType)) {
                         fr = makeImmutableArrayFieldResolver(f);
                     } else {
-                        fr = new IFieldResolver() {
-                            @Override
-                            public void cloneField(Object source, Object parentObject, ReferenceCounter refCounter) throws Exception {
-                                Object[] sourceArray = (Object[]) f.get(source);
-
-                                if (refCounter.contains(sourceArray)) {
-                                    Log.print("Found repeating " + compType.getName() + " array reference");
-                                    f.set(parentObject, refCounter.get(sourceArray));
-                                } else {
-
-                                    int length = Array.getLength(sourceArray);
-                                    Object[] newArray = ArrayOp.makeArray(length, compType);
-
-                                    final boolean isInitilizable = !(Modifier.isAbstract(compType.getModifiers()) || compType.isInterface());
-
-                                    for (int i = 0; i < length; i++) {
-                                        Object sourceInstance = sourceArray[i];
-
-                                        Object newInstance = null;
-
-                                        if (sourceInstance != null) {
-                                            IFieldResolver rr = null;
-
-                                            if (compType.isEnum()) {
-                                                newInstance = cloneEnum(sourceInstance);
-                                            } else {
-                                                if (isInitilizable) {
-                                                    rr = recursiveResolver(compType);
-                                                    newInstance = createNewInstance(compType);
-                                                } else { // get real component type
-                                                    Class realClass = sourceInstance.getClass();
-                                                    newInstance = createNewInstance(realClass);
-                                                    rr = recursiveResolver(realClass);
-
-                                                }
-
-                                                rr.cloneField(sourceInstance, newInstance, refCounter);
-                                            }
-                                            
-                                            Array.set(newArray, i, newInstance);
-                                        }
-
-                                    }
-
-                                    f.set(parentObject, newArray);
-                                    refCounter.registerIfAbsent(sourceArray, newArray);
-                                }
-                            }
-                        };
+                        fr = makeMutableArrayFieldResolver(compType, f);
                     }
-
                 }
                 resolverMap.putIfAbsent(f.getName(), fr); // put with shadowing
 
@@ -310,8 +312,8 @@ public abstract class FieldFactory {
     private Map<Class, IFieldResolver> cachedFieldResolvers = new ConcurrentHashMap<>();
     private Set<Class> immutableTypes = ConcurrentHashMap.newKeySet();
 
-    
     public boolean useCache = true;
+
     public FieldFactory() {
     }
 

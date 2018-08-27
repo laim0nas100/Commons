@@ -18,7 +18,7 @@ import lt.lb.commons.containers.Tuple;
 public class ReferenceCounter<T> {
 
     public <T> ReferenceCounter() {
-        this(FieldFactory.isJDKImmutable.negate());
+        this(FieldFactory.isJVMImmutable.negate());
     }
 
     public <T> ReferenceCounter(Predicate<Class> supported) {

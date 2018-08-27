@@ -6,7 +6,6 @@
 package lt.lb.commons.reflect;
 
 import java.util.Date;
-import lt.lb.commons.Log;
 
 /**
  *
@@ -15,8 +14,7 @@ import lt.lb.commons.Log;
 public class DefaultFieldFactory extends FieldFactory{
     
     public DefaultFieldFactory(){
-        Log.print(FieldFactory.JDK_IMMUTABLE_TYPES);
-        this.addImmutableType(FieldFactory.JDK_IMMUTABLE_TYPES);
+        this.addImmutableType(FieldFactory.JVM_IMMUTABLE_TYPES);
         this.addExplicitClone(Date.class, (date) -> new Date(date.getTime()));
     }
     

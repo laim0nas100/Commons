@@ -5,8 +5,6 @@
  */
 package lt.lb.commons.reflect;
 
-import lt.lb.commons.reflect.ReferenceCounter;
-
 /**
  *
  * @author Lemmin

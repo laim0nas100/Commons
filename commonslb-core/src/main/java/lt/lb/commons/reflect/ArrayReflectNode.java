@@ -7,8 +7,6 @@ package lt.lb.commons.reflect;
 
 import java.lang.reflect.Array;
 import java.util.Map;
-import lt.lb.commons.reflect.FieldFactory;
-import lt.lb.commons.reflect.ReferenceCounter;
 
 /**
  *
@@ -36,7 +34,7 @@ public class ArrayReflectNode extends ReflectNode {
         int length = Array.getLength(this.getValue());
 
         Map<String, ReflectNode> map = this.values;
-        boolean isImmutable = FieldFactory.isJDKImmutable.test(componentType);
+        boolean isImmutable = FieldFactory.isJVMImmutable.test(componentType);
         if (!isImmutable) {
             map = this.children;
         }
