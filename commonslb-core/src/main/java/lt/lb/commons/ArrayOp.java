@@ -51,7 +51,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static <T> T[] makeArray(int size, Class<T> clz) {
+    public static <T> T[] makeArray(Integer size, Class<T> clz) {
         if (clz.isPrimitive()) {
             throw new IllegalArgumentException("Primitives, like " + clz.getName() + " are not supported, use makePrimitiveArray()");
         }
@@ -59,7 +59,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static Object makePrimitiveArray(int size, Class clz) {
+    public static Object makePrimitiveArray(Integer size, Class clz) {
         if (clz.isPrimitive()) {
             return java.lang.reflect.Array.newInstance(clz, size);
         } else {
@@ -138,6 +138,27 @@ public class ArrayOp {
             }
         }
         return count;
+    }
+
+    public static <T> T[] asArray(T... vals) {
+        return vals;
+    }
+
+    public static <T> T[] replicate(Integer times, T... values) {
+        int arraySize = times * values.length;
+        Class<T> cls = (Class<T>) values.getClass().getComponentType();
+
+        if (cls.isPrimitive()) {
+            throw new IllegalArgumentException("Primitive values are not supported");
+        }
+        T[] array = makeArray(arraySize, cls);
+        for (int i = 0; i < arraySize; i++) {
+            int valIndex = i % values.length;
+            array[i] = values[valIndex];
+        }
+        
+        return array;
+
     }
 
 }
