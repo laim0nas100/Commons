@@ -19,7 +19,7 @@ import lt.lb.commons.interfaces.Getter;
 import lt.lb.commons.reflect.*;
 import org.junit.Test;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
-import lt.lb.commons.threads.Promise.UnsafeRunnable;
+import lt.lb.commons.threads.UnsafeRunnable;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
