@@ -21,6 +21,12 @@ public class BenchmarkResult {
         @Override
         public String toString() {
             double mil = 1000000;
-            return name + " Times(ms) Total(s):" + totalTime / (mil * 1000) + " Min:" + minTime / mil + " Max:" + maxTime / mil + " Avg:" + averageTime / mil;
+            String nameSuff = name;
+            int left = 32 - name.length();
+            while(left >0){
+                name += "\t";
+                left -=8;
+            }
+            return String.format(nameSuff + " Times(ms) Total(s): %.5f Min: %.5f Max: %.5f Avg: %.5f",totalTime / (mil * 1000),minTime / mil,maxTime / mil,averageTime / mil);
         }
     }
