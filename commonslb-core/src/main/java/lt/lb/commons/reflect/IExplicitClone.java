@@ -11,5 +11,5 @@ package lt.lb.commons.reflect;
  */
 public interface IExplicitClone<T> {
 
-    public T clone(T value);
+    public T clone(FieldFactory factory, T value);
 }

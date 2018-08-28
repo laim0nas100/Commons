@@ -30,10 +30,11 @@ public abstract class FieldFactory {
 
     public ILineAppender log;
 
-    public static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, BigDecimal.class, BigInteger.class};
+    public static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class};
     public static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class};
-    public static final Class[] OTHER_IMMUTABLE_TYPES = {Boolean.class, String.class, Character.class, UUID.class, Pattern.class};
-    public static final Class[] JVM_IMMUTABLE_TYPES = ArrayOp.merge(OTHER_IMMUTABLE_TYPES, NUMBER_TYPES, DATE_TYPES);
+    public static final Class[] OTHER_IMMUTABLE_TYPES = {String.class, UUID.class, Pattern.class, BigDecimal.class, BigInteger.class};
+    public static final Class[] WRAPPER_TYPES = ArrayOp.merge(NUMBER_TYPES, Boolean.class, Character.class);
+    public static final Class[] JVM_IMMUTABLE_TYPES = ArrayOp.merge(WRAPPER_TYPES, OTHER_IMMUTABLE_TYPES, DATE_TYPES);
     public static final Predicate<Class> isJVMImmutable = (Class cls) -> {
         if (cls.isPrimitive()) {
             return true;
@@ -83,20 +84,19 @@ public abstract class FieldFactory {
             @Override
             public void cloneField(Object sourceObject, Object parentObject, ReferenceCounter refCounter) throws Exception {
                 log.appendLine("In defered resolver", f);
-                
 
-                log.appendLine("Try to get instance from "+sourceObject.getClass().getName());
+                log.appendLine("Try to get instance from " + sourceObject.getClass().getName());
                 Object get = f.get(sourceObject);
-                
-                if(get == null){// our job is easy
+
+                if (get == null) {// our job is easy
                     log.appendLine("Got null");
                     f.set(parentObject, null);
                     return;
                 }
                 Class realFieldType = get.getClass();
                 log.appendLine("Got instance", get, realFieldType);
-                IFieldResolver refinedResolver = getResolverByField(realFieldType,f);
-                
+                IFieldResolver refinedResolver = getResolverByField(realFieldType, f);
+
                 refinedResolver.cloneField(sourceObject, parentObject, refCounter);
 
             }
@@ -181,6 +181,7 @@ public abstract class FieldFactory {
     }
 
     protected IFieldResolver makeCompositeFieldResolver(Class fieldType, Field f) {
+        FieldFactory me = this;
         return (Object sourceObject, Object parentObject, ReferenceCounter refCounter) -> {
             //TODO maybe let call clone() if object is clonable?
 
@@ -195,7 +196,7 @@ public abstract class FieldFactory {
             } else {
                 if (predefinedClone.containsKey(fieldType)) {
                     log.appendLine("Found predefined clone of " + fieldType.getName());
-                    Object clonedValue = predefinedClone.get(fieldType).clone(sourceInstance);
+                    Object clonedValue = predefinedClone.get(fieldType).clone(me, sourceInstance);
                     f.set(parentObject, clonedValue);
                     return;
                 }
@@ -225,6 +226,36 @@ public abstract class FieldFactory {
         };
     }
 
+    public static Object defaultPrimitive(Class cls) {
+        if (!cls.isPrimitive() || ArrayOp.count(Predicate.isEqual(cls), WRAPPER_TYPES)>=1) {
+            throw new IllegalArgumentException(cls.getName() + " is not a primitive");
+        }else{
+            if(Byte.TYPE.equals(cls)){
+                return (byte)0x00;
+            }
+            if(Short.TYPE.equals(cls)){
+                return (short)0;
+            }
+            if(Integer.TYPE.equals(cls)){
+                return 0;
+            }
+            if(Long.TYPE.equals(cls)){
+                return 0L;
+            }
+            if(Float.TYPE.equals(cls)){
+                return 0F;
+            }
+            if(Double.TYPE.equals(cls)){
+                return 0D;
+            }
+            if(Character.TYPE.equals(cls)){
+                char c = 0;
+                return c;
+            }
+            return null;
+        }
+    }
+
     public static Enum cloneEnum(Object ob) {
         Enum en = (Enum) ob;
         Class<Enum> cls = (Class<Enum>) ob.getClass();
@@ -232,11 +263,15 @@ public abstract class FieldFactory {
     }
 
     public <T> T createNewInstance(Class<T> cls) {
+        
+        //maybe cache class constructors also?
 
         //check class constructors
-        if (this.predefinedClassConstruct.containsKey(cls)) {
-            T val = (T) this.predefinedClassConstruct.get(cls).construct();
-            return val;
+        if (this.predefinedClassConstructors.containsKey(cls)) {
+            return (T) this.predefinedClassConstructors.get(cls).construct();
+        }
+        if(this.cacheConstructors && this.cachedClassConstructors.containsKey(cls)){
+            return (T) this.cachedClassConstructors.get(cls).construct();
         }
 
         boolean isAbstract = Modifier.isAbstract(cls.getModifiers());
@@ -267,14 +302,32 @@ public abstract class FieldFactory {
             cons.setAccessible(true);
 
             int argCount = cons.getParameterCount();
-            Object[] makeArray = ArrayOp.makeArray(argCount, Object.class);
+            Class[] parameterTypes = cons.getParameterTypes();
+            Object[] constArray = new Object[argCount];
             try {
+                for (int j = 0; j < parameterTypes.length; j++) {
+                    Class type = parameterTypes[j];
+                    if(parameterTypes[j].isPrimitive()){
+                        constArray[j] = defaultPrimitive(type);
+                    } //else leave null
+                    
+                }
+
                 log.appendLine("Try with " + cons);
-                log.appendLine(makeArray);
-                newInstance = cons.newInstance(makeArray);
+                log.appendLine(constArray);
+                newInstance = cons.newInstance(constArray);
 
                 if (newInstance != null) {
                     log.appendLine("We good");
+                    if(this.cacheConstructors){
+                        this.cachedClassConstructors.put(cls, (IClassConstructor) () -> {
+                            try{
+                                return cons.newInstance(constArray);
+                            }catch(Exception e){
+                                throw new Error(cons.toString() +" has failed now");
+                            }
+                        });
+                    }
                     // we good
                     return (T) newInstance;
                 }
@@ -308,16 +361,16 @@ public abstract class FieldFactory {
         }
     }
 
-    private void maybeAddToCache(Class cls,Field f,IFieldResolver fr){
-        if(this.useFieldCache){
-            Tuple key = new Tuple(cls,f.getName());
+    private void maybeAddToCache(Class cls, Field f, IFieldResolver fr) {
+        if (this.useFieldCache) {
+            Tuple key = new Tuple(cls, f.getName());
             this.cachedExactFieldResolvers.putIfAbsent(key, fr);
         }
     }
-    
+
     private IFieldResolver getResolverByField(Class fieldType, Field f) {
-        log.appendLine("Get resolver by field",fieldType,f);
-        
+        log.appendLine("Get resolver by field", fieldType, f);
+
 //        Tuple<Class,String> key = null;
 //        if(this.useFieldCache){
 //            key = new Tuple<>(fieldType,f.getName());
@@ -325,7 +378,6 @@ public abstract class FieldFactory {
 //                return this.cachedExactFieldResolvers.get(key);
 //            }
 //        }
-        
         //TODO maybe cache primitive resolvers, with [class + fieldName]?
         IFieldResolver fr = null;
         boolean isSingular = !fieldType.isArray();
@@ -344,7 +396,7 @@ public abstract class FieldFactory {
             } else {
                 log.appendLine("defered resolver", f);
                 fr = makeDeferedFieldResolver(f);
-                
+
             }
         } else { // is array
             final Class compType = fieldType.getComponentType();
@@ -357,7 +409,7 @@ public abstract class FieldFactory {
 //                maybeAddToCache(fieldType,f,fr);
             }
         }
-        
+
         return fr;
     }
 
@@ -365,13 +417,13 @@ public abstract class FieldFactory {
         Map<String, IFieldResolver> resolverMap = new HashMap<>();
         for (Field f : this.getAllFieldsWithShadowing(startingClass).values()) {
             f.setAccessible(true);
-            IFieldResolver fr = getResolverByField(f.getType(),f);
+            IFieldResolver fr = getResolverByField(f.getType(), f);
             resolverMap.putIfAbsent(f.getName(), fr); // put with shadowing
         }
 
         return (Object source, Object parentObject, ReferenceCounter refCounter) -> {
             for (Map.Entry<String, IFieldResolver> resolverEntry : resolverMap.entrySet()) {
-                log.appendLine("Do clone",resolverEntry.getKey());
+                log.appendLine("Do clone", resolverEntry.getKey());
                 resolverEntry.getValue().cloneField(source, parentObject, refCounter);
             }
         }; // combine fields from map
@@ -379,7 +431,8 @@ public abstract class FieldFactory {
     }
 
     protected Map<Class, IExplicitClone> predefinedClone = new HashMap<>();
-    protected Map<Class, IClassConstructor> predefinedClassConstruct = new HashMap<>();
+    protected Map<Class, IClassConstructor> predefinedClassConstructors = new HashMap<>();
+    protected Map<Class, IClassConstructor> cachedClassConstructors = new HashMap<>();
     protected Map<Class, IFieldResolver> cachedFieldResolvers = new HashMap<>();
     protected Map<Class, FieldHolder> cachedFieldHolders = new HashMap<>();
     protected CachedFieldResolvers cachedExactFieldResolvers = new CachedFieldResolvers();
@@ -388,6 +441,7 @@ public abstract class FieldFactory {
     public boolean useFieldHolderCache = false;
     public boolean useCache = false;
     public boolean useFieldCache = false;
+    public boolean cacheConstructors =true;
 
     public FieldFactory() {
         this.log = (objs) -> {
@@ -412,7 +466,7 @@ public abstract class FieldFactory {
     }
 
     public <E> FieldFactory addClassConstructor(Class<E> cls, IClassConstructor<E> constructFunc) {
-        this.predefinedClassConstruct.put(cls, constructFunc);
+        this.predefinedClassConstructors.put(cls, constructFunc);
         return this;
     }
 
@@ -432,7 +486,7 @@ public abstract class FieldFactory {
     }
 
     public <E> ReferenceCounter<E> newReferenceCounter() {
-        return new ReferenceCounter<E>(cls -> !(this.isImmutable(cls) || cls.isEnum()));
+        return new ReferenceCounter<>(cls -> !(this.isImmutable(cls) || cls.isEnum()));
     }
 
 }

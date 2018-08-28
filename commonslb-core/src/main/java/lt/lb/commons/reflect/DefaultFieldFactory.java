@@ -11,11 +11,11 @@ import java.util.Date;
  *
  * @author Laimonas-Beniusis-PC
  */
-public class DefaultFieldFactory extends FieldFactory{
-    
-    public DefaultFieldFactory(){
+public class DefaultFieldFactory extends FieldFactory {
+
+    public DefaultFieldFactory() {
         this.addImmutableType(FieldFactory.JVM_IMMUTABLE_TYPES);
-        this.addExplicitClone(Date.class, (date) -> new Date(date.getTime()));
+        this.addExplicitClone(Date.class, (factory, date) -> new Date(date.getTime()));
     }
-    
+
 }
