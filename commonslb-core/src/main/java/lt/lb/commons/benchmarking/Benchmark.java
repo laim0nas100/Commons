@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lt.lb.commons.threads.Promise;
-import lt.lb.commons.threads.Promise.UnsafeRunnable;
+import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
  *

@@ -12,23 +12,9 @@ import java.util.concurrent.*;
 /**
  *
  * @author Lemmin
+ * @param <Type> return type
  */
 public class Promise<Type> extends FutureTask<Type> {
-
-    public static interface UnsafeRunnable extends Runnable {
-
-        @Override
-        public default void run() {
-
-            try {
-                this.unsafeRun();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void unsafeRun() throws Exception;
-    }
 
     public Promise(Callable<Type> clbl) {
         super(clbl);

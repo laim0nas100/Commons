@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutionException;
 import lt.lb.commons.Log;
 import lt.lb.commons.UUIDgenerator;
 import lt.lb.commons.threads.Promise;
-import lt.lb.commons.threads.Promise.UnsafeRunnable;
+import lt.lb.commons.threads.UnsafeRunnable;
 import org.junit.*;
 
 /**
