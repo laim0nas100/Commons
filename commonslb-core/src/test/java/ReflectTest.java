@@ -6,12 +6,16 @@ import com.rits.cloning.Cloner;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.benchmarking.BenchmarkResult;
 import lt.lb.commons.containers.ObjectBuffer;
 import lt.lb.commons.containers.Value;
+import lt.lb.commons.interfaces.Getter;
 import lt.lb.commons.reflect.*;
 import org.junit.Test;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
@@ -73,15 +77,15 @@ public class ReflectTest {
         public double[] dubArray = new double[]{9, 8, 7};
 
         private DemoEnum[] enumArray = new DemoEnum[]{DemoEnum.one, DemoEnum.two, DemoEnum.three};
-        public List<Integer> intList = Lists.newArrayList(3, 2, 1);
-//        private Map<String, Integer> intMap = new HashMap<>();
+        public List<Integer> intList = Lists.newArrayList(3, 2, 1,-1,-2,-3,-4,-5,-6,-7,-8,-9);
+        private Map<String, Integer> intMap = new HashMap<>();
 
         public CCls2Override(Integer value) {
             if (value == null) {
                 throw new IllegalArgumentException("Value cannot by null");
             }
-//            intMap.put("one", 1);
-//            intMap.put("two", 2);
+            intMap.put("one", 1);
+            intMap.put("two", 2);
         }
 
     }
@@ -182,6 +186,17 @@ public class ReflectTest {
         factory.addClassConstructor(ObjectBuffer.class, () -> new ObjectBuffer<>(new BlackHole(), 0));
         factory.addClassConstructor(ArrayList.class, () -> new ArrayList<>(0));
         factory.addClassConstructor(Cls.class, () -> new Cls());
+//        factory.addExplicitClone(HashMap.class, (fac,val)->{
+//            HashMap map = new HashMap<>(val.size());
+//            Set<Map.Entry> entrySet = val.entrySet();
+//            for(Map.Entry entry:entrySet){
+//                try {
+//                    map.put(entry.getKey(), fac.reflectionClone(entry.getValue()));
+//                } catch (Exception ex) {
+//                }
+//            }
+//            return map;
+//        });
         CCls clone = new CCls2Override(0);
         clone.next = clone;
 
@@ -193,35 +208,48 @@ public class ReflectTest {
         ObjectBuffer<Integer> buffer = new ObjectBuffer<>(new BlackHole(), 100);
         factory.reflectionClone(buffer);
         long time = System.currentTimeMillis();
-        Value<CCls> cloneV = new Value<>(clone);
-        Value<ObjectBuffer> bufferV = new Value<>(buffer);
 
-        Runnable useCloner = () -> {
-            cloneV.set(cloner.deepClone(cloneV.get()));
-            bufferV.set(cloner.deepClone(bufferV.get()));
-            bufferV.get().add(10);
-            cloneV.get().packageInt++;
-//            cloneV.get().next.packageInt--;
+        ThreadLocal<CCls> t1Cls = ThreadLocal.withInitial(() -> {
+            CCls cls = new CCls2Override(0);
+            cls.next = cls;
+            return cls;
+        });
+        ThreadLocal<CCls> t2Cls = ThreadLocal.withInitial(() -> {
+            CCls cls = new CCls2Override(0);
+            cls.next = cls;
+            return cls;
+        });
+
+        UnsafeRunnable useCloner = () -> {
+            t1Cls.set(cloner.deepClone(t1Cls.get()));
+            t1Cls.get().packageInt+=7;
         };
 
         UnsafeRunnable useFactory = () -> {
-                cloneV.set(factory.reflectionClone(cloneV.get()));
-                bufferV.set(factory.reflectionClone(bufferV.get()));
-                bufferV.get().add(10);
-                cloneV.get().packageInt++;
-//                cloneV.get().next.packageInt--;
+            t2Cls.set(factory.reflectionClone(t2Cls.get()));
+            t2Cls.get().packageInt+=7;
         };
         int times = 30000;
-        Log.print(b.executeBench(times, "Factory no cache", useFactory));
+        Integer[] toArray = ArrayOp.asArray(1,2,3);
+//        Log.print(b.executeBench(times, "Factory no cache", useFactory));
         factory.useFieldHolderCache = true;
-        Log.print(b.executeBench(times, "Factory field holder cache", useFactory));
+//        Log.print(b.executeBench(times, "Factory field holder cache", useFactory));
 //        factory.useFieldCache = false;
 //        Log.print(b.executeBench(times, "Factory field cache", useFactory));
         factory.useCache = true;
-        Log.print(b.executeBench(times, "Factory full cache", useFactory));
+        int threads = 1;
         
+        Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
+        Log.print(b.executeBench(times, "Factory full cache", ArrayOp.replicate(threads, useFactory)));
         
-        Log.print(b.executeBench(times, "Cloner", useCloner));
+        Log.print("BREAK BOISS");
+        System.gc();
+        Log.print("BREAK OVER BOIS");
+        
+        Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
+        Log.print(b.executeBench(times, "Factory full cache", ArrayOp.replicate(threads, useFactory)));
+
+       
 
 //        for (int i = 0; i < 100000; i++) {
 //            clone = cloner.deepClone(clone);
