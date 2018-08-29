@@ -16,7 +16,9 @@ import lt.lb.commons.interfaces.StringBuilderActions;
  */
 public class ReflectionPrint {
     
-    public String formatValue(ReflectNode node) {
+    private static FieldFactory fac = new DefaultFieldFactory();
+    
+    private static String formatValue(ReflectNode node) {
 
         String str = "";
         do {
@@ -30,8 +32,12 @@ public class ReflectionPrint {
         } while (true);
         return str;
     }
+    
+    public static String dump(Object ob){
+        return keepPrinting(fac.newReflectNode(ob));
+    }
 
-    public String keepPrinting(ReflectNode node) {
+    private static String keepPrinting(ReflectNode node) {
         LineStringBuilder sb = new LineStringBuilder();
         StringBuilderActions.ILineAppender sucker = new StringBuilderActions.ILineAppender() {
             @Override
@@ -41,13 +47,13 @@ public class ReflectionPrint {
             }
         };
         
-        this.keepPrinting(node, "", sucker, new ReferenceCounter<>());
+        keepPrinting(node, "", sucker, new ReferenceCounter<>());
         return sb.toString();
     }
     
     
 
-    public void keepPrinting(ReflectNode node, String indent, StringBuilderActions.ILineAppender sb, ReferenceCounter<Boolean> refCounter) {
+    private static void keepPrinting(ReflectNode node, String indent, StringBuilderActions.ILineAppender sb, ReferenceCounter<Boolean> refCounter) {
         if (node.isNull()) {
             sb.appendLine(indent, node.getName(), " is null");
             return;

@@ -162,7 +162,7 @@ public class ReflectTest {
 
     Benchmark b = new Benchmark();
 
-    @Test
+    
     public void ok() throws Exception {
 
         b.useGChint = false;
