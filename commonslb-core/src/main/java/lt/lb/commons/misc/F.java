@@ -7,20 +7,26 @@ package lt.lb.commons.misc;
 
 import java.security.SecureRandom;
 import java.util.*;
+import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.interfaces.Iter;
 
 /**
  *
  * @author Lemmin
  */
 public class F {
+    
+    public static void run(Runnable r){
+        r.run();
+    }
 
-    public static <T> T cast(Object ob) throws ClassCastException {
+    public static <T extends E, E> T cast(E ob) throws ClassCastException {
         return (T) ob;
     }
-    
-    public static <T,K extends T> void addCast(Collection<T> from, Collection<K> to){
-        for(T t:from){
-            to.add((K)t);
+
+    public static <T, K extends T> void addCast(Collection<T> from, Collection<K> to) {
+        for (T t : from) {
+            to.add((K) t);
         }
     }
 
@@ -146,6 +152,54 @@ public class F {
             return s1.compareTo(s2);
         }
         return len1 - len2;
+    }
+
+    public static <T> Tuple<Integer, T> iterate(Collection<T> list, Integer from, Iter<T> iter) {
+        Iterator<T> iterator = list.iterator();
+        int index = 0;
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            if (index >= from) {
+                if (iter.visit(index, next)) {
+                    return new Tuple<>(index, next);
+                }
+            }
+            index++;
+        }
+        return new Tuple<>(index, null);
+    }
+
+    public static <T> Tuple<Integer, T> iterate(T[] array, Integer from, Iter<T> iter) {
+        for (int i = from; i < array.length; i++) {
+            if (iter.visit(i, array[i])) {
+                return new Tuple<>(i, array[i]);
+            }
+        }
+        return new Tuple<>(array.length, null);
+    }
+
+    public static <T> Tuple<Integer, T> iterate(T[] array, Iter<T> iter) {
+        return iterate(array, 0, iter);
+    }
+
+    public static <T> Tuple<Integer, T> iterate(Collection<T> list, Iter<T> iter) {
+        return iterate(list, 0, iter);
+    }
+
+    public static <T> Tuple<Integer, T> iterate(T[] array, Iter.IterNoStop<T> iter) {
+        return iterate(array, 0, iter);
+    }
+
+    public static <T> Tuple<Integer, T> iterate(Collection<T> list, Iter.IterNoStop<T> iter) {
+        return iterate(list, 0, iter);
+    }
+
+    public static <T> Tuple<Integer, T> iterate(T[] array, Integer from, Iter.IterNoStop<T> iter) {
+        return iterate(array, from, (Iter) iter);
+    }
+
+    public static <T> Tuple<Integer, T> iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
+        return iterate(list, from, (Iter) iter);
     }
 
 }
