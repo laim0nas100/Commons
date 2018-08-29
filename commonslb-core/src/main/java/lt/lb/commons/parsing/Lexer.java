@@ -7,6 +7,7 @@ package lt.lb.commons.parsing;
 
 import lt.lb.commons.containers.SelfSortingMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 
@@ -57,20 +58,18 @@ public class Lexer {
     }
 
     public Lexer(String line) {
-        this.keywords = new SelfSortingMap<>(cmp);
-        this.lines = new ArrayList<>();
-        this.lines.add(line);
+        this(Arrays.asList(line));
     }
 
-    public void addToken(String... tokens) {
-        for (String tok : tokens) {
+    public void addKeyword(String... keywords) {
+        for (String tok : keywords) {
             this.keywords.put(tok, tok);
         }
     }
 
     public void addToken(Collection<String> tokens) {
         tokens.forEach(tok -> {
-            this.addToken(tok);
+            this.addKeyword(tok);
         });
     }
 
@@ -147,6 +146,12 @@ public class Lexer {
     public void reset() {
         this.charPos = 0;
         this.linePos = 0;
+    }
+    
+    public void resetLines(Collection<String> lines){
+        reset();
+        this.lines.clear();
+        this.lines.addAll(lines);
     }
 
     protected void skipWhitespace() {
@@ -229,7 +234,7 @@ public class Lexer {
     }
 
     public Token getNextToken() throws NoSuchLexemeException, StringNotTerminatedException {
-        String buffer = "";
+        StringBuilder buffer = new StringBuilder();
         Token token = getNextTokenImpl();
         if (token != null) {
             return token;
@@ -241,7 +246,7 @@ public class Lexer {
             Character ch = this.getCurrentChar();
             if (ch == null) {
                 if (buffer.length() > 0) {
-                    return this.literal(buffer, pos);
+                    return this.literal(buffer.toString(), pos);
                 }
                 break;
             }
@@ -249,7 +254,7 @@ public class Lexer {
                 if (Character.isWhitespace(ch)) {
                     this.advance(1);
                     if (buffer.length() > 0) {
-                        return this.literal(buffer, pos);
+                        return this.literal(buffer.toString(), pos);
                     }
                     continue;
                 }
@@ -263,14 +268,14 @@ public class Lexer {
             token = this.keyword();
             if (token != null) {
                 if (buffer.length() > 0) {
-                    return this.literal(buffer, pos);
+                    return this.literal(buffer.toString(), pos);
                 } else {
                     this.advanceByTokenKey(token.id);
                     return token;
                 }
 
             } else {
-                buffer += ch;
+                buffer.append(ch);
                 this.advance(1);
             }
 
@@ -278,7 +283,7 @@ public class Lexer {
         return token;
     }
 
-    public Collection<Token> getRemainingTokens() throws NoSuchLexemeException, StringNotTerminatedException {
+    public ArrayList<Token> getRemainingTokens() throws NoSuchLexemeException, StringNotTerminatedException {
         ArrayList<Token> remains = new ArrayList<>();
         while (true) {
             Token nextToken = this.getNextToken();
