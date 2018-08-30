@@ -5,20 +5,36 @@
  */
 package lt.lb.commons.reflect;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Log;
+import lt.lb.commons.interfaces.Getter;
 import lt.lb.commons.interfaces.StringBuilderActions;
+import lt.lb.commons.misc.F;
 
 /**
  *
  * @author Laimonas-Beniusis-PC
  */
 public class ReflectionPrint {
-    
-    private static FieldFactory fac = new DefaultFieldFactory();
-    
-    private static String formatValue(ReflectNode node) {
+
+    private FieldFactory fac = new DefaultFieldFactory();
+
+    private Map<Class, Getter<?, String>> customPrint = new HashMap<>();
+
+    public ReflectionPrint() {
+        this.addCustomPrint(Date.class, (d) -> {
+            return d.toString();
+        });
+    }
+
+    public <T> void addCustomPrint(Class<T> cls, Getter<T, String> getter) {
+        this.customPrint.put(cls, getter);
+    }
+
+    private String formatValue(ReflectNode node) {
 
         String str = "";
         do {
@@ -32,72 +48,113 @@ public class ReflectionPrint {
         } while (true);
         return str;
     }
-    
-    public static String dump(Object ob){
+
+    private String formatValue(ReflectNode node, Getter get) {
+
+        String str = "";
+        do {
+            str += node.getName() + "=" + get.get(node.getValue());
+            if (!node.isShadowing()) {
+                break;
+            } else {
+                str += " shadows: ";
+                node = node.getShadowed();
+            }
+        } while (true);
+        return str;
+    }
+
+    public String dump(Object ob) {
         return keepPrinting(fac.newReflectNode(ob));
     }
 
-    private static String keepPrinting(ReflectNode node) {
+    private String keepPrinting(ReflectNode node) {
         LineStringBuilder sb = new LineStringBuilder();
         StringBuilderActions.ILineAppender sucker = new StringBuilderActions.ILineAppender() {
             @Override
             public StringBuilderActions.ILineAppender appendLine(Object... objs) {
-                Log.print(new LineStringBuilder().append(objs).toString());
+                Log.print(sb.append(objs).clear());
                 return this;
             }
         };
-        
+
         keepPrinting(node, "", sucker, new ReferenceCounter<>());
         return sb.toString();
     }
-    
-    
 
-    private static void keepPrinting(ReflectNode node, String indent, StringBuilderActions.ILineAppender sb, ReferenceCounter<Boolean> refCounter) {
+    private void keepPrinting(ReflectNode node, String indent, StringBuilderActions.ILineAppender sb, ReferenceCounter<Boolean> refCounter) {
         if (node.isNull()) {
             sb.appendLine(indent, node.getName(), " is null");
             return;
         }
 
-        if (node.isArray()) {
-            sb.appendLine(indent, node.getName(), " is array");
+        Map<String, ReflectNode> allValues = node.getAllValues();
+
+        if (allValues.isEmpty()) {
+            sb.appendLine(indent, node.getName(), " <v> </v>");
+        } else {
+            sb.appendLine(indent, node.getName(), " <v>");
+
+            F.iterate(node.getAllValuesKeys(), (i, key) -> {
+                ReflectNode value = allValues.get(key);
+                sb.appendLine(indent, "  ", formatValue(value));
+            });
+
+            sb.appendLine(indent, node.getName(), " </v>");
         }
 
-        sb.appendLine(indent, node.getName(), " <v>");
-        for (Map.Entry<String, ReflectNode> n : node.getAllValues().entrySet()) {
-            ReflectNode value = n.getValue();
-            sb.appendLine(indent, "  ", formatValue(value));
+        Map<String, ReflectNode> allChildren = node.getAllChildren();
 
-        }
-        sb.appendLine(indent, node.getName(), " </v>");
-        sb.appendLine(indent, node.getName(), " <c>");
-        for (Map.Entry<String, ReflectNode> n : node.getAllChildren().entrySet()) {
-            ReflectNode childNode = n.getValue();
+        if (allChildren.isEmpty()) {
+            sb.appendLine(indent, node.getName(), " <c> </c>");
+        } else {
+            sb.appendLine(indent, node.getName(), " <c>");
+            F.iterate(node.getAllChildrenKeys(), (i, key) -> {
 
-            String suff = "";
-            if (childNode.isNull()) {
-                suff += " = null";
-            }
+                ReflectNode childNode = allChildren.get(key);
 
-            boolean keepOnPrinting = !childNode.isNull();
+                String suff = "";
+                if (childNode.isNull()) {
+                    suff += " = null";
+                }
 
-            if (refCounter.contains(childNode)) {
-                keepOnPrinting = false;
-            } else if (childNode instanceof RepeatedReflectNode) {
-                refCounter.registerIfAbsent(childNode, true);
-                RepeatedReflectNode rcn = (RepeatedReflectNode) childNode;
-                suff += " is repeated reference. Original at " + rcn.getRef().getName();
+                boolean keepOnPrinting = !childNode.isNull();
 
-                keepOnPrinting = false;
-            }
+                if (refCounter.contains(childNode)) {
+                    keepOnPrinting = false;
+                } else if (childNode instanceof RepeatedReflectNode) {
+                    refCounter.registerIfAbsent(childNode, true);
+                    RepeatedReflectNode rcn = F.cast(childNode);
+                    suff += " is repeated reference. Original at " + rcn.getRef().getName();
+
+                    keepOnPrinting = false;
+                } else if (childNode instanceof FinalReflectNode) {
+                    sb.appendLine(indent, "  ", formatValue(childNode));
+                    return false;
+                }
 //
-            sb.appendLine(indent + "  " + childNode.getName() + suff);
-            if (keepOnPrinting) {
-                keepPrinting(childNode, indent + "  ", sb, refCounter);
-            }
+                
+                if(keepOnPrinting){
+                    if (this.customPrint.containsKey(childNode.getRealClass())) {
+                        sb.appendLine(this.formatValue(childNode, this.customPrint.get(childNode.getRealClass())));
+                        return false;
+                    }
+                    if (childNode.getRealClass().isEnum()) {
+                        sb.appendLine(this.formatValue(childNode));
+                        return false;
+                    }
+                }
+                sb.appendLine(indent + childNode.getName() + suff);
+                if (keepOnPrinting) {
 
+                    
+
+                    keepPrinting(childNode, indent + "  ", sb, refCounter);
+                }
+                return false;
+            });
+            sb.appendLine(indent + node.getName() + " </c>");
         }
-        sb.appendLine(indent + node.getName() + " </c>");
     }
-    
+
 }

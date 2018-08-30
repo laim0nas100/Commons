@@ -14,15 +14,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
+import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Log;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
+import lt.lb.commons.misc.F;
 
 /**
  *
  * @author Lemmin
  */
 public abstract class FieldFactory {
+    
+    //TODO clone mutable enums
 
     private static class CachedFieldResolvers extends ConcurrentHashMap<Tuple<Class, String>, IFieldResolver> {
 
@@ -167,14 +171,20 @@ public abstract class FieldFactory {
         return holder;
     }
 
-    private Map<String, Field> getAllFieldsWithShadowing(Class startingClass) {
-        Map<String, Field> fields = new HashMap<>();
+    private Map<String, List<Field>> getAllFieldsWithShadowing(Class startingClass) {
+        Map<String, List<Field>> fields = new HashMap<>();
         Class currentClass = startingClass;
         while (currentClass != null) {
             FieldHolder holder = this.getFieldHolder(currentClass);
-            for (Map.Entry<String, Field> entry : holder.getFields().entrySet()) {
-                fields.putIfAbsent(entry.getKey(), entry.getValue());
-            }
+            F.iterate(holder.getFields(), (k,v)->{
+                if(fields.containsKey(k)){
+                    fields.get(k).add(v);
+                }else{
+                    LinkedList<Field> list = new LinkedList<>();
+                    list.add(v);
+                    fields.put(k, list);
+                }
+            });
             currentClass = currentClass.getSuperclass();
         }
         return fields;
@@ -255,6 +265,36 @@ public abstract class FieldFactory {
             return null;
         }
     }
+    
+    public static Object defaultPrimitiveWrapper(Class cls){
+        if(ArrayOp.count(Predicate.isEqual(cls), WRAPPER_TYPES) >= 1){
+            if(Byte.class.equals(cls)){
+                return (byte)0x00;
+            }
+            if(Short.class.equals(cls)){
+                return (short)0;
+            }
+            if(Integer.class.equals(cls)){
+                return 0;
+            }
+            if(Long.class.equals(cls)){
+                return 0L;
+            }
+            if(Float.class.equals(cls)){
+                return 0F;
+            }
+            if(Double.class.equals(cls)){
+                return 0D;
+            }
+            if(Character.class.equals(cls)){
+                char c = 0;
+                return c;
+            }
+            return null;
+        }else{
+            throw new IllegalArgumentException(cls.getName() + " is not a wrapper type");
+        }
+    }
 
     public static Enum cloneEnum(Object ob) {
         Enum en = (Enum) ob;
@@ -309,7 +349,9 @@ public abstract class FieldFactory {
                     Class type = parameterTypes[j];
                     if(parameterTypes[j].isPrimitive()){
                         constArray[j] = defaultPrimitive(type);
-                    } //else leave null
+                    }else if(ArrayOp.count(Predicate.isEqual(type), FieldFactory.WRAPPER_TYPES) >= 1){
+                        constArray[j] = defaultPrimitiveWrapper(type);
+                    }//else leave null
                     
                 }
 
@@ -324,7 +366,7 @@ public abstract class FieldFactory {
                             try{
                                 return cons.newInstance(constArray);
                             }catch(Exception e){
-                                throw new Error(cons.toString() +" has failed now");
+                                throw new RuntimeException(cons.toString() +" has failed now, but was good before??1!");
                             }
                         });
                     }
@@ -332,7 +374,7 @@ public abstract class FieldFactory {
                     return (T) newInstance;
                 }
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-//                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
         throw new IllegalStateException("Failed to instantiate class " + cls.getName() + " consider adding ClassConstructor");
@@ -415,15 +457,20 @@ public abstract class FieldFactory {
 
     private IFieldResolver recursiveResolverCached(final Class startingClass) {
         Map<String, IFieldResolver> resolverMap = new HashMap<>();
-        for (Field f : this.getAllFieldsWithShadowing(startingClass).values()) {
-            f.setAccessible(true);
-            IFieldResolver fr = getResolverByField(f.getType(), f);
-            resolverMap.putIfAbsent(f.getName(), fr); // put with shadowing
-        }
+        F.iterate(this.getAllFieldsWithShadowing(startingClass), (key,list)->{
+            IFieldResolver finalResolver = IFieldResolver.empty();
+            for(Field f:list){
+                f.setAccessible(true);
+                finalResolver = finalResolver.nest(getResolverByField(f.getType(), f));
+                
+            }
+            resolverMap.put(key, finalResolver);
+        });
+
 
         return (Object source, Object parentObject, ReferenceCounter refCounter) -> {
             for (Map.Entry<String, IFieldResolver> resolverEntry : resolverMap.entrySet()) {
-                log.appendLine("Do clone", resolverEntry.getKey());
+                log.appendLine("Do clone ", resolverEntry.getKey());
                 resolverEntry.getValue().cloneField(source, parentObject, refCounter);
             }
         }; // combine fields from map
@@ -444,8 +491,11 @@ public abstract class FieldFactory {
     public boolean cacheConstructors =true;
 
     public FieldFactory() {
+        LineStringBuilder lsb = new LineStringBuilder();
+        Log.instant = true;
         this.log = (objs) -> {
-//            Log.print(objs);
+            
+            Log.print("FACTORY",lsb.append(objs).clear());
             return log;
         };
     }
@@ -482,7 +532,7 @@ public abstract class FieldFactory {
     }
 
     public ReflectNode newReflectNode(Object ob) {
-        return new ReflectNode(this, ob.getClass().getSimpleName(), null, ob, ob.getClass(), this.newReferenceCounter());
+        return new RootReflectNode(this, ob.getClass().getSimpleName(), null, ob, ob.getClass(), this.newReferenceCounter());
     }
 
     public <E> ReferenceCounter<E> newReferenceCounter() {

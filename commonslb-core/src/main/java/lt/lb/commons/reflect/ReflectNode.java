@@ -8,8 +8,10 @@ package lt.lb.commons.reflect;
 import lt.lb.commons.interfaces.Visitor;
 import lt.lb.commons.interfaces.Getter;
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import lt.lb.commons.*;
 import lt.lb.commons.reflect.FieldHolder.FieldMap;
 
@@ -99,20 +101,21 @@ public class ReflectNode {
             String nodeFieldName = entry.getKey();
 
             Object value = f.get(obj);
-
             Class type = f.getType();
-            if (factory.isImmutable(type)) {// might be object
+
+            if (value == null) {
                 ReflectNode node = new FinalReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
-                values.put(nodeFieldName, node);
-                node.parent = this;
-            } else if (type.isArray()) {
-                ReflectNode node = new ArrayReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
                 children.put(nodeFieldName, node);
                 node.parent = this;
             } else {
-                if (value == null) {
-                    Log.print("Found null");
+                Class realType = value.getClass();
+
+                if (factory.isImmutable(realType)) {// might be object
                     ReflectNode node = new FinalReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
+                    values.put(nodeFieldName, node);
+                    node.parent = this;
+                } else if (realType.isArray()) {
+                    ReflectNode node = new ArrayReflectNode(factory, this.getName() + "." + nodeFieldName, nodeFieldName, value, type, this.references);
                     children.put(nodeFieldName, node);
                     node.parent = this;
                 } else {
@@ -123,7 +126,7 @@ public class ReflectNode {
                     } else {
                         if (this.references.contains(value)) {
                             ReflectNode get = this.references.get(value);
-                            Log.print("Found equal ref", f);
+//                            Log.print("Found equal ref", f);
                             if (!get.repeated) {
                                 get.repeated = true;
                             }
@@ -136,8 +139,8 @@ public class ReflectNode {
                             references.registerIfAbsent(value, node);
                         }
                     }
-                }
 
+                }
             }
             f.setAccessible(accessible);
         }
@@ -223,6 +226,14 @@ public class ReflectNode {
         return this.collectThroughSuperNode((ReflectNode f) -> f.getValues(), putIfAbsentVisitor);
     }
 
+    public Collection<String> getAllValuesKeys() {
+        return this.getAllValues().keySet();
+    }
+
+    public Collection<String> getAllChildrenKeys() {
+        return this.getAllChildren().keySet();
+    }
+
     public FieldHolder getStaticFieldHolder() {
         return this.holder.staticHolder;
     }
@@ -235,8 +246,8 @@ public class ReflectNode {
         return parent;
     }
 
-    public final String getName() {
-        return name;
+    public String getName() {
+        return name + "(" + this.getRealClass().getSimpleName() + ")";
     }
 
     public final String getFieldName() {
