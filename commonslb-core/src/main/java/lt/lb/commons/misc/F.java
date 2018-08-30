@@ -9,14 +9,16 @@ import java.security.SecureRandom;
 import java.util.*;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.Iter;
+import lt.lb.commons.interfaces.Iter.IterMap;
+import lt.lb.commons.interfaces.Iter.IterMapNoStop;
 
 /**
  *
  * @author Lemmin
  */
 public class F {
-    
-    public static void run(Runnable r){
+
+    public static void run(Runnable r) {
         r.run();
     }
 
@@ -152,6 +154,22 @@ public class F {
             return s1.compareTo(s2);
         }
         return len1 - len2;
+    }
+
+    public static <K, V> Tuple<K, V> iterate(Map<K, V> map, IterMap<K, V> iter) {
+        Set<Map.Entry<K, V>> entrySet = map.entrySet();
+        for (Map.Entry<K, V> entry : entrySet) {
+            K k = entry.getKey();
+            V v = entry.getValue();
+            if (iter.visit(k, v)) {
+                return new Tuple<>(k, v);
+            }
+        }
+        return new Tuple<>(null, null);
+    }
+
+    public static <K, V> Tuple<K, V> iterate(Map<K, V> map, IterMapNoStop<K, V> iter) {
+        return iterate(map, (IterMap) iter);
     }
 
     public static <T> Tuple<Integer, T> iterate(Collection<T> list, Integer from, Iter<T> iter) {

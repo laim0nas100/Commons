@@ -5,9 +5,6 @@
  */
 package lt.lb.commons.interfaces;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 /**
  *
  * @author Laimonas-Beniusis-PC Iterator which passes index and value
@@ -27,6 +24,21 @@ public interface Iter<Type> {
         }
 
         public void continuedVisit(Integer index, T value);
+    }
+    
+    public static interface IterMap<K,V> {
+        public Boolean visit(K key, V value);
+    }
+    
+    public static interface IterMapNoStop<K,V> extends IterMap<K,V> {
+
+        @Override
+        public default Boolean visit(K key, V value) {
+            this.continuedVisit(key, value);
+            return false;
+        }
+
+        public void continuedVisit(K key, V value);
     }
 
 }
