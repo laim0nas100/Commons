@@ -6,6 +6,7 @@
 
 import com.sun.mail.pop3.POP3Message;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -78,6 +79,7 @@ public class JavaMailTest {
 
     @Test
     public void ok() throws Exception {
+
         EmailChecker checker = new EmailChecker();
         POP3SEmailProps props = new POP3SEmailProps();
         props.host = host;
@@ -86,27 +88,36 @@ public class JavaMailTest {
         props.username = user;
 
         EmailChannels channels = new EmailChannels();
-        Consumer<Exception> errChannel = (e->e.printStackTrace());
+        Consumer<Exception> errChannel = (e -> e.printStackTrace());
+        HashSet<String> ids = new HashSet<>();
         channels.inputChannels.add(m -> {
-            try {
-                POP3Message message = F.cast(m);
-                System.out.println(message.getClass());
-                System.out.println("---------------------------------");
-                System.out.println("Subject: " + message.getSubject());
-                System.out.println("From: " + message.getFrom()[0]);
-                System.out.println("Text: " + message.getContent().toString());
-            } catch (Exception e) {
-                F.iterate(channels.errorChannels, (i,cha)->{
+            F.runWithHandler((e) -> {
+                F.iterate(channels.errorChannels, (i, cha) -> {
                     cha.accept(e);
                 });
-            }
+            }, () -> {
+                if (ids.contains(m.getMessageID())) {
+                    return;
+                } else {
+                    ids.add(m.getMessageID());
+                }
+                POP3Message message = F.cast(m);
+                Log.print(message.getClass());
+                Log.print("---------------------------------");
+                Log.print("ID: " + message.getMessageID());
+                Log.print("Subject: " + message.getSubject());
+                Log.print("Sent date: " + message.getSentDate());
+                Log.print("From: " + message.getFrom()[0]);
+                Log.print("Text: " + message.getContent().toString());
+                Log.print(ids.size());
+            });
         });
         channels.errorChannels.add(errChannel);
-        Callable createPop3Poller = EmailChecker.createPop3Poller(props,channels);
+        Callable createPop3Poller = EmailChecker.createPop3Poller(props, channels);
         checker.addSchedulingTask(createPop3Poller, TimeUnit.SECONDS, 20);
         while (true) {
-            Log.print("WAITING");
-            Thread.sleep(60 * 1000);
+            Log.print("WAITING XDD");
+            Thread.sleep(10 * 1000);
         }
     }
 
@@ -128,23 +139,25 @@ public class JavaMailTest {
 
         javax.mail.search.FlagTerm ft = null;
         Message[] messages = emailFolder.search(ft);
-        System.out.println("messages.length---" + messages.length);
+        Log.print("messages.length---" + messages.length);
 
         for (int i = 0, n = messages.length; i < n; i++) {
 
             POP3Message message = F.cast(messages[i]);
-            System.out.println(message.getClass());
-            System.out.println("---------------------------------");
-            System.out.println("Email Number " + (i + 1));
-            System.out.println("Subject: " + message.getSubject());
-            System.out.println("From: " + message.getFrom()[0]);
-            System.out.println("Text: " + message.getContent().toString());
+            Log.print(message.getClass());
+            Log.print("---------------------------------");
+            Log.print("Email Number " + (i + 1));
+            Log.print("Subject: " + message.getSubject());
+            Log.print("From: " + message.getFrom()[0]);
+            Log.print("Text: " + message.getContent().toString());
             message.getRecipients(Message.RecipientType.TO);
 
         }
 
         emailFolder.close(false);
+        Log.print("Closed folder");
         store.close();
+        Log.print("Closed email");
     }
 
     public static abstract class BasicEmailProps extends Properties {
@@ -256,7 +269,7 @@ public class JavaMailTest {
         }
 
         public static Callable createPop3Poller(POP3EmailProps props, EmailChannels channels) {
-            return createEmailPoller(props, props, props,channels);
+            return createEmailPoller(props, props, props, channels);
         }
 
         private static Callable createEmailPoller(SearchableEmailProps p, GetStore storeGet, MarkRead markRead, EmailChannels channels) {
@@ -301,8 +314,11 @@ public class JavaMailTest {
                         }
                     }
                 });
+
                 emailFolder.close(false);
+                Log.print("Closed folder");
                 store.close();
+                Log.print("Closed email");
                 return msg;
             };
         }
