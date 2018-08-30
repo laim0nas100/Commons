@@ -48,6 +48,10 @@ public class ReflectTest {
         public Object clone() throws CloneNotSupportedException {
             return super.clone(); //To change body of generated methods, choose Tools | Templates.
         }
+        
+        public void change(float val){
+            this.protFloat = val;
+        }
 
     }
 
@@ -66,13 +70,16 @@ public class ReflectTest {
     static class CClsOverride extends CCls {
 
         public DemoEnum en = DemoEnum.one;
-        public Float protFloat = 15f;
+        protected Float protFloat = 15f;
+        public void change(float val){
+            super.change(val);
+        }
 
     }
 
     static class CCls2Override extends CClsOverride {
 
-        public Float protFloat;
+        public Float protFloat = null;
         public Integer[] intArray = new Integer[]{1, 2, 3};
         public double[] dubArray = new double[]{9, 8, 7};
 
@@ -86,6 +93,10 @@ public class ReflectTest {
             }
             intMap.put("one", 1);
             intMap.put("two", 2);
+            
+        }
+        public void change(float val){
+            super.change(val);
         }
 
     }
@@ -161,9 +172,27 @@ public class ReflectTest {
     ReflectionPrint rp = new ReflectionPrint();
 
     Benchmark b = new Benchmark();
-
     
-    public void ok() throws Exception {
+    
+
+    @Test
+    public void ok() throws Exception{
+        
+        CCls2Override c1 = new CCls2Override(0);
+        c1.dubArray[0] = -1;
+        c1.change(50f);
+
+        DefaultFieldFactory factory = new DefaultFieldFactory();
+        Log.instant = true;
+        rp.dump(c1);
+        
+        CCls2Override c2 = factory.reflectionClone(c1);
+        rp.dump(c2);
+    }
+    
+    
+    
+    public void bench() throws Exception {
 
         b.useGChint = false;
         b.useGVhintAfterFullBench = true;
