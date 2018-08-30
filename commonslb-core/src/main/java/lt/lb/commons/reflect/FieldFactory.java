@@ -26,8 +26,6 @@ import lt.lb.commons.misc.F;
  */
 public abstract class FieldFactory {
     
-    //TODO clone mutable enums
-
     private static class CachedFieldResolvers extends ConcurrentHashMap<Tuple<Class, String>, IFieldResolver> {
 
     }
@@ -374,7 +372,6 @@ public abstract class FieldFactory {
                     return (T) newInstance;
                 }
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                e.printStackTrace();
             }
         }
         throw new IllegalStateException("Failed to instantiate class " + cls.getName() + " consider adding ClassConstructor");
