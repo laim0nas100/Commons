@@ -7,10 +7,12 @@ package lt.lb.commons.misc;
 
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.function.Consumer;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.Iter;
 import lt.lb.commons.interfaces.Iter.IterMap;
 import lt.lb.commons.interfaces.Iter.IterMapNoStop;
+import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
  *
@@ -18,8 +20,20 @@ import lt.lb.commons.interfaces.Iter.IterMapNoStop;
  */
 public class F {
 
-    public static void run(Runnable r) {
-        r.run();
+    public static void run(UnsafeRunnable r) {
+        try {
+            r.unsafeRun();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void runWithHandler(Consumer<Exception> cons, UnsafeRunnable run) {
+        try {
+            run.unsafeRun();
+        } catch (Exception e) {
+            cons.accept(e);
+        }
     }
 
     public static <T extends E, E> T cast(E ob) throws ClassCastException {
