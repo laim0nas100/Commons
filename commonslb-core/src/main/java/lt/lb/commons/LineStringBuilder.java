@@ -14,11 +14,12 @@ import lt.lb.commons.interfaces.StringBuilderActions.ILineStringBuilder;
 public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 
     private StringBuilder sb = new StringBuilder();
+    public static final String LINE_END = "\r\n";
 
     @Override
     public LineStringBuilder appendLine(Object... objects) {
         this.append(objects);
-        sb.append("\n");
+        sb.append(LINE_END);
         return this;
     }
 
@@ -49,7 +50,7 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 
     @Override
     public LineStringBuilder insertLine(int offset, Object... objects) {
-        StringBuilder temp = createBuilderOf(objects).append("\n");
+        StringBuilder temp = createBuilderOf(objects).append(LINE_END);
         sb.insert(offset, temp.toString());
         return this;
     }
@@ -63,7 +64,7 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 
     @Override
     public LineStringBuilder prependLine(Object... objects) {
-        StringBuilder temp = createBuilderOf(objects).append("\n");
+        StringBuilder temp = createBuilderOf(objects).append(LINE_END);
         sb.insert(0, temp.toString());
         return this;
     }
@@ -143,6 +144,12 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 
     public void getChars(int srcBegin, int srcEnd, char[] chars, int destBegin) {
         sb.getChars(srcBegin, srcEnd, chars, destBegin);
+    }
+    
+    public String clear(){
+        String value = this.toString();
+        this.delete(0, this.length());
+        return value;
     }
 
     @Override
