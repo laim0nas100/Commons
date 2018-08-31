@@ -20,7 +20,7 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
-    public static void run(UnsafeRunnable r) {
+    public static void unsafeRun(UnsafeRunnable r) {
         try {
             r.unsafeRun();
         } catch (Exception e) {
@@ -28,7 +28,7 @@ public class F {
         }
     }
 
-    public static void runWithHandler(Consumer<Exception> cons, UnsafeRunnable run) {
+    public static void unsafeRunWithHandler(Consumer<Exception> cons, UnsafeRunnable run) {
         try {
             run.unsafeRun();
         } catch (Exception e) {
