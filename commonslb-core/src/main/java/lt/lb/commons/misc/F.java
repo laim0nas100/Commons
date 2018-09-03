@@ -84,7 +84,7 @@ public class F {
     public static <T> LinkedList<T> pickRandomPreferLow(Collection<T> col, int amount, int startingAmount, int amountDecay) {
 
         int limit = Math.min(amount, col.size());
-        LinkedList<Integer> indexArray = new LinkedList<>();
+        ArrayList<Integer> indexArray = new ArrayList<>();
         for (int i = 0; i < col.size(); i++) {
             for (int indexAm = Math.max(1, startingAmount); indexAm > 0; indexAm--) {
                 indexArray.add(i);
@@ -96,8 +96,10 @@ public class F {
         LinkedList<T> result = new LinkedList<>();
 //        Collections.shuffle(indexArray);
         seededShuffle(indexArray, F.RND);
-        for (int i = 0; i < limit; i++) {
-            result.add(array.get(indexArray.removeFirst()));
+        int last = indexArray.size() - 1;
+        int first = last - limit;
+        for (int i = last; i > first; i--) {
+            result.add(array.get(indexArray.remove(i)));
         }
         return result;
 
@@ -106,7 +108,7 @@ public class F {
     public static <T> LinkedList<T> pickRandom(Collection<T> col, int amount) {
 
         int limit = Math.min(amount, col.size());
-        LinkedList<Integer> indexArray = new LinkedList<>();
+        ArrayList<Integer> indexArray = new ArrayList<>();
         for (int i = 0; i < col.size(); i++) {
             indexArray.add(i);
         }
@@ -114,8 +116,10 @@ public class F {
         LinkedList<T> result = new LinkedList<>();
 //        Collections.shuffle(indexArray);
         seededShuffle(indexArray, F.RND);
-        for (int i = 0; i < limit; i++) {
-            result.add(array.get(indexArray.removeFirst()));
+        int last = indexArray.size() - 1;
+        int first = last - limit;
+        for (int i = last; i > first; i--) {
+            result.add(array.get(indexArray.remove(i)));
         }
         return result;
 

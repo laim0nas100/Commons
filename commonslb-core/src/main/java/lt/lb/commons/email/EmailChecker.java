@@ -5,56 +5,32 @@
  */
 package lt.lb.commons.email;
 
-import java.util.HashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.internet.MimeMessage;
-import lt.lb.commons.UUIDgenerator;
-import lt.lb.commons.containers.Value;
 import lt.lb.commons.email.props.IMAPOrPOP3Props;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.misc.F;
-import lt.lb.commons.threads.DisposableExecutor;
+import lt.lb.commons.threads.ScheduledDispatchExecutor;
 
 /**
  *
  * @author Laimonas-Beniusis-PC
  */
-public class EmailChecker {
+public class EmailChecker extends ScheduledDispatchExecutor{
 
     public ILineAppender debug;
-    private ScheduledExecutorService service;
-    private Executor exe;
-    private HashMap<String, Value<Boolean>> enabledMap = new HashMap<>();
 
-    public EmailChecker() {
+    public EmailChecker(Executor exe) {
+        super(exe);
         debug = (objs) -> {
             return debug;
         };
     }
 
-    public String addSchedulingTask(Runnable call, TimeUnit tu, long dur) {
-        String nextUUID = UUIDgenerator.nextUUID("Email task");
-        AtomicBoolean enabled = new AtomicBoolean(true);
-        Runnable runProxy = () -> {
-            if (enabled.get()) {
-                debug.appendLine("Execute ", nextUUID);
-                getExecutor().execute(call);
-            } else {
-                debug.appendLine("Disabled ", nextUUID);
-            }
-        };
-        enabledMap.put(nextUUID, new Value<>(true));
-        getService().scheduleAtFixedRate(runProxy, 0, dur, tu);
-        return nextUUID;
-    }
 
     public Runnable createCommonEmailPoller(IMAPOrPOP3Props p, EmailChannels channels) {
         p.populate();
@@ -102,30 +78,4 @@ public class EmailChecker {
 
         };
     }
-
-    private Executor getExecutor() {
-        if (exe == null) {
-            exe = new DisposableExecutor(1);
-        }
-        return exe;
-    }
-
-    private ScheduledExecutorService getService() {
-        if (service == null) {
-            service = Executors.newSingleThreadScheduledExecutor();
-        }
-        return service;
-    }
-
-    public void shutdown() {
-        this.getService().shutdown();
-        this.service = null;
-    }
-
-    public void enableEmailTask(String uuid, boolean enable) {
-        if (this.enabledMap.containsKey(uuid)) {
-            this.enabledMap.get(uuid).set(enable);
-        }
-    }
-
 }

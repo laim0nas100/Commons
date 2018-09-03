@@ -14,6 +14,19 @@ import java.util.function.Predicate;
  */
 public class ArrayOp {
 
+    public static <T> boolean any(Predicate<T> test, T... array) {
+        for (T t : array) {
+            if (test.test(t)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static <T> boolean all(Predicate<T> test, T... array) {
+        return !any(test.negate(), array);
+    }
+
     public static <T> T[] merge(T[] one, T... two) {
         LinkedList<T> list = new LinkedList<>();
         for (T t : one) {
@@ -156,7 +169,7 @@ public class ArrayOp {
             int valIndex = i % values.length;
             array[i] = values[valIndex];
         }
-        
+
         return array;
 
     }
