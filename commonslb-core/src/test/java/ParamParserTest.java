@@ -97,7 +97,7 @@ public class ParamParserTest {
 
         TGraph numberGraph = new TGraph();
 
-        F.run(() -> {
+        F.unsafeRun(() -> {
             TNode n1 = new TNode(false);
             TNode n2 = new TKeywordNode(".", false, true);
             TNode n3 = new TNode(true);
@@ -110,7 +110,7 @@ public class ParamParserTest {
 
         TGraph literalGraph = new TGraph();
 
-        F.run(() -> {
+        F.unsafeRun(() -> {
             TNode n1 = new TNode(true);
             TNode n2 = new TKeywordNode(".", false, true);
             n1.linkTo(n2);
@@ -120,7 +120,7 @@ public class ParamParserTest {
 
         TGraph fetchGraph = new TGraph();
 
-        F.run(() -> {
+        F.unsafeRun(() -> {
             TNode n1 = new TKeywordNode("${", false,false);
             
             TNode n2 = new TNode(false);

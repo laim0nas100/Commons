@@ -7,6 +7,7 @@
 import java.math.BigInteger;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
+import lt.lb.commons.benchmarking.Benchmark;
 import org.junit.*;
 
 /**
