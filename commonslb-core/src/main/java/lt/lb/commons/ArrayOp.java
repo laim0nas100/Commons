@@ -7,12 +7,24 @@ package lt.lb.commons;
 
 import java.util.*;
 import java.util.function.Predicate;
+import lt.lb.commons.interfaces.Accumulator;
 
 /**
  *
  * @author Laimonas-Beniusis-PC
  */
 public class ArrayOp {
+    
+    public static <T> T accumulate(Accumulator<T> acc, T... array){
+        if(array.length == 0){
+            return null;
+        }
+        T total = array[0];
+        for(int i = 1; i < array.length; i++){
+            total = acc.accumulate(total, array[i]);
+        }
+        return total;
+    }
 
     public static <T> boolean any(Predicate<T> test, T... array) {
         for (T t : array) {

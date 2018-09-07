@@ -11,7 +11,7 @@ package lt.lb.commons.parsing;
  */
 public class Literal extends Token {
 
-    public String value;
+    public final String value;
 
     public Literal(String id, Integer[] pos, String value) {
         super(id, pos);

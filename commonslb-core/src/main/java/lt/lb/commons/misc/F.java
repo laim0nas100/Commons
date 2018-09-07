@@ -174,67 +174,67 @@ public class F {
         return len1 - len2;
     }
 
-    public static <K, V> Tuple<K, V> iterate(Map<K, V> map, IterMap<K, V> iter) {
+    public static <K, V> Optional<Tuple<K, V>> iterate(Map<K, V> map, IterMap<K, V> iter) {
         Set<Map.Entry<K, V>> entrySet = map.entrySet();
         for (Map.Entry<K, V> entry : entrySet) {
             K k = entry.getKey();
             V v = entry.getValue();
             if (iter.visit(k, v)) {
-                return new Tuple<>(k, v);
+                return Optional.of(new Tuple<>(k, v));
             }
         }
-        return new Tuple<>(null, null);
+        return Optional.empty();
     }
 
-    public static <K, V> Tuple<K, V> iterate(Map<K, V> map, IterMapNoStop<K, V> iter) {
+    public static <K, V> Optional<Tuple<K, V>> iterate(Map<K, V> map, IterMapNoStop<K, V> iter) {
         return iterate(map, (IterMap) iter);
     }
 
-    public static <T> Tuple<Integer, T> iterate(Collection<T> list, Integer from, Iter<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Integer from, Iter<T> iter) {
         Iterator<T> iterator = list.iterator();
         int index = 0;
         while (iterator.hasNext()) {
             T next = iterator.next();
             if (index >= from) {
                 if (iter.visit(index, next)) {
-                    return new Tuple<>(index, next);
+                    return Optional.of(new Tuple<>(index, next));
                 }
             }
             index++;
         }
-        return new Tuple<>(index, null);
+        return Optional.empty();
     }
 
-    public static <T> Tuple<Integer, T> iterate(T[] array, Integer from, Iter<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Integer from, Iter<T> iter) {
         for (int i = from; i < array.length; i++) {
             if (iter.visit(i, array[i])) {
-                return new Tuple<>(i, array[i]);
+                return Optional.of(new Tuple<>(i, array[i]));
             }
         }
-        return new Tuple<>(array.length, null);
+        return Optional.empty();
     }
 
-    public static <T> Tuple<Integer, T> iterate(T[] array, Iter<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Iter<T> iter) {
         return iterate(array, 0, iter);
     }
 
-    public static <T> Tuple<Integer, T> iterate(Collection<T> list, Iter<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Iter<T> iter) {
         return iterate(list, 0, iter);
     }
 
-    public static <T> Tuple<Integer, T> iterate(T[] array, Iter.IterNoStop<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Iter.IterNoStop<T> iter) {
         return iterate(array, 0, iter);
     }
 
-    public static <T> Tuple<Integer, T> iterate(Collection<T> list, Iter.IterNoStop<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Iter.IterNoStop<T> iter) {
         return iterate(list, 0, iter);
     }
 
-    public static <T> Tuple<Integer, T> iterate(T[] array, Integer from, Iter.IterNoStop<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Integer from, Iter.IterNoStop<T> iter) {
         return iterate(array, from, (Iter) iter);
     }
 
-    public static <T> Tuple<Integer, T> iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
         return iterate(list, from, (Iter) iter);
     }
 

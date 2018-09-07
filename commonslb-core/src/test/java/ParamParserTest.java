@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +25,7 @@ import lt.lb.commons.parsing.TokenFiniteAutomata;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TGraph;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TKeywordNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TNode;
+import lt.lb.commons.parsing.TokenFiniteAutomata.TraversedResult;
 import lt.lb.commons.reflect.DefaultFieldFactory;
 import lt.lb.commons.reflect.FieldFactory;
 import lt.lb.commons.reflect.ReflectionPrint;
@@ -106,6 +108,7 @@ public class ParamParserTest {
             n2.linkTo(n3);
 
             numberGraph.beginNode = n1;
+            
         });
 
         TGraph literalGraph = new TGraph();
@@ -116,36 +119,53 @@ public class ParamParserTest {
             n1.linkTo(n2);
             n2.linkTo(n1);
             literalGraph.beginNode = n1;
+            
+            
         });
 
         TGraph fetchGraph = new TGraph();
 
         F.unsafeRun(() -> {
-            TNode n1 = new TKeywordNode("${", false,false);
-            
+            TNode n1 = new TKeywordNode("${", false, false);
+
             TNode n2 = new TNode(false);
             TNode n3 = new TKeywordNode(".", false, true);
-            TNode n4 = new TKeywordNode("}",true,false);
+            TNode n4 = new TKeywordNode("}", true, false);
             n1.linkTo(n2);
             n2.linkTo(n3);
             n2.linkTo(n4);
             n3.linkTo(n2);
-            
+
             fetchGraph.beginNode = n1;
+            
+            
+            
         });
 
         TGraph g = new TGraph();
         g.beginNode = eqNode;
 
-        TokenFiniteAutomata.TraversedResult t1 = literalGraph.traverse(p);
-        Log.print("After first advance");
-
-        g.traverse(p);
-        Log.print("After second advance");
-        TokenFiniteAutomata.TraversedResult t2 = fetchGraph.traverse(p);
-
-        Log.print(t1.getStringResult());
-        Log.print(t2.getStringResult());
+//        F.unsafeRun(() -> {
+//            TokenFiniteAutomata.TraversedResult t1 = literalGraph.traverse(p);
+//            Log.print("After first advance");
+//
+//            g.traverse(p);
+//            Log.print("After second advance");
+//            TokenFiniteAutomata.TraversedResult t2 = fetchGraph.traverse(p);
+//
+//            Log.print(t1.getStringResult());
+//            Log.print(t2.getStringResult());
+//        });
+        
+        literalGraph.connectedGraphs.put(g.graphId, g);
+        g.connectedGraphs.put(numberGraph.graphId, numberGraph);
+        g.connectedGraphs.put(fetchGraph.graphId, fetchGraph);
+        
+        
+        List<TraversedResult> list = new ArrayList<>();
+        literalGraph.fullTraverse(p, list);
+        Log.printLines(list);
+        
 
     }
 

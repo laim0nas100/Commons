@@ -27,7 +27,7 @@ public interface UnsafeRunnable extends Runnable {
         try {
             this.unsafeRun();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

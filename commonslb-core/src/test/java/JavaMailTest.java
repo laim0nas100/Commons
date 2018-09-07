@@ -6,6 +6,7 @@
 
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javax.mail.Folder;
@@ -59,7 +60,7 @@ public class JavaMailTest {
 
     public void ok() throws Exception {
 
-        EmailChecker checker = new EmailChecker(new DisposableExecutor(1));
+        EmailChecker checker = new EmailChecker();
         POP3EmailProps props = new POP3EmailProps.POP3SEmailProps();
         props.host = host;
         props.password = pass;
@@ -94,7 +95,7 @@ public class JavaMailTest {
             Log.print(objs);
             return checker.debug;
         };
-        String taskID = checker.addSchedulingTask(createPop3Poller, TimeUnit.SECONDS, 20);
+        String taskID = checker.addSchedulingTask(new DisposableExecutor(1), createPop3Poller, TimeUnit.SECONDS, 20);
         int i = 1;
         boolean enabled = true;
         while (true) {
@@ -110,7 +111,29 @@ public class JavaMailTest {
 
     public static void main(String[] args) throws Exception {
         JavaMailTest t = new JavaMailTest();
-        t.ok();
+        t.other();
+    }
+    
+    public void other(){
+        Executor e = new DisposableExecutor(1);
+        EmailChecker ch = new EmailChecker();
+        ch.addSchedulingTask(e, ()->{
+            Log.print("Hi 2");
+        }, TimeUnit.SECONDS, 2);
+        ch.addSchedulingTask(e, ()->{
+            Log.print("Hi 1");
+        }, TimeUnit.SECONDS, 1);
+        ch.addSchedulingTask(e, ()->{
+            Log.print("Hi 3");
+        }, TimeUnit.SECONDS, 3);
+        
+        while(true){
+            F.unsafeRun(()->{
+                Thread.sleep(1000);
+            });
+        }
+        
+        
     }
 
 //    public void checkEmail() throws Exception {

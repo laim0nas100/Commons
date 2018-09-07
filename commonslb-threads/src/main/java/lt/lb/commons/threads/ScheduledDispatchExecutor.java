@@ -21,30 +21,28 @@ public class ScheduledDispatchExecutor {
     
 
     protected ScheduledExecutorService dispatcher;
-    protected Executor exe;
     protected HashMap<String, AtomicBoolean> enabledMap = new HashMap<>();
 
-    public ScheduledDispatchExecutor(Executor realExecutor) {
-        this.exe = realExecutor;
+    public ScheduledDispatchExecutor() {
     }
 
-    public String addSchedulingTask(Runnable call, TimeUnit tu, long dur) {
+    public String addSchedulingTask(Executor exe, Runnable call, TimeUnit tu, long dur) {
         AtomicBoolean enabled = new AtomicBoolean(true);
         Runnable runProxy = () -> {
             if (enabled.get()) {
-                getExecutor().execute(call);
+                exe.execute(call);
             } 
         };
         String nextUUID = UUID.randomUUID().toString();
+        while(enabledMap.containsKey(nextUUID)){
+            nextUUID = UUID.randomUUID().toString();
+        }
         enabledMap.put(nextUUID, enabled);
         getDispatcher().scheduleAtFixedRate(runProxy, dur, dur, tu);
         return nextUUID;
     }
 
 
-    protected Executor getExecutor() {
-        return exe;
-    }
 
     protected ScheduledExecutorService getDispatcher() {
         if (dispatcher == null) {

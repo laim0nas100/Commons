@@ -13,8 +13,8 @@ import java.util.Arrays;
  */
 public class Token {
 
-    public String id;
-    public Integer[] pos;
+    public final String id;
+    public final Integer[] pos;
 
     public Token(String id, Integer[] pos) {
         this.id = id;
