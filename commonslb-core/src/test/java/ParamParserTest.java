@@ -11,8 +11,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.filemanaging.FileReader;
 import lt.lb.commons.interfaces.ReadOnlyBidirectionalIterator;
@@ -24,7 +26,9 @@ import lt.lb.commons.parsing.Token;
 import lt.lb.commons.parsing.TokenFiniteAutomata;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TGraph;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TKeywordNode;
+import lt.lb.commons.parsing.TokenFiniteAutomata.TLiteralNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TNode;
+import lt.lb.commons.parsing.TokenFiniteAutomata.TNumberNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TraversedResult;
 import lt.lb.commons.reflect.DefaultFieldFactory;
 import lt.lb.commons.reflect.FieldFactory;
@@ -77,9 +81,115 @@ public class ParamParserTest {
 
     FieldFactory fac = new DefaultFieldFactory();
 
+    public TGraph getLiteralGraph() {
+        TGraph literalGraph = new TGraph("Literal graph");
+
+        TNode n1 = new TLiteralNode(true);
+        TNode n2 = new TKeywordNode(".", false, true);
+        n1.linkTo(n2);
+        n2.linkTo(n1);
+        literalGraph.beginNode = n1;
+        return literalGraph;
+    }
+
+    public TGraph getFetchGraph() {
+        TGraph fetchGraph = new TGraph("Fetch graph");
+
+        TNode n1 = new TKeywordNode("${", false, false);
+
+        TNode n2 = new TLiteralNode(false);
+        TNode n3 = new TKeywordNode(".", false, true);
+        TNode n4 = new TKeywordNode("}", true, false);
+        n1.linkTo(n2);
+        n2.linkTo(n3);
+        n2.linkTo(n4);
+        n3.linkTo(n2);
+
+        fetchGraph.beginNode = n1;
+        return fetchGraph;
+    }
+
+    public TGraph getNumberGraph() {
+        TGraph numberGraph = new TGraph("Number graph");
+
+        TNode n1 = new TNumberNode(true);
+        TNode n2 = new TKeywordNode(".", false, true);
+        TNode n3 = new TNumberNode(true);
+
+        n1.linkTo(n2);
+        n2.linkTo(n3);
+
+        numberGraph.beginNode = n1;
+        return numberGraph;
+    }
+
+    public TGraph getArrayStartGraph() {
+        TGraph arrayStart = new TGraph("ArrayStart");
+        arrayStart.beginNode = new TKeywordNode("[", true, true);
+
+        TGraph arrayEnd = new TGraph("ArrayEnd");
+        arrayEnd.beginNode = new TKeywordNode("]", true, true);
+
+        arrayStart.connect(arrayEnd);
+
+        TGraph comma = new TGraph("Comma");
+        comma.beginNode = new TKeywordNode(",", true, true);
+
+        TGraph literalGraph = this.getLiteralGraph();
+        arrayStart.connect(literalGraph);
+        literalGraph.connect(arrayEnd);
+        literalGraph.connect(comma);
+        comma.connect(literalGraph);
+
+        TGraph fetchGraph = this.getFetchGraph();
+        arrayStart.connect(fetchGraph);
+        fetchGraph.connect(arrayEnd);
+        fetchGraph.connect(comma);
+        comma.connect(fetchGraph);
+        return arrayStart;
+    }
+
+    public TGraph getEqGraph() {
+        TNode eqNode = new TKeywordNode("=", true, false);
+
+        TGraph eq = new TGraph("Eq node");
+        eq.beginNode = eqNode;
+
+        //basic assignment
+        TGraph literalGraph = this.getLiteralGraph();
+        TGraph numberGraph = this.getNumberGraph();
+        TGraph fetchGraph = this.getFetchGraph();
+        TGraph arrayGraph = this.getArrayStartGraph();
+
+        eq.connect(literalGraph);
+        eq.connect(numberGraph);
+        eq.connect(fetchGraph);
+        eq.connect(arrayGraph);
+
+        return eq;
+    }
+
+    public TGraph getStructStartGraph() {
+        TGraph structStart = new TGraph("StructStart");
+        structStart.beginNode = new TKeywordNode("{", true, true);
+
+        TGraph structEnd = new TGraph("StructEnd");
+        structEnd.beginNode = new TKeywordNode("}", true, true);
+
+        TGraph eqGraph = getEqGraph();
+
+        structStart.connect(structEnd);
+        structStart.connect(eqGraph);
+        eqGraph.connectAtEnd(structEnd);
+
+        return structStart;
+
+    }
+
     @Test
     public void ok() throws Exception {
         Log.instant = true;
+        Log.display = true;
         String url = "C:\\MyWorkspace\\Commons\\fileToRead.txt";
         Collection<String> readFromFile = FileReader.readFromFile(url, "//", "/*", "*/");
 
@@ -87,86 +197,43 @@ public class ParamParserTest {
         LexerWithStrings lex = new LexerWithStrings("");
         lex.addKeyword("=", "{", "}", "[", "]", ",", ".", "${");
         lex.resetLines(readFromFile);
+        lex.skipWhitespace = true;
         for (Token token : lex.getRemainingTokens()) {
             Log.print(token);
         }
+        Log.print("After parsing");
 
         MyParser p = new MyParser();
         lex.reset();
         p.tokens = lex.getRemainingTokens();
 
-        TNode eqNode = new TKeywordNode("=", true, false);
+        TGraph literalGraph = this.getLiteralGraph();
+        TGraph eqGraph = this.getEqGraph();
+        literalGraph.connect(eqGraph);
 
-        TGraph numberGraph = new TGraph();
+        // structs
+        TGraph structStart = new TGraph("StructStart");
+        structStart.beginNode = new TKeywordNode("{", true, true);
 
-        F.unsafeRun(() -> {
-            TNode n1 = new TNode(false);
-            TNode n2 = new TKeywordNode(".", false, true);
-            TNode n3 = new TNode(true);
+        TGraph structEnd = new TGraph("StructEnd");
+        structEnd.beginNode = new TKeywordNode("}", true, true);
 
-            n1.linkTo(n2);
-            n2.linkTo(n3);
+        eqGraph.connect(structStart);
+        eqGraph.connectAtEnd(structEnd);
 
-            numberGraph.beginNode = n1;
-            
-        });
+        List<List<TraversedResult>> globalList = new ArrayList<>();
+        do {
+            Log.print("New iteration");
+            List<TraversedResult> list = new ArrayList<>();
+            literalGraph.fullTraverse(p, list);
+            globalList.add(list);
+        } while (p.hasNext());
+        Log.print("RESULTS");
+        Log.printLines(globalList);
+        Log.display = true;
 
-        TGraph literalGraph = new TGraph();
-
-        F.unsafeRun(() -> {
-            TNode n1 = new TNode(true);
-            TNode n2 = new TKeywordNode(".", false, true);
-            n1.linkTo(n2);
-            n2.linkTo(n1);
-            literalGraph.beginNode = n1;
-            
-            
-        });
-
-        TGraph fetchGraph = new TGraph();
-
-        F.unsafeRun(() -> {
-            TNode n1 = new TKeywordNode("${", false, false);
-
-            TNode n2 = new TNode(false);
-            TNode n3 = new TKeywordNode(".", false, true);
-            TNode n4 = new TKeywordNode("}", true, false);
-            n1.linkTo(n2);
-            n2.linkTo(n3);
-            n2.linkTo(n4);
-            n3.linkTo(n2);
-
-            fetchGraph.beginNode = n1;
-            
-            
-            
-        });
-
-        TGraph g = new TGraph();
-        g.beginNode = eqNode;
-
-//        F.unsafeRun(() -> {
-//            TokenFiniteAutomata.TraversedResult t1 = literalGraph.traverse(p);
-//            Log.print("After first advance");
-//
-//            g.traverse(p);
-//            Log.print("After second advance");
-//            TokenFiniteAutomata.TraversedResult t2 = fetchGraph.traverse(p);
-//
-//            Log.print(t1.getStringResult());
-//            Log.print(t2.getStringResult());
-//        });
-        
-        literalGraph.connectedGraphs.put(g.graphId, g);
-        g.connectedGraphs.put(numberGraph.graphId, numberGraph);
-        g.connectedGraphs.put(fetchGraph.graphId, fetchGraph);
-        
-        
-        List<TraversedResult> list = new ArrayList<>();
-        literalGraph.fullTraverse(p, list);
-        Log.printLines(list);
-        
-
+//        Log.flushBuffer();
+//        Log.await(1, TimeUnit.HOURS);
     }
 
     public static class Props {
@@ -202,15 +269,6 @@ public class ParamParserTest {
             return null;
         }
 
-    }
-
-    public void parseMe(Collection<Token> tokens) {
-        for (Token t : tokens) {
-            if (t instanceof Literal) {
-                Literal lit = F.cast(t);
-
-            }
-        }
     }
 
     public static class MyParser implements ReadOnlyIterator<Token> {
