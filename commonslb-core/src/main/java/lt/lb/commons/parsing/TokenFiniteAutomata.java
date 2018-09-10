@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.UUIDgenerator;
 import lt.lb.commons.containers.Tuple;
@@ -24,28 +25,65 @@ public class TokenFiniteAutomata {
 
     public static class TraversedResult {
 
+        public String id;
+
         public ArrayList<ResultNode> nodeList = new ArrayList<>();
-        
+
         public TNode endNode;
 
         public String getStringResult() {
             StringBuilder sb = new StringBuilder();
-            F.iterate(nodeList, (i,n)->{
-                if(n.appendable){
-                    sb.append(n.value);
-                }
+            F.iterate(nodeList, (i, n) -> {
+//                if (n.appendable) {
+                sb.append(n.value);
+//                }
             });
 
             return sb.toString();
         }
-        
-        public String toString(){
-            return this.getStringResult();
+
+        public String toString() {
+            return id + "  " + this.getStringResult();
         }
 
     }
 
-    public static class TNode {
+    public static class TNumberNode extends TLiteralNode {
+
+        public TNumberNode(boolean canEnd) {
+            super(canEnd);
+        }
+
+        @Override
+        public boolean matches(Token token) {
+            if (super.matches(token)) {
+                Literal lit = F.cast(token);
+                try {
+                    Double.parseDouble(lit.value);
+                    return true;
+                } catch (NumberFormatException ex) {
+                    return false;
+                }
+            }
+            return false;
+        }
+
+    }
+
+    public static class TLiteralNode extends TNode {
+
+        public TLiteralNode(boolean canEnd) {
+            super(canEnd);
+        }
+
+        @Override
+        public boolean matches(Token token) {
+            return token instanceof Literal;
+        }
+
+    }
+
+    public static abstract class TNode {
 
         @Override
         public int hashCode() {
@@ -71,8 +109,6 @@ public class TokenFiniteAutomata {
             }
             return true;
         }
-        
-        
 
         public boolean appendable = true;
         public boolean canEnd = false;
@@ -86,34 +122,25 @@ public class TokenFiniteAutomata {
         public boolean isKeyword() {
             return false;
         }
-        
-        public void linkTo(TNode n){
+
+        public void linkTo(TNode n) {
             linkedTo.add(n);
         }
-        
-        public boolean isLinkedTo(TNode other){
+
+        public boolean isLinkedTo(TNode other) {
             return linkedTo.contains(other);
         }
-
-        public Optional<Tuple<Integer, TNode>> resolveLiteral() {
-            return F.iterate(linkedTo, (i, n) -> {
-                return !n.isKeyword();
-            });
-        }
-
-        public Optional<Tuple<Integer, TNode>> resolveKeyword(String keyword) {
-            return F.iterate(linkedTo, (i, n) -> {
-                if (n instanceof TKeywordNode) {
-                    TKeywordNode kn = F.cast(n);
-                    return keyword.equals(kn.keyword);
-                } else {
-                    return false;
-                }
-            });
-        }
         
+        public Optional<TNode> getFirstMatch(Token token){
+            return linkedTo.stream().filter(n ->{
+                return n.matches(token);
+            }).findFirst();
+        }
+
+        public abstract boolean matches(Token token);
+
         @Override
-        public String toString(){
+        public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append("Keyword:").append(this.isKeyword()).append(" Can End:").append(this.canEnd).append(" Appendable:").append(this.appendable);
             return sb.toString();
@@ -126,8 +153,9 @@ public class TokenFiniteAutomata {
         public final String keyword;
 
         public TKeywordNode(String keyWord, boolean canEnd) {
-            this(keyWord,canEnd,true);
+            this(keyWord, canEnd, true);
         }
+
         public TKeywordNode(String keyWord, boolean canEnd, boolean appendable) {
             super(canEnd);
             this.keyword = keyWord;
@@ -137,6 +165,21 @@ public class TokenFiniteAutomata {
         @Override
         public boolean isKeyword() {
             return true;
+        }
+
+        @Override
+        public boolean matches(Token token) {
+            return this.keyword.equals(token.id);
+        }
+
+    }
+
+    public static class TRecurseNode extends TKeywordNode {
+
+        public ArrayList<TGraph> linkedGraphs = new ArrayList<>();
+
+        public TRecurseNode(String keyWord, boolean canEnd, boolean appendable) {
+            super(keyWord, canEnd, appendable);
         }
 
     }
@@ -151,13 +194,38 @@ public class TokenFiniteAutomata {
 
     }
 
+    public static class ArrayTGraph extends TGraph {
+
+        public ArrayTGraph(String name) {
+            super(name);
+        }
+
+    }
+
     public static class TGraph {
 
         public TNode beginNode;
         public String graphId = UUIDgenerator.nextUUID("TGraph");
         public HashMap<String, TNode> nodes = new HashMap<>();
         public HashMap<String, TGraph> connectedGraphs = new HashMap<>();
-        
+
+        public TGraph(String name) {
+            this.graphId = name;
+        }
+
+        public void connect(TGraph gr) {
+            this.connectedGraphs.put(gr.graphId, gr);
+        }
+
+        public void connectAtEnd(TGraph gr) {
+            F.iterate(this.connectedGraphs, (i, g) -> {
+                g.connect(gr);
+            });
+        }
+
+        public boolean matches(Token token) {
+            return beginNode.matches(token);
+        }
 
         public void addNodes(TNode... nodeArray) {
             F.iterate(nodeArray, (i, n) -> {
@@ -168,7 +236,7 @@ public class TokenFiniteAutomata {
         private TraversedResult traverse(ReadOnlyIterator<Token> stream, TraversedResult res, TNode node) {
 
             Token token = stream.getCurrent();
-            if(token == null){
+            if (token == null) {
                 throw new IllegalStateException("Current token is null");
             }
             ResultNode resNode = new ResultNode();
@@ -176,8 +244,8 @@ public class TokenFiniteAutomata {
             resNode.appendable = node.appendable;
             resNode.tnode = node;
             resNode.isKeyword = node.isKeyword();
-            
-            Log.print(node,token);
+
+            Log.print(node, token);
 
             boolean isLiteral = token instanceof Literal;
             boolean nodeIsLiteral = !node.isKeyword();
@@ -199,30 +267,19 @@ public class TokenFiniteAutomata {
                 } else {
                     throw new IllegalStateException("Illegal stream end on node " + node);
                 }
-            }else{
+            } else {
                 Token next = stream.getNext();
-                if(next instanceof Literal){
-                    Optional<Tuple<Integer, TNode>> linkToLiteral = node.resolveLiteral();
-                    if(!linkToLiteral.isPresent()){// maybe can end?
-                        if(node.canEnd){
-                            res.endNode = node;
-                            return res;
-                        }
-                        throw new IllegalStateException("Illegal end on node literal " + node);
-                    }else{
-                        return traverse(stream,res,linkToLiteral.get().g2);
+                
+                Optional<TNode> firstMatch = node.getFirstMatch(next);
+                
+                if(!firstMatch.isPresent()){// maybe can end?
+                    if(node.canEnd){
+                        res.endNode = node;
+                        return res;
                     }
-                }else{ //is keyword
-                    Optional<Tuple<Integer, TNode>> linkToKeyword = node.resolveKeyword(next.id);
-                    if(!linkToKeyword.isPresent()){// maybe can end?
-                        if(node.canEnd){
-                            res.endNode = node;
-                            return res;
-                        }
-                        throw new IllegalStateException("Illegal end on node keyword " + node);
-                    }else{
-                        return traverse(stream,res,linkToKeyword.get().g2);
-                    }
+                    throw new IllegalStateException("Illegal end on " + node.getClass().getSimpleName()+" "+node);
+                }else{
+                    return traverse(stream, res, firstMatch.get());
                 }
             }
 
@@ -232,45 +289,30 @@ public class TokenFiniteAutomata {
             if (beginNode == null) {
                 throw new IllegalStateException("Begin node is null");
             }
-            return traverse(stream, new TraversedResult(), beginNode);
+            TraversedResult res = new TraversedResult();
+            res.id = this.graphId;
+            return traverse(stream, res, beginNode);
 
         }
-        
-        public void fullTraverse(ReadOnlyIterator<Token> stream, List<TraversedResult> resList){
+
+        public void fullTraverse(ReadOnlyIterator<Token> stream, List<TraversedResult> resList) {
+            Log.print("Traverse ", this.graphId);
             TraversedResult res = this.traverse(stream);
             resList.add(res);
             Token t = stream.getCurrent();
-            if(t != null){
-                
-                
-                
-//                Optional<Tuple<String, TGraph>> iterate = F.iterate(this.connectedGraphs, (k,g)->{
-//                    return this.beginNode.isLinkedTo(g.beginNode);
-//                });
-//                if(iterate.isPresent()){
-//                    TGraph nextGraph = iterate.get().g2;
-//                    nextGraph.fullTraverse(stream, resList);
-//                }
-                
-                //TODO
-//                Optional<TGraph> findFirst = this.connectedGraphs.values().stream().filter((g)->{
-//                    TNode bNode = g.beginNode;
-//                    if(t instanceof Literal){
-//                        Literal l = F.cast(t);
-//                        if(bNode.)
-//                    }
-//                    
-//                    g.beginNode.
-//                    return res.endNode.isLinkedTo(g.beginNode);
-//                }).findFirst();
-//                
-//                if(findFirst.isPresent()){
-//                    TGraph nextGraph = findFirst.get();
-//                    nextGraph.fullTraverse(stream, resList);
-//                }
-                
+            if (t != null) {
+                Optional<Tuple<String, TGraph>> iterate = F.iterate(this.connectedGraphs, (k, g) -> {
+                    return g.matches(t);
+                });
+                if (iterate.isPresent()) {
+                    TGraph nextGraph = iterate.get().g2;
+
+                    nextGraph.fullTraverse(stream, resList);
+                } else {
+                    Log.print("Can't proceed after", t);
+                }
             }
-            
+
         }
     }
 
