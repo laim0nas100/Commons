@@ -25,7 +25,7 @@ import lt.lb.commons.misc.F;
  * @author Lemmin
  */
 public abstract class FieldFactory {
-    
+
     private static class CachedFieldResolvers extends ConcurrentHashMap<Tuple<Class, String>, IFieldResolver> {
 
     }
@@ -97,7 +97,7 @@ public abstract class FieldFactory {
                 }
                 Class realFieldType = get.getClass();
                 log.appendLine("Got instance", get, realFieldType);
-                IFieldResolver refinedResolver = getResolverByField(realFieldType, f);
+                IFieldResolver refinedResolver = getResolverByField(realFieldType, f, false);
 
                 refinedResolver.cloneField(sourceObject, parentObject, refCounter);
 
@@ -113,7 +113,11 @@ public abstract class FieldFactory {
                 log.appendLine("Found repeating " + compType.getName() + " array reference");
                 f.set(parentObject, refCounter.get(sourceArray));
             } else {
-
+                if (sourceArray == null) {
+                    log.appendLine("Found null mutable array");
+                    f.set(parentObject, null);
+                    return;
+                }
                 int length = Array.getLength(sourceArray);
                 Object[] newArray = ArrayOp.makeArray(length, compType);
 
@@ -174,10 +178,10 @@ public abstract class FieldFactory {
         Class currentClass = startingClass;
         while (currentClass != null) {
             FieldHolder holder = this.getFieldHolder(currentClass);
-            F.iterate(holder.getFields(), (k,v)->{
-                if(fields.containsKey(k)){
+            F.iterate(holder.getFields(), (k, v) -> {
+                if (fields.containsKey(k)) {
                     fields.get(k).add(v);
-                }else{
+                } else {
                     LinkedList<Field> list = new LinkedList<>();
                     list.add(v);
                     fields.put(k, list);
@@ -235,61 +239,61 @@ public abstract class FieldFactory {
     }
 
     public static Object defaultPrimitive(Class cls) {
-        if (!cls.isPrimitive() || ArrayOp.count(Predicate.isEqual(cls), WRAPPER_TYPES)>=1) {
+        if (!cls.isPrimitive() || ArrayOp.count(Predicate.isEqual(cls), WRAPPER_TYPES) >= 1) {
             throw new IllegalArgumentException(cls.getName() + " is not a primitive");
-        }else{
-            if(Byte.TYPE.equals(cls)){
-                return (byte)0x00;
+        } else {
+            if (Byte.TYPE.equals(cls)) {
+                return (byte) 0x00;
             }
-            if(Short.TYPE.equals(cls)){
-                return (short)0;
+            if (Short.TYPE.equals(cls)) {
+                return (short) 0;
             }
-            if(Integer.TYPE.equals(cls)){
+            if (Integer.TYPE.equals(cls)) {
                 return 0;
             }
-            if(Long.TYPE.equals(cls)){
+            if (Long.TYPE.equals(cls)) {
                 return 0L;
             }
-            if(Float.TYPE.equals(cls)){
+            if (Float.TYPE.equals(cls)) {
                 return 0F;
             }
-            if(Double.TYPE.equals(cls)){
+            if (Double.TYPE.equals(cls)) {
                 return 0D;
             }
-            if(Character.TYPE.equals(cls)){
+            if (Character.TYPE.equals(cls)) {
                 char c = 0;
                 return c;
             }
             return null;
         }
     }
-    
-    public static Object defaultPrimitiveWrapper(Class cls){
-        if(ArrayOp.count(Predicate.isEqual(cls), WRAPPER_TYPES) >= 1){
-            if(Byte.class.equals(cls)){
-                return (byte)0x00;
+
+    public static Object defaultPrimitiveWrapper(Class cls) {
+        if (ArrayOp.count(Predicate.isEqual(cls), WRAPPER_TYPES) >= 1) {
+            if (Byte.class.equals(cls)) {
+                return (byte) 0x00;
             }
-            if(Short.class.equals(cls)){
-                return (short)0;
+            if (Short.class.equals(cls)) {
+                return (short) 0;
             }
-            if(Integer.class.equals(cls)){
+            if (Integer.class.equals(cls)) {
                 return 0;
             }
-            if(Long.class.equals(cls)){
+            if (Long.class.equals(cls)) {
                 return 0L;
             }
-            if(Float.class.equals(cls)){
+            if (Float.class.equals(cls)) {
                 return 0F;
             }
-            if(Double.class.equals(cls)){
+            if (Double.class.equals(cls)) {
                 return 0D;
             }
-            if(Character.class.equals(cls)){
+            if (Character.class.equals(cls)) {
                 char c = 0;
                 return c;
             }
             return null;
-        }else{
+        } else {
             throw new IllegalArgumentException(cls.getName() + " is not a wrapper type");
         }
     }
@@ -301,14 +305,13 @@ public abstract class FieldFactory {
     }
 
     public <T> T createNewInstance(Class<T> cls) {
-        
-        //maybe cache class constructors also?
 
+        //maybe cache class constructors also?
         //check class constructors
         if (this.predefinedClassConstructors.containsKey(cls)) {
             return (T) this.predefinedClassConstructors.get(cls).construct();
         }
-        if(this.cacheConstructors && this.cachedClassConstructors.containsKey(cls)){
+        if (this.cacheConstructors && this.cachedClassConstructors.containsKey(cls)) {
             return (T) this.cachedClassConstructors.get(cls).construct();
         }
 
@@ -345,12 +348,12 @@ public abstract class FieldFactory {
             try {
                 for (int j = 0; j < parameterTypes.length; j++) {
                     Class type = parameterTypes[j];
-                    if(parameterTypes[j].isPrimitive()){
+                    if (parameterTypes[j].isPrimitive()) {
                         constArray[j] = defaultPrimitive(type);
-                    }else if(ArrayOp.count(Predicate.isEqual(type), FieldFactory.WRAPPER_TYPES) >= 1){
+                    } else if (ArrayOp.count(Predicate.isEqual(type), FieldFactory.WRAPPER_TYPES) >= 1) {
                         constArray[j] = defaultPrimitiveWrapper(type);
                     }//else leave null
-                    
+
                 }
 
                 log.appendLine("Try with " + cons);
@@ -359,12 +362,12 @@ public abstract class FieldFactory {
 
                 if (newInstance != null) {
                     log.appendLine("We good");
-                    if(this.cacheConstructors){
+                    if (this.cacheConstructors) {
                         this.cachedClassConstructors.put(cls, (IClassConstructor) () -> {
-                            try{
+                            try {
                                 return cons.newInstance(constArray);
-                            }catch(Exception e){
-                                throw new RuntimeException(cons.toString() +" has failed now, but was good before??1!");
+                            } catch (Exception e) {
+                                throw new RuntimeException(cons.toString() + " has failed now, but was good before??1!");
                             }
                         });
                     }
@@ -407,7 +410,7 @@ public abstract class FieldFactory {
         }
     }
 
-    private IFieldResolver getResolverByField(Class fieldType, Field f) {
+    private IFieldResolver getResolverByField(Class fieldType, Field f, boolean defer) {
         log.appendLine("Get resolver by field", fieldType, f);
 
 //        Tuple<Class,String> key = null;
@@ -421,6 +424,7 @@ public abstract class FieldFactory {
         IFieldResolver fr = null;
         boolean isSingular = !fieldType.isArray();
         if (isSingular) {
+            
             if (fieldType.isEnum()) {
                 log.appendLine("is enum", f);
                 fr = makeEnumFieldResolver(f);
@@ -428,13 +432,18 @@ public abstract class FieldFactory {
             } else if (isImmutable(fieldType)) {
                 log.appendLine("is immutable", f);
                 fr = makeImmutableFieldResolver(f);
+            }else if (defer) {
+                log.appendLine("Explicit defer");
+                fr = makeDeferedFieldResolver(f);
             } else if (this.isInitializable(fieldType)) {
                 log.appendLine("is composite", f);
                 fr = this.makeCompositeFieldResolver(fieldType, f);
 //                maybeAddToCache(fieldType,f,fr);
             } else {
-                log.appendLine("defered resolver", f);
-                fr = makeDeferedFieldResolver(f);
+                
+                throw new IllegalStateException("Couldn't resolve type for field"+f);
+//                log.appendLine("defered resolver", f);
+//                fr = makeDeferedFieldResolver(f);
 
             }
         } else { // is array
@@ -454,16 +463,15 @@ public abstract class FieldFactory {
 
     private IFieldResolver recursiveResolverCached(final Class startingClass) {
         Map<String, IFieldResolver> resolverMap = new HashMap<>();
-        F.iterate(this.getAllFieldsWithShadowing(startingClass), (key,list)->{
+        F.iterate(this.getAllFieldsWithShadowing(startingClass), (key, list) -> {
             IFieldResolver finalResolver = IFieldResolver.empty();
-            for(Field f:list){
+            for (Field f : list) {
                 f.setAccessible(true);
-                finalResolver = finalResolver.nest(getResolverByField(f.getType(), f));
-                
+                finalResolver = finalResolver.nest(getResolverByField(f.getType(), f, true));
+
             }
             resolverMap.put(key, finalResolver);
         });
-
 
         return (Object source, Object parentObject, ReferenceCounter refCounter) -> {
             for (Map.Entry<String, IFieldResolver> resolverEntry : resolverMap.entrySet()) {
@@ -485,14 +493,14 @@ public abstract class FieldFactory {
     public boolean useFieldHolderCache = false;
     public boolean useCache = false;
     public boolean useFieldCache = false;
-    public boolean cacheConstructors =true;
+    public boolean cacheConstructors = true;
 
     public FieldFactory() {
         LineStringBuilder lsb = new LineStringBuilder();
         Log.instant = true;
         this.log = (objs) -> {
-            
-            Log.print("FACTORY",lsb.append(objs).clear());
+
+            Log.print("FACTORY", lsb.append(objs).clear());
             return log;
         };
     }
