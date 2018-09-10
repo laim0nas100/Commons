@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import lt.lb.commons.Log;
+import lt.lb.commons.misc.F;
 
 /**
  *
@@ -51,10 +53,10 @@ public class Lexer {
     protected ArrayList<String> lines;
     public boolean skipWhitespace;
 
-    public Lexer(Collection<String> lines) {
+    public Lexer(Collection<String> allLines) {
         this.keywords = new SelfSortingMap<>(cmp);
         this.lines = new ArrayList<>();
-        this.lines.addAll(lines);
+        this.resetLines(allLines);
     }
 
     public Lexer(String line) {
@@ -147,11 +149,18 @@ public class Lexer {
         this.charPos = 0;
         this.linePos = 0;
     }
-    
-    public void resetLines(Collection<String> lines){
+
+    public final void resetLines(Collection<String> allLines) {
         reset();
         this.lines.clear();
-        this.lines.addAll(lines);
+        F.iterate(allLines, (i,s)->{
+            if(s.endsWith("\n")){
+                lines.add(s);
+            }else{
+                lines.add(s+"\n");
+            }
+            
+        });
     }
 
     protected void skipWhitespace() {
