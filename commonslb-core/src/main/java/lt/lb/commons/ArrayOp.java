@@ -14,13 +14,13 @@ import lt.lb.commons.interfaces.Accumulator;
  * @author Laimonas-Beniusis-PC
  */
 public class ArrayOp {
-    
-    public static <T> T accumulate(Accumulator<T> acc, T... array){
-        if(array.length == 0){
+
+    public static <T> T accumulate(Accumulator<T> acc, T... array) {
+        if (array.length == 0) {
             return null;
         }
         T total = array[0];
-        for(int i = 1; i < array.length; i++){
+        for (int i = 1; i < array.length; i++) {
             total = acc.accumulate(total, array[i]);
         }
         return total;
@@ -33,6 +33,14 @@ public class ArrayOp {
             }
         }
         return false;
+    }
+
+    public static boolean and(Boolean... b) {
+        return all(c -> c, b);
+    }
+
+    public static boolean or(Boolean... b) {
+        return any(c -> c, b);
     }
 
     public static <T> boolean all(Predicate<T> test, T... array) {
