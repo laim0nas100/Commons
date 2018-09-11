@@ -7,12 +7,15 @@ package lt.lb.commons.parsing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.UUIDgenerator;
+import lt.lb.commons.containers.AssociativeMap;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.misc.F;
@@ -130,9 +133,9 @@ public class TokenFiniteAutomata {
         public boolean isLinkedTo(TNode other) {
             return linkedTo.contains(other);
         }
-        
-        public Optional<TNode> getFirstMatch(Token token){
-            return linkedTo.stream().filter(n ->{
+
+        public Optional<TNode> getFirstMatch(Token token) {
+            return linkedTo.stream().filter(n -> {
                 return n.matches(token);
             }).findFirst();
         }
@@ -174,16 +177,6 @@ public class TokenFiniteAutomata {
 
     }
 
-    public static class TRecurseNode extends TKeywordNode {
-
-        public ArrayList<TGraph> linkedGraphs = new ArrayList<>();
-
-        public TRecurseNode(String keyWord, boolean canEnd, boolean appendable) {
-            super(keyWord, canEnd, appendable);
-        }
-
-    }
-
     public static class ResultNode {
 
         public String value;
@@ -191,14 +184,6 @@ public class TokenFiniteAutomata {
         public boolean isKeyword = true;
         public Token token;
         public TNode tnode;
-
-    }
-
-    public static class ArrayTGraph extends TGraph {
-
-        public ArrayTGraph(String name) {
-            super(name);
-        }
 
     }
 
@@ -269,16 +254,16 @@ public class TokenFiniteAutomata {
                 }
             } else {
                 Token next = stream.getNext();
-                
+
                 Optional<TNode> firstMatch = node.getFirstMatch(next);
-                
-                if(!firstMatch.isPresent()){// maybe can end?
-                    if(node.canEnd){
+
+                if (!firstMatch.isPresent()) {// maybe can end?
+                    if (node.canEnd) {
                         res.endNode = node;
                         return res;
                     }
-                    throw new IllegalStateException("Illegal end on " + node.getClass().getSimpleName()+" "+node);
-                }else{
+                    throw new IllegalStateException("Illegal end on " + node.getClass().getSimpleName() + " " + node);
+                } else {
                     return traverse(stream, res, firstMatch.get());
                 }
             }
@@ -295,11 +280,31 @@ public class TokenFiniteAutomata {
 
         }
 
+        public static <T> T getLast(List<T> list) {
+            int size = list.size();
+            return list.get(size - 1);
+        }
+
         public void fullTraverse(ReadOnlyIterator<Token> stream, List<TraversedResult> resList) {
             Log.print("Traverse ", this.graphId);
             TraversedResult res = this.traverse(stream);
-            resList.add(res);
+
             Token t = stream.getCurrent();
+            // if same token
+
+            int size = resList.size();
+            if (size > 0) {
+                TraversedResult lastResult = getLast(resList);
+                ResultNode lastNode = getLast(lastResult.nodeList);
+                if (t == lastNode.token) {
+                    Log.print("Repeated token parsing. Exiting");
+                    return;
+                }
+
+            }
+
+            resList.add(res);
+
             if (t != null) {
                 Optional<Tuple<String, TGraph>> iterate = F.iterate(this.connectedGraphs, (k, g) -> {
                     return g.matches(t);
@@ -314,6 +319,35 @@ public class TokenFiniteAutomata {
             }
 
         }
+    }
+
+    public static abstract class BaseStatement implements IStatement {
+
+        protected Map<String, TGraph> links = new HashMap<>();
+        public TGraph beginGraph;
+
+        public final void linkTo(TGraph from, TGraph to) {
+            links.put(from.graphId, to);
+        }
+    }
+
+    public static abstract class ExactStatement extends BaseStatement {
+
+        public ExactStatement(TGraph begin, TGraph... parts) {
+            this.beginGraph = begin;
+            if (parts.length > 0) {
+                this.linkTo(begin, parts[0]);
+            }
+            for (int i = 1; i < parts.length; i++) {
+                this.linkTo(parts[i - 1], parts[i]);
+            }
+        }
+    }
+
+    public interface IStatement<Product> {
+
+        public Product parse(ReadOnlyIterator<TraversedResult> iter);
+
     }
 
 }

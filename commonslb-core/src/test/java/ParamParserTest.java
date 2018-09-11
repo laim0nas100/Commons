@@ -24,6 +24,7 @@ import lt.lb.commons.parsing.LexerWithStrings;
 import lt.lb.commons.parsing.Literal;
 import lt.lb.commons.parsing.Token;
 import lt.lb.commons.parsing.TokenFiniteAutomata;
+import lt.lb.commons.parsing.TokenFiniteAutomata.IStatement;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TGraph;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TKeywordNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TLiteralNode;
@@ -185,6 +186,8 @@ public class ParamParserTest {
         return structStart;
 
     }
+    
+    
 
     @Test
     public void ok() throws Exception {
@@ -217,7 +220,11 @@ public class ParamParserTest {
 
         TGraph structEnd = new TGraph("StructEnd");
         structEnd.beginNode = new TKeywordNode("}", true, true);
+        
+        structStart.connect(literalGraph);
 
+        structEnd.connect(structEnd);
+        
         eqGraph.connect(structStart);
         eqGraph.connectAtEnd(structEnd);
 
