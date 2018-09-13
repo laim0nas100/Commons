@@ -58,6 +58,7 @@ public class Benchmark {
 
         }
         res.averageTime = (double) res.totalTime / res.timesRan;
+        serv.shutdownNow();
         return res;
 
     }
