@@ -1,7 +1,7 @@
 
 import lt.lb.commons.containers.PagedList;
 import lt.lb.commons.containers.PagedHashList;
-import lt.lb.commons.containers.PrefillArrayMap;
+import lt.lb.commons.containers.PrefillArrayMapList;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -36,7 +36,7 @@ public class ListBench {
 
     @Test
     public void testPrefillHash() {
-        PrefillArrayMap<Long> map = new PrefillArrayMap<Long>();
+        PrefillArrayMapList<Long> map = new PrefillArrayMapList<Long>();
         for (int i = 0; i < 10; i++) {
             map.put(i, 10L - i);
         }

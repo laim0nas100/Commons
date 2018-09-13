@@ -1,8 +1,14 @@
 
+import java.util.HashMap;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.containers.PrefillArrayList;
 import lt.lb.commons.Log;
+import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.containers.PrefillArrayMap;
+import lt.lb.commons.misc.MyRandom;
 import org.junit.Test;
 
 /*
@@ -28,7 +34,6 @@ public class CollectionTest {
         System.out.println(s);
     }
 
-    @Test
     public void test() throws InterruptedException {
         PrefillArrayList<Long> list = new PrefillArrayList<>(0L);
         for (int i = 0; i < 10; i++) {
@@ -60,6 +65,47 @@ public class CollectionTest {
         listIterator.set(20L);
         Log.print(list.toString());
         Log.await(1, TimeUnit.HOURS);
+
+    }
+
+    public Runnable makeRun(Map<Integer, String> map, Random r, int times) {
+        return () -> {
+            map.put(0, r.nextInt() + "");
+            for (int i = 0; i < times; i++) {
+                int key = r.nextInt(5000) - r.nextInt(5000);
+                String val = r.nextInt() + "";
+                if (r.nextBoolean()) {
+                    map.put(key, val);
+                } else {
+                    map.remove(key);
+                }
+                map.get(key);
+                map.containsKey(key);
+
+            }
+        };
+    }
+
+    @Test
+    public void bechHash() {
+        Benchmark b = new Benchmark();
+
+        Map<Integer, String> map1 = new HashMap<>();
+        Map<Integer, String> map2 = new PrefillArrayMap<>();
+
+        b.threads = 1;
+        b.useGVhintAfterFullBench = true;
+        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new MyRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new MyRandom(1337), 10000)));
+
+        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new MyRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new MyRandom(1337), 10000)));
+
+        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new MyRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new MyRandom(1337), 10000)));
+
+        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new MyRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new MyRandom(1337), 10000)));
 
     }
 }
