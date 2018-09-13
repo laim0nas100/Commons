@@ -6,33 +6,28 @@
 package lt.lb.commons.containers;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 /**
  *
  * @author Lemmin
  */
-public class PrefillArrayMap2<T> implements Map<Integer, T> {
+class PrefillArrayMap2<T> implements Map<Integer, T> {
 
     private int size = 0;
     private int prefSize = 10;
 
-    private T nullObject = null;
-    private Object[] data = new Object[]{nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject};
-    private Predicate nullTest = (Object t) -> {
-        return Objects.equals(t, nullObject);
-    };
+    private Tuple<Boolean, T> nullObject = new Tuple<>(false, null);
 
-    public PrefillArrayMap2(int preferedSize, Predicate nullTest, T nullObject) {
-        this.nullObject = nullObject;
-        this.nullTest = nullTest;
+    private Object[] data = new Object[]{nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject};
+
+    public PrefillArrayMap2(int preferedSize) {
         this.prefSize = preferedSize;
         data = new Object[prefSize];
         Arrays.fill(data, nullObject);
     }
 
     public PrefillArrayMap2() {
-        this(10, t -> t == null, null);
+        this(10);
     }
 
     @Override
@@ -48,7 +43,7 @@ public class PrefillArrayMap2<T> implements Map<Integer, T> {
     @Override
     public boolean containsKey(Object key) {
         int k = (int) key;
-        return (data.length > k) && !isNull(data[k]);
+        return (data.length > k) && !isAbsent((Tuple<Boolean, T>) data[k]);
     }
 
     @Override
@@ -67,53 +62,49 @@ public class PrefillArrayMap2<T> implements Map<Integer, T> {
         if (data.length > k) {
             return (T) data[k];
         }
-        return nullObject;
+        return null;
     }
 
     public void grow(int to) {
+        int oldCap = data.length;
+        int newCap = (int) Math.max(Math.ceil(oldCap + 10), to);
 
-        int newCap = (int) Math.max(Math.ceil(data.length + data.length * 0.2), to);
         data = Arrays.copyOf(data, newCap);
+        Arrays.fill(data, oldCap, newCap, this.nullObject);
 
     }
 
+    private Tuple<Boolean, T> wrap(T value) {
+        return new Tuple<>(true, value);
+    }
+
     @Override
-    public T put(Integer key, T value) {
+    public T put(Integer key, T val) {
+
         int k = key;
         if (data.length > k) {
-
-            T item = (T) data[k];
-            boolean valNull = isNull(value);
-            boolean itemNull = isNull(item);
+            Tuple<Boolean, T> value = wrap(val);
+            Tuple<Boolean, T> item = (Tuple<Boolean, T>) data[k];
+            boolean valNull = isAbsent(value);
+            boolean itemNull = isAbsent(item);
             if (itemNull && !valNull) {
                 size++;
             } else if (!itemNull && valNull) {
                 size--;
             }
             data[k] = value;
-            return item;
+            return item.g2;
         } else {
             grow(key);
-            return put(key, value);
+            return put(key, val);
         }
 
     }
 
-    private boolean isNull(Object ob) {
-        return this.nullTest.test(ob);
+    private boolean isAbsent(Tuple<Boolean, T> ob) {
+        return !ob.g1;
     }
 
-//    public void overWrite(Integer k, T val) {
-//        if (data.length > k) {
-//            if (data[k] == nullObject) {
-//                size++;
-//            }
-//            data[k] = val;
-//        } else {
-//            grow(k);
-//            overWrite(k, val);
-//        }
-//    }
     public T[] extractInterval(Integer from, Integer to) {
         return Arrays.copyOfRange((T[]) data, from, to);
     }
@@ -134,14 +125,14 @@ public class PrefillArrayMap2<T> implements Map<Integer, T> {
     public T remove(Object key) {
         int k = (int) key;
         if (data.length > k) {
-            if (!isNull(data[k])) {
+            if (!isAbsent((Tuple<Boolean, T>) data[k])) {
                 size--;
             }
-            T item = (T) data[k];
+            Tuple<Boolean, T> item = (Tuple<Boolean, T>) data[k];
             data[k] = nullObject;
-            return item;
+            return item.g2;
         }
-        return nullObject;
+        return null;
     }
 
     @Override
@@ -156,7 +147,7 @@ public class PrefillArrayMap2<T> implements Map<Integer, T> {
         int growBy = a.length;
         int numNew = 0;
         for (Object ob : a) {
-            if (!isNull(ob)) {
+            if (!isAbsent((Tuple<Boolean, T>) ob)) {
                 numNew++;
             }
         }
@@ -183,7 +174,8 @@ public class PrefillArrayMap2<T> implements Map<Integer, T> {
     public Set<Integer> keySet() {
         Set<Integer> set = new HashSet<>();
         for (int i = 0; i < data.length; i++) {
-            if (data[i] != nullObject) {
+            Tuple<Boolean, T> t = (Tuple<Boolean, T>) data[i];
+            if (t.g1) {
                 set.add(i);
             }
         }
@@ -194,8 +186,9 @@ public class PrefillArrayMap2<T> implements Map<Integer, T> {
     public Collection<T> values() {
         ArrayList<T> values = new ArrayList<>(size);
         for (int i = 0; i < data.length; i++) {
-            if (data[i] != nullObject) {
-                values.add((T) data[i]);
+            Tuple<Boolean, T> t = (Tuple<Boolean, T>) data[i];
+            if (t.g1) {
+                values.add(t.g2);
             }
         }
 
@@ -210,7 +203,7 @@ public class PrefillArrayMap2<T> implements Map<Integer, T> {
 
         for (int i = 0; i < data.length; i++) {
 
-            if (!isNull(data[i])) {
+            if (!isAbsent((Tuple<Boolean, T>) data[i])) {
                 final Integer key = i;
                 final T value = this.get(key);
                 Entry<Integer, T> en = new Entry() {
