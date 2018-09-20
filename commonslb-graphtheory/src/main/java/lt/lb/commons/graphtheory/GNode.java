@@ -6,6 +6,7 @@
 package lt.lb.commons.graphtheory;
 
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
@@ -13,17 +14,17 @@ import java.util.HashSet;
  */
 public class GNode {
 
-    public GNode(long id) {
-        this.ID = id;
+    public GNode(Number id) {
+        this.ID = id.longValue();
     }
-
-    public GNode(int id) {
-        this.ID = id;
+    public Set<Long> linksTo = new HashSet<>();
+    public Set<Long> linkedFrom = new HashSet<>();
+    
+    public int degree(){
+        return linksTo.size();
     }
-    public HashSet<Long> linksTo = new HashSet<>();
-    public HashSet<Long> linkedFrom = new HashSet<>();
-    public long ID;
-
+    public final long ID;
+    
     @Override
     public String toString() {
         String linkStr = "{}";

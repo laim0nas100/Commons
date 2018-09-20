@@ -8,6 +8,9 @@ package lt.lb.commons.graphtheory;
 import lt.lb.commons.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  *
@@ -16,7 +19,7 @@ import java.util.HashMap;
 public class Orgraph {
 
     public HashMap<Long, GNode> nodes;
-    public HashMap<Long, GLink> links;
+    public HashMap<Object, GLink> links;
 
     public Orgraph() {
         this.links = new HashMap<>();
@@ -49,7 +52,7 @@ public class Orgraph {
     }
 
     public void linkNodes(long nodeFrom, long nodeTo, double weight) {
-        this.addLink(new GLink(nodeFrom, nodeTo, weight));
+        this.addLink(newLink(nodeFrom, nodeTo, weight));
     }
 
     public void add2wayLink(GLink link) {
@@ -74,7 +77,7 @@ public class Orgraph {
             ArrayList<Long> linksTo = new ArrayList<>();
             linksTo.addAll(removeMe.linksTo);
             for (Long n : linksTo) {
-                this.remove2wayLink(new GLink(n, ID, 0));
+                this.remove2wayLink(newLink(n, ID, 0));
             }
             nodes.remove(ID);
         }
@@ -92,12 +95,20 @@ public class Orgraph {
         }
     }
 
-    public GNode getNode(long ID) {
+    public Optional<GNode> getNode(long ID) {
         if (nodes.containsKey(ID)) {
-            return nodes.get(ID);
+            return Optional.of(nodes.get(ID));
         } else {
-            return new GNode(-1);
+            return Optional.empty();
         }
+    }
+    
+    public Optional<GLink> getLink(long from,long to){
+        Object hashMe = GLink.hashMe(from, to);
+        if(links.containsKey(hashMe)){
+            return Optional.of(links.get(hashMe));
+        }
+        return Optional.empty();
     }
 
     public boolean nodeIsLeaft(long ID) {
@@ -116,7 +127,7 @@ public class Orgraph {
 
     private GNode createNodeIfAbsent(long id) {
         if (!nodes.containsKey(id)) {
-            GNode newnode = new GNode(id);
+            GNode newnode = newNode(id);
             this.nodes.put(id, newnode);
             return newnode;
         } else {
@@ -139,4 +150,34 @@ public class Orgraph {
         }
         return str;
     }
+    
+    public GLink newLink(long nodeFrom, long nodeTo, double weight){
+        return new GLink(nodeFrom,nodeTo,weight);
+    }
+    public GNode newNode(long ID){
+        return new GNode(ID);
+    }
+    
+    public List<GLink> resolveLinkedTo(GNode node, Predicate<Long> includeCondition){
+        ArrayList<GLink> list = new ArrayList<>();
+        node.linksTo.stream().filter(includeCondition).forEach(linkTo ->{
+            Optional<GLink> link = this.getLink(node.ID, linkTo);
+            if(link.isPresent()){
+                list.add(link.get());
+            }
+        });
+        return list;
+    }
+    
+    public List<GLink> resolveLinkedFrom(GNode node,Predicate<Long> includeCondition){
+        ArrayList<GLink> list = new ArrayList<>();
+        node.linkedFrom.stream().filter(includeCondition).forEach(linkFrom ->{
+            Optional<GLink> link = this.getLink(linkFrom, node.ID);
+            if(link.isPresent()){
+                list.add(link.get());
+            }
+        });
+        return list;
+    }
+    
 }

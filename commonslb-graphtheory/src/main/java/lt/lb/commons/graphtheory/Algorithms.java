@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  *
@@ -101,7 +102,11 @@ public class Algorithms {
 
         }
         while (!workList.isEmpty()) {
-            GNode node = graph.getNode(workList.pollFirst());
+            Optional<GNode> optNode = graph.getNode(workList.pollFirst());
+            if(!optNode.isPresent()){
+                break;
+            }
+            GNode node = optNode.get();
             order.add(node.ID);
             for (long nextNodeID : node.linksTo) {
                 degreeMap.put(nextNodeID, degreeMap.get(nextNodeID) - 1);
@@ -133,8 +138,11 @@ public class Algorithms {
                     continue;
                 }
                 parentSet.add(up);
-                GNode parent = graph.getNode(up);
-                newSet.addAll(parent.linkedFrom);
+                Optional<GNode> parent = graph.getNode(up);
+                if(parent.isPresent()){
+                    newSet.addAll(parent.get().linkedFrom);
+                }
+                
             }
             visitNextIteration.clear();
             visitNextIteration.addAll(newSet);
@@ -152,7 +160,11 @@ public class Algorithms {
         }
 
         for (long nodeID : order) {
-            GNode node = graph.getNode(nodeID);
+            Optional<GNode> optNode = graph.getNode(nodeID);
+            if(!optNode.isPresent()){
+                continue;
+            }
+            GNode node = optNode.get();
             Double currentDist = info.distanceMap.get(nodeID).doubleValue();
             for (long neighbour : node.linksTo) {
                 if (currentDist == Double.NEGATIVE_INFINITY) {
@@ -189,7 +201,11 @@ public class Algorithms {
         while (!visitNextIteration.isEmpty()) {
             long nodeID = visitNextIteration.pollFirst();
             visited.add(nodeID);
-            GNode node = graph.getNode(nodeID);
+            Optional<GNode> optNode = graph.getNode(nodeID);
+            if(!optNode.isPresent()){
+                continue;
+            }
+            GNode node = optNode.get();
             for (long link : node.linksTo) {
                 if (visited.contains(link)) {
                 } else if (link == startingNode) {
