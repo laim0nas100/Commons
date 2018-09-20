@@ -81,63 +81,88 @@ public class F {
 
     }
 
-    public static <T> LinkedList<T> pickRandomPreferLow(Collection<T> col, int amount, int startingAmount, int amountDecay) {
+    public static class RND {
 
-        int limit = Math.min(amount, col.size());
-        ArrayList<Integer> indexArray = new ArrayList<>();
-        for (int i = 0; i < col.size(); i++) {
-            for (int indexAm = Math.max(1, startingAmount); indexAm > 0; indexAm--) {
+        public static Double nextDouble(Random rnd, Number lowerBound, Number upperBound) {
+            double min = lowerBound.doubleValue();
+            double max = upperBound.doubleValue();
+            double diff = max - min;
+            if (diff <= 0) {
+                throw new IllegalArgumentException("Illegal random bounds:" + min + " " + max);
+            }
+            return min + (rnd.nextDouble() * diff);
+        }
+
+        public static Long nextLong(Random rnd, Number lowerBound, Number upperBound) {
+            return Math.round(nextDouble(rnd, lowerBound.doubleValue(), upperBound.doubleValue()));
+        }
+
+        public static Integer nextInt(Random rnd, Number lowerBound, Number upperBound) {
+            return nextLong(rnd, lowerBound.longValue(), upperBound.longValue()).intValue();
+        }
+
+        public static <T> LinkedList<T> pickRandomPreferLow(Random rnd, Collection<T> col, int amount, int startingAmount, int amountDecay) {
+
+            int limit = Math.min(amount, col.size());
+            ArrayList<Integer> indexArray = new ArrayList<>();
+            for (int i = 0; i < col.size(); i++) {
+                for (int indexAm = Math.max(1, startingAmount); indexAm > 0; indexAm--) {
+                    indexArray.add(i);
+                }
+                startingAmount -= amountDecay;
+
+            }
+            ArrayList<T> array = new ArrayList<>(col);
+            LinkedList<T> result = new LinkedList<>();
+//        Collections.shuffle(indexArray);
+            seededShuffle(indexArray, rnd);
+            int last = indexArray.size() - 1;
+            int first = last - limit;
+            for (int i = last; i > first; i--) {
+                result.add(array.get(indexArray.remove(i)));
+            }
+            return result;
+
+        }
+
+        public static <T> LinkedList<T> pickRandom(Random rnd, Collection<T> col, int amount) {
+
+            int limit = Math.min(amount, col.size());
+            ArrayList<Integer> indexArray = new ArrayList<>();
+            for (int i = 0; i < col.size(); i++) {
                 indexArray.add(i);
             }
-            startingAmount -= amountDecay;
-
-        }
-        ArrayList<T> array = new ArrayList<>(col);
-        LinkedList<T> result = new LinkedList<>();
+            ArrayList<T> array = new ArrayList<>(col);
+            LinkedList<T> result = new LinkedList<>();
 //        Collections.shuffle(indexArray);
-        seededShuffle(indexArray, F.RND);
-        int last = indexArray.size() - 1;
-        int first = last - limit;
-        for (int i = last; i > first; i--) {
-            result.add(array.get(indexArray.remove(i)));
+            seededShuffle(indexArray, rnd);
+            int last = indexArray.size() - 1;
+            int first = last - limit;
+            for (int i = last; i > first; i--) {
+                result.add(array.get(indexArray.remove(i)));
+            }
+            return result;
+
         }
-        return result;
-
-    }
-
-    public static <T> LinkedList<T> pickRandom(Collection<T> col, int amount) {
-
-        int limit = Math.min(amount, col.size());
-        ArrayList<Integer> indexArray = new ArrayList<>();
-        for (int i = 0; i < col.size(); i++) {
-            indexArray.add(i);
+        
+        public static <T> T pickRandom(Random rnd, List<T> col){
+            int i = F.RND.nextInt(rnd, 0, col.size());
+            return col.get(i);
         }
-        ArrayList<T> array = new ArrayList<>(col);
-        LinkedList<T> result = new LinkedList<>();
-//        Collections.shuffle(indexArray);
-        seededShuffle(indexArray, F.RND);
-        int last = indexArray.size() - 1;
-        int first = last - limit;
-        for (int i = last; i > first; i--) {
-            result.add(array.get(indexArray.remove(i)));
+
+        public static <T> T pickRandom(Random rnd, Collection<T> col) {
+            return pickRandom(rnd, col, 1).getFirst();
         }
-        return result;
 
-    }
+        public static <T> T removeRandom(Random rnd, Collection<T> col) {
+            T pickRandom = pickRandom(rnd, col);
+            col.remove(pickRandom);
+            return pickRandom;
+        }
 
-    public static <T> T pickRandom(Collection<T> col) {
-        return pickRandom(col, 1).getFirst();
-    }
+        public static Random RND = new SecureRandom();
 
-    public static <T> T removeRandom(Collection<T> col) {
-        T pickRandom = pickRandom(col);
-        col.remove(pickRandom);
-        return pickRandom;
-    }
-
-    public static Random RND = new SecureRandom();
-
-    public static void seededShuffle(List list, Random rnd) {
+        public static void seededShuffle(List list, Random rnd) {
 //        Integer size = list.size();
 //        List<Integer> indexArray = new ArrayList<>();
 //        for (int i = 0; i < size; i++) {
@@ -151,17 +176,40 @@ public class F {
 //        }
 //        list.clear();
 //        list.addAll(newList);
-        Collections.shuffle(list, rnd);
+            Collections.shuffle(list, rnd);
 
+        }
+
+        public static int randomSign(Random rnd) {
+            return rnd.nextBoolean() ? 1 : -1;
+        }
+
+        public static <T> LinkedList<T> pickRandomDistributed(Random rnd, int amount, Tuple<Integer, T>... tuples) {
+            ArrayList<T> list = new ArrayList<>();
+
+            F.iterate(tuples, (index, t) -> {
+                for (int i = 0; i < t.g1; i++) {
+                    list.add(t.g2);
+                }
+            });
+            return F.RND.pickRandom(rnd, list, amount);
+        }
+
+        public static <T> LinkedList<T> pickRandomDistributed(Random rnd, int amount, Collection<Tuple<Integer, T>> tuples) {
+            ArrayList<T> list = new ArrayList<>();
+
+            F.iterate(tuples, (index, t) -> {
+                for (int i = 0; i < t.g1; i++) {
+                    list.add(t.g2);
+                }
+            });
+            return F.RND.pickRandom(rnd, list, amount);
+        }
     }
 
     public static double sigmoid(final double x) {
         return 2.0 / (1.0 + Math.exp(-4.9 * x)) - 1.0;
 //        return 1.0 / (1.0 + Math.exp(-x));
-    }
-
-    public static int randomSign() {
-        return F.RND.nextBoolean() ? 1 : -1;
     }
 
     public static int StringNumCompare(String s1, String s2) {
@@ -188,6 +236,55 @@ public class F {
 
     public static <K, V> Optional<Tuple<K, V>> iterate(Map<K, V> map, IterMapNoStop<K, V> iter) {
         return iterate(map, (IterMap) iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Integer from, Iter<T> iter) {
+        ListIterator<T> iterator = list.listIterator(list.size());
+        int index = list.size() - 1;
+        while (iterator.hasPrevious()) {
+            T next = iterator.previous();
+            if (index <= from) {
+                if (iter.visit(index, next)) {
+                    return Optional.of(new Tuple<>(index, next));
+                }
+            }
+            index--;
+        }
+        return Optional.empty();
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Iter.IterNoStop<T> iter) {
+        return iterateBackwards(list, list.size(), (Iter) iter);
+    }
+    
+    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Iter<T> iter) {
+        return iterateBackwards(list, list.size(), iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Integer from, Iter.IterNoStop<T> iter) {
+        return iterateBackwards(list, from, (Iter) iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(T[] array, Integer from, Iter<T> iter) {
+        from = Math.max(from, array.length - 1);
+        for (int i = from; i >= 0; i--) {
+            if (iter.visit(i, array[i])) {
+                return Optional.of(new Tuple<>(i, array[i]));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(T[] array, Iter<T> iter) {
+        return iterateBackwards(array, array.length - 1, iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(T[] array, Iter.IterNoStop<T> iter) {
+        return iterateBackwards(array, array.length - 1, (Iter) iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(T[] array, Integer from, Iter.IterNoStop<T> iter) {
+        return iterateBackwards(array, from, (Iter) iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Integer from, Iter<T> iter) {
@@ -223,11 +320,11 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Iter.IterNoStop<T> iter) {
-        return iterate(array, 0, iter);
+        return iterate(array, 0, (Iter) iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Iter.IterNoStop<T> iter) {
-        return iterate(list, 0, iter);
+        return iterate(list, 0, (Iter) iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Integer from, Iter.IterNoStop<T> iter) {

@@ -8,11 +8,16 @@ package lt.lb.commons.interfaces;
 /**
  *
  * @author Laimonas-Beniusis-PC Iterator which passes index and value
+ * 
  */
 public interface Iter<Type> {
 
-    
-
+    /**
+     *
+     * @param index
+     * @param value
+     * @return true = break, false = continue
+     */
     public Boolean visit(Integer index, Type value);
 
     public static interface IterNoStop<T> extends Iter<T> {
