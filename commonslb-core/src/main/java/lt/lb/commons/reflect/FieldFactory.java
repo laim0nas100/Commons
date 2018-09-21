@@ -512,7 +512,23 @@ public abstract class FieldFactory {
         IFieldResolver recursiveResolver = recursiveResolver(cls);
         recursiveResolver.cloneField(source, newInstance, newReferenceCounter());
         return newInstance;
-
+    }
+    
+    public <T extends Object> T fastClone(T source) throws Exception{
+        if(source instanceof Cloneable){
+            Method method = source.getClass().getMethod("clone");
+            boolean access = method.isAccessible();
+            if(!access){
+                method.setAccessible(true);
+            }
+            
+            Object cloned = method.invoke(source);
+            if(!access){
+                method.setAccessible(false);
+            }
+            return (T) cloned;
+        }
+        throw new IllegalArgumentException(source +" is not marked as Cloneable");
     }
 
     public <E> FieldFactory addExplicitClone(Class<E> cls, IExplicitClone<E> cloneFunc) {
