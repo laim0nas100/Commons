@@ -9,6 +9,7 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Consumer;
 import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Iter;
 import lt.lb.commons.interfaces.Iter.IterMap;
 import lt.lb.commons.interfaces.Iter.IterMapNoStop;
@@ -221,7 +222,36 @@ public class F {
         }
         return len1 - len2;
     }
-
+    
+    /**
+     *
+     * @param <T> type
+     * @param col collation to be modified
+     * @param equator equality condition
+     * @return all removed elements
+     */
+    public static <T> List<T> filterDistinct(Collection<T> col, Equator<T> equator){
+        LinkedList<T> kept = new LinkedList<>();
+        LinkedList<T> removed = new LinkedList<>();
+        Iterator<T> iterator = col.iterator();
+        while(iterator.hasNext()){
+            T next = iterator.next();
+            Optional<Tuple<Integer, T>> find = F.iterate(kept, (i,item)->{
+                if(equator.equals(next, item)){
+                    return true;
+                }
+                return false;
+            });
+            if(find.isPresent()){
+                removed.add(next);
+                iterator.remove();
+            }else{
+                kept.add(next);
+            }
+        }
+        return removed;
+    }
+    
     public static <K, V> Optional<Tuple<K, V>> iterate(Map<K, V> map, IterMap<K, V> iter) {
         Set<Map.Entry<K, V>> entrySet = map.entrySet();
         for (Map.Entry<K, V> entry : entrySet) {
