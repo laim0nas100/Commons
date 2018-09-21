@@ -7,6 +7,7 @@ package lt.lb.commons;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import lt.lb.commons.interfaces.Accumulator;
 
 /**
@@ -191,7 +192,25 @@ public class ArrayOp {
         }
 
         return array;
+    }
+    
+    public static <T> T[] replicate(Integer times, Supplier<T>...values){
+        int arraySize = times * values.length;
+        if(values.length == 0){
+            return null;
+        }
+        Class<T> cls = (Class<T>) values[0].get().getClass();
 
+        if (cls.isPrimitive()) {
+            throw new IllegalArgumentException("Primitive values are not supported");
+        }
+        T[] array = makeArray(arraySize, cls);
+        for (int i = 0; i < arraySize; i++) {
+            int valIndex = i % values.length;
+            array[i] = values[valIndex].get();
+        }
+
+        return array;
     }
 
 }
