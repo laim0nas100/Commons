@@ -28,4 +28,8 @@ public class Pair<Type> extends Tuple<Type, Type> {
             return g1 == null ? g2 : g1;
         }
     }
+    
+    public Pair reverse(){
+        return new Pair<>(this.g2,this.g1);
+    }
 }
