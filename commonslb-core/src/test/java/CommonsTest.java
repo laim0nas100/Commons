@@ -4,10 +4,15 @@
  * and open the template in the editor.
  */
 
+import com.google.common.collect.Lists;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.misc.F;
 import org.junit.*;
 
 /**
@@ -34,6 +39,10 @@ public class CommonsTest {
     @After
     public void tearDown() {
     }
+    
+    static{
+        Log.instant = true;
+    }
 
     // TODO add test methods here.
     // The methods must be annotated with annotation @Test. For example:
@@ -43,7 +52,6 @@ public class CommonsTest {
     ArrayBasedCounter abc = new ArrayBasedCounter(10, 0);
     BigInteger bigInt = BigInteger.ZERO;
 
-    @Test
     public void benchCounter() throws InterruptedException {
         long time1, time2;
         time1 = System.currentTimeMillis();
@@ -67,5 +75,18 @@ public class CommonsTest {
 
         Log.print(time1, time2);
         Thread.sleep(500);
+    }
+    
+    @Test
+    public void testFilterDistinct(){
+        ArrayList<Integer> newArrayList = Lists.newArrayList(1,1,2,3,4,5,6,6,7,8,9,10);
+        
+        Log.print(newArrayList);
+        List<Integer> filterDistinct = F.filterDistinct(newArrayList, (a,b) -> Objects.equals(a%5, b%5));
+        
+        Log.print(filterDistinct);
+        Log.print(newArrayList);
+        
+        
     }
 }
