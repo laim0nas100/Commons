@@ -28,23 +28,18 @@ public class Algorithms {
         return path;
     }
 
-    public static Long getMapExtremum(Map<Long, Number> m, boolean maximise) {
-        Long ID = new ArrayList<>(m.keySet()).get(0);
-        Number extremum = m.get(ID);
+    public static <T,V extends Comparable> T getMapExtremum(Map<T,V> m, boolean maximise) {
+        T ID = new ArrayList<>(m.keySet()).get(0);
+        V extremum = m.get(ID);
 
-        for (Long k : m.keySet()) {
-            boolean swap = false;
+        for (T k : m.keySet()) {
             if (m.get(k) == null) {
                 continue;
             }
-            Number o = m.get(k);
-            if (maximise) {
+            V o = m.get(k);
+            int cmp = extremum.compareTo(o);
 
-                swap = extremum.doubleValue() < o.doubleValue();
-            } else {
-                swap = extremum.doubleValue() > o.doubleValue();
-            }
-            if (swap) {
+            if ((maximise && cmp > 0) || (!maximise && cmp < 0)) {
                 ID = k;
                 extremum = m.get(k);
             }
@@ -103,7 +98,7 @@ public class Algorithms {
         }
         while (!workList.isEmpty()) {
             Optional<GNode> optNode = graph.getNode(workList.pollFirst());
-            if(!optNode.isPresent()){
+            if (!optNode.isPresent()) {
                 break;
             }
             GNode node = optNode.get();
@@ -120,7 +115,7 @@ public class Algorithms {
 
     public static class CriticalPathInfo {
 
-        public HashMap<Long, Number> distanceMap = new HashMap<>();
+        public HashMap<Long, Double> distanceMap = new HashMap<>();
         public HashMap<Long, Long> pathMap = new HashMap<>();
         public long startAt;
     }
@@ -139,10 +134,10 @@ public class Algorithms {
                 }
                 parentSet.add(up);
                 Optional<GNode> parent = graph.getNode(up);
-                if(parent.isPresent()){
+                if (parent.isPresent()) {
                     newSet.addAll(parent.get().linkedFrom);
                 }
-                
+
             }
             visitNextIteration.clear();
             visitNextIteration.addAll(newSet);
@@ -161,16 +156,16 @@ public class Algorithms {
 
         for (long nodeID : order) {
             Optional<GNode> optNode = graph.getNode(nodeID);
-            if(!optNode.isPresent()){
+            if (!optNode.isPresent()) {
                 continue;
             }
             GNode node = optNode.get();
-            Double currentDist = info.distanceMap.get(nodeID).doubleValue();
+            Double currentDist = info.distanceMap.get(nodeID);
             for (long neighbour : node.linksTo) {
                 if (currentDist == Double.NEGATIVE_INFINITY) {
                     currentDist = new Double(0);
                 }
-                Double neighbourDist = info.distanceMap.get(neighbour).doubleValue();
+                Double neighbourDist = info.distanceMap.get(neighbour);
                 Double tryNewDist = currentDist + graph.weight(nodeID, neighbour);
                 if (neighbourDist < tryNewDist) {
                     info.distanceMap.put(neighbour, tryNewDist);
@@ -202,7 +197,7 @@ public class Algorithms {
             long nodeID = visitNextIteration.pollFirst();
             visited.add(nodeID);
             Optional<GNode> optNode = graph.getNode(nodeID);
-            if(!optNode.isPresent()){
+            if (!optNode.isPresent()) {
                 continue;
             }
             GNode node = optNode.get();

@@ -14,7 +14,7 @@ import lt.lb.commons.containers.Pair;
  *
  * @author Lemmin
  */
-public class GLink {
+public class GLink implements Cloneable{
 
     public static class Cmp {
 
@@ -64,6 +64,21 @@ public class GLink {
 //        Double h = 0.5;
 //        return (long) (h * (nodeFrom + nodeTo) * (nodeFrom + nodeTo + 1) + nodeTo);
     }
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException{
+        return super.clone();
+    }
+    
+    public static boolean equal(GLink link1, GLink link2){
+        return link1.nodeFrom == link2.nodeFrom && link1.nodeTo == link2.nodeTo;
+    }
+    
+    public static boolean equalBidirectional(GLink link1, GLink link2){
+        return equal(link1,link2) || equal(link1.reverse(),link2);
+    }
+    
+    
 
     @Override
     public String toString() {

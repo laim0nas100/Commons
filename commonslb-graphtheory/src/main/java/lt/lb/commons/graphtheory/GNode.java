@@ -12,7 +12,7 @@ import java.util.Set;
  *
  * @author Lemmin
  */
-public class GNode {
+public class GNode implements Cloneable{
 
     public GNode(Number id) {
         this.ID = id.longValue();
@@ -37,4 +37,14 @@ public class GNode {
         }
         return ID + " -> " + linkStr + " : " + linkedFromStr;
     }
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException{
+        GNode clone = (GNode) super.clone();
+        clone.linkedFrom = (Set<Long>) ((HashSet<Long>)this.linkedFrom).clone();
+        clone.linksTo = (Set<Long>) ((HashSet<Long>)this.linksTo).clone();
+        return clone;
+    }
+    
+    
 }
