@@ -36,6 +36,15 @@ public class ArrayTest {
         Log.print(ArrayOp.removeByIndex(merge, 2, 2));
         Log.print(merge);
 
+        merge = ArrayOp.addAt(merge, 2, -1, -2, -3);
+
+        Log.print("Add at");
+        Log.print(merge);
+
+        Log.print("Remove srip");
+        merge = ArrayOp.removeStrip(merge, 2, 5);
+        Log.print(merge);
+
         Log.await(1, TimeUnit.HOURS);
     }
 }

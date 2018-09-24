@@ -9,7 +9,6 @@ import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.PrefillArrayMap;
 import lt.lb.commons.misc.MyRandom;
-import org.junit.Test;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -86,7 +85,7 @@ public class CollectionTest {
         };
     }
 
-    @Test
+//    @Test
     public void bechHash() {
         Benchmark b = new Benchmark();
 

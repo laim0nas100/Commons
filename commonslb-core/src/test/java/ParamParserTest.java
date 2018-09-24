@@ -4,27 +4,17 @@
  * and open the template in the editor.
  */
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.filemanaging.FileReader;
-import lt.lb.commons.interfaces.ReadOnlyBidirectionalIterator;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
-import lt.lb.commons.misc.F;
 import lt.lb.commons.parsing.LexerWithStrings;
-import lt.lb.commons.parsing.Literal;
 import lt.lb.commons.parsing.Token;
-import lt.lb.commons.parsing.TokenFiniteAutomata;
-import lt.lb.commons.parsing.TokenFiniteAutomata.IStatement;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TGraph;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TKeywordNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TLiteralNode;
@@ -33,14 +23,10 @@ import lt.lb.commons.parsing.TokenFiniteAutomata.TNumberNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TraversedResult;
 import lt.lb.commons.reflect.DefaultFieldFactory;
 import lt.lb.commons.reflect.FieldFactory;
-import lt.lb.commons.reflect.ReflectionPrint;
-import lt.lb.commons.reflect.ReflectionUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -77,7 +63,7 @@ public class ParamParserTest {
         t.ok();
     }
     /*
-    
+     *
      */
 
     FieldFactory fac = new DefaultFieldFactory();
@@ -186,10 +172,8 @@ public class ParamParserTest {
         return structStart;
 
     }
-    
-    
 
-    @Test
+//    @Test
     public void ok() throws Exception {
         Log.instant = true;
         Log.display = true;
@@ -220,11 +204,11 @@ public class ParamParserTest {
 
         TGraph structEnd = new TGraph("StructEnd");
         structEnd.beginNode = new TKeywordNode("}", true, true);
-        
+
         structStart.connect(literalGraph);
 
         structEnd.connect(structEnd);
-        
+
         eqGraph.connect(structStart);
         eqGraph.connectAtEnd(structEnd);
 
