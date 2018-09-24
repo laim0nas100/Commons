@@ -117,7 +117,7 @@ public class Log {
         submit(r);
     }
 
-    public static void print(Object... objects) {
+    public static <T> void print(T... objects) {
         if (disable) {
             return;
         }
@@ -129,7 +129,7 @@ public class Log {
             public void run() {
                 LineStringBuilder string = new LineStringBuilder();
                 if (objects.length > 0) {
-                    for (Object s : objects) {
+                    for (T s : objects) {
                         string.append(", " + s);
                     }
                     string.delete(0, 2);
@@ -149,7 +149,7 @@ public class Log {
         }
     }
 
-    public static void println(Object... objects) {
+    public static <T> void println(T... objects) {
         if (disable) {
             return;
         }
@@ -158,16 +158,20 @@ public class Log {
         Runnable r = new Runnable() {
             @Override
             public void run() {
-                String string = "";
+
+                LineStringBuilder sb = new LineStringBuilder();
                 if (objects.length == 1) {
-                    string = String.valueOf(objects[0]);
+                    sb.append(String.valueOf(objects[0]));
                 } else if (objects.length > 1) {
-                    for (Object s : objects) {
-                        string += "\n" + String.valueOf(s);
+                    for (T s : objects) {
+                        sb.appendLine(String.valueOf(s));
                     }
-                    string = string.substring(1);
+
                 }
-                logThis(string, t, millis);
+                if (sb.length() > 0) {
+                    sb.removeFromEnd(LineStringBuilder.LINE_END.length());
+                }
+                logThis(sb.toString(), t, millis);
             }
         };
         submit(r);
