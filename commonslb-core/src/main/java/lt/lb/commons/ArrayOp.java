@@ -8,24 +8,12 @@ package lt.lb.commons;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.interfaces.Accumulator;
 
 /**
  *
  * @author Laimonas-Beniusis-PC
  */
 public class ArrayOp {
-
-    public static <T> T accumulate(Accumulator<T> acc, T... array) {
-        if (array.length == 0) {
-            return null;
-        }
-        T total = array[0];
-        for (int i = 1; i < array.length; i++) {
-            total = acc.accumulate(total, array[i]);
-        }
-        return total;
-    }
 
     public static <T> boolean any(Predicate<T> test, T... array) {
         for (T t : array) {
@@ -100,8 +88,7 @@ public class ArrayOp {
         if (clz.isPrimitive()) {
             throw new IllegalArgumentException("Primitives, like " + clz.getName() + " are not supported, use makePrimitiveArray()");
         }
-        T[] a = (T[]) java.lang.reflect.Array.newInstance(clz, size);
-        return a;
+        return (T[]) java.lang.reflect.Array.newInstance(clz, size);
     }
 
     public static Object makePrimitiveArray(Integer size, Class clz) {
@@ -141,9 +128,7 @@ public class ArrayOp {
     public static <T> T[] removeByIndex(T[] one, Integer... two) {
         ArrayList<T> list = new ArrayList<>(one.length);
         HashSet<Integer> set = new HashSet<>();
-        for (int index : two) {
-            set.add(index);
-        }
+        set.addAll(Arrays.asList(two));
         int i = 0;
         for (T t : one) {
             if (!set.contains(i)) {
@@ -183,9 +168,7 @@ public class ArrayOp {
     public static <T> int count(Predicate<T> test, T... array) {
         int count = 0;
         for (T t : array) {
-            if (test.test(t)) {
-                count++;
-            }
+            count += test.test(t) ? 1 : 0;
         }
         return count;
     }
@@ -210,17 +193,13 @@ public class ArrayOp {
         return array;
     }
 
-    public static <T> T[] replicate(Integer times, Supplier<T>... values) {
+    public static <T> T[] replicate(Integer times, Class<T> baseClass, Supplier<T>... values) {
         int arraySize = times * values.length;
-        if (values.length == 0) {
-            return null;
-        }
-        Class<T> cls = (Class<T>) values[0].get().getClass();
 
-        if (cls.isPrimitive()) {
+        if (baseClass.isPrimitive()) {
             throw new IllegalArgumentException("Primitive values are not supported");
         }
-        T[] array = makeArray(arraySize, cls);
+        T[] array = makeArray(arraySize, baseClass);
         for (int i = 0; i < arraySize; i++) {
             int valIndex = i % values.length;
             array[i] = values[valIndex].get();
