@@ -5,8 +5,9 @@
  */
 package lt.lb.commons.containers;
 
-import java.util.HashMap;
 import java.util.Collection;
+import java.util.HashMap;
+import lt.lb.commons.misc.F;
 
 /**
  *
@@ -44,7 +45,7 @@ public class ParametersMap {
         return map.get(key);
     }
 
-    public Object defaultGet(String key, Object defaultValue) {
+    public <T extends Object> T defaultGet(String key, T defaultValue) {
 
         if (getParameter(key) == null) {
             this.addParameter(key, String.valueOf(defaultValue));
@@ -54,17 +55,17 @@ public class ParametersMap {
             ob = ob.trim();
             try {
                 if (defaultValue instanceof Boolean) {
-                    return Boolean.parseBoolean(ob);
+                    return F.cast(Boolean.parseBoolean(ob));
                 } else if (defaultValue instanceof Character) {
-                    return ob.charAt(0);
+                    return F.cast(ob.charAt(0));
                 } else if (defaultValue instanceof Integer) {
-                    return Integer.parseInt(ob);
+                    return F.cast(Integer.parseInt(ob));
                 } else if (defaultValue instanceof Double) {
-                    return Double.parseDouble(ob);
+                    return F.cast(Double.parseDouble(ob));
                 } else {
-                    return ob;
+                    return F.cast(ob);
                 }
-            } catch (Exception e) {
+            } catch (ClassCastException | NumberFormatException e) {
                 return defaultValue;
             }
         }
