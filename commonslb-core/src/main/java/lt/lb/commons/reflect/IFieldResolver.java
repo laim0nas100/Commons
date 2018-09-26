@@ -7,7 +7,7 @@ package lt.lb.commons.reflect;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public interface IFieldResolver {
 

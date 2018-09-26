@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class ConstantTaskRunner extends TaskRunner {
 

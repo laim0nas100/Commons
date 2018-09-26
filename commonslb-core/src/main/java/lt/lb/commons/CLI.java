@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class CLI {
 

@@ -12,7 +12,7 @@ import javafx.concurrent.Task;
 /**
  * Custom Task
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public abstract class FXTask extends Task {
 

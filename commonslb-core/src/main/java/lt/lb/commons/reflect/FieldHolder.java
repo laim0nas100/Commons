@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class FieldHolder<T> {
     

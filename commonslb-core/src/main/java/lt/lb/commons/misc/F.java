@@ -20,7 +20,7 @@ import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class F {
 

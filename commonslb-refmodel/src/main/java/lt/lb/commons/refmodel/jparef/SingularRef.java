@@ -12,7 +12,7 @@ import lt.lb.commons.refmodel.RefCompiler;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class SingularRef<T> extends Ref<T> {
 

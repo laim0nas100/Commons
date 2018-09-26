@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public final class SkippingListIterator<T> implements ListIterator<T> {
 

@@ -9,7 +9,7 @@ import java.util.concurrent.Callable;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public interface UnsafeRunnable extends Runnable {
 

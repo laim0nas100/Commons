@@ -11,7 +11,7 @@ import lt.lb.commons.misc.F;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class ParametersMap {
 

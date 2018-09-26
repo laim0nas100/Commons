@@ -17,7 +17,7 @@ import java.util.LinkedList;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class FileReader {
 

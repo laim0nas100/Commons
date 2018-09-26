@@ -11,7 +11,7 @@ import javax.mail.search.SearchTerm;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public abstract class SearchableEmailProps extends BasicEmailProps {
 

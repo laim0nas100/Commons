@@ -9,7 +9,7 @@ import java.util.*;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class PagedHashList<T> implements List<T>, RandomAccess {
 

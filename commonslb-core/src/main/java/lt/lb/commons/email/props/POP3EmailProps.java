@@ -7,7 +7,7 @@ package lt.lb.commons.email.props;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class POP3EmailProps extends IMAPOrPOP3Props {
 

@@ -11,7 +11,7 @@ import javafx.fxml.Initializable;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public interface BaseController extends Initializable {
 

@@ -7,7 +7,7 @@ package lt.lb.commons;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <T> any value
  */
 public class CachedValue<T> {

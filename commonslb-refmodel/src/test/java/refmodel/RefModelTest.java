@@ -18,7 +18,7 @@ import org.junit.*;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class RefModelTest {
 

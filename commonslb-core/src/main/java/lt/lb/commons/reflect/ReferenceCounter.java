@@ -14,7 +14,7 @@ import lt.lb.commons.containers.Tuple;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class ReferenceCounter<T> {
 

@@ -16,7 +16,7 @@ import lt.lb.commons.threads.ScheduledDispatchExecutor;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class EmailChecker extends ScheduledDispatchExecutor {
 

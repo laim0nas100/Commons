@@ -7,7 +7,7 @@ package lt.lb.commons.parsing;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class Literal extends Token {
 

@@ -17,7 +17,7 @@ import lt.lb.commons.misc.MyRandom;
  */
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class CollectionTest {
 

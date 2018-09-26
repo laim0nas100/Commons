@@ -7,7 +7,7 @@ package lt.lb.commons.refmodel;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class Ref<Type> {
 

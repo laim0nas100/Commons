@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <T>
  */
 public class PrefillArrayMapList<T> implements List<T>, Collection<T>, RandomAccess {

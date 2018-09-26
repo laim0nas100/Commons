@@ -9,7 +9,7 @@ import lt.lb.commons.interfaces.StringBuilderActions.ILineStringBuilder;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 

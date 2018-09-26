@@ -9,7 +9,10 @@ import java.util.*;
 
 /**
  *
- * @author Lemmin
+ *
+ * Map backed by array, only positive
+ *
+ * @author laim0nas100
  */
 class PrefillArrayMap2<T> implements Map<Integer, T> {
 
@@ -30,6 +33,9 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         this(10);
     }
 
+    /*
+     * @inheritDoc
+     */
     @Override
     public int size() {
         return size;

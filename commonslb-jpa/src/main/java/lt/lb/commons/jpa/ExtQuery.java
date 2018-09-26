@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public interface ExtQuery<X> {
 

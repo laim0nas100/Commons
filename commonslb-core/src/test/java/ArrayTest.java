@@ -13,7 +13,7 @@ import org.junit.Test;
  */
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ArrayTest {
 

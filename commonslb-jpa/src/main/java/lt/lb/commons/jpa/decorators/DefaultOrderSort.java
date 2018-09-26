@@ -18,7 +18,7 @@ import javax.persistence.criteria.Selection;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class DefaultOrderSort implements OrderSort {
 

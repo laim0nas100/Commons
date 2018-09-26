@@ -19,7 +19,7 @@ import lt.lb.commons.threads.UnsafeRunnable;
  *
  * Platform substitute
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class FX {
 

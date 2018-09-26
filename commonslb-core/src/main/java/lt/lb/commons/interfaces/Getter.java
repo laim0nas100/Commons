@@ -7,7 +7,7 @@ package lt.lb.commons.interfaces;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  * @param <From> Type to inspect
  * @param <What> Type to receive
  */

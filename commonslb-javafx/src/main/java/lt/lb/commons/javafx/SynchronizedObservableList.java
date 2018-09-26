@@ -25,7 +25,7 @@ import javafx.collections.transformation.SortedList;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class SynchronizedObservableList implements ObservableList {
 

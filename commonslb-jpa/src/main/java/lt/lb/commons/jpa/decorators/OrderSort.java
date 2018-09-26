@@ -12,7 +12,7 @@ import javax.persistence.criteria.Order;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public interface OrderSort {
 

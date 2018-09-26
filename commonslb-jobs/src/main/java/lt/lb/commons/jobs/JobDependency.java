@@ -7,7 +7,7 @@ package lt.lb.commons.jobs;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public interface JobDependency {
 

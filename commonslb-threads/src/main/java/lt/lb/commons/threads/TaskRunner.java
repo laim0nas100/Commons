@@ -9,7 +9,7 @@ import java.util.concurrent.RunnableFuture;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public abstract class TaskRunner extends ExtTask implements Comparable {
 

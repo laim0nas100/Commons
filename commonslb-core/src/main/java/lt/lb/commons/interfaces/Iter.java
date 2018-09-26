@@ -7,8 +7,9 @@ package lt.lb.commons.interfaces;
 
 /**
  *
- * @author Laimonas-Beniusis-PC Iterator which passes index and value
- * 
+ * @author laim0nas100
+ * Iterator which passes index and value
+ *
  */
 public interface Iter<Type> {
 
@@ -30,12 +31,13 @@ public interface Iter<Type> {
 
         public void continuedVisit(Integer index, T value);
     }
-    
-    public static interface IterMap<K,V> {
+
+    public static interface IterMap<K, V> {
+
         public Boolean visit(K key, V value);
     }
-    
-    public static interface IterMapNoStop<K,V> extends IterMap<K,V> {
+
+    public static interface IterMapNoStop<K, V> extends IterMap<K, V> {
 
         @Override
         public default Boolean visit(K key, V value) {

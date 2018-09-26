@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ArrayOp {
 

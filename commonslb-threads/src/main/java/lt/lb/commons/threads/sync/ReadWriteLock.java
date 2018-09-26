@@ -2,7 +2,8 @@ package lt.lb.commons.threads.sync;
 
 /**
  *
- * @author Laimonas Beniušis Semaphore
+ * @author laim0nas100
+ * Semaphore
  *
  */
 public class ReadWriteLock {

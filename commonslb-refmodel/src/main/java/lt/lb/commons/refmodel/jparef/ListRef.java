@@ -9,7 +9,7 @@ import javax.persistence.criteria.*;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class ListRef<T> extends SingularRef<T> {
 

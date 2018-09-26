@@ -7,7 +7,7 @@ package lt.lb.commons.interfaces;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  * @param <T> type
  */
 public interface Equator <T>{

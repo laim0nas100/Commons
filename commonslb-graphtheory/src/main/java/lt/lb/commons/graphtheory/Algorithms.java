@@ -14,7 +14,7 @@ import java.util.Optional;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class Algorithms {
 

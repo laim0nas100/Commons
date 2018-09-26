@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class CacheMap extends HashMap<ParameterCombinator, ParameterCombinator> {
 

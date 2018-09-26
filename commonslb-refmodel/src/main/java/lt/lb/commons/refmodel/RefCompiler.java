@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class RefCompiler {
 

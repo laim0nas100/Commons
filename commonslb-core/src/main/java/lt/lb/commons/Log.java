@@ -14,7 +14,7 @@ import java.util.concurrent.*;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class Log {
 

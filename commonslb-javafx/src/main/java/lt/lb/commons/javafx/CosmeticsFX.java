@@ -22,7 +22,7 @@ import lt.lb.commons.threads.sync.UninterruptibleReadWriteLock;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class CosmeticsFX {
 

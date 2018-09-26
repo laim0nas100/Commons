@@ -17,7 +17,7 @@ import lt.lb.commons.reflect.FieldHolder.FieldMap;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ReflectNode {
 

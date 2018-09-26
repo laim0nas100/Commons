@@ -10,7 +10,7 @@ import java.util.Locale;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class StringOperations extends org.apache.commons.lang3.StringUtils {
 

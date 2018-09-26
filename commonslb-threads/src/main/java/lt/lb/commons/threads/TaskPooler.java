@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class TaskPooler extends AbstractExecutorService implements Runnable {
 

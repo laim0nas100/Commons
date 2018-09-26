@@ -5,16 +5,12 @@
  */
 package lt.lb.commons.containers;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 
 /**
  *
- * @author Lemmin Initialize as a simple map
+ * @author laim0nas100
+ * Initialize as a simple map
  * @param <K> key
  * @param <V> value
  *

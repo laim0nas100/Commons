@@ -13,7 +13,7 @@ import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class Benchmark {
 

@@ -9,7 +9,7 @@ import javax.persistence.criteria.*;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class MapRef<K, T> extends SingularRef<T> {
 

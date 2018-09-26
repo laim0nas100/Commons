@@ -11,7 +11,7 @@ import javafx.stage.Stage;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class Frame {
 

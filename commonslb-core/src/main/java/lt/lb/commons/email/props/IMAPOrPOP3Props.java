@@ -16,7 +16,7 @@ import lt.lb.commons.misc.F;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public abstract class IMAPOrPOP3Props extends SearchableEmailProps {
 

@@ -7,7 +7,7 @@ package lt.lb.commons;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public abstract class AsyncCachedValue<T> extends CachedValue<T> implements Runnable {
 

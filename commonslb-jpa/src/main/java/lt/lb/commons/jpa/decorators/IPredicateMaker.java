@@ -11,7 +11,7 @@ import javax.persistence.criteria.Root;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public interface IPredicateMaker<T> extends IQueryDecorator<T> {
 

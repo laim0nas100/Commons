@@ -22,7 +22,7 @@ import sun.misc.Unsafe;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public abstract class FieldFactory {
 

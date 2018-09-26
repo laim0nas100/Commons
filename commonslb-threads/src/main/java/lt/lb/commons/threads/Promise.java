@@ -11,7 +11,7 @@ import java.util.concurrent.*;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <Type> return type
  */
 public class Promise<Type> extends FutureTask<Type> {

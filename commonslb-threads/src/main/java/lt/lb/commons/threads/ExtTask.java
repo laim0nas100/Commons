@@ -15,7 +15,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <T>
  */
 public abstract class ExtTask<T> implements RunnableFuture {
