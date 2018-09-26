@@ -31,6 +31,26 @@ public class Promise<Type> extends FutureTask<Type> {
         this(() -> null);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public Type get() throws InterruptedException, ExecutionException {
+
+        run();
+        return super.get();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public Type get(long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        run();
+        return super.get(timeout, unit);
+    }
+
     public Promise<Type> waitFor(Promise... before) {
         return this.waitFor(Arrays.asList(before));
     }
