@@ -13,6 +13,13 @@ public interface StringBuilderActions {
 
     public static interface ILineAppender {
 
+        public static final ILineAppender empty = new ILineAppender() {
+            @Override
+            public ILineAppender appendLine(Object... objs) {
+                return empty;
+            }
+        };
+
         public ILineAppender appendLine(Object... objs);
     }
 
