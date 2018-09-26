@@ -7,12 +7,15 @@ package lt.lb.commons.misc;
 
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Iter;
 import lt.lb.commons.interfaces.Iter.IterMap;
 import lt.lb.commons.interfaces.Iter.IterMapNoStop;
+import lt.lb.commons.threads.Promise;
 import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
@@ -20,6 +23,12 @@ import lt.lb.commons.threads.UnsafeRunnable;
  * @author Lemmin
  */
 public class F {
+
+    public static <T, V> Predicate<T> castPredicate(Predicate<V> predicate) {
+        return (T t) -> {
+            return predicate.test(F.cast(t));
+        };
+    }
 
     public static void unsafeRun(UnsafeRunnable r) {
         try {
@@ -145,8 +154,8 @@ public class F {
             return result;
 
         }
-        
-        public static <T> T pickRandom(Random rnd, List<T> col){
+
+        public static <T> T pickRandom(Random rnd, List<T> col) {
             int i = F.RND.nextInt(rnd, 0, col.size());
             return col.get(i);
         }
@@ -189,10 +198,10 @@ public class F {
             ArrayList<T> list = new ArrayList<>();
 
             F.iterate(tuples, (index, t) -> {
-                for (int i = 0; i < t.g1; i++) {
-                    list.add(t.g2);
-                }
-            });
+                  for (int i = 0; i < t.g1; i++) {
+                      list.add(t.g2);
+                  }
+              });
             return F.RND.pickRandom(rnd, list, amount);
         }
 
@@ -200,10 +209,10 @@ public class F {
             ArrayList<T> list = new ArrayList<>();
 
             F.iterate(tuples, (index, t) -> {
-                for (int i = 0; i < t.g1; i++) {
-                    list.add(t.g2);
-                }
-            });
+                  for (int i = 0; i < t.g1; i++) {
+                      list.add(t.g2);
+                  }
+              });
             return F.RND.pickRandom(rnd, list, amount);
         }
     }
@@ -222,7 +231,34 @@ public class F {
         }
         return len1 - len2;
     }
-    
+
+    public static <T> void parallelFilter(Collection<T> col, Predicate<T> pred, Executor exe) {
+        int size = col.size();
+        boolean[] satisfied = new boolean[size];
+
+        ArrayDeque<Promise> deque = new ArrayDeque<>(size);
+        F.iterate(col, (i, item) -> {
+              Promise<Void> prom = new Promise(() -> satisfied[i] = pred.test(item)).collect(col).execute(exe);
+          }
+        );
+        Promise waiter = new Promise().waitFor(deque);
+
+        F.unsafeRun(() -> {
+            waiter.get();
+        });
+
+        Iterator<T> iterator = col.iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            iterator.next();
+            if (!satisfied[i]) {
+                iterator.remove();
+            }
+            i++;
+        }
+
+    }
+
     /**
      *
      * @param <T> type
@@ -230,28 +266,28 @@ public class F {
      * @param equator equality condition
      * @return all removed elements
      */
-    public static <T> List<T> filterDistinct(Collection<T> col, Equator<T> equator){
+    public static <T> List<T> filterDistinct(Collection<T> col, Equator<T> equator) {
         LinkedList<T> kept = new LinkedList<>();
         LinkedList<T> removed = new LinkedList<>();
         Iterator<T> iterator = col.iterator();
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
             T next = iterator.next();
-            Optional<Tuple<Integer, T>> find = F.iterate(kept, (i,item)->{
-                if(equator.equals(next, item)){
-                    return true;
-                }
-                return false;
-            });
-            if(find.isPresent()){
+            Optional<Tuple<Integer, T>> find = F.iterate(kept, (i, item) -> {
+                                                     if (equator.equals(next, item)) {
+                                                         return true;
+                                                     }
+                                                     return false;
+                                                 });
+            if (find.isPresent()) {
                 removed.add(next);
                 iterator.remove();
-            }else{
+            } else {
                 kept.add(next);
             }
         }
         return removed;
     }
-    
+
     public static <K, V> Optional<Tuple<K, V>> iterate(Map<K, V> map, IterMap<K, V> iter) {
         Set<Map.Entry<K, V>> entrySet = map.entrySet();
         for (Map.Entry<K, V> entry : entrySet) {
@@ -286,7 +322,7 @@ public class F {
     public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Iter.IterNoStop<T> iter) {
         return iterateBackwards(list, list.size(), (Iter) iter);
     }
-    
+
     public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Iter<T> iter) {
         return iterateBackwards(list, list.size(), iter);
     }
