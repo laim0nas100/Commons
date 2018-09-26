@@ -12,16 +12,16 @@ package lt.lb.commons.reflect;
 public interface IFieldResolver {
 
     public void cloneField(Object source, Object parentObject, ReferenceCounter refCoounter) throws Exception;
-    
-    public default IFieldResolver nest(IFieldResolver fr){
+
+    public default IFieldResolver nest(IFieldResolver fr) {
         IFieldResolver me = this;
-        return (Object source, Object parentObject, ReferenceCounter refCoounter) -> {
-            me.cloneField(source, parentObject, refCoounter);
-            fr.cloneField(source, parentObject, refCoounter);
+        return (Object source, Object parentObject, ReferenceCounter ref) -> {
+            me.cloneField(source, parentObject, ref);
+            fr.cloneField(source, parentObject, ref);
         };
     }
-    
-    public static IFieldResolver empty(){
+
+    public static IFieldResolver empty() {
         return (Object source, Object parentObject, ReferenceCounter refCoounter) -> {
         };
     }

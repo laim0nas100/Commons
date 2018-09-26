@@ -78,26 +78,29 @@ public abstract class FieldFactory {
     }
 
     protected IFieldResolver makeDeferedFieldResolver(Field f) {
-        return new IFieldResolver() {
-            @Override
-            public void cloneField(Object sourceObject, Object parentObject, ReferenceCounter refCounter) throws Exception {
-//                log.appendLine("In defered resolver", f);
+        return (Object sourceObject, Object parentObject, ReferenceCounter refCounter) -> {
+            // log.appendLine("In defered resolver", f);
 
-//                log.appendLine("Try to get instance from " + sourceObject.getClass().getName());
-                Object get = f.get(sourceObject);
+//log.appendLine("Try to get instance from " + sourceObject.getClass().getName());
+            Object get = f.get(sourceObject);
 
-                if (get == null) {// our job is easy
-//                    log.appendLine("Got null");
-                    f.set(parentObject, null);
-                    return;
-                }
-                Class realFieldType = get.getClass();
-//                log.appendLine("Got instance", get, realFieldType);
-                IFieldResolver refinedResolver = getResolverByField(realFieldType, f, false);
-
-                refinedResolver.cloneField(sourceObject, parentObject, refCounter);
-
+            if (get == null) {// our job is easy
+//log.appendLine("Got null");
+                f.set(parentObject, null);
+                return;
             }
+            Class realFieldType = get.getClass();
+            IFieldResolver refinedResolver;
+//            if (this.useCache) {
+//                refinedResolver = this.cacheOfFieldResolvers.get(realFieldType, k -> getResolverByField(realFieldType, f, false));
+//            } else {
+//                refinedResolver = getResolverByField(realFieldType, f, false);
+//            }
+
+            refinedResolver = getResolverByField(realFieldType, f, false);
+//log.appendLine("Got instance", get, realFieldType);
+
+            refinedResolver.cloneField(sourceObject, parentObject, refCounter);
         };
     }
 
@@ -414,13 +417,6 @@ public abstract class FieldFactory {
         return this.cacheOfFieldResolvers.get(startingClass, (val) -> recursiveResolverCached(startingClass));
     }
 
-    private void maybeAddToCache(Class cls, Field f, IFieldResolver fr) {
-        if (this.useFieldCache) {
-            Tuple key = new Tuple(cls, f.getName());
-            this.cachedExactFieldResolvers.putIfAbsent(key, fr);
-        }
-    }
-
     private IFieldResolver getResolverByField(Class fieldType, Field f, boolean defer) {
 //        log.appendLine("Get resolver by field", fieldType, f);
 
@@ -489,7 +485,7 @@ public abstract class FieldFactory {
 //    protected Map<Class, IClassConstructor> cachedClassConstructors = new HashMap<>();
 //    protected Map<Class, IFieldResolver> cachedFieldResolvers = new HashMap<>();
 //    protected Map<Class, FieldHolder> cachedFieldHolders = new HashMap<>();
-    protected CachedFieldResolvers cachedExactFieldResolvers = new CachedFieldResolvers();
+//    protected CachedFieldResolvers cachedExactFieldResolvers = new CachedFieldResolvers();
     protected Set<Class> immutableTypes = new HashSet<>();
 
     protected Cache<Class, FieldHolder> cacheOfFieldHolders = Caffeine.newBuilder().build();

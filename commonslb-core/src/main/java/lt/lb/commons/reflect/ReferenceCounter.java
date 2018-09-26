@@ -6,10 +6,10 @@
 package lt.lb.commons.reflect;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
+import lt.lb.commons.containers.HashCache;
 import lt.lb.commons.containers.Tuple;
 
 /**
@@ -28,7 +28,15 @@ public class ReferenceCounter<T> {
 
     private Predicate<Class> supported;
 
-    private Cache<Class, Cache<Object, Collection<Tuple<Object, T>>>> references = Caffeine.newBuilder().build();
+    private Cache<Tuple<Class, Object>, Collection<Tuple<Object, T>>> references = newCache();
+
+    protected <K, V> Cache<K, V> newCache() {
+        return new HashCache<>();
+    }
+
+    protected Collection newCollection() {
+        return new ArrayList(1);
+    }
 
     public boolean supported(Object ob) {
         if (ob == null) {
@@ -47,17 +55,16 @@ public class ReferenceCounter<T> {
 
     }
 
+    private Tuple<Class, Object> wrap(Object ob) {
+        return new Tuple<>(ob.getClass(), ob);
+    }
+
     public boolean contains(Object ob) {
         if (!this.supported(ob)) {
             return false;
         }
-        Class cls = ob.getClass();
-        Cache<Object, Collection<Tuple<Object, T>>> map = references.getIfPresent(cls);
-        if (map == null) {
-            return false;
-        }
+        Collection<Tuple<Object, T>> deque = references.getIfPresent(wrap(ob));
 
-        Collection<Tuple<Object, T>> deque = map.getIfPresent(ob);
         if (deque == null) {
             return false;
         }
@@ -73,8 +80,7 @@ public class ReferenceCounter<T> {
 
     public T get(Object ob) {
         this.assertSupported(ob);
-        Class cls = ob.getClass();
-        Collection<Tuple<Object, T>> deque = references.getIfPresent(cls).getIfPresent(ob);
+        Collection<Tuple<Object, T>> deque = references.getIfPresent(wrap(ob));
         for (Tuple<Object, T> tuple : deque) {
             if (tuple.g1 == ob) {
                 return tuple.g2;
@@ -90,12 +96,8 @@ public class ReferenceCounter<T> {
     }
 
     public boolean fastRegisterIfAbsent(Object ob, T value) {
-        Class cls = ob.getClass();
-        Cache<Object, Collection<Tuple<Object, T>>> map;
-        Collection<Tuple<Object, T>> deque;
 
-        map = references.get(cls, v -> Caffeine.newBuilder().build());
-        deque = map.get(ob, v -> new ConcurrentLinkedQueue<>());
+        Collection<Tuple<Object, T>> deque = references.get(wrap(ob), v -> newCollection());
         for (Tuple<Object, T> tuple : deque) {
             if (tuple.g1 == ob) {
                 return false;
