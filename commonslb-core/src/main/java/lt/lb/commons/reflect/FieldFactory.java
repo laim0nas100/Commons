@@ -5,6 +5,8 @@
  */
 package lt.lb.commons.reflect;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -14,11 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.Log;
 import lt.lb.commons.containers.Tuple;
-import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.misc.F;
+import sun.misc.Unsafe;
 
 /**
  *
@@ -30,18 +30,16 @@ public abstract class FieldFactory {
 
     }
 
-    public ILineAppender log;
-
+//    public ILineAppender log = ILineAppender.empty;
     public static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class};
     public static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class};
     public static final Class[] OTHER_IMMUTABLE_TYPES = {String.class, UUID.class, Pattern.class, BigDecimal.class, BigInteger.class};
     public static final Class[] WRAPPER_TYPES = ArrayOp.merge(NUMBER_TYPES, Boolean.class, Character.class);
     public static final Class[] JVM_IMMUTABLE_TYPES = ArrayOp.merge(WRAPPER_TYPES, OTHER_IMMUTABLE_TYPES, DATE_TYPES);
+    private static final HashSet<Class> JVM_IMMUTABLE_SET = new HashSet<>(Arrays.asList(JVM_IMMUTABLE_TYPES));
     public static final Predicate<Class> isJVMImmutable = (Class cls) -> {
-        if (cls.isPrimitive()) {
-            return true;
-        }
-        return (ArrayOp.count(Predicate.isEqual(cls), JVM_IMMUTABLE_TYPES) > 0);
+//        return cls.isPrimitive() || JVM_IMMUTABLE_SET.contains(cls);
+        return cls.isPrimitive() || ArrayOp.any(Predicate.isEqual(cls), JVM_IMMUTABLE_TYPES);
     };
 
     protected IFieldResolver makeImmutableFieldResolver(Field f) {
@@ -50,13 +48,11 @@ public abstract class FieldFactory {
 
     protected IFieldResolver makeImmutableArrayFieldResolver(Field f) {
         return (sourceObject, parentObject, refCounter) -> {
-
             Class compType = f.getType().getComponentType();
-            log.appendLine("Array of Immutable ", compType.getName());
+//            log.appendLine("Array of Immutable ", compType.getName());
             Object sourceArray = f.get(sourceObject);
-            boolean needRegistration = false;
             if (refCounter.contains(sourceArray)) {
-                log.appendLine("Found repeating immutable array reference");
+//                log.appendLine("Found repeating immutable array reference");
                 f.set(parentObject, refCounter.get(sourceArray));
             } else {
                 int length = Array.getLength(sourceArray);
@@ -85,18 +81,18 @@ public abstract class FieldFactory {
         return new IFieldResolver() {
             @Override
             public void cloneField(Object sourceObject, Object parentObject, ReferenceCounter refCounter) throws Exception {
-                log.appendLine("In defered resolver", f);
+//                log.appendLine("In defered resolver", f);
 
-                log.appendLine("Try to get instance from " + sourceObject.getClass().getName());
+//                log.appendLine("Try to get instance from " + sourceObject.getClass().getName());
                 Object get = f.get(sourceObject);
 
                 if (get == null) {// our job is easy
-                    log.appendLine("Got null");
+//                    log.appendLine("Got null");
                     f.set(parentObject, null);
                     return;
                 }
                 Class realFieldType = get.getClass();
-                log.appendLine("Got instance", get, realFieldType);
+//                log.appendLine("Got instance", get, realFieldType);
                 IFieldResolver refinedResolver = getResolverByField(realFieldType, f, false);
 
                 refinedResolver.cloneField(sourceObject, parentObject, refCounter);
@@ -110,11 +106,11 @@ public abstract class FieldFactory {
             Object[] sourceArray = (Object[]) f.get(source);
 
             if (refCounter.contains(sourceArray)) {
-                log.appendLine("Found repeating " + compType.getName() + " array reference");
+//                log.appendLine("Found repeating " + compType.getName() + " array reference");
                 f.set(parentObject, refCounter.get(sourceArray));
             } else {
                 if (sourceArray == null) {
-                    log.appendLine("Found null mutable array");
+//                    log.appendLine("Found null mutable array");
                     f.set(parentObject, null);
                     return;
                 }
@@ -161,11 +157,10 @@ public abstract class FieldFactory {
     private FieldHolder getFieldHolder(Class cls) {
         FieldHolder holder = null;
         if (this.useFieldHolderCache) {
-            if (this.cachedFieldHolders.containsKey(cls)) {
-                holder = this.cachedFieldHolders.get(cls);
-            } else {
+            holder = this.cacheOfFieldHolders.getIfPresent(cls);
+            if (holder == null) {
                 holder = new FieldHolder(cls);
-                this.cachedFieldHolders.put(cls, holder);
+                this.cacheOfFieldHolders.put(cls, holder);
             }
         } else {
             holder = new FieldHolder(cls);
@@ -179,14 +174,14 @@ public abstract class FieldFactory {
         while (currentClass != null) {
             FieldHolder holder = this.getFieldHolder(currentClass);
             F.iterate(holder.getFields(), (k, v) -> {
-                if (fields.containsKey(k)) {
-                    fields.get(k).add(v);
-                } else {
-                    LinkedList<Field> list = new LinkedList<>();
-                    list.add(v);
-                    fields.put(k, list);
-                }
-            });
+                  if (fields.containsKey(k)) {
+                      fields.get(k).add(v);
+                  } else {
+                      LinkedList<Field> list = new LinkedList<>();
+                      list.add(v);
+                      fields.put(k, list);
+                  }
+              });
             currentClass = currentClass.getSuperclass();
         }
         return fields;
@@ -197,26 +192,26 @@ public abstract class FieldFactory {
         return (Object sourceObject, Object parentObject, ReferenceCounter refCounter) -> {
             //TODO maybe let call clone() if object is clonable?
 
-            log.appendLine("Try get source", fieldType.getName(), f);
+//            log.appendLine("Try get source", fieldType.getName(), f);
             Object sourceInstance = f.get(sourceObject);
-            log.appendLine("Got source", sourceInstance);
+//            log.appendLine("Got source", sourceInstance);
 
             if (refCounter.contains(sourceInstance)) {
-                log.appendLine("Found repeating reference");
+//                log.appendLine("Found repeating reference");
                 f.set(parentObject, refCounter.get(sourceInstance));
 
             } else {
                 if (predefinedClone.containsKey(fieldType)) {
-                    log.appendLine("Found predefined clone of " + fieldType.getName());
+//                    log.appendLine("Found predefined clone of " + fieldType.getName());
                     Object clonedValue = predefinedClone.get(fieldType).clone(me, sourceInstance);
                     f.set(parentObject, clonedValue);
                     return;
                 }
                 if (sourceInstance == null) {
-                    log.appendLine("Found null", f);
+//                    log.appendLine("Found null", f);
                     f.set(parentObject, null);
                 } else {
-                    log.appendLine("Basic clone ", f);
+//                    log.appendLine("Basic clone ", f);
                     Class realClass = fieldType;
 
                     if (!isInitializable(realClass)) {
@@ -231,7 +226,7 @@ public abstract class FieldFactory {
                     rr.cloneField(sourceInstance, newInstance, refCounter);
 
                     f.set(parentObject, newInstance);
-                    log.appendLine("Succesfull set", f);
+//                    log.appendLine("Succesfull set", f);
                 }
 
             }
@@ -311,8 +306,11 @@ public abstract class FieldFactory {
         if (this.predefinedClassConstructors.containsKey(cls)) {
             return (T) this.predefinedClassConstructors.get(cls).construct();
         }
-        if (this.cacheConstructors && this.cachedClassConstructors.containsKey(cls)) {
-            return (T) this.cachedClassConstructors.get(cls).construct();
+        if (this.cacheConstructors) {
+            IClassConstructor ifPresent = this.cacheOfClassConstructors.getIfPresent(cls);
+            if (ifPresent != null) {
+                return (T) ifPresent.construct();
+            }
         }
 
         boolean isAbstract = Modifier.isAbstract(cls.getModifiers());
@@ -329,7 +327,7 @@ public abstract class FieldFactory {
 
         try {
             newInstance = cls.newInstance();
-            log.appendLine("Easy instantiation " + cls.getName());
+//            log.appendLine("Easy instantiation " + cls.getName());
             return (T) newInstance;
         } catch (InstantiationException | IllegalAccessException e) {
         }
@@ -356,26 +354,45 @@ public abstract class FieldFactory {
 
                 }
 
-                log.appendLine("Try with " + cons);
-                log.appendLine(constArray);
+//                log.appendLine("Try with " + cons);
+//                log.appendLine(constArray);
                 newInstance = cons.newInstance(constArray);
 
                 if (newInstance != null) {
-                    log.appendLine("We good");
+//                    log.appendLine("We good");
                     if (this.cacheConstructors) {
-                        this.cachedClassConstructors.put(cls, (IClassConstructor) () -> {
-                            try {
-                                return cons.newInstance(constArray);
-                            } catch (Exception e) {
-                                throw new RuntimeException(cons.toString() + " has failed now, but was good before??1!");
-                            }
-                        });
+                        this.cacheOfClassConstructors.put(cls, (IClassConstructor) () -> {
+                                                      try {
+                                                          return cons.newInstance(constArray);
+                                                      } catch (Exception e) {
+                                                          throw new RuntimeException(cons.toString() + " has failed now, but was good before??1!");
+                                                      }
+                                                  });
                     }
                     // we good
                     return (T) newInstance;
                 }
             } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             }
+        }
+
+        try {
+            // THE USAFE
+//            log.appendLine("Try with unsafe");
+            newInstance = getUnsafe().allocateInstance(cls);
+            if (this.cacheConstructors) {
+                this.cacheOfClassConstructors.put(cls,
+                                                  (IClassConstructor) () -> {
+                                                      try {
+                                                          return getUnsafe().allocateInstance(cls);
+                                                      } catch (Exception e) {
+                                                          throw new RuntimeException("Unsafe has failed now, but was good before??1!");
+                                                      }
+                                                  });
+            }
+
+            return (T) newInstance;
+        } catch (InstantiationException ex) {
         }
         throw new IllegalStateException("Failed to instantiate class " + cls.getName() + " consider adding ClassConstructor");
     }
@@ -394,13 +411,7 @@ public abstract class FieldFactory {
         if (!this.useCache) {
             return this.recursiveResolverCached(startingClass);
         }
-        if (this.cachedFieldResolvers.containsKey(startingClass)) {
-            return this.cachedFieldResolvers.get(startingClass);
-        } else {
-            IFieldResolver resolver = recursiveResolverCached(startingClass);
-            this.cachedFieldResolvers.put(startingClass, resolver);
-            return resolver;
-        }
+        return this.cacheOfFieldResolvers.get(startingClass, (val) -> recursiveResolverCached(startingClass));
     }
 
     private void maybeAddToCache(Class cls, Field f, IFieldResolver fr) {
@@ -411,44 +422,36 @@ public abstract class FieldFactory {
     }
 
     private IFieldResolver getResolverByField(Class fieldType, Field f, boolean defer) {
-        log.appendLine("Get resolver by field", fieldType, f);
+//        log.appendLine("Get resolver by field", fieldType, f);
 
-//        Tuple<Class,String> key = null;
-//        if(this.useFieldCache){
-//            key = new Tuple<>(fieldType,f.getName());
-//            if(this.cachedExactFieldResolvers.containsKey(key)){
-//                return this.cachedExactFieldResolvers.get(key);
-//            }
-//        }
         //TODO maybe cache primitive resolvers, with [class + fieldName]?
         IFieldResolver fr = null;
         boolean isSingular = !fieldType.isArray();
         if (isSingular) {
-            
+
             if (fieldType.isEnum()) {
-                log.appendLine("is enum", f);
+//                log.appendLine("is enum", f);
                 fr = makeEnumFieldResolver(f);
 //                maybeAddToCache(fieldType,f,fr);
             } else if (isImmutable(fieldType)) {
-                log.appendLine("is immutable", f);
+//                log.appendLine("is immutable", f);
                 fr = makeImmutableFieldResolver(f);
-            }else if (defer) {
-                log.appendLine("Explicit defer");
+            } else if (defer) {
+//                log.appendLine("Explicit defer");
                 fr = makeDeferedFieldResolver(f);
             } else if (this.isInitializable(fieldType)) {
-                log.appendLine("is composite", f);
+//                log.appendLine("is composite", f);
                 fr = this.makeCompositeFieldResolver(fieldType, f);
 //                maybeAddToCache(fieldType,f,fr);
             } else {
-                
-                throw new IllegalStateException("Couldn't resolve type for field"+f);
-//                log.appendLine("defered resolver", f);
+
+                throw new IllegalStateException("Couldn't resolve type for field" + f);
 //                fr = makeDeferedFieldResolver(f);
 
             }
         } else { // is array
             final Class compType = fieldType.getComponentType();
-            log.appendLine("Array of " + compType.getName());
+//            log.appendLine("Array of " + compType.getName());
             if (isImmutable(compType)) {
                 fr = makeImmutableArrayFieldResolver(f);
 //                maybeAddToCache(fieldType,f,fr);
@@ -464,18 +467,17 @@ public abstract class FieldFactory {
     private IFieldResolver recursiveResolverCached(final Class startingClass) {
         Map<String, IFieldResolver> resolverMap = new HashMap<>();
         F.iterate(this.getAllFieldsWithShadowing(startingClass), (key, list) -> {
-            IFieldResolver finalResolver = IFieldResolver.empty();
-            for (Field f : list) {
-                f.setAccessible(true);
-                finalResolver = finalResolver.nest(getResolverByField(f.getType(), f, true));
-
-            }
-            resolverMap.put(key, finalResolver);
-        });
+              IFieldResolver finalResolver = IFieldResolver.empty();
+              for (Field f : list) {
+                  f.setAccessible(true);
+                  finalResolver = finalResolver.nest(getResolverByField(f.getType(), f, true));
+              }
+              resolverMap.put(key, finalResolver);
+          });
 
         return (Object source, Object parentObject, ReferenceCounter refCounter) -> {
             for (Map.Entry<String, IFieldResolver> resolverEntry : resolverMap.entrySet()) {
-                log.appendLine("Do clone ", resolverEntry.getKey());
+//                log.appendLine("Do clone ", resolverEntry.getKey());
                 resolverEntry.getValue().cloneField(source, parentObject, refCounter);
             }
         }; // combine fields from map
@@ -484,25 +486,35 @@ public abstract class FieldFactory {
 
     protected Map<Class, IExplicitClone> predefinedClone = new HashMap<>();
     protected Map<Class, IClassConstructor> predefinedClassConstructors = new HashMap<>();
-    protected Map<Class, IClassConstructor> cachedClassConstructors = new HashMap<>();
-    protected Map<Class, IFieldResolver> cachedFieldResolvers = new HashMap<>();
-    protected Map<Class, FieldHolder> cachedFieldHolders = new HashMap<>();
+//    protected Map<Class, IClassConstructor> cachedClassConstructors = new HashMap<>();
+//    protected Map<Class, IFieldResolver> cachedFieldResolvers = new HashMap<>();
+//    protected Map<Class, FieldHolder> cachedFieldHolders = new HashMap<>();
     protected CachedFieldResolvers cachedExactFieldResolvers = new CachedFieldResolvers();
     protected Set<Class> immutableTypes = new HashSet<>();
+
+    protected Cache<Class, FieldHolder> cacheOfFieldHolders = Caffeine.newBuilder().build();
+    protected Cache<Class, IFieldResolver> cacheOfFieldResolvers = Caffeine.newBuilder().build();
+    protected Cache<Class, IClassConstructor> cacheOfClassConstructors = Caffeine.newBuilder().build();
 
     public boolean useFieldHolderCache = false;
     public boolean useCache = false;
     public boolean useFieldCache = false;
     public boolean cacheConstructors = true;
 
-    public FieldFactory() {
-        LineStringBuilder lsb = new LineStringBuilder();
-        Log.instant = true;
-        this.log = (objs) -> {
+    private static Unsafe THE_UNSAFE = null;
 
-            Log.print("FACTORY", lsb.append(objs).clear());
-            return log;
-        };
+    public static Unsafe getUnsafe() {
+        try {
+            if (THE_UNSAFE == null) {
+                Constructor<Unsafe> declaredConstructor = Unsafe.class.getDeclaredConstructor();
+                declaredConstructor.setAccessible(true);
+                THE_UNSAFE = declaredConstructor.newInstance();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return THE_UNSAFE;
+
     }
 
     public <T> T reflectionClone(T source) throws Exception {
@@ -513,22 +525,22 @@ public abstract class FieldFactory {
         recursiveResolver.cloneField(source, newInstance, newReferenceCounter());
         return newInstance;
     }
-    
-    public <T extends Object> T fastClone(T source) throws Exception{
-        if(source instanceof Cloneable){
+
+    public <T extends Object> T fastClone(T source) throws Exception {
+        if (source instanceof Cloneable) {
             Method method = source.getClass().getMethod("clone");
             boolean access = method.isAccessible();
-            if(!access){
+            if (!access) {
                 method.setAccessible(true);
             }
-            
+
             Object cloned = method.invoke(source);
-            if(!access){
+            if (!access) {
                 method.setAccessible(false);
             }
             return (T) cloned;
         }
-        throw new IllegalArgumentException(source +" is not marked as Cloneable");
+        throw new IllegalArgumentException(source + " is not marked as Cloneable");
     }
 
     public <E> FieldFactory addExplicitClone(Class<E> cls, IExplicitClone<E> cloneFunc) {
