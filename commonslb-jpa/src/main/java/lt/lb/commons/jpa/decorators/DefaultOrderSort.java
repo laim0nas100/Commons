@@ -5,9 +5,10 @@
  */
 package lt.lb.commons.jpa.decorators;
 
-import java.sql.Timestamp;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -22,10 +23,14 @@ import javax.persistence.criteria.Selection;
  */
 public class DefaultOrderSort implements OrderSort {
 
+    
+
     public boolean ascending = true;
     public boolean nullFirst = false;
     public boolean nullable = true;
     public int queueOrder;
+
+    public HashMap<Class, LimitResolver> limits = getDefaultLimits();
 
     public Path path;
 
@@ -49,51 +54,57 @@ public class DefaultOrderSort implements OrderSort {
         } else {
             dv += 1;
         }
-//        Class<? extends Number> aClass = value.getClass();
-//        if (aClass.isAssignableFrom(Long.class)) {
-//            return dv.longValue();
-//        } else if (aClass.isAssignableFrom(Integer.class)) {
-//            return dv.intValue();
-//        } else if (aClass.isAssignableFrom(Short.class)) {
-//            return dv.shortValue();
-//        } else if (aClass.isAssignableFrom(Byte.class)) {
-//            return dv.byteValue();
-//        } else if (aClass.isAssignableFrom(Double.class)) {
-//            return dv;
-//        } else if (aClass.isAssignableFrom(Float.class)) {
-//            return dv.floatValue();
-//        }
 
         return dv;
     };
 
-    public static HashMap<Class, LimitResolver> getLimits() {
+    public static LimitResolver<String> stringResolver = (String value, boolean lower) -> {
+        if (lower) {
+            if (!value.isEmpty()) {
+                return value.substring(0, value.length() - 1);
+            }
+            return value;
+        } else {
+            return value + "Z";
+        }
+    };
+
+    public static LimitResolver<Enum> enumResolver = (Enum value, boolean lower) -> {
+        EnumSet allOf = EnumSet.allOf(value.getClass());
+        int ordinal = value.ordinal();
+        Enum extreme = value;
+        for (Object enn : allOf) {
+            Enum en = (Enum) enn;
+            int cmp = extreme.compareTo(en);
+            if (lower && cmp < 0) {
+                extreme = en;
+            } else if (cmp > 1) {
+                extreme = en;
+            }
+        }
+        return extreme;
+    };
+
+    public static HashMap<Class, LimitResolver> getDefaultLimits() {
         HashMap<Class, LimitResolver> m = new HashMap<>();
 
         m.put(Date.class, dateResolver);
         m.put(Number.class, numberResolver);
-
-        m.put(String.class, (LimitResolver<String>) (String value, boolean lower) -> {
-            if (lower) {
-                if (!value.isEmpty()) {
-                    return value.substring(0, value.length() - 1);
-                }
-                return value;
-            } else {
-                return value + "Z";
-            }
-        });
+        m.put(String.class, stringResolver);
 
         return m;
     }
 
-    public static Object resolveValueLimit(Object original, boolean min) {
+    public Object resolveValueLimit(Map<Class, LimitResolver> limits, Object original, boolean min) {
         Class c = original.getClass();
-        HashMap<Class, LimitResolver> limits = getLimits();
-        for(Class clz:limits.keySet()){
-            if(clz.isAssignableFrom(c)){
+        if (c.isEnum()) {
+            return enumResolver.getLimit((Enum) original, min);
+        }
+        for (Class clz : limits.keySet()) {
+            if (clz.isAssignableFrom(c)) {
                 return limits.get(clz).getLimit(original, min);
             }
+
         }
         throw new IllegalArgumentException(c + " type is not supported by DefaultOrderSort");
     }
@@ -110,7 +121,7 @@ public class DefaultOrderSort implements OrderSort {
             }
             Selection selection = query.getSelection();//save selection
             query.select(exp);
-            Object substitute = resolveValueLimit(em.createQuery(query).getSingleResult(), this.needsMin());
+            Object substitute = resolveValueLimit(this.limits, em.createQuery(query).getSingleResult(), this.needsMin());
             query.select(selection);//restore selection
 
             Expression coalesce = cb.coalesce(path, substitute);
