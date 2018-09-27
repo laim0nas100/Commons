@@ -199,6 +199,10 @@ public class ReflectTest {
         c1.otherDate = c1.publicDate;
 
         DefaultFieldFactory factory = new DefaultFieldFactory();
+        factory.log = objs -> {
+            Log.print(objs);
+            return factory.log;
+        };
 
 //        String keepPrinting = rp.keepPrinting(factory.newReflectNode(c1));
 //        Log.print("\n" + keepPrinting);
@@ -228,7 +232,14 @@ public class ReflectTest {
 
         Log.print("CLONE ############ BUFFER");
         ObjectBuffer<Integer> buffer = new ObjectBuffer<>(new BlackHole(), 100);
-        factory.reflectionClone(buffer);
+        for (int i = 0; i < 100; i++) {
+            factory.reflectionClone(buffer);
+        }
+        Log.print("CLONE ############ CCLS");
+        for (int i = 0; i < 100; i++) {
+            clone = factory.reflectionClone(clone);
+        }
+
         long time = System.currentTimeMillis();
 
         ThreadLocal<CCls> t1Cls = ThreadLocal.withInitial(() -> {
@@ -252,7 +263,7 @@ public class ReflectTest {
             t2Cls.get().packageInt += 7;
         };
 
-        int times = 100000;
+        int times = 200000;
         Integer[] toArray = ArrayOp.asArray(1, 2, 3);
 //        Log.print(b.executeBench(times, "Factory no cache", useFactory));
         factory.useFieldHolderCache = true;
@@ -260,18 +271,26 @@ public class ReflectTest {
 //        factory.useFieldCache = false;
 //        Log.print(b.executeBench(times, "Factory field cache", useFactory));
         factory.useCache = true;
-        int threads = 8;
+        int threads = 1;
 
-        Log.print(b.executeBench(times, "Factory full cache", ArrayOp.replicate(threads, useFactory)));
+        Log.print(b.executeBench(times, "Factory", ArrayOp.replicate(threads, useFactory)));
         Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
 
         Log.print("BREAK BOISS");
         System.gc();
-        Log.print("BREAK OVER BOIS");
+        Log.print("BREAK OVER BOISS");
 
         Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
-        Log.print(b.executeBench(times, "Factory full cache", ArrayOp.replicate(threads, useFactory)));
+        Log.print(b.executeBench(times, "Factory", ArrayOp.replicate(threads, useFactory)));
 
+        
+        Log.print("BREAK BOISS 2");
+        System.gc();
+        Log.print("BREAK OVER BOISS");
+        
+Log.print(b.executeBench(times, "Factory", ArrayOp.replicate(threads, useFactory)));
+        Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
+        
 //        for (int i = 0; i < 100000; i++) {
 //            clone = cloner.deepClone(clone);
 //            buffer = cloner.deepClone(buffer);

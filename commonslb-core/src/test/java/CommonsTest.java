@@ -12,6 +12,8 @@ import java.util.Objects;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.interfaces.Equator.HashEquator;
 import lt.lb.commons.misc.F;
 import org.junit.*;
 
@@ -82,7 +84,7 @@ public class CommonsTest {
         ArrayList<Integer> newArrayList = Lists.newArrayList(1,1,2,3,4,5,6,6,7,8,9,10);
         
         Log.print(newArrayList);
-        List<Integer> filterDistinct = F.filterDistinct(newArrayList, (a,b) -> Objects.equals(a%5, b%5));
+        List<Integer> filterDistinct = F.filterDistinct(newArrayList, Equator.primitiveHashEquator());
         
         Log.print(filterDistinct);
         Log.print(newArrayList);
