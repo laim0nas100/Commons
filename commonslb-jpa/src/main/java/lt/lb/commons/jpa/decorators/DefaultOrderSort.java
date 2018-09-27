@@ -24,6 +24,49 @@ import javax.persistence.criteria.Selection;
 public class DefaultOrderSort implements OrderSort {
 
     
+    
+    public static OrderSortBuilder builder(){
+
+        
+        DefaultOrderSort sort = new DefaultOrderSort();
+        
+        return new OrderSortBuilder() {
+            @Override
+            public OrderSortBuilder setAscending(boolean asc) {
+                sort.ascending = asc;
+                return this;
+            }
+
+            @Override
+            public OrderSortBuilder setNullable(boolean nullable) {
+               sort.nullable = nullable;
+            return this;
+            }
+
+            @Override
+            public OrderSortBuilder setNullFirst(boolean nullFirst) {
+                sort.nullFirst = nullFirst;
+            return this;
+            }
+
+            @Override
+            public OrderSortBuilder setQueueOrder(int order) {
+                sort.queueOrder = order;
+            return this;
+            }
+
+            @Override
+            public OrderSortBuilder setPath(Path path) {
+                sort.path = path;
+            return this;
+            }
+
+            @Override
+            public OrderSort build() {
+                return sort;
+            }
+        };
+    }
 
     public boolean ascending = true;
     public boolean nullFirst = false;

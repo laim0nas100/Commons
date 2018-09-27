@@ -31,38 +31,20 @@ public interface OrderSort {
 
     public Order construct(EntityManager em, CriteriaQuery query, CriteriaBuilder cb);
 
-    public static class OrderSortBuidler {
+    public interface OrderSortBuilder {
 
-        private DefaultOrderSort sort = new DefaultOrderSort();
 
-        public OrderSortBuidler setAscending(boolean asc) {
-            sort.ascending = asc;
-            return this;
-        }
+        public OrderSortBuilder setAscending(boolean asc);
 
-        public OrderSortBuidler setNullable(boolean nullable) {
-            sort.nullable = nullable;
-            return this;
-        }
+        public OrderSortBuilder setNullable(boolean nullable);
 
-        public OrderSortBuidler setNullFirst(boolean nullFirst) {
-            sort.nullFirst = nullFirst;
-            return this;
-        }
+        public OrderSortBuilder setNullFirst(boolean nullFirst);
 
-        public OrderSortBuidler setQueueOrder(int order) {
-            sort.queueOrder = order;
-            return this;
-        }
+        public OrderSortBuilder setQueueOrder(int order);
 
-        public OrderSortBuidler setPath(Path path) {
-            sort.path = path;
-            return this;
-        }
+        public OrderSortBuilder setPath(Path path);
 
-        public OrderSort build() {
-            return sort;
-        }
+        public OrderSort build();
     }
 
 }
