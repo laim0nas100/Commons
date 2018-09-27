@@ -10,8 +10,11 @@ import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import lt.lb.commons.ArrayOp;
+import lt.lb.commons.Log;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.interfaces.Equator.HashEquator;
 import lt.lb.commons.interfaces.Iter;
 import lt.lb.commons.interfaces.Iter.IterMap;
 import lt.lb.commons.interfaces.Iter.IterMapNoStop;
@@ -54,6 +57,14 @@ public class F {
         for (T t : from) {
             to.add((K) t);
         }
+    }
+
+    public static boolean instanceOf(Object ob, Class... cls) {
+        if (ob == null) {
+            return false;
+        }
+        Class obClass = ob.getClass();
+        return ArrayOp.any(c -> c.isAssignableFrom(obClass), cls);
     }
 
     public static <T> void merge(List<T> l1, List<T> l2, List<T> addTo, Comparator<T> cmp) {
@@ -198,10 +209,10 @@ public class F {
             ArrayList<T> list = new ArrayList<>();
 
             F.iterate(tuples, (index, t) -> {
-                  for (int i = 0; i < t.g1; i++) {
-                      list.add(t.g2);
-                  }
-              });
+                for (int i = 0; i < t.g1; i++) {
+                    list.add(t.g2);
+                }
+            });
             return F.RND.pickRandom(rnd, list, amount);
         }
 
@@ -209,10 +220,10 @@ public class F {
             ArrayList<T> list = new ArrayList<>();
 
             F.iterate(tuples, (index, t) -> {
-                  for (int i = 0; i < t.g1; i++) {
-                      list.add(t.g2);
-                  }
-              });
+                for (int i = 0; i < t.g1; i++) {
+                    list.add(t.g2);
+                }
+            });
             return F.RND.pickRandom(rnd, list, amount);
         }
     }
@@ -238,8 +249,8 @@ public class F {
 
         ArrayDeque<Promise> deque = new ArrayDeque<>(size);
         F.iterate(col, (i, item) -> {
-              Promise<Void> prom = new Promise(() -> satisfied[i] = pred.test(item)).collect(col).execute(exe);
-          }
+            Promise<Void> prom = new Promise(() -> satisfied[i] = pred.test(item)).collect(col).execute(exe);
+        }
         );
         Promise waiter = new Promise().waitFor(deque);
 
@@ -258,26 +269,57 @@ public class F {
         }
 
     }
+    
+    
+    /**
+     *
+     * @param <T> type
+     * @param col collection to be modified
+     * @param equator equality condition with hashing, so we can use LinkedHashMap
+     * @return all removed elements
+     */
+    public static <T> List<T> filterDistinct(Collection<T> col, HashEquator<T> equator) {
+        if (col instanceof RandomAccess){
+            return filterDistinctRewrite(col,equator);
+        }
+        
+        LinkedHashMap<Object,T> kept = new LinkedHashMap<>();
+        LinkedList<T> removed = new LinkedList<>();
+        Iterator<T> iterator = col.iterator();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            Object hash = equator.getHashable(next);
+            if(kept.containsKey(hash)){
+                removed.add(next);
+                iterator.remove();
+            }else{
+                kept.put(hash, next);
+            }
+        }
+
+        return removed;
+    }
 
     /**
      *
      * @param <T> type
-     * @param col collation to be modified
+     * @param col collection to be modified
      * @param equator equality condition
      * @return all removed elements
      */
     public static <T> List<T> filterDistinct(Collection<T> col, Equator<T> equator) {
+
+        if (col instanceof RandomAccess){
+            return filterDistinctRewrite(col,equator);
+        }
         LinkedList<T> kept = new LinkedList<>();
         LinkedList<T> removed = new LinkedList<>();
         Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
-            Optional<Tuple<Integer, T>> find = F.iterate(kept, (i, item) -> {
-                                                     if (equator.equals(next, item)) {
-                                                         return true;
-                                                     }
-                                                     return false;
-                                                 });
+            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> {
+                return equator.equals(next, item);
+            });
             if (find.isPresent()) {
                 removed.add(next);
                 iterator.remove();
@@ -285,10 +327,69 @@ public class F {
                 kept.add(next);
             }
         }
+
         return removed;
     }
 
-    public static <K, V> Optional<Tuple<K, V>> iterate(Map<K, V> map, IterMap<K, V> iter) {
+    /**
+     *
+     * @param <T> type
+     * @param col collection where removing elements in the middle is expensive,
+     * collection is simply rewritten
+     * @param equator equality condition
+     * @return all removed elements
+     */
+    public static <T> List filterDistinctRewrite(Collection<T> col, Equator<T> equator) {
+        LinkedList<T> kept = new LinkedList<>();
+        LinkedList<T> removed = new LinkedList<>();
+
+        Iterator<T> iterator = col.iterator();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> {
+                return equator.equals(next, item);
+            });
+            if (find.isPresent()) {
+                removed.add(next);
+            } else {
+                kept.add(next);
+            }
+        }
+
+        col.clear();
+        col.addAll(kept);
+        return removed;
+    }
+    
+    /**
+     *
+     * @param <T> type
+     * @param col collection where removing elements in the middle is expensive,
+     * collection is simply rewritten
+     * @param equator equality condition with hashing, so we can use LinkedHashMap
+     * @return all removed elements
+     */
+    public static <T> List filterDistinctRewrite(Collection<T> col, HashEquator<T> equator) {
+        LinkedHashMap<Object,T> kept = new LinkedHashMap<>();
+        LinkedList<T> removed = new LinkedList<>();
+        
+        F.find(col, (i,next)-> (boolean)equator.equals(next, next));
+
+        F.iterate(col, (i,next)->{
+            Object hash = equator.getHashable(next);
+            if(kept.containsKey(hash)){
+                removed.add(next);
+            }else{
+                kept.put(hash, next);
+            }
+        });
+        
+        col.clear();
+        col.addAll(kept.values());
+        return removed;
+    }
+
+    public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {
         Set<Map.Entry<K, V>> entrySet = map.entrySet();
         for (Map.Entry<K, V> entry : entrySet) {
             K k = entry.getKey();
@@ -301,10 +402,10 @@ public class F {
     }
 
     public static <K, V> Optional<Tuple<K, V>> iterate(Map<K, V> map, IterMapNoStop<K, V> iter) {
-        return iterate(map, (IterMap) iter);
+        return find(map, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Integer from, Iter<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> findBackwards(List<T> list, Integer from, Iter<T> iter) {
         ListIterator<T> iterator = list.listIterator(list.size());
         int index = list.size() - 1;
         while (iterator.hasPrevious()) {
@@ -320,18 +421,18 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Iter.IterNoStop<T> iter) {
-        return iterateBackwards(list, list.size(), (Iter) iter);
+        return findBackwards(list, list.size(), iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Iter<T> iter) {
-        return iterateBackwards(list, list.size(), iter);
+    public static <T> Optional<Tuple<Integer, T>> findBackwards(List<T> list, Iter<T> iter) {
+        return findBackwards(list, list.size(), iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterateBackwards(List<T> list, Integer from, Iter.IterNoStop<T> iter) {
-        return iterateBackwards(list, from, (Iter) iter);
+        return findBackwards(list, from, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(T[] array, Integer from, Iter<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> findBackwards(T[] array, Integer from, Iter<T> iter) {
         from = Math.max(from, array.length - 1);
         for (int i = from; i >= 0; i--) {
             if (iter.visit(i, array[i])) {
@@ -341,19 +442,19 @@ public class F {
         return Optional.empty();
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterateBackwards(T[] array, Iter<T> iter) {
-        return iterateBackwards(array, array.length - 1, iter);
+    public static <T> Optional<Tuple<Integer, T>> findBackwards(T[] array, Iter<T> iter) {
+        return findBackwards(array, array.length - 1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterateBackwards(T[] array, Iter.IterNoStop<T> iter) {
-        return iterateBackwards(array, array.length - 1, (Iter) iter);
+        return findBackwards(array, array.length - 1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterateBackwards(T[] array, Integer from, Iter.IterNoStop<T> iter) {
-        return iterateBackwards(array, from, (Iter) iter);
+        return findBackwards(array, from, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Integer from, Iter<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> find(Collection<T> list, Integer from, Iter<T> iter) {
         Iterator<T> iterator = list.iterator();
         int index = 0;
         while (iterator.hasNext()) {
@@ -368,7 +469,7 @@ public class F {
         return Optional.empty();
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Integer from, Iter<T> iter) {
+    public static <T> Optional<Tuple<Integer, T>> find(T[] array, Integer from, Iter<T> iter) {
         for (int i = from; i < array.length; i++) {
             if (iter.visit(i, array[i])) {
                 return Optional.of(new Tuple<>(i, array[i]));
@@ -377,28 +478,28 @@ public class F {
         return Optional.empty();
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Iter<T> iter) {
-        return iterate(array, 0, iter);
+    public static <T> Optional<Tuple<Integer, T>> find(T[] array, Iter<T> iter) {
+        return find(array, 0, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Iter<T> iter) {
-        return iterate(list, 0, iter);
+    public static <T> Optional<Tuple<Integer, T>> find(Collection<T> list, Iter<T> iter) {
+        return find(list, 0, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Iter.IterNoStop<T> iter) {
-        return iterate(array, 0, (Iter) iter);
+        return find(array, 0, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Iter.IterNoStop<T> iter) {
-        return iterate(list, 0, (Iter) iter);
+        return find(list, 0, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Integer from, Iter.IterNoStop<T> iter) {
-        return iterate(array, from, (Iter) iter);
+        return find(array, from, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
-        return iterate(list, from, (Iter) iter);
+        return find(list, from, iter);
     }
 
 }

@@ -7,15 +7,12 @@ package lt.lb.commons.parsing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.UUIDgenerator;
-import lt.lb.commons.containers.AssociativeMap;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.misc.F;
@@ -306,9 +303,7 @@ public class TokenFiniteAutomata {
             resList.add(res);
 
             if (t != null) {
-                Optional<Tuple<String, TGraph>> iterate = F.iterate(this.connectedGraphs, (k, g) -> {
-                    return g.matches(t);
-                });
+                Optional<Tuple<String, TGraph>> iterate = F.find(this.connectedGraphs, (k, g) -> g.matches(t));
                 if (iterate.isPresent()) {
                     TGraph nextGraph = iterate.get().g2;
 
