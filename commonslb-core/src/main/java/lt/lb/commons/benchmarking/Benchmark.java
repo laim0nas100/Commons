@@ -8,6 +8,7 @@ package lt.lb.commons.benchmarking;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
+import lt.lb.commons.misc.F;
 import lt.lb.commons.threads.Promise;
 import lt.lb.commons.threads.UnsafeRunnable;
 
@@ -22,7 +23,13 @@ public class Benchmark {
     public int threads = 8;
 
     public BenchmarkResult executeBench(Integer times, String name, Runnable... run) {
-        ExecutorService serv = Executors.newFixedThreadPool(threads);
+
+        Executor serv;
+        if (threads > 1) {
+            serv = Executors.newFixedThreadPool(threads-1);
+        } else {
+            serv = r -> r.run();
+        }
         BenchmarkResult res = new BenchmarkResult();
         res.name = name;
         if (useGVhintAfterFullBench) {
@@ -49,7 +56,10 @@ public class Benchmark {
 
         }
         res.averageTime = (double) res.totalTime / res.timesRan;
-        serv.shutdownNow();
+        if (serv instanceof ExecutorService) {
+            ExecutorService cast = F.cast(serv);
+            cast.shutdownNow();
+        }
         return res;
 
     }
