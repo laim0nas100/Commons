@@ -36,11 +36,11 @@ public class GeneticSolution {
         public GraphGenome(Collection<Long> path) {
             ID = UUIDgenerator.nextUUID("GraphGenome");
             nodes = new HashSet<>(path);
-            this.path = new ArrayList<>(path);
+            this.path = new LinkedList<>(path);
         }
     }
 
-    public static GraphGenome megredGenome(List<Long> first, Pair<Long> middle, List<Long> last) {
+    public static GraphGenome mergedGenome(List<Long> first, Pair<Long> middle, List<Long> last) {
         List<Long> list = new ArrayList<>();
         list.addAll(first);
         list.add(middle.g1);
@@ -68,29 +68,29 @@ public class GeneticSolution {
         Pair<Long> b = bridge;
 
         int cut1 = F.find(g1.path, (i, l) -> {
-                         return Objects.equals(l, b.g1);
-                     }).get().g1;
+            return Objects.equals(l, b.g1);
+        }).get().g1;
         int cut2 = F.find(g2.path, (i, l) -> {
-                         return Objects.equals(l, b.g2);
-                     }).get().g1;
+            return Objects.equals(l, b.g2);
+        }).get().g1;
 
         List<Long>[] subpaths = ArrayOp.replicate(4, List.class, () -> new ArrayList<>());
         //cut1
 
         F.iterate(g1.path, (i, l) -> {
-              if (i < cut1) {
-                  subpaths[0].add(l);
-              } else if (i > cut1) {
-                  subpaths[1].add(l);
-              }
-          });
+            if (i < cut1) {
+                subpaths[0].add(l);
+            } else if (i > cut1) {
+                subpaths[1].add(l);
+            }
+        });
         F.iterate(g2.path, (i, l) -> {
-              if (i < cut2) {
-                  subpaths[2].add(l);
-              } else if (i > cut2) {
-                  subpaths[3].add(l);
-              }
-          });
+            if (i < cut2) {
+                subpaths[2].add(l);
+            } else if (i > cut2) {
+                subpaths[3].add(l);
+            }
+        });
 
         /*
          * children
@@ -100,12 +100,27 @@ public class GeneticSolution {
          * 1 + link + 3
          */
         List<GraphGenome> children = new ArrayList<>();
-        children.add(megredGenome(subpaths[0], b, subpaths[3]));
-        children.add(megredGenome(subpaths[0], b, reversed(subpaths[2])));
-        children.add(megredGenome(subpaths[2], b.reverse(), subpaths[1]));
-        children.add(megredGenome(reversed(subpaths[3]), b.reverse(), subpaths[1]));
+        children.add(mergedGenome(subpaths[0], b, subpaths[3]));
+        children.add(mergedGenome(subpaths[0], b, reversed(subpaths[2])));
+        children.add(mergedGenome(subpaths[2], b.reverse(), subpaths[1]));
+        children.add(mergedGenome(reversed(subpaths[3]), b.reverse(), subpaths[1]));
 
         return children;
+    }
+
+    public static GraphGenome mutate(Random rnd, Orgraph gr, GraphGenome g) {
+        Long cutNode = F.RND.pickRandom(rnd, g.nodes);
+        Integer indexOf = g.path.indexOf(cutNode);
+        boolean left = rnd.nextBoolean();
+        List<Long> nodes = new ArrayList<>();
+        F.iterate(g.path, (i, n) -> {
+            if (left && i < indexOf) {
+                nodes.add(n);
+            } else if (i > indexOf) {
+                nodes.add(n);
+            }
+        });
+        return new GraphGenome(nodes);
     }
 
     public static <T> ArrayList<T> reversed(List<T> list) {
@@ -122,8 +137,8 @@ public class GeneticSolution {
         }
         nodes.add(path.get(0).nodeFrom);
         F.iterate(path, (i, link) -> {
-              nodes.add(link.nodeTo);
-          });
+            nodes.add(link.nodeTo);
+        });
         return nodes;
     }
 
@@ -133,9 +148,9 @@ public class GeneticSolution {
             return nodes;
         }
         F.iterate(getNodesIDs(path), (i, ID) -> {
-              Optional<GNode> node = gr.getNode(ID);
-              nodes.add(node.get());
-          });
+            Optional<GNode> node = gr.getNode(ID);
+            nodes.add(node.get());
+        });
         return nodes;
     }
 
@@ -151,13 +166,13 @@ public class GeneticSolution {
         ArrayList<GLink> links = new ArrayList<>();
 
         F.iterate(nodes, (i, n) -> {
-              if (n1.linkedFrom.contains(n.ID)) {
-                  links.add(gr.getLink(n.ID, n1.ID).get());
-              }
-              if (n1.linksTo.contains(n.ID)) {
-                  links.add(gr.getLink(n1.ID, n.ID).get());
-              }
-          });
+            if (n1.linkedFrom.contains(n.ID)) {
+                links.add(gr.getLink(n.ID, n1.ID).get());
+            }
+            if (n1.linksTo.contains(n.ID)) {
+                links.add(gr.getLink(n1.ID, n.ID).get());
+            }
+        });
         return links;
     }
 
@@ -169,8 +184,8 @@ public class GeneticSolution {
         List<GLink> bridges = new LinkedList<>();
 
         F.iterate(nodes1, (i, n) -> {
-              bridges.addAll(getPossibleLinks(gr, n, nodes2));
-          });
+            bridges.addAll(getPossibleLinks(gr, n, nodes2));
+        });
         F.filterDistinct(bridges, GLink::equalBidirectional);
 
         return bridges;
