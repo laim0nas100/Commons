@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  * @param <K> key type
  * @param <V> value type
  */

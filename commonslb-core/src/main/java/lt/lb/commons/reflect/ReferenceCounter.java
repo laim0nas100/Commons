@@ -5,15 +5,16 @@
  */
 package lt.lb.commons.reflect;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import com.github.benmanes.caffeine.cache.Cache;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.function.Predicate;
+import lt.lb.commons.containers.HashCache;
 import lt.lb.commons.containers.Tuple;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class ReferenceCounter<T> {
 
@@ -27,7 +28,15 @@ public class ReferenceCounter<T> {
 
     private Predicate<Class> supported;
 
-    private Map<Class, ConcurrentLinkedDeque<Tuple<Object, T>>> references = new ConcurrentHashMap<>();
+    private Cache<Tuple<Class, Object>, Collection<Tuple<Object, T>>> references = newCache();
+
+    protected <K, V> Cache<K, V> newCache() {
+        return new HashCache<>();
+    }
+
+    protected Collection newCollection() {
+        return new ArrayList(1);
+    }
 
     public boolean supported(Object ob) {
         if (ob == null) {
@@ -46,15 +55,19 @@ public class ReferenceCounter<T> {
 
     }
 
+    private Tuple<Class, Object> wrap(Object ob) {
+        return new Tuple<>(ob.getClass(), ob);
+    }
+
     public boolean contains(Object ob) {
         if (!this.supported(ob)) {
             return false;
         }
-        Class cls = ob.getClass();
-        if (!references.containsKey(cls)) {
+        Collection<Tuple<Object, T>> deque = references.getIfPresent(wrap(ob));
+
+        if (deque == null) {
             return false;
         }
-        ConcurrentLinkedDeque<Tuple<Object, T>> deque = references.get(cls);
 
         for (Tuple<Object, T> tuple : deque) {
             if (tuple.g1 == ob) {
@@ -67,33 +80,30 @@ public class ReferenceCounter<T> {
 
     public T get(Object ob) {
         this.assertSupported(ob);
-        Class cls = ob.getClass();
-        if (references.containsKey(cls)) {
-            ConcurrentLinkedDeque<Tuple<Object, T>> deque = references.get(cls);
-            for (Tuple<Object, T> tuple : deque) {
-                if (tuple.g1 == ob) {
-                    return tuple.g2;
-                }
+        Collection<Tuple<Object, T>> deque = references.getIfPresent(wrap(ob));
+        for (Tuple<Object, T> tuple : deque) {
+            if (tuple.g1 == ob) {
+                return tuple.g2;
             }
         }
 
-        throw new RuntimeException("Reference was not found");
+        throw new IllegalArgumentException("Reference was not found");
     }
 
     public boolean registerIfAbsent(Object ob, T value) {
         this.assertSupported(ob);
-        if (this.contains(ob)) {
-            return false;
-        }
-        Class cls = ob.getClass();
-        ConcurrentLinkedDeque<Tuple<Object, T>> deque;
-        if (!references.containsKey(cls)) {
-            deque = new ConcurrentLinkedDeque<>();
-            references.put(cls, deque);
-        } else {
-            deque = references.get(cls);
+        return this.fastRegisterIfAbsent(ob, value);
+    }
+
+    public boolean fastRegisterIfAbsent(Object ob, T value) {
+
+        Collection<Tuple<Object, T>> deque = references.get(wrap(ob), v -> newCollection());
+        for (Tuple<Object, T> tuple : deque) {
+            if (tuple.g1 == ob) {
+                return false;
+            }
         }
         return deque.add(new Tuple<>(ob, value));
-
     }
+
 }

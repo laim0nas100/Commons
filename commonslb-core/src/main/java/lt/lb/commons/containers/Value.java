@@ -7,7 +7,7 @@ package lt.lb.commons.containers;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  *
  * Proxy class
  * @param <T> generic type

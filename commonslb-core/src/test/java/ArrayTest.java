@@ -13,12 +13,13 @@ import org.junit.Test;
  */
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ArrayTest {
 
     @Test
     public void arrayTest() throws InterruptedException {
+        Log.instant = true;
         Integer[] arr = new Integer[]{1, 2, 3};
         Log.print(arr);
         List list = new ArrayList<>();
@@ -35,6 +36,18 @@ public class ArrayTest {
         Log.print("Remove 2");
         Log.print(ArrayOp.removeByIndex(merge, 2, 2));
         Log.print(merge);
+
+        merge = ArrayOp.addAt(merge, 2, -1, -2, -3);
+
+        Log.print("Add at");
+        Log.print(merge);
+
+        Log.print("Remove srip");
+        merge = ArrayOp.removeStrip(merge, 2, 5);
+        Log.print(merge);
+
+        Log.print(ArrayOp.replicate(5, Integer.class, () -> 1));
+        Log.println(ArrayOp.replicate(3, 1d, 2, 3L));
 
         Log.await(1, TimeUnit.HOURS);
     }

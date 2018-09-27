@@ -8,7 +8,7 @@ package lt.lb.commons.parsing;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  * 
  * 
  */

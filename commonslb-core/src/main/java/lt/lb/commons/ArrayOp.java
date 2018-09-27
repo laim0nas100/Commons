@@ -8,24 +8,12 @@ package lt.lb.commons;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.interfaces.Accumulator;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ArrayOp {
-
-    public static <T> T accumulate(Accumulator<T> acc, T... array) {
-        if (array.length == 0) {
-            return null;
-        }
-        T total = array[0];
-        for (int i = 1; i < array.length; i++) {
-            total = acc.accumulate(total, array[i]);
-        }
-        return total;
-    }
 
     public static <T> boolean any(Predicate<T> test, T... array) {
         for (T t : array) {
@@ -48,32 +36,43 @@ public class ArrayOp {
         return !any(test.negate(), array);
     }
 
-    public static <T> T[] merge(T[] one, T... two) {
-        LinkedList<T> list = new LinkedList<>();
-        for (T t : one) {
-            list.add(t);
-        }
-        for (T t : two) {
-            list.add(t);
-        }
+    public static <T> void arrayCopy(T[] src, int srcPos, T[] dest, int destPos, int length) {
+        System.arraycopy(src, srcPos, dest, destPos, length);
+    }
 
+    public static <T> void arrayCopyFullAt(T[] src, T[] dest, int destPos) {
+        System.arraycopy(src, 0, dest, destPos, src.length);
+    }
+
+    public static <T> T[] merge(T[] one, T... two) {
+        int size = one.length + two.length;
         Class<T> componentType = (Class<T>) one.getClass().getComponentType();
-        return newArray(list, componentType);
+        T[] newArray = ArrayOp.makeArray(size, componentType);
+
+        arrayCopyFullAt(one, newArray, 0);
+        arrayCopyFullAt(two, newArray, one.length);
+        return newArray;
 
     }
 
     public static <T> T[] merge(T[] one, T[]... two) {
-        LinkedList<T> list = new LinkedList<>();
-        for (T t : one) {
-            list.add(t);
+        int size = one.length;
+        for (T[] t : two) {
+            size += t.length;
         }
-        for (T[] arr : two) {
-            for (T t : arr) {
-                list.add(t);
-            }
-        }
+
         Class<T> componentType = (Class<T>) one.getClass().getComponentType();
-        return newArray(list, componentType);
+        T[] newArray = ArrayOp.makeArray(size, componentType);
+
+        int i = one.length;
+        arrayCopyFullAt(one, newArray, 0);
+
+        for (T[] t : two) {
+            arrayCopyFullAt(t, newArray, i);
+            i += t.length;
+        }
+
+        return newArray;
 
     }
 
@@ -89,8 +88,7 @@ public class ArrayOp {
         if (clz.isPrimitive()) {
             throw new IllegalArgumentException("Primitives, like " + clz.getName() + " are not supported, use makePrimitiveArray()");
         }
-        T[] a = (T[]) java.lang.reflect.Array.newInstance(clz, size);
-        return a;
+        return (T[]) java.lang.reflect.Array.newInstance(clz, size);
     }
 
     public static Object makePrimitiveArray(Integer size, Class clz) {
@@ -110,7 +108,7 @@ public class ArrayOp {
     }
 
     public static <T> T[] remove(T[] one, T... two) {
-        LinkedList<T> list = new LinkedList<>();
+        ArrayList<T> list = new ArrayList<>(one.length);
         HashSet<T> set = new HashSet<>();
 
         for (T t : two) {
@@ -128,11 +126,9 @@ public class ArrayOp {
     }
 
     public static <T> T[] removeByIndex(T[] one, Integer... two) {
-        LinkedList<T> list = new LinkedList<>();
+        ArrayList<T> list = new ArrayList<>(one.length);
         HashSet<Integer> set = new HashSet<>();
-        for (int index : two) {
-            set.add(index);
-        }
+        set.addAll(Arrays.asList(two));
         int i = 0;
         for (T t : one) {
             if (!set.contains(i)) {
@@ -146,30 +142,33 @@ public class ArrayOp {
     }
 
     public static <T> T[] addAt(T[] one, Integer where, T... what) {
-        LinkedList<T> list = new LinkedList<>();
-
-        for (int i = 0; i < one.length; i++) {
-
-            if (i == where) {
-                for (T t : what) {
-                    list.add(t);
-                }
-            } else {
-                list.add(one[i]);
-            }
-
-        }
+        int size = one.length + what.length;
         Class<T> componentType = (Class<T>) one.getClass().getComponentType();
-        return newArray(list, componentType);
+        T[] newArray = ArrayOp.makeArray(size, componentType);
 
+        ArrayOp.arrayCopy(one, 0, newArray, 0, where); // copy first part
+        ArrayOp.arrayCopyFullAt(what, newArray, where);
+        ArrayOp.arrayCopy(one, where, newArray, where + what.length, one.length - where);
+        return newArray;
+
+    }
+
+    public static <T> T[] removeStrip(T[] one, Integer from, Integer to) {
+
+        int strip = to - from;
+        int size = one.length - strip;
+        Class<T> componentType = (Class<T>) one.getClass().getComponentType();
+        T[] newArray = ArrayOp.makeArray(size, componentType);
+
+        ArrayOp.arrayCopy(one, 0, newArray, 0, from); // copy first part
+        ArrayOp.arrayCopy(one, to, newArray, from, size - from);
+        return newArray;
     }
 
     public static <T> int count(Predicate<T> test, T... array) {
         int count = 0;
         for (T t : array) {
-            if (test.test(t)) {
-                count++;
-            }
+            count += test.test(t) ? 1 : 0;
         }
         return count;
     }
@@ -193,18 +192,14 @@ public class ArrayOp {
 
         return array;
     }
-    
-    public static <T> T[] replicate(Integer times, Supplier<T>...values){
-        int arraySize = times * values.length;
-        if(values.length == 0){
-            return null;
-        }
-        Class<T> cls = (Class<T>) values[0].get().getClass();
 
-        if (cls.isPrimitive()) {
+    public static <T> T[] replicate(Integer times, Class<T> baseClass, Supplier<T>... values) {
+        int arraySize = times * values.length;
+
+        if (baseClass.isPrimitive()) {
             throw new IllegalArgumentException("Primitive values are not supported");
         }
-        T[] array = makeArray(arraySize, cls);
+        T[] array = makeArray(arraySize, baseClass);
         for (int i = 0; i < arraySize; i++) {
             int valIndex = i % values.length;
             array[i] = values[valIndex].get();

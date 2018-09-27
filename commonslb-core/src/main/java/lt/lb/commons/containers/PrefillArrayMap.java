@@ -5,17 +5,14 @@
  */
 package lt.lb.commons.containers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import lt.lb.commons.misc.F;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * Map backed by array, supports all integers and null keys
+ *
+ * @author laim0nas100
  */
 public class PrefillArrayMap<T> implements Map<Integer, T> {
 
@@ -112,8 +109,8 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
     @Override
     public void putAll(Map<? extends Integer, ? extends T> m) {
         F.iterate(m, (k, v) -> {
-            this.put(k, v);
-        });
+              this.put(k, v);
+          });
     }
 
     @Override
@@ -127,21 +124,21 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
     @Override
     public Set<Integer> keySet() {
         HashSet<Integer> set = new HashSet<>();
-        if(this.nullCase.g1){
+        if (this.nullCase.g1) {
             set.add(null);
         }
         set.addAll(positive.keySet());
-        F.iterate(negative.keySet(),(i,val)->{
-           set.add(-val);
-        });
+        F.iterate(negative.keySet(), (i, val) -> {
+              set.add(-val);
+          });
         return set;
-        
+
     }
 
     @Override
     public Collection<T> values() {
         ArrayList<T> values = new ArrayList<>(this.size());
-        if(this.nullCase.g1){
+        if (this.nullCase.g1) {
             values.add(nullCase.g2);
         }
         values.addAll(negative.values());
@@ -151,10 +148,10 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
 
     @Override
     public Set<Entry<Integer, T>> entrySet() {
-        HashSet<Entry<Integer,T>> set = new HashSet<>();
-        if(this.nullCase.g1){
+        HashSet<Entry<Integer, T>> set = new HashSet<>();
+        if (this.nullCase.g1) {
             final T nullVal = nullCase.g2;
-            set.add(new Map.Entry<Integer,T>() {
+            set.add(new Map.Entry<Integer, T>() {
                 @Override
                 public Integer getKey() {
                     return null;
@@ -173,32 +170,31 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
                     return old;
                 }
             });
-            
+
         }
-        F.iterate(negative.entrySet(), (i,entry)->{
-            set.add(new Map.Entry<Integer,T>() {
-                @Override
-                public Integer getKey() {
-                    return entry.getKey()*(-1);
-                }
+        F.iterate(negative.entrySet(), (i, entry) -> {
+              set.add(new Map.Entry<Integer, T>() {
+                  @Override
+                  public Integer getKey() {
+                      return entry.getKey() * (-1);
+                  }
 
-                @Override
-                public T getValue() {
-                    return entry.getValue();
-                }
+                  @Override
+                  public T getValue() {
+                      return entry.getValue();
+                  }
 
-                @Override
-                public T setValue(T value) {
-                    return entry.setValue(value);
-                }
-            });
-        });
-        
-        
+                  @Override
+                  public T setValue(T value) {
+                      return entry.setValue(value);
+                  }
+              });
+          });
+
         set.addAll(positive.entrySet());
-        
+
         return set;
-        
+
     }
 
 }

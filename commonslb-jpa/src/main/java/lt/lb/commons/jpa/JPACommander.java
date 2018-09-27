@@ -10,7 +10,7 @@ import lt.lb.commons.jpa.decorators.IQueryDecorator;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  * @param <T> entity type
  * @param <PrimeKeyT> entity primary key
  * 

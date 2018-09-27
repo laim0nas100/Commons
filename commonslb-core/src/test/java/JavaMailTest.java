@@ -26,7 +26,7 @@ import org.junit.BeforeClass;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class JavaMailTest {
 

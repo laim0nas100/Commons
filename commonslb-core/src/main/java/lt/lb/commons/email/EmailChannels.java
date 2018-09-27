@@ -10,7 +10,7 @@ import javax.mail.internet.MimeMessage;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class EmailChannels {
 

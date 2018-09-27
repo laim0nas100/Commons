@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class RepeatableTask implements Runnable {
 

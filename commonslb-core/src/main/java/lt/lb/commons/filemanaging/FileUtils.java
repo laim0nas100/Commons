@@ -21,7 +21,7 @@ import lt.lb.commons.threads.ExtTask;
 
 /**
  *
- * @author lemmin
+ * @author laim0nas100
  */
 public class FileUtils {
 

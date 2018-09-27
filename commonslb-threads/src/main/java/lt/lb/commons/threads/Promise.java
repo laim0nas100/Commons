@@ -5,13 +5,13 @@
  */
 package lt.lb.commons.threads;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.concurrent.*;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <Type> return type
  */
 public class Promise<Type> extends FutureTask<Type> {
@@ -31,18 +31,33 @@ public class Promise<Type> extends FutureTask<Type> {
         this(() -> null);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public Type get() throws InterruptedException, ExecutionException {
+
+        run();
+        return super.get();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public Type get(long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        run();
+        return super.get(timeout, unit);
+    }
+
     public Promise<Type> waitFor(Promise... before) {
-        Collection<Promise> toWait = new LinkedList<>();
-        for (Promise p : before) {
-            toWait.add(p);
-        }
-        return this.waitFor(toWait);
+        return this.waitFor(Arrays.asList(before));
     }
 
     public Promise<Type> waitFor(Collection<Promise> before) {
         Promise<Type> original = this;
         Promise<Type> newTask = new Promise<>(() -> {
-            int i = 0;
             for (Promise p : before) {
                 p.get();
             }

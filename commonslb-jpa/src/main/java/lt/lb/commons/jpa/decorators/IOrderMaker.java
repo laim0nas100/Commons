@@ -9,7 +9,7 @@ import javax.persistence.criteria.Root;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public interface IOrderMaker<T> extends IQueryDecorator<T> {
 

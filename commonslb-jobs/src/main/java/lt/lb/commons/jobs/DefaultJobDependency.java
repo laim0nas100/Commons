@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class DefaultJobDependency implements JobDependency {
 

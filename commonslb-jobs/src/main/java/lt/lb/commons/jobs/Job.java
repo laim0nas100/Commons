@@ -11,7 +11,7 @@ import lt.lb.commons.UUIDgenerator;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public abstract class Job implements Runnable {
 

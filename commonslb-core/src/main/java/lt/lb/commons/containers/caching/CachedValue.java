@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <T> any value
  */
 public class CachedValue<T> extends Value<T> {

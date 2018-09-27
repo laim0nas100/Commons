@@ -23,7 +23,7 @@ import lt.lb.commons.javafx.scenemanagement.Frame.FrameException;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class MultiStageManager {
 

@@ -1,25 +1,16 @@
 
-import lt.lb.commons.reflect.ReflectNode;
-import lt.lb.commons.reflect.RepeatedReflectNode;
 import com.google.common.collect.Lists;
 import com.rits.cloning.Cloner;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
-import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.benchmarking.BenchmarkResult;
 import lt.lb.commons.containers.ObjectBuffer;
-import lt.lb.commons.containers.Value;
-import lt.lb.commons.interfaces.Getter;
-import lt.lb.commons.reflect.*;
-import org.junit.Test;
-import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
+import lt.lb.commons.reflect.DefaultFieldFactory;
+import lt.lb.commons.reflect.ReflectionPrint;
 import lt.lb.commons.threads.UnsafeRunnable;
+import org.junit.Test;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -28,7 +19,7 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ReflectTest {
 
@@ -48,8 +39,8 @@ public class ReflectTest {
         public Object clone() throws CloneNotSupportedException {
             return super.clone(); //To change body of generated methods, choose Tools | Templates.
         }
-        
-        public void change(float val){
+
+        public void change(float val) {
             this.protFloat = val;
         }
 
@@ -71,7 +62,8 @@ public class ReflectTest {
 
         public DemoEnum en = DemoEnum.one;
         protected Float protFloat = 15f;
-        public void change(float val){
+
+        public void change(float val) {
             super.change(val);
         }
 
@@ -84,7 +76,7 @@ public class ReflectTest {
         public double[] dubArray = new double[]{9, 8, 7};
 
         private DemoEnum[] enumArray = new DemoEnum[]{DemoEnum.one, DemoEnum.two, DemoEnum.three};
-        public List<Integer> intList = Lists.newArrayList(3, 2, 1,-1,-2,-3,-4,-5,-6,-7,-8,-9);
+        public List<Integer> intList = Lists.newArrayList(3, 2, 1, -1, -2, -3, -4, -5, -6, -7, -8, -9);
         private Map<String, Integer> intMap = new HashMap<>();
 
         public CCls2Override(Integer value) {
@@ -93,9 +85,10 @@ public class ReflectTest {
             }
             intMap.put("one", 1);
             intMap.put("two", 2);
-            
+
         }
-        public void change(float val){
+
+        public void change(float val) {
             super.change(val);
         }
 
@@ -172,12 +165,10 @@ public class ReflectTest {
     ReflectionPrint rp = new ReflectionPrint();
 
     Benchmark b = new Benchmark();
-    
-    
 
     @Test
-    public void ok() throws Exception{
-        
+    public void ok() throws Exception {
+
         CCls2Override c1 = new CCls2Override(0);
         c1.dubArray[0] = -1;
         c1.change(50f);
@@ -185,13 +176,15 @@ public class ReflectTest {
         DefaultFieldFactory factory = new DefaultFieldFactory();
         Log.instant = true;
         rp.dump(c1);
-        
+
         CCls2Override c2 = factory.reflectionClone(c1);
         rp.dump(c2);
     }
-    
-    
-    
+
+    public static void main(String... strings) throws Exception {
+        new ReflectTest().bench();
+    }
+
     public void bench() throws Exception {
 
         b.useGChint = false;
@@ -211,10 +204,10 @@ public class ReflectTest {
 //        Log.print("\n" + keepPrinting);
         Log.print(c1.equals(c2), Objects.equals(c1, c2));
 
-        factory.addClassConstructor(CCls2Override.class, () -> new CCls2Override(0));
-        factory.addClassConstructor(ObjectBuffer.class, () -> new ObjectBuffer<>(new BlackHole(), 0));
-        factory.addClassConstructor(ArrayList.class, () -> new ArrayList<>(0));
-        factory.addClassConstructor(Cls.class, () -> new Cls());
+//        factory.addClassConstructor(CCls2Override.class, () -> new CCls2Override(0));
+//        factory.addClassConstructor(ObjectBuffer.class, () -> new ObjectBuffer<>(new BlackHole(), 0));
+//        factory.addClassConstructor(ArrayList.class, () -> new ArrayList<>(0));
+//        factory.addClassConstructor(Cls.class, () -> new Cls());
 //        factory.addExplicitClone(HashMap.class, (fac,val)->{
 //            HashMap map = new HashMap<>(val.size());
 //            Set<Map.Entry> entrySet = val.entrySet();
@@ -251,34 +244,33 @@ public class ReflectTest {
 
         UnsafeRunnable useCloner = () -> {
             t1Cls.set(cloner.deepClone(t1Cls.get()));
-            t1Cls.get().packageInt+=7;
+            t1Cls.get().packageInt += 7;
         };
 
         UnsafeRunnable useFactory = () -> {
             t2Cls.set(factory.reflectionClone(t2Cls.get()));
-            t2Cls.get().packageInt+=7;
+            t2Cls.get().packageInt += 7;
         };
-        int times = 30000;
-        Integer[] toArray = ArrayOp.asArray(1,2,3);
+
+        int times = 100000;
+        Integer[] toArray = ArrayOp.asArray(1, 2, 3);
 //        Log.print(b.executeBench(times, "Factory no cache", useFactory));
         factory.useFieldHolderCache = true;
 //        Log.print(b.executeBench(times, "Factory field holder cache", useFactory));
 //        factory.useFieldCache = false;
 //        Log.print(b.executeBench(times, "Factory field cache", useFactory));
         factory.useCache = true;
-        int threads = 1;
-        
-        Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
+        int threads = 8;
+
         Log.print(b.executeBench(times, "Factory full cache", ArrayOp.replicate(threads, useFactory)));
-        
+        Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
+
         Log.print("BREAK BOISS");
         System.gc();
         Log.print("BREAK OVER BOIS");
-        
+
         Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
         Log.print(b.executeBench(times, "Factory full cache", ArrayOp.replicate(threads, useFactory)));
-
-       
 
 //        for (int i = 0; i < 100000; i++) {
 //            clone = cloner.deepClone(clone);
@@ -288,7 +280,7 @@ public class ReflectTest {
 //            buffer.add(i);
 //            clone.packageInt++;
 //            clone.next.packageInt--;
-////            
+////
 //        }
         time = System.currentTimeMillis() - time;
 //        Log.print(factory.newReflectNode(c2));

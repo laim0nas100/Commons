@@ -9,7 +9,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class PosProperty {
 

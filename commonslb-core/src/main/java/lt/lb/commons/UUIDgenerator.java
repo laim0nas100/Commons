@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class UUIDgenerator {
 

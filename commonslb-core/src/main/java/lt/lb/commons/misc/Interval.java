@@ -7,7 +7,7 @@ package lt.lb.commons.misc;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class Interval extends MinMax {
 

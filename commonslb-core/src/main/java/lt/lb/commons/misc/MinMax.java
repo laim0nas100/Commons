@@ -7,7 +7,7 @@ package lt.lb.commons.misc;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class MinMax {
 

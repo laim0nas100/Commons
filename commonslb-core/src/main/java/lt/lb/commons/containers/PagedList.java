@@ -9,7 +9,7 @@ import java.util.*;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class PagedList<T> implements List<T> {
 

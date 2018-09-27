@@ -13,7 +13,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class TimeoutTask {
 

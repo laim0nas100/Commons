@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class LoopingList<T> extends ArrayList<T> {
 

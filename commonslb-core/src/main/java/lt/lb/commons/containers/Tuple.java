@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class Tuple<Type1, Type2> {
 

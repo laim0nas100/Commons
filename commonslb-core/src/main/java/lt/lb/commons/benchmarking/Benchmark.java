@@ -5,30 +5,21 @@
  */
 package lt.lb.commons.benchmarking;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.*;
 import lt.lb.commons.threads.Promise;
 import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class Benchmark {
 
     public boolean useGChint = false;
     public boolean useGVhintAfterFullBench = true;
     public int threads = 8;
-    
 
     public BenchmarkResult executeBench(Integer times, String name, Runnable... run) {
         ExecutorService serv = Executors.newFixedThreadPool(threads);
@@ -41,7 +32,7 @@ public class Benchmark {
             if (useGChint) {
                 System.gc();
             }
-            long time = execute(serv,run);
+            long time = execute(serv, run);
             res.timesRan++;
             if (res.maxTime == null) {
                 res.maxTime = time;
@@ -63,7 +54,7 @@ public class Benchmark {
 
     }
 
-    public long execute(Executor exe,Runnable... run) {
+    public long execute(Executor exe, Runnable... run) {
 
         List<Promise> promises = new LinkedList<>();
         for (Runnable r : run) {
@@ -72,8 +63,8 @@ public class Benchmark {
         Promise waiter = new Promise().waitFor(promises);
 
         long time = System.nanoTime();
-        
-        for(Promise p:promises){
+
+        for (Promise p : promises) {
             exe.execute(p);
         }
         exe.execute(waiter);

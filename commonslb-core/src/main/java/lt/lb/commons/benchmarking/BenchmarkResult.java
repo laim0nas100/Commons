@@ -7,7 +7,7 @@ package lt.lb.commons.benchmarking;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class BenchmarkResult {
 

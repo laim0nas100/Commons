@@ -9,12 +9,12 @@ import lt.lb.commons.interfaces.StringBuilderActions.ILineStringBuilder;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 
     private StringBuilder sb = new StringBuilder();
-    public static final String LINE_END = "\r\n";
+    public static final String LINE_END = "\n";
 
     @Override
     public LineStringBuilder appendLine(Object... objects) {
@@ -145,8 +145,8 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
     public void getChars(int srcBegin, int srcEnd, char[] chars, int destBegin) {
         sb.getChars(srcBegin, srcEnd, chars, destBegin);
     }
-    
-    public String clear(){
+
+    public String clear() {
         String value = this.toString();
         this.delete(0, this.length());
         return value;
@@ -166,7 +166,7 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
         sb.trimToSize();
     }
 
-    public StringBuilder getReal() {
+    public StringBuilder getStringBuilder() {
         return sb;
     }
 
@@ -181,6 +181,16 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
     @Override
     public String toString() {
         return sb.toString();
+    }
+
+    public LineStringBuilder removeFromStart(int length) {
+        return this.delete(0, length);
+    }
+
+    public LineStringBuilder removeFromEnd(int length) {
+        int lastChar = this.length();
+        int firstChar = lastChar - length;
+        return this.delete(firstChar, lastChar);
     }
 
 }

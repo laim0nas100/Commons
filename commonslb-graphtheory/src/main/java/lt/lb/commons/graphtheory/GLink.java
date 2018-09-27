@@ -12,7 +12,7 @@ import lt.lb.commons.containers.Pair;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class GLink implements Cloneable{
 

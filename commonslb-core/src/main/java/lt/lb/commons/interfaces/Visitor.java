@@ -7,7 +7,7 @@ package lt.lb.commons.interfaces;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public interface Visitor <Obj,Val> {
     public void visit(Obj obj, Val val);

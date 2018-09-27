@@ -8,7 +8,7 @@ package lt.lb.commons.reflect;
 /**
  *
  * 
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class FinalReflectNode extends ReflectNode {
 

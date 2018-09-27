@@ -14,7 +14,7 @@ import javafx.beans.value.ObservableValue;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <V>
  */
 public class BasicProperty<V> implements Property<V> {

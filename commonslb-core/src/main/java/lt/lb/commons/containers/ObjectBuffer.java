@@ -10,7 +10,7 @@ import java.util.Collection;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <T>
  */
 public class ObjectBuffer<T> {

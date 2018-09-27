@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class DynamicBatchExecutor extends DynamicTaskExecutor {
 

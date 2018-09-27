@@ -12,7 +12,7 @@ import java.util.Iterator;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class ArrayBasedCounter {
 

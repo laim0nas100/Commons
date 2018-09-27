@@ -5,23 +5,19 @@
  */
 package lt.lb.commons;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class CLI {
 
     public static Callable<Collection<String>> startNewProcess(String... args) {
         ArrayList<String> output = new ArrayList<>();
-        return (Callable) () -> {
+        return () -> {
             if (args.length < 1) {
                 return null;
             }
@@ -39,11 +35,8 @@ public class CLI {
     }
 
     public static Callable<Collection<String>> startNewJavaProcess(String name, String... args) {
-        ArrayList<String> params = new ArrayList<>();
-        params.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
-        params.add(name);
-        Collections.addAll(params, args);
-        return startNewProcess(params.toArray(new String[args.length + 2]));
+        String path = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+        return startNewProcess(ArrayOp.merge(ArrayOp.asArray(path, name), args));
     }
 
     public static Callable<Process> createNewProcess(String... args) {

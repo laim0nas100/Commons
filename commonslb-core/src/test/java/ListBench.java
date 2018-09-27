@@ -19,7 +19,7 @@ import org.magicwerk.brownies.collections.BigList;
  */
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class ListBench {
 

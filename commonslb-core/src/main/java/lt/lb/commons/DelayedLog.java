@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class DelayedLog implements Closeable {
 
