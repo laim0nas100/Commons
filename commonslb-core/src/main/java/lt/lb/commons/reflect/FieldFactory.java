@@ -14,9 +14,11 @@ import java.time.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.misc.F;
 import sun.misc.Unsafe;
 
@@ -26,11 +28,7 @@ import sun.misc.Unsafe;
  */
 public abstract class FieldFactory {
 
-    private static class CachedFieldResolvers extends ConcurrentHashMap<Tuple<Class, String>, IFieldResolver> {
-
-    }
-
-//    public ILineAppender log = ILineAppender.empty;
+    public ILineAppender log = ILineAppender.empty;
     public static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class};
     public static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class};
     public static final Class[] OTHER_IMMUTABLE_TYPES = {String.class, UUID.class, Pattern.class, BigDecimal.class, BigInteger.class};
@@ -79,26 +77,26 @@ public abstract class FieldFactory {
 
     protected IFieldResolver makeDeferedFieldResolver(Field f) {
         return (Object sourceObject, Object parentObject, ReferenceCounter refCounter) -> {
-            // log.appendLine("In defered resolver", f);
+//            log.appendLine("In defered resolver", f);
 
-//log.appendLine("Try to get instance from " + sourceObject.getClass().getName());
+//            log.appendLine("Try to get instance from " + sourceObject.getClass().getName());
             Object get = f.get(sourceObject);
 
             if (get == null) {// our job is easy
-//log.appendLine("Got null");
+//                log.appendLine("Got null");
                 f.set(parentObject, null);
                 return;
             }
             Class realFieldType = get.getClass();
             IFieldResolver refinedResolver;
 //            if (this.useCache) {
-//                refinedResolver = this.cacheOfFieldResolvers.get(realFieldType, k -> getResolverByField(realFieldType, f, false));
+//                refinedResolver = this.cacheOfFieldResolvers.get(realFieldType, k -> getResolverByField(k, f, false));
 //            } else {
 //                refinedResolver = getResolverByField(realFieldType, f, false);
 //            }
 
             refinedResolver = getResolverByField(realFieldType, f, false);
-//log.appendLine("Got instance", get, realFieldType);
+//            log.appendLine("Got instance", get, realFieldType);
 
             refinedResolver.cloneField(sourceObject, parentObject, refCounter);
         };
@@ -158,17 +156,11 @@ public abstract class FieldFactory {
     }
 
     private FieldHolder getFieldHolder(Class cls) {
-        FieldHolder holder = null;
         if (this.useFieldHolderCache) {
-            holder = this.cacheOfFieldHolders.getIfPresent(cls);
-            if (holder == null) {
-                holder = new FieldHolder(cls);
-                this.cacheOfFieldHolders.put(cls, holder);
-            }
+            return this.cacheOfFieldHolders.get(cls, k -> new FieldHolder(k));
         } else {
-            holder = new FieldHolder(cls);
+            return new FieldHolder(cls);
         }
-        return holder;
     }
 
     private Map<String, List<Field>> getAllFieldsWithShadowing(Class startingClass) {
@@ -177,14 +169,14 @@ public abstract class FieldFactory {
         while (currentClass != null) {
             FieldHolder holder = this.getFieldHolder(currentClass);
             F.iterate(holder.getFields(), (k, v) -> {
-                  if (fields.containsKey(k)) {
-                      fields.get(k).add(v);
-                  } else {
-                      LinkedList<Field> list = new LinkedList<>();
-                      list.add(v);
-                      fields.put(k, list);
-                  }
-              });
+                if (fields.containsKey(k)) {
+                    fields.get(k).add(v);
+                } else {
+                    LinkedList<Field> list = new LinkedList<>();
+                    list.add(v);
+                    fields.put(k, list);
+                }
+            });
             currentClass = currentClass.getSuperclass();
         }
         return fields;
@@ -365,12 +357,12 @@ public abstract class FieldFactory {
 //                    log.appendLine("We good");
                     if (this.cacheConstructors) {
                         this.cacheOfClassConstructors.put(cls, (IClassConstructor) () -> {
-                                                      try {
-                                                          return cons.newInstance(constArray);
-                                                      } catch (Exception e) {
-                                                          throw new RuntimeException(cons.toString() + " has failed now, but was good before??1!");
-                                                      }
-                                                  });
+                            try {
+                                return cons.newInstance(constArray);
+                            } catch (Exception e) {
+                                throw new RuntimeException(cons.toString() + " has failed now, but was good before??1!");
+                            }
+                        });
                     }
                     // we good
                     return (T) newInstance;
@@ -385,13 +377,13 @@ public abstract class FieldFactory {
             newInstance = getUnsafe().allocateInstance(cls);
             if (this.cacheConstructors) {
                 this.cacheOfClassConstructors.put(cls,
-                                                  (IClassConstructor) () -> {
-                                                      try {
-                                                          return getUnsafe().allocateInstance(cls);
-                                                      } catch (Exception e) {
-                                                          throw new RuntimeException("Unsafe has failed now, but was good before??1!");
-                                                      }
-                                                  });
+                        (IClassConstructor) () -> {
+                            try {
+                                return getUnsafe().allocateInstance(cls);
+                            } catch (Exception e) {
+                                throw new RuntimeException("Unsafe has failed now, but was good before??1!");
+                            }
+                        });
             }
 
             return (T) newInstance;
@@ -420,56 +412,67 @@ public abstract class FieldFactory {
     private IFieldResolver getResolverByField(Class fieldType, Field f, boolean defer) {
 //        log.appendLine("Get resolver by field", fieldType, f);
 
-        //TODO maybe cache primitive resolvers, with [class + fieldName]?
-        IFieldResolver fr = null;
-        boolean isSingular = !fieldType.isArray();
-        if (isSingular) {
+        
 
-            if (fieldType.isEnum()) {
-//                log.appendLine("is enum", f);
-                fr = makeEnumFieldResolver(f);
-//                maybeAddToCache(fieldType,f,fr);
-            } else if (isImmutable(fieldType)) {
-//                log.appendLine("is immutable", f);
-                fr = makeImmutableFieldResolver(f);
-            } else if (defer) {
-//                log.appendLine("Explicit defer");
-                fr = makeDeferedFieldResolver(f);
-            } else if (this.isInitializable(fieldType)) {
-//                log.appendLine("is composite", f);
-                fr = this.makeCompositeFieldResolver(fieldType, f);
-//                maybeAddToCache(fieldType,f,fr);
-            } else {
+        Supplier<IFieldResolver> frSupp = () -> {
 
-                throw new IllegalStateException("Couldn't resolve type for field" + f);
+            IFieldResolver fr = null;
+            boolean isSingular = !fieldType.isArray();
+            if (isSingular) {
+
+                if (fieldType.isEnum()) {
+//                    log.appendLine("is enum", f);
+                    fr = makeEnumFieldResolver(f);
+//                maybeAddToCache(fieldType,f,fr);
+                } else if (isImmutable(fieldType)) {
+//                    log.appendLine("is immutable", f);
+                    fr = makeImmutableFieldResolver(f);
+                } else if (defer) {
+//                    log.appendLine("Explicit defer");
+                    fr = makeDeferedFieldResolver(f);
+                } else if (this.isInitializable(fieldType)) {
+//                    log.appendLine("is composite", f);
+                    fr = this.makeCompositeFieldResolver(fieldType, f);
+//                maybeAddToCache(fieldType,f,fr);
+                } else {
+
+                    throw new IllegalStateException("Couldn't resolve type for field" + f);
 //                fr = makeDeferedFieldResolver(f);
 
-            }
-        } else { // is array
-            final Class compType = fieldType.getComponentType();
-//            log.appendLine("Array of " + compType.getName());
-            if (isImmutable(compType)) {
-                fr = makeImmutableArrayFieldResolver(f);
+                }
+            } else { // is array
+                final Class compType = fieldType.getComponentType();
+//                log.appendLine("Array of " + compType.getName());
+                if (isImmutable(compType)) {
+                    fr = makeImmutableArrayFieldResolver(f);
 //                maybeAddToCache(fieldType,f,fr);
-            } else {
-                fr = makeMutableArrayFieldResolver(compType, f);
+                } else {
+                    fr = makeMutableArrayFieldResolver(compType, f);
 //                maybeAddToCache(fieldType,f,fr);
+                }
             }
-        }
 
-        return fr;
+            return fr;
+        };
+        
+        //TODO maybe cache primitive resolvers, with [class + fieldName]?
+        if (this.useFieldCache && !defer) {
+            return this.cacheOfFields.get(f, k -> frSupp.get());
+        }
+        return frSupp.get();
+                
     }
 
     private IFieldResolver recursiveResolverCached(final Class startingClass) {
         Map<String, IFieldResolver> resolverMap = new HashMap<>();
         F.iterate(this.getAllFieldsWithShadowing(startingClass), (key, list) -> {
-              IFieldResolver finalResolver = IFieldResolver.empty();
-              for (Field f : list) {
-                  f.setAccessible(true);
-                  finalResolver = finalResolver.nest(getResolverByField(f.getType(), f, true));
-              }
-              resolverMap.put(key, finalResolver);
-          });
+            IFieldResolver finalResolver = IFieldResolver.empty();
+            for (Field f : list) {
+                f.setAccessible(true);
+                finalResolver = finalResolver.nest(getResolverByField(f.getType(), f, true));
+            }
+            resolverMap.put(key, finalResolver);
+        });
 
         return (Object source, Object parentObject, ReferenceCounter refCounter) -> {
             for (Map.Entry<String, IFieldResolver> resolverEntry : resolverMap.entrySet()) {
@@ -482,19 +485,16 @@ public abstract class FieldFactory {
 
     protected Map<Class, IExplicitClone> predefinedClone = new HashMap<>();
     protected Map<Class, IClassConstructor> predefinedClassConstructors = new HashMap<>();
-//    protected Map<Class, IClassConstructor> cachedClassConstructors = new HashMap<>();
-//    protected Map<Class, IFieldResolver> cachedFieldResolvers = new HashMap<>();
-//    protected Map<Class, FieldHolder> cachedFieldHolders = new HashMap<>();
-//    protected CachedFieldResolvers cachedExactFieldResolvers = new CachedFieldResolvers();
     protected Set<Class> immutableTypes = new HashSet<>();
 
+    protected Cache<Field, IFieldResolver> cacheOfFields = Caffeine.newBuilder().build();
     protected Cache<Class, FieldHolder> cacheOfFieldHolders = Caffeine.newBuilder().build();
     protected Cache<Class, IFieldResolver> cacheOfFieldResolvers = Caffeine.newBuilder().build();
     protected Cache<Class, IClassConstructor> cacheOfClassConstructors = Caffeine.newBuilder().build();
 
-    public boolean useFieldHolderCache = false;
-    public boolean useCache = false;
-    public boolean useFieldCache = false;
+    public boolean useFieldHolderCache = true;
+    public boolean useCache = true;
+    public boolean useFieldCache = true;
     public boolean cacheConstructors = true;
 
     private static Unsafe THE_UNSAFE = null;
@@ -550,9 +550,7 @@ public abstract class FieldFactory {
     }
 
     public FieldFactory addImmutableType(Class... cls) {
-        for (Class cl : cls) {
-            this.immutableTypes.add(cl);
-        }
+        this.immutableTypes.addAll(Arrays.asList(cls));
         return this;
     }
 
