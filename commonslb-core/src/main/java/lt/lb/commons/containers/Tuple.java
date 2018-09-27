@@ -36,10 +36,7 @@ public class Tuple<Type1, Type2> {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 41 * hash + Objects.hashCode(this.g1);
-        hash = 41 * hash + Objects.hashCode(this.g2);
-        return hash;
+        return Objects.hash(g1) + Objects.hash(g2);
     }
 
     @Override
@@ -50,7 +47,8 @@ public class Tuple<Type1, Type2> {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        
+        if(!(obj instanceof Tuple)){
             return false;
         }
         final Tuple<?, ?> other = (Tuple<?, ?>) obj;
