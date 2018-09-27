@@ -67,10 +67,10 @@ public class GeneticSolution {
 
         Pair<Long> b = bridge;
 
-        int cut1 = F.iterate(g1.path, (i, l) -> {
+        int cut1 = F.find(g1.path, (i, l) -> {
                          return Objects.equals(l, b.g1);
                      }).get().g1;
-        int cut2 = F.iterate(g2.path, (i, l) -> {
+        int cut2 = F.find(g2.path, (i, l) -> {
                          return Objects.equals(l, b.g2);
                      }).get().g1;
 

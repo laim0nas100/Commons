@@ -42,7 +42,7 @@ public class GraphGenerator {
         if (gr.nodes.size() < minNodeDegree) {
             throw new IllegalArgumentException("Impossible node degree:" + minNodeDegree + " nodes:" + gr.nodes.size());
         }
-        F.iterate(gr.nodes, (ID, node) -> {
+        F.find(gr.nodes, (ID, node) -> {
             int tryCount = 10000;
             Predicate<Long> suitableNode = (n) -> {
                 return !(n.equals(ID) || node.linksTo.contains(n));

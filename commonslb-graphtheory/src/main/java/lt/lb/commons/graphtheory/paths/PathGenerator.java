@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Function;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
-import lt.lb.commons.interfaces.Getter;
 import lt.lb.commons.misc.F;
 
 /**
@@ -71,7 +71,7 @@ public class PathGenerator {
         };
     }
 
-    public interface ILinkPicker extends Getter<Tuple<GraphInfo, GNode>, Optional<GLink>> {
+    public interface ILinkPicker extends Function<Tuple<GraphInfo, GNode>, Optional<GLink>> {
     }
 
     public static List<GLink> genericUniquePathVisit(Orgraph gr, long startNode, ILinkPicker picker) {
@@ -91,7 +91,7 @@ public class PathGenerator {
     }
 
     private static Optional<GNode> genericPathVisitGetNextNode(Orgraph gr, List<GLink> list, GNode currentNode, Set<Long> visited, ILinkPicker picker) {
-        Optional<GLink> optLink = picker.get(new Tuple<>(new GraphInfo(gr, visited), currentNode));
+        Optional<GLink> optLink = picker.apply(new Tuple<>(new GraphInfo(gr, visited), currentNode));
         if (optLink.isPresent()) {
             GLink link = optLink.get();
             list.add(link);
@@ -113,10 +113,7 @@ public class PathGenerator {
         F.iterateBackwards(pathBackward, (i, item) -> {
             if (i > 0) {// don't add starting node
                 finalList.add(item);
-                return false;
             }
-
-            return true;
         });
         finalList.addAll(pathForward);
 
