@@ -11,7 +11,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.Log;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Equator.HashEquator;
@@ -269,30 +268,30 @@ public class F {
         }
 
     }
-    
-    
+
     /**
      *
      * @param <T> type
      * @param col collection to be modified
-     * @param equator equality condition with hashing, so we can use LinkedHashMap
+     * @param equator equality condition with hashing, so we can use
+     * LinkedHashMap
      * @return all removed elements
      */
     public static <T> List<T> filterDistinct(Collection<T> col, HashEquator<T> equator) {
-        if (col instanceof RandomAccess){
-            return filterDistinctRewrite(col,equator);
+        if (col instanceof RandomAccess) {
+            return filterDistinctRewrite(col, equator);
         }
-        
-        LinkedHashMap<Object,T> kept = new LinkedHashMap<>();
+
+        LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
         LinkedList<T> removed = new LinkedList<>();
         Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
             Object hash = equator.getHashable(next);
-            if(kept.containsKey(hash)){
+            if (kept.containsKey(hash)) {
                 removed.add(next);
                 iterator.remove();
-            }else{
+            } else {
                 kept.put(hash, next);
             }
         }
@@ -309,8 +308,8 @@ public class F {
      */
     public static <T> List<T> filterDistinct(Collection<T> col, Equator<T> equator) {
 
-        if (col instanceof RandomAccess){
-            return filterDistinctRewrite(col,equator);
+        if (col instanceof RandomAccess) {
+            return filterDistinctRewrite(col, equator);
         }
         LinkedList<T> kept = new LinkedList<>();
         LinkedList<T> removed = new LinkedList<>();
@@ -360,30 +359,31 @@ public class F {
         col.addAll(kept);
         return removed;
     }
-    
+
     /**
      *
      * @param <T> type
      * @param col collection where removing elements in the middle is expensive,
      * collection is simply rewritten
-     * @param equator equality condition with hashing, so we can use LinkedHashMap
+     * @param equator equality condition with hashing, so we can use
+     * LinkedHashMap
      * @return all removed elements
      */
     public static <T> List filterDistinctRewrite(Collection<T> col, HashEquator<T> equator) {
-        LinkedHashMap<Object,T> kept = new LinkedHashMap<>();
+        LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
         LinkedList<T> removed = new LinkedList<>();
-        
-        F.find(col, (i,next)-> (boolean)equator.equals(next, next));
 
-        F.iterate(col, (i,next)->{
+        F.find(col, (i, next) -> (boolean) equator.equals(next, next));
+
+        F.iterate(col, (i, next) -> {
             Object hash = equator.getHashable(next);
-            if(kept.containsKey(hash)){
+            if (kept.containsKey(hash)) {
                 removed.add(next);
-            }else{
+            } else {
                 kept.put(hash, next);
             }
         });
-        
+
         col.clear();
         col.addAll(kept.values());
         return removed;
