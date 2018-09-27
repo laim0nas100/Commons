@@ -6,13 +6,11 @@
 package lt.lb.commons.reflect;
 
 import lt.lb.commons.interfaces.Visitor;
-import lt.lb.commons.interfaces.Getter;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import lt.lb.commons.*;
+import java.util.function.Function;
 import lt.lb.commons.reflect.FieldHolder.FieldMap;
 
 /**
@@ -51,7 +49,7 @@ public class ReflectNode {
         this.factory = fac;
         populated = isNull();
         fullyPopulated = isNull();
-        if (!isNull() && clz.isInterface()) { //get true class
+        if (!isNull()) { //get true class
             realClass = ob.getClass();
         }
         holder = new FullFieldHolder<>(realClass);
@@ -177,7 +175,7 @@ public class ReflectNode {
         ReflectNode node = this;
         HashMap<String, ReflectNode> accumulator = new HashMap<>();
         while (node != null) {
-            for (Map.Entry<String, ReflectNode> entry : getter.get(node).entrySet()) {
+            for (Map.Entry<String, ReflectNode> entry : getter.apply(node).entrySet()) {
                 visiter.visit(accumulator, entry);
             }
             node = node.superClassNode;
@@ -189,7 +187,7 @@ public class ReflectNode {
     public static interface NodeVisitor extends Visitor<Map<String, ReflectNode>, Map.Entry<String, ReflectNode>> {
     }
 
-    public static interface NodeGetter extends Getter<ReflectNode, Map<String, ReflectNode>> {
+    public static interface NodeGetter extends Function<ReflectNode, Map<String, ReflectNode>> {
     }
 
     private static NodeVisitor putIfAbsentVisitor = (map, entry) -> {

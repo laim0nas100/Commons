@@ -8,9 +8,9 @@ package lt.lb.commons.reflect;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Log;
-import lt.lb.commons.interfaces.Getter;
 import lt.lb.commons.interfaces.StringBuilderActions;
 import lt.lb.commons.misc.F;
 
@@ -22,7 +22,7 @@ public class ReflectionPrint {
 
     private FieldFactory fac = new DefaultFieldFactory();
 
-    private Map<Class, Getter<?, String>> customPrint = new HashMap<>();
+    private Map<Class, Function<?, String>> customPrint = new HashMap<>();
 
     public ReflectionPrint() {
         this.addCustomPrint(Date.class, (d) -> {
@@ -30,7 +30,7 @@ public class ReflectionPrint {
         });
     }
 
-    public <T> void addCustomPrint(Class<T> cls, Getter<T, String> getter) {
+    public <T> void addCustomPrint(Class<T> cls, Function<T, String> getter) {
         this.customPrint.put(cls, getter);
     }
 
@@ -49,11 +49,11 @@ public class ReflectionPrint {
         return str;
     }
 
-    private String formatValue(ReflectNode node, Getter get) {
+    private String formatValue(ReflectNode node, Function get) {
 
         String str = "";
         do {
-            str += node.getName() + "=" + get.get(node.getValue());
+            str += node.getName() + "=" + get.apply(node.getValue());
             if (!node.isShadowing()) {
                 break;
             } else {
@@ -109,7 +109,7 @@ public class ReflectionPrint {
             sb.appendLine(indent, node.getName(), " <c> </c>");
         } else {
             sb.appendLine(indent, node.getName(), " <c>");
-            F.iterate(node.getAllChildrenKeys(), (i, key) -> {
+            F.find(node.getAllChildrenKeys(), (i, key) -> {
 
                 ReflectNode childNode = allChildren.get(key);
 
