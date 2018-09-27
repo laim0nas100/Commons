@@ -7,7 +7,6 @@ package lt.lb.commons.graphtheory;
 
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.Random;
 import lt.lb.commons.containers.Pair;
 
 /**
@@ -82,6 +81,6 @@ public class GLink implements Cloneable{
 
     @Override
     public String toString() {
-        return this.nodeFrom + " -" + this.weight + "->" + this.nodeTo;
+        return this.nodeFrom + " =[" + this.weight + "]=> " + this.nodeTo;
     }
 }
