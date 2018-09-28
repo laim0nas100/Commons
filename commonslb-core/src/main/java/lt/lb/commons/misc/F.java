@@ -63,6 +63,13 @@ public class F {
             return false;
         }
         Class obClass = ob.getClass();
+        return instanceOf(obClass, cls);
+    }
+
+    public static boolean instanceOf(Class obClass, Class... cls) {
+        if (obClass == null) {
+            return false;
+        }
         return ArrayOp.any(c -> c.isAssignableFrom(obClass), cls);
     }
 
@@ -242,31 +249,52 @@ public class F {
         return len1 - len2;
     }
 
-    public static <T> void parallelFilter(Collection<T> col, Predicate<T> pred, Executor exe) {
+    public static <T> List<T> filterParallel(Collection<T> col, Predicate<T> pred, Executor exe) {
         int size = col.size();
         boolean[] satisfied = new boolean[size];
 
         ArrayDeque<Promise> deque = new ArrayDeque<>(size);
         F.iterate(col, (i, item) -> {
-            Promise<Void> prom = new Promise(() -> satisfied[i] = pred.test(item)).collect(col).execute(exe);
-        }
-        );
+            Promise<Void> prom = new Promise(() -> satisfied[i] = pred.test(item)).collect(deque).execute(exe);
+        });
+
         Promise waiter = new Promise().waitFor(deque);
 
         F.unsafeRun(() -> {
             waiter.get();
         });
+        
+        return removeByConditionIndex(col,satisfied);
 
-        Iterator<T> iterator = col.iterator();
-        int i = 0;
-        while (iterator.hasNext()) {
-            iterator.next();
-            if (!satisfied[i]) {
-                iterator.remove();
+    }
+
+    private static <T> List<T> removeByConditionIndex(Collection<T> col, boolean[] satisfied) {
+        ArrayList<T> removed = new ArrayList<>();
+        if (col instanceof RandomAccess) { // rewrite
+            ArrayList<T> kept = new ArrayList<>();
+            F.iterate(col, (i, item) -> {
+                if (satisfied[i]) {
+                    kept.add(item);
+                } else {
+                    removed.add(item);
+                }
+            });
+            col.clear();
+            col.addAll(kept);
+
+        } else {
+            Iterator<T> iterator = col.iterator();
+            int i = 0;
+            while (iterator.hasNext()) {
+                T next = iterator.next();
+                if (!satisfied[i]) {
+                    iterator.remove();
+                    removed.add(next);
+                }
+                i++;
             }
-            i++;
         }
-
+        return removed;
     }
 
     /**
