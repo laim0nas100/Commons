@@ -15,7 +15,14 @@
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-core</artifactId>
-        </dependency>      
+        </dependency>  
+        
+        <dependency>
+            <groupId>uk.com.robust-it</groupId>
+            <artifactId>cloning</artifactId>
+            <version>1.9.10</version>
+            <scope>test</scope>
+        </dependency>    
 
         <dependency>
             <groupId>junit</groupId>
