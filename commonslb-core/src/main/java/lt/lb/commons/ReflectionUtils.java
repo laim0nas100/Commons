@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lt.lb.commons.reflect;
+package lt.lb.commons;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
