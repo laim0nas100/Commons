@@ -21,8 +21,6 @@ import lt.lb.commons.parsing.TokenFiniteAutomata.TLiteralNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TNumberNode;
 import lt.lb.commons.parsing.TokenFiniteAutomata.TraversedResult;
-import lt.lb.commons.reflect.DefaultFieldFactory;
-import lt.lb.commons.reflect.FieldFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -65,8 +63,6 @@ public class ParamParserTest {
     /*
      *
      */
-
-    FieldFactory fac = new DefaultFieldFactory();
 
     public TGraph getLiteralGraph() {
         TGraph literalGraph = new TGraph("Literal graph");

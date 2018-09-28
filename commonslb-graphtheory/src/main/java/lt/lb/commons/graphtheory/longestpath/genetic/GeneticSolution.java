@@ -12,16 +12,12 @@ import lt.lb.commons.UUIDgenerator;
 import lt.lb.commons.containers.Pair;
 import lt.lb.commons.graphtheory.*;
 import lt.lb.commons.misc.F;
-import lt.lb.commons.reflect.DefaultFieldFactory;
-import lt.lb.commons.reflect.FieldFactory;
 
 /**
  *
  * @author laim0nas100
  */
 public class GeneticSolution {
-
-    FieldFactory factory = new DefaultFieldFactory();
 
     public static class GraphGenome {
 
