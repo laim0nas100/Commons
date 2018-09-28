@@ -23,6 +23,7 @@
         <module>commonslb-graphtheory</module>
         <module>commonslb-jpa</module>
         <module>commonslb-reflection</module>
+        <module>commonslb-email</module>
     </modules>
     
     <dependencyManagement>
@@ -50,6 +51,11 @@
             <dependency>
                 <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-reflection</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-email</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             
