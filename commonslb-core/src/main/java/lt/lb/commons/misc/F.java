@@ -8,6 +8,7 @@ package lt.lb.commons.misc;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lt.lb.commons.ArrayOp;
@@ -189,6 +190,28 @@ public class F {
 
         public static Random RND = new SecureRandom();
 
+        public static void shuffle(List<?> list, Random rnd) {
+            int size = list.size();
+            if (size < 5 || list instanceof RandomAccess) {
+                for (int i = size; i > 1; i--) {
+                    swap(list, i - 1, rnd.nextInt(i));
+                }
+            } else {
+                Object arr[] = list.toArray();
+
+                // Shuffle array
+                for (int i = size; i > 1; i--) {
+                    swap(arr, i - 1, rnd.nextInt(i));
+                }
+                ListIterator it = list.listIterator();
+                for (int i = 0; i < arr.length; i++) {
+                    it.next();
+                    it.set(arr[i]);
+                }
+            }
+
+        }
+
         public static void seededShuffle(List list, Random rnd) {
 //        Integer size = list.size();
 //        List<Integer> indexArray = new ArrayList<>();
@@ -215,10 +238,10 @@ public class F {
             ArrayList<T> list = new ArrayList<>();
 
             F.iterate(tuples, (index, t) -> {
-                for (int i = 0; i < t.g1; i++) {
-                    list.add(t.g2);
-                }
-            });
+                  for (int i = 0; i < t.g1; i++) {
+                      list.add(t.g2);
+                  }
+              });
             return F.RND.pickRandom(rnd, list, amount);
         }
 
@@ -226,12 +249,26 @@ public class F {
             ArrayList<T> list = new ArrayList<>();
 
             F.iterate(tuples, (index, t) -> {
-                for (int i = 0; i < t.g1; i++) {
-                    list.add(t.g2);
-                }
-            });
+                  for (int i = 0; i < t.g1; i++) {
+                      list.add(t.g2);
+                  }
+              });
             return F.RND.pickRandom(rnd, list, amount);
         }
+    }
+
+    public static double lerp(double start, double end, double percent) {
+        return start + percent * (end - start);
+    }
+
+    public static void swap(Object[] arr, int i, int j) {
+        Object tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+    }
+
+    public static void swap(List arr, int i, int j) {
+        arr.set(i, arr.set(j, arr.get(i)));
     }
 
     public static double sigmoid(final double x) {
@@ -253,18 +290,28 @@ public class F {
         int size = col.size();
         boolean[] satisfied = new boolean[size];
 
+        AtomicInteger satisfiedCount = new AtomicInteger(0);
         ArrayDeque<Promise> deque = new ArrayDeque<>(size);
         F.iterate(col, (i, item) -> {
-            Promise<Void> prom = new Promise(() -> satisfied[i] = pred.test(item)).collect(deque).execute(exe);
-        });
+              Promise<Void> prom = new Promise(() -> {
+                  boolean test = pred.test(item);
+                  satisfied[i] = test;
+                  if (test) {
+                      satisfiedCount.incrementAndGet();
+                  }
+
+              }).collect(deque).execute(exe);
+          });
 
         Promise waiter = new Promise().waitFor(deque);
 
         F.unsafeRun(() -> {
             waiter.get();
         });
-        
-        return removeByConditionIndex(col,satisfied);
+        if (size > satisfiedCount.get()) {
+            return removeByConditionIndex(col, satisfied);
+        }
+        return new ArrayList<>();
 
     }
 
@@ -273,12 +320,12 @@ public class F {
         if (col instanceof RandomAccess) { // rewrite
             ArrayList<T> kept = new ArrayList<>();
             F.iterate(col, (i, item) -> {
-                if (satisfied[i]) {
-                    kept.add(item);
-                } else {
-                    removed.add(item);
-                }
-            });
+                  if (satisfied[i]) {
+                      kept.add(item);
+                  } else {
+                      removed.add(item);
+                  }
+              });
             col.clear();
             col.addAll(kept);
 
@@ -345,8 +392,8 @@ public class F {
         while (iterator.hasNext()) {
             T next = iterator.next();
             Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> {
-                return equator.equals(next, item);
-            });
+                                                  return equator.equals(next, item);
+                                              });
             if (find.isPresent()) {
                 removed.add(next);
                 iterator.remove();
@@ -374,8 +421,8 @@ public class F {
         while (iterator.hasNext()) {
             T next = iterator.next();
             Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> {
-                return equator.equals(next, item);
-            });
+                                                  return equator.equals(next, item);
+                                              });
             if (find.isPresent()) {
                 removed.add(next);
             } else {
@@ -404,13 +451,13 @@ public class F {
         F.find(col, (i, next) -> (boolean) equator.equals(next, next));
 
         F.iterate(col, (i, next) -> {
-            Object hash = equator.getHashable(next);
-            if (kept.containsKey(hash)) {
-                removed.add(next);
-            } else {
-                kept.put(hash, next);
-            }
-        });
+              Object hash = equator.getHashable(next);
+              if (kept.containsKey(hash)) {
+                  removed.add(next);
+              } else {
+                  kept.put(hash, next);
+              }
+          });
 
         col.clear();
         col.addAll(kept.values());
