@@ -193,6 +193,7 @@ public class ReflectionUtils {
                 list = new ArrayList<Object>(length);
                 for (int i = 0; i < length; i++) {
                     list.add(Array.get(ob, i));
+                    
                 }
             } else {
                 list = new ArrayList<Object>();
@@ -202,6 +203,18 @@ public class ReflectionUtils {
                 elements.add(reflectionString(element, current, stackLimit, map));
             }
             return collectionToString(elements, current + 1);
+        }
+
+        if (ob instanceof Map) {
+            Map m = (Map) ob;
+            Map<String, String> toPrint = new HashMap<>();
+            for (Object ent : m.entrySet()) {
+                Map.Entry entry = (Map.Entry) ent;
+
+                toPrint.put(String.valueOf(entry.getKey()), reflectionString(entry.getValue(), current, stackLimit, map));
+            }
+
+            return mapToString(toPrint, current + 1);
         }
 
         Class cls = ob.getClass();
@@ -247,5 +260,5 @@ public class ReflectionUtils {
         return pairsToString(fields, current);
 
     }
-    
+
 }
