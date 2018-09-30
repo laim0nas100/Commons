@@ -57,8 +57,6 @@ public class ParamParserTest {
     // @Test
     // public void hello() {}
     public static void main(String[] str) throws Exception {
-        ParamParserTest t = new ParamParserTest();
-        t.ok();
     }
     /*
      *

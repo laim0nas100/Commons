@@ -1,4 +1,6 @@
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Map;
@@ -9,6 +11,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.PrefillArrayMap;
 import lt.lb.commons.misc.MyRandom;
+import org.junit.Test;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -83,6 +86,28 @@ public class CollectionTest {
 
             }
         };
+    }
+
+    @Test
+    public void overflow() {
+        ArrayDeque list = new ArrayDeque<>();
+        
+        //137300000
+        //2147483647
+        //532200000
+        //536800000
+        Log.print(Integer.MAX_VALUE);
+        Log.instant = false;
+        
+        Object ref = new Object();
+        for (long i = 0; i < (long)Integer.MAX_VALUE+1; i++) {
+            list.add(ref);
+            if(i % 100000 == 0){
+                Log.print(i);
+            }
+        }
+
+        Log.print("Size",list.size());
     }
 
 //    @Test

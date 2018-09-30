@@ -6,15 +6,23 @@
 
 import com.google.common.collect.Lists;
 import java.math.BigInteger;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.TreeSet;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.filemanaging.FileReader;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Equator.HashEquator;
 import lt.lb.commons.misc.F;
+import lt.lb.commons.threads.DisposableExecutor;
 import org.junit.*;
 
 /**
@@ -81,14 +89,52 @@ public class CommonsTest {
     
     @Test
     public void testFilterDistinct(){
-        ArrayList<Integer> newArrayList = Lists.newArrayList(1,1,2,3,4,5,6,6,7,8,9,10);
+        Collection<Integer> collection = new LinkedList<>(Arrays.asList(1,1,2,3,4,5,6,6,7,8,9,10));
         
-        Log.print(newArrayList);
-        List<Integer> filterDistinct = F.filterDistinct(newArrayList, Equator.primitiveHashEquator());
+//        List<Integer> filterParallel = F.filterParallel(collection, n -> n%2 == 0, new DisposableExecutor(4));
+//        Log.print("Removed after filter",filterParallel);
+        Log.print("Left after filter",collection);
+        List<Integer> filterDistinct = F.filterDistinct(collection, Equator.valueHashEquator(n -> n%2 == 0? -1 : n.hashCode()));
         
-        Log.print(filterDistinct);
-        Log.print(newArrayList);
+        Log.print("Removed filter distinct",filterDistinct);
+        Log.print("Left",collection);
+        
+        
         
         
     }
+    
+//    @Test
+    public void convertToArff(){
+        
+        
+        Log.instant = true;
+        String desktop = "C:\\Users\\Lemmin\\Desktop\\";
+        String relationTitle = "SomeTitle";
+        
+        
+        F.unsafeRun(()->{
+            ArrayList<String> readFromFile = FileReader.readFromFile(desktop+"raw.txt");
+            int colCount =  readFromFile.get(0).split(",").length;
+            Log.print(colCount);
+            
+            ArrayList<String> arff = new ArrayList<>();
+            arff.add("@relation "+relationTitle);
+            arff.add("");
+            for(int i = 1; i <= colCount; i++){
+                String col = "@attribute col"+i+"   NUMERIC";
+                arff.add(col);
+            }
+            arff.add("");
+            arff.add("@data");
+            arff.addAll(readFromFile);
+            FileReader.writeToFile(desktop+"output.arff", arff);
+            
+            
+            
+            
+            
+        });
+        
+    } 
 }
