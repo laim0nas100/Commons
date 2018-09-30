@@ -5,28 +5,30 @@
  */
 package lt.lb.commons.interfaces;
 
+import java.util.function.Function;
+
 /**
  *
  * @author laim0nas100
  */
-public interface Modifier<Type> {
-
-    public Type call(Type ob);
+public interface Modifier<Type> extends Function<Type,Type>{
 
     public default Modifier<Type> chainNext(Modifier<Type> next) {
+        Modifier<Type> me = this;
         return (Type object) -> {
-            return next.call(this.call(object));
+            return next.apply(me.apply(object));
         };
     }
 
     public default Modifier<Type> chainPrev(Modifier<Type> prev) {
+        Modifier<Type> me = this;
         return (Type object) -> {
-            return this.call(prev.call(object));
+            return me.apply(prev.apply(object));
         };
     }
 
     public static interface Modifiable<ObjectType> {
-
-        public ObjectType apply(Modifier<ObjectType> mod);
+       
+        public ObjectType apply(Modifier<ObjectType> mod);//builder pattern, but with functions
     }
 }
