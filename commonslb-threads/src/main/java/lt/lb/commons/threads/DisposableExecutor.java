@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  *
@@ -21,6 +22,8 @@ public class DisposableExecutor implements Executor {
 
     protected int maxThreads;
     protected AtomicInteger startingThreads = new AtomicInteger(0);
+    protected Consumer<Throwable> errorChannel = (err) -> {
+    };
 
     public DisposableExecutor(int maxThreads) {
         this.maxThreads = maxThreads;
@@ -28,6 +31,14 @@ public class DisposableExecutor implements Executor {
 
     public void setMaxThreads(int maxThreads) {
         this.maxThreads = maxThreads;
+    }
+
+    public void setErrorChannel(Consumer<Throwable> channel) {
+        errorChannel = channel;
+    }
+
+    public Consumer<Throwable> getErrorChannel() {
+        return errorChannel;
     }
 
     @Override
@@ -45,7 +56,7 @@ public class DisposableExecutor implements Executor {
             }
         }
     }
-    Runnable run = () -> {
+    protected Runnable run = () -> {
         try {
             while (!tasks.isEmpty()) {
                 Runnable last = tasks.pollLast();
@@ -54,12 +65,20 @@ public class DisposableExecutor implements Executor {
                 }
 
             }
+        } catch (Throwable th) {
+            try {
+                getErrorChannel().accept(th);
+            } catch (Throwable err) {// we really screwed now
+                err.printStackTrace();
+            }
         } finally {
-            new Thread(
+            Thread thread = new Thread(
                     () -> {
                         update();
                     }
-            ).start();
+            );
+            thread.setName(Thread.currentThread().getName() + " Update");
+            thread.start();
         }
     };
 
