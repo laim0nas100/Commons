@@ -10,7 +10,7 @@ import java.util.*;
 /**
  *
  *
- * Map backed by array, only positive
+ * Map backed by array, only positive. No hashing.
  *
  * @author laim0nas100
  */
