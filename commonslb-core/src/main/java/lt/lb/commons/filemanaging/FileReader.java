@@ -12,8 +12,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import lt.lb.commons.misc.F;
 
 /**
  *
@@ -21,8 +23,8 @@ import java.util.LinkedList;
  */
 public class FileReader {
 
-    public static Collection<String> readFromFile(String URL) throws UnsupportedEncodingException, FileNotFoundException, IOException {
-        LinkedList<String> list = new LinkedList<>();
+    public static ArrayList<String> readFromFile(String URL) throws UnsupportedEncodingException, FileNotFoundException, IOException {
+        ArrayList<String> list = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
             reader.lines().forEach((String line) -> {
                 list.add(line);
@@ -31,8 +33,8 @@ public class FileReader {
         return list;
     }
 
-    public static Collection<String> readFromFile(String URL, String lineComment, String commentStart, String commentEnd) throws FileNotFoundException, IOException {
-        LinkedList<String> list = new LinkedList<>();
+    public static ArrayList<String> readFromFile(String URL, String lineComment, String commentStart, String commentEnd) throws FileNotFoundException, IOException {
+        ArrayList<String> list = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
             reader.lines().forEach((String ln) -> {
                 int indexOf = ln.indexOf(lineComment);      //Find comment start
@@ -50,9 +52,8 @@ public class FileReader {
         }
         boolean inComment = false;
 
-        LinkedList<String> finalList = new LinkedList<>();
-        String[] array = list.toArray(new String[1]);
-        for (String str : array) {
+        ArrayList<String> finalList = new ArrayList<>();
+        for (String str : list) {
             do {
                 if (inComment) {
                     if (str.contains(commentEnd)) {
@@ -94,8 +95,8 @@ public class FileReader {
         return finalList;
     }
 
-    public static Collection<String> readFromFile(String URL, String lineComment) throws FileNotFoundException, IOException {
-        LinkedList<String> list = new LinkedList<>();
+    public static ArrayList<String> readFromFile(String URL, String lineComment) throws FileNotFoundException, IOException {
+        ArrayList<String> list = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
             reader.lines().forEach((String ln) -> {
                 int indexOf = ln.indexOf(lineComment);      //Find comment start
@@ -116,9 +117,9 @@ public class FileReader {
 
     public static void writeToFile(String URL, Collection<String> list) throws FileNotFoundException, UnsupportedEncodingException {
         try (PrintWriter out = new PrintWriter(URL, "UTF-8")) {
-            list.forEach(line -> {
+            for(String line:list){
                 out.println(line);
-            });
+            }
         }
     }
 }
