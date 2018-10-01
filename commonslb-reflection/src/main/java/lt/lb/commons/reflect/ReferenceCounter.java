@@ -6,10 +6,10 @@
 package lt.lb.commons.reflect;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Predicate;
-import lt.lb.commons.containers.HashCache;
 import lt.lb.commons.containers.Tuple;
 
 /**
@@ -31,7 +31,7 @@ public class ReferenceCounter<T> {
     private Cache<Tuple<Class, Object>, Collection<Tuple<Object, T>>> references = newCache();
 
     protected <K, V> Cache<K, V> newCache() {
-        return new HashCache<>();
+        return Caffeine.newBuilder().build();
     }
 
     protected Collection newCollection() {
