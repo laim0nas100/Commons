@@ -15,6 +15,9 @@ public class Interval extends MinMax {
         return new Interval(Double.MAX_VALUE, -Double.MAX_VALUE);
     }
 
+    public static final Interval ZERO_ONE = new Interval(0, 1);
+    public static final Interval MINUS_ONE_ONE = new Interval(-1, 1);
+
     public Interval(Number min, Number max) {
         super(min, max);
     }
@@ -26,8 +29,8 @@ public class Interval extends MinMax {
     public double getAbsDiff() {
         return Math.abs(getDiff());
     }
-    
-    private static double d(Number val){
+
+    private static double d(Number val) {
         return val.doubleValue();
     }
 
@@ -62,18 +65,21 @@ public class Interval extends MinMax {
     }
 
     public double clamp(Number val) {
-        return Math.min(Math.max(d(val), min.doubleValue()), max.doubleValue());
+        return Math.min(Math.max(d(val), d(min)), d(max));
     }
 
-    public void expand(Number val) {
+    public Interval expand(Number val) {
         double v = d(val);
-        if (d(this.max) < v) {
-            this.max = val;
+        Number newMax = this.max;
+        if (d(newMax) < v) {
+            newMax = val;
         }
 
-        if (d(this.min) > v) {
-            this.min = val;
+        Number newMin = this.min;
+        if (d(newMax) > v) {
+            newMax = val;
         }
+        return new Interval(newMin, newMax);
     }
 
 }

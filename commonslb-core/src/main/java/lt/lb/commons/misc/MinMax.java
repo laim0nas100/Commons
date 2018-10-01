@@ -11,7 +11,7 @@ package lt.lb.commons.misc;
  */
 public class MinMax {
 
-    public Number min, max;
+    public final Number min, max;
 
     public MinMax(Number min, Number max) {
         this.min = min;
