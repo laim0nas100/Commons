@@ -14,7 +14,9 @@ import java.util.function.Consumer;
 /**
  *
  * @author laim0nas100
+ * use FastExecutor
  */
+@Deprecated
 public class DisposableExecutor implements Executor {
 
     protected final ConcurrentLinkedDeque<Runnable> tasks = new ConcurrentLinkedDeque<>();
