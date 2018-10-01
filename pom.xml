@@ -24,6 +24,7 @@
         <module>commonslb-jpa</module>
         <module>commonslb-reflection</module>
         <module>commonslb-email</module>
+        <module>commonslb-tests</module>
     </modules>
     
     <dependencyManagement>
@@ -56,6 +57,11 @@
             <dependency>
                 <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-email</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-tests</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             

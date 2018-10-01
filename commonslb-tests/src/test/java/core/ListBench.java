@@ -1,3 +1,5 @@
+package core;
+
 
 import lt.lb.commons.containers.PagedList;
 import lt.lb.commons.containers.PagedHashList;
