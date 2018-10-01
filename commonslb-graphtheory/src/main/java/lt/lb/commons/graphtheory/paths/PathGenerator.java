@@ -18,6 +18,7 @@ import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.misc.F;
+import lt.lb.commons.misc.RandomDistribution;
 
 /**
  *
@@ -51,7 +52,7 @@ public class PathGenerator {
         };
     }
 
-    public static ILinkPicker nodeDegreeDistributed(Random rnd) {
+    public static ILinkPicker nodeDegreeDistributed(RandomDistribution rnd) {
         return (Tuple<GraphInfo, GNode> f) -> {
             Orgraph gr = f.g1.graph;
             ArrayList<Tuple<Integer, Long>> nodeList = new ArrayList<>();
@@ -65,7 +66,7 @@ public class PathGenerator {
             if (nodeList.isEmpty()) {
                 return Optional.empty();
             }
-            Long nodeTo = F.RND.pickRandomDistributed(rnd, 1, nodeList).getFirst();
+            Long nodeTo = rnd.pickRandomDistributed(1, nodeList).getFirst();
 
             return gr.getLink(f.g2.ID, nodeTo);
         };
@@ -121,7 +122,4 @@ public class PathGenerator {
 
     }
 
-//    public static List<GLink> generateLongInitialPath(Orgraph gr) {
-//
-//    }
 }

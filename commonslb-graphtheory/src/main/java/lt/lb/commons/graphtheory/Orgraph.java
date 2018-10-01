@@ -44,7 +44,7 @@ public class Orgraph {
         n2.linkedFrom.add(n1.ID);
         boolean collision = false;
         if (this.links.containsKey(link.key())) {
-            Log.print("Collision");
+//            Log.print("Collision");
             collision = true;
         }
         this.links.put(link.key(), link);

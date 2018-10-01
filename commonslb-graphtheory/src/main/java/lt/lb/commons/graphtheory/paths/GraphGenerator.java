@@ -6,11 +6,11 @@
 package lt.lb.commons.graphtheory.paths;
 
 import java.util.HashSet;
-import java.util.Random;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.misc.F;
+import lt.lb.commons.misc.RandomDistribution;
 
 /**
  *
@@ -18,7 +18,7 @@ import lt.lb.commons.misc.F;
  */
 public class GraphGenerator {
 
-    public static void generateSimpleConnected(Random rnd, Orgraph gr, int nodeCount, Supplier<Double> linkWeight) {
+    public static void generateSimpleConnected(RandomDistribution rnd, Orgraph gr, int nodeCount, Supplier<Double> linkWeight) {
         HashSet<Long> unconnected = new HashSet<>();
         HashSet<Long> connected = new HashSet<>();
         for (int i = 0; i < nodeCount; i++) {
@@ -31,14 +31,14 @@ public class GraphGenerator {
 
         //connect 'em all up
         while (!unconnected.isEmpty()) {
-            Long from = F.RND.pickRandom(rnd, connected);
-            Long to = F.RND.removeRandom(rnd, unconnected);
+            Long from = rnd.pickRandom(connected);
+            Long to = rnd.removeRandom(unconnected);
             connected.add(to);
             gr.add2wayLink(gr.newLink(from, to, linkWeight.get()));
         }
     }
 
-    public static void densify(Random rnd, Orgraph gr, int minNodeDegree, Supplier<Double> linkWeight) {
+    public static void densify(RandomDistribution rnd, Orgraph gr, int minNodeDegree, Supplier<Double> linkWeight) {
         if (gr.nodes.size() < minNodeDegree) {
             throw new IllegalArgumentException("Impossible node degree:" + minNodeDegree + " nodes:" + gr.nodes.size());
         }
@@ -51,7 +51,7 @@ public class GraphGenerator {
                 boolean found = false;
                 Long pickRandom = null;
                 while (!found) {
-                    pickRandom = F.RND.pickRandom(rnd, gr.nodes.keySet());
+                    pickRandom = rnd.pickRandom(gr.nodes.keySet());
                     found = suitableNode.test(pickRandom);
                     if (tryCount < 0) {
                         return false;

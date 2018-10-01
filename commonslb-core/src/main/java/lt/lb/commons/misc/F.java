@@ -261,8 +261,8 @@ public class F {
         return start + percent * (end - start);
     }
 
-    public static void swap(Object[] arr, int i, int j) {
-        Object tmp = arr[i];
+    public static <T> void swap(T[] arr, int i, int j) {
+        T tmp = arr[i];
         arr[i] = arr[j];
         arr[j] = tmp;
     }

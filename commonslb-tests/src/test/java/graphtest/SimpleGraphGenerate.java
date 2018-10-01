@@ -7,11 +7,13 @@ package graphtest;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 import lt.lb.commons.Log;
 import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.graphtheory.paths.GraphGenerator;
 import lt.lb.commons.misc.F;
+import lt.lb.commons.misc.RandomDistribution;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -24,22 +26,22 @@ import static org.junit.Assert.*;
  * @author Laimonas-Beniusis-PC
  */
 public class SimpleGraphGenerate {
-    
+
     public SimpleGraphGenerate() {
     }
-    
+
     @BeforeClass
     public static void setUpClass() {
     }
-    
+
     @AfterClass
     public static void tearDownClass() {
     }
-    
+
     @Before
     public void setUp() {
     }
-    
+
     @After
     public void tearDown() {
     }
@@ -49,30 +51,26 @@ public class SimpleGraphGenerate {
     //
     // @Test
     // public void hello() {}
-    
-    
-    static{
+    static {
         Log.instant = true;
     }
+
     @Test
-    public void generateSimple(){
+    public void generateSimple() {
         Orgraph gr = new Orgraph();
-        GraphGenerator.generateSimpleConnected(F.RND.RND, gr, 50, ()->1d);
-        
-        
-        
+        Random r = new Random(10);
+        GraphGenerator.generateSimpleConnected(RandomDistribution.dice(() -> r.nextDouble(), 0), gr, 50, () -> 1d);
+
         ArrayList<GLink> links = new ArrayList<>(gr.links.values());
-        Collections.sort(links,(a,b)->{
+        Collections.sort(links, (a, b) -> {
             int c = (int) (a.nodeFrom - b.nodeFrom);
-            if(c == 0){
+            if (c == 0) {
                 c = (int) (a.nodeTo - b.nodeTo);
             }
-            
+
             return c;
         });
         Log.printLines(links);
-        
-        
-        
+
     }
 }
