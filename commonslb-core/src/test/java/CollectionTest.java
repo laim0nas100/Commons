@@ -88,7 +88,6 @@ public class CollectionTest {
         };
     }
 
-    @Test
     public void overflow() {
         ArrayDeque list = new ArrayDeque<>();
         
