@@ -6,6 +6,7 @@
 package lt.lb.commons.containers;
 
 import java.util.*;
+import lt.lb.commons.misc.F;
 
 /**
  *
@@ -45,11 +46,15 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     public boolean isEmpty() {
         return size == 0;
     }
+    
+    private Tuple<Boolean,T> unwrap(Object ob){
+        return F.cast(ob);
+    }
 
     @Override
     public boolean containsKey(Object key) {
         int k = (int) key;
-        return (data.length > k) && !isAbsent((Tuple<Boolean, T>) data[k]);
+        return (data.length > k) && !isAbsent(unwrap(data[k]));
     }
 
     @Override
@@ -66,7 +71,8 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     public T get(Object key) {
         int k = (int) key;
         if (data.length > k) {
-            return (T) data[k];
+            Tuple<Boolean, T> item = unwrap(data[k]);
+            return item.g2;
         }
         return null;
     }
@@ -90,7 +96,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         int k = key;
         if (data.length > k) {
             Tuple<Boolean, T> value = wrap(val);
-            Tuple<Boolean, T> item = (Tuple<Boolean, T>) data[k];
+            Tuple<Boolean, T> item = unwrap(data[k]);
             boolean valNull = isAbsent(value);
             boolean itemNull = isAbsent(item);
             if (itemNull && !valNull) {
@@ -108,33 +114,19 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     }
 
     private boolean isAbsent(Tuple<Boolean, T> ob) {
-        return !ob.g1;
+        return ob.g1 == false;
     }
 
-    public T[] extractInterval(Integer from, Integer to) {
-        return Arrays.copyOfRange((T[]) data, from, to);
-    }
 
-    public void overWriteRange(Integer from, Integer to, T val) {
-        if (data.length < to) {
-            if (val != nullObject) {
-                size += to - data.length;
-            }
-            grow(to);
-        }
-        for (; from < to; from++) {
-            data[from] = val;
-        }
-    }
 
     @Override
     public T remove(Object key) {
         int k = (int) key;
         if (data.length > k) {
-            if (!isAbsent((Tuple<Boolean, T>) data[k])) {
+            Tuple<Boolean, T> item = unwrap(data[k]);
+            if (!isAbsent(item)) {
                 size--;
             }
-            Tuple<Boolean, T> item = (Tuple<Boolean, T>) data[k];
             data[k] = nullObject;
             return item.g2;
         }
@@ -153,7 +145,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         int growBy = a.length;
         int numNew = 0;
         for (Object ob : a) {
-            if (!isAbsent((Tuple<Boolean, T>) ob)) {
+            if (!isAbsent(unwrap(ob))) {
                 numNew++;
             }
         }
@@ -180,7 +172,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     public Set<Integer> keySet() {
         Set<Integer> set = new HashSet<>();
         for (int i = 0; i < data.length; i++) {
-            Tuple<Boolean, T> t = (Tuple<Boolean, T>) data[i];
+            Tuple<Boolean, T> t = unwrap(data[i]);
             if (t.g1) {
                 set.add(i);
             }
@@ -192,7 +184,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     public Collection<T> values() {
         ArrayList<T> values = new ArrayList<>(size);
         for (int i = 0; i < data.length; i++) {
-            Tuple<Boolean, T> t = (Tuple<Boolean, T>) data[i];
+            Tuple<Boolean, T> t = unwrap(data[i]);
             if (t.g1) {
                 values.add(t.g2);
             }
@@ -208,10 +200,11 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         PrefillArrayMap2 me = this;
 
         for (int i = 0; i < data.length; i++) {
-
-            if (!isAbsent((Tuple<Boolean, T>) data[i])) {
+            Tuple<Boolean, T> item = unwrap(data[i]);
+            
+            if (!isAbsent(item)) {
                 final Integer key = i;
-                final T value = this.get(key);
+                final T value = item.g2;
                 Entry<Integer, T> en = new Entry() {
                     @Override
                     public Object getKey() {
