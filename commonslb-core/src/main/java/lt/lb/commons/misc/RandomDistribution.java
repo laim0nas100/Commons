@@ -7,6 +7,7 @@ package lt.lb.commons.misc;
 
 import java.util.*;
 import java.util.function.Supplier;
+import lt.lb.commons.containers.Tuple;
 import static lt.lb.commons.misc.F.swap;
 
 /**
@@ -168,6 +169,28 @@ public interface RandomDistribution {
         T pickRandom = pickRandom(col);
         col.remove(pickRandom);
         return pickRandom;
+    }
+
+    public default <T> LinkedList<T> pickRandomDistributed(int amount, Tuple<Integer, T>... tuples) {
+        ArrayList<T> list = new ArrayList<>();
+
+        F.iterate(tuples, (index, t) -> {
+            for (int i = 0; i < t.g1; i++) {
+                list.add(t.g2);
+            }
+        });
+        return pickRandom(list, amount);
+    }
+
+    public default <T> LinkedList<T> pickRandomDistributed(int amount, Collection<Tuple<Integer, T>> tuples) {
+        ArrayList<T> list = new ArrayList<>();
+
+        F.iterate(tuples, (index, t) -> {
+            for (int i = 0; i < t.g1; i++) {
+                list.add(t.g2);
+            }
+        });
+        return pickRandom(list, amount);
     }
 
 }
