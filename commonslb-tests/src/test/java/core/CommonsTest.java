@@ -6,25 +6,17 @@ package core;
  * and open the template in the editor.
  */
 
-import com.google.common.collect.Lists;
 import java.math.BigInteger;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.TreeSet;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
-import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.filemanaging.FileReader;
 import lt.lb.commons.interfaces.Equator;
-import lt.lb.commons.interfaces.Equator.HashEquator;
 import lt.lb.commons.F;
-import lt.lb.commons.threads.DisposableExecutor;
 import org.junit.*;
 
 /**
@@ -89,7 +81,7 @@ public class CommonsTest {
         Thread.sleep(500);
     }
     
-    @Test
+//    @Test
     public void testFilterDistinct(){
         Collection<Integer> collection = new LinkedList<>(Arrays.asList(1,1,2,3,4,5,6,6,7,8,9,10));
         
@@ -104,6 +96,15 @@ public class CommonsTest {
         
         
         
+    }
+    
+    @Test
+    public void readFile() throws Exception{
+            String desktop = "C:\\Users\\Lemmin\\Desktop\\";
+            String url = desktop+"myFile.txt";
+            ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "/*", "*/");
+            Log.instant = true;
+            Log.printLines(readFromFile);
     }
     
 //    @Test
@@ -131,10 +132,6 @@ public class CommonsTest {
             arff.add("@data");
             arff.addAll(readFromFile);
             FileReader.writeToFile(desktop+"output.arff", arff);
-            
-            
-            
-            
             
         });
         
