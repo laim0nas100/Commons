@@ -15,11 +15,12 @@ public class Timer {
     private final long m = k * k;
     private final long b = k * k * k;
 
-    private long startNanos;
-    private long lastStopNanos;
+    private long startNanos; //timer create time
+    private long lastStopNanos; // incremental timer, used with lastStop
 
     public Timer(long nanos) {
         startNanos = nanos;
+        lastStopNanos = startNanos;
     }
 
     public Timer() {
