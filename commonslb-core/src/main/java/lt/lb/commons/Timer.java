@@ -7,16 +7,16 @@ package lt.lb.commons;
 
 /**
  *
- * @author laim0nas100
- * Minimal timer using System.nanoTime()
+ * @author laim0nas100 Minimal timer using System.nanoTime()
  */
 public class Timer {
 
     private final long k = 1000;
     private final long m = k * k;
     private final long b = k * k * k;
-    
+
     private long startNanos;
+    private long lastStopNanos;
 
     public Timer(long nanos) {
         startNanos = nanos;
@@ -27,6 +27,7 @@ public class Timer {
     }
 
     public long stopNanos(long nowNanos) {
+        lastStopNanos = nowNanos;
         return nowNanos - startNanos;
     }
 
@@ -35,7 +36,7 @@ public class Timer {
     }
 
     public long stopSeconds(long seconds) {
-        return stopMillis(seconds * k) / k;
+        return stopNanos(seconds * b) / b;
     }
 
     public long stopNanos() {
@@ -50,4 +51,29 @@ public class Timer {
         return stopNanos(System.nanoTime()) / b;
     }
 
+    public long lastStopNanos(long nanos) {
+        long timePassed = lastStopNanos - nanos;
+        stopNanos(nanos);
+        return timePassed;
+    }
+
+    public long lastStopMillis(long millis) {
+        return lastStopNanos(millis * m) / m;
+    }
+
+    public long lastStopSeconds(long seconds) {
+        return lastStopNanos(seconds * b) / b;
+    }
+
+    public long lastStopNanos() {
+        return lastStopNanos(System.nanoTime());
+    }
+
+    public long lastStopMillis() {
+        return lastStopNanos(System.nanoTime()) / m;
+    }
+
+    public long lastStopSeconds() {
+        return lastStopNanos(System.nanoTime()) / b;
+    }
 }
