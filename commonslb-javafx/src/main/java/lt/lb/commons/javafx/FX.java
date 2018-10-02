@@ -23,7 +23,17 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class FX {
 
-    private final static Executor platformExecutor = Platform::runLater;
+    public static boolean isFXthread() {
+        return Platform.isFxApplicationThread();
+    }
+
+    private final static Executor platformExecutor = (Runnable r) -> {
+        if (isFXthread()) {
+            r.run();
+        } else {
+            Platform.runLater(r);
+        }
+    };
 
     public static CompletableFuture<Void> submit(Runnable run) {
         return CompletableFuture.runAsync(run, platformExecutor);
@@ -68,10 +78,10 @@ public class FX {
 
     public static void join(Collection<Future> futures) {
         F.iterate(futures, (i, f) -> {
-              F.unsafeRun(() -> {
-                  f.get();
-              });
-          }
+            F.unsafeRun(() -> {
+                f.get();
+            });
+        }
         );
     }
 
