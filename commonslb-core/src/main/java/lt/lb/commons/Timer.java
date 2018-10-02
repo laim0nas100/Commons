@@ -24,7 +24,7 @@ public class Timer {
     }
 
     public Timer() {
-        startNanos = System.nanoTime();
+        this(System.nanoTime());
     }
 
     public long stopNanos(long nowNanos) {
@@ -53,7 +53,7 @@ public class Timer {
     }
 
     public long lastStopNanos(long nanos) {
-        long timePassed = lastStopNanos - nanos;
+        long timePassed = nanos - lastStopNanos;
         stopNanos(nanos);
         return timePassed;
     }
