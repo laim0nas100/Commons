@@ -15,7 +15,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 
 /**
  *

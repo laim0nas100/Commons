@@ -5,12 +5,13 @@
  */
 package lt.lb.commons.misc;
 
+import lt.lb.commons.F;
 import java.util.*;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.Tuple;
-import static lt.lb.commons.misc.F.swap;
 
 /**
+ * RandomGenerator based on Double number generator
  *
  * @author Lemmin
  */
@@ -59,31 +60,85 @@ public interface RandomDistribution {
         };
     }
 
+    /**
+     * Base method.
+     * @return returns distributed Double
+     */
     public Double nextDouble();
 
-    public default Double nextDouble(Number lowerBound, Number upperBound) {
-        double min = lowerBound.doubleValue();
-        double max = upperBound.doubleValue();
-        double diff = max - min;
+    public default Supplier<Boolean> getBooleanSupplier() {
+        return () -> this.nextBoolean();
+    }
+
+    public default Supplier<Integer> getIntegerSuppplier(Integer upperBound) {
+        return () -> this.nextInt(upperBound);
+    }
+
+    public default Supplier<Integer> getIntegerSuppplier(Integer lowerBound, Integer upperBound) {
+        return () -> this.nextInt(lowerBound, upperBound);
+    }
+
+    public default Supplier<Double> getDoubleSuppplier(Double upperBound) {
+        return () -> this.nextDouble(upperBound);
+    }
+
+    public default Supplier<Double> getDoubleSuppplier(Double lowerBound, Double upperBound) {
+        return () -> this.nextDouble(lowerBound, upperBound);
+    }
+
+    public default Supplier<Long> getLongSuppplier(Long upperBound) {
+        return () -> this.nextLong(upperBound);
+    }
+
+    public default Supplier<Long> getLongSuppplier(Long lowerBound, Long upperBound) {
+        return () -> this.nextLong(lowerBound, upperBound);
+    }
+
+    /**
+     * Default implementation calls nextInt(0,2) > 0
+     * @return returns boolean
+     */
+    public default Boolean nextBoolean() {
+        return nextInt(0, 2) > 0;
+    }
+
+    public default Double nextDouble(Double lowerBound, Double upperBound) {
+        double diff = upperBound - lowerBound;
         if (diff <= 0) {
-            throw new IllegalArgumentException("Illegal random bounds:" + min + " " + max);
+            throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
         }
-        return min + (nextDouble() * diff);
+        return lowerBound + (nextDouble() * diff);
     }
 
-    public default Double nextDouble(Number upperBound) {
-        return nextDouble(0, upperBound);
+    public default Double nextDouble(Double upperBound) {
+        return nextDouble(0d, upperBound);
     }
 
-    public default Long nextLong(Number lowerBound, Number upperBound) {
+    /**
+     * Base method. Override for better performance.
+     * Default implementation calls nextDouble(lowerBound, upperBound);
+     * @param lowerBound
+     * @param upperBound
+     * @return
+     */
+
+    public default Long nextLong(Long lowerBound, Long upperBound) {
         return (long) Math.floor(nextDouble(lowerBound.doubleValue(), upperBound.doubleValue()));
     }
 
-    public default Long nextLong(Number upperBound) {
-        return (long) Math.floor(nextDouble(0, upperBound.doubleValue()));
+    public default Long nextLong(Long upperBound) {
+        return nextLong(0L, upperBound);
     }
 
-    public default Integer nextInt(Number lowerBound, Number upperBound) {
+    /**
+     * Base method. Default implementation calls nextDouble. Override for better
+     * gains.
+     *
+     * @param lowerBound
+     * @param upperBound
+     * @return returns Integer in interval [loweBound, upperBound)
+     */
+    public default Integer nextInt(Integer lowerBound, Integer upperBound) {
         return (int) Math.floor(nextDouble(lowerBound.doubleValue(), upperBound.doubleValue()));
     }
 
@@ -97,14 +152,13 @@ public interface RandomDistribution {
         int size = list.size();
         if (size < 8 || list instanceof RandomAccess) {
             for (int i = size; i > 1; i--) {
-                swap(list, i - 1, nextInt(i));
+                F.swap(list, i - 1, nextInt(i));
             }
         } else {
             Object arr[] = list.toArray();
-
             // Shuffle array
             for (int i = size; i > 1; i--) {
-                swap(arr, i - 1, nextInt(i));
+                F.swap(arr, i - 1, nextInt(i));
             }
             ListIterator it = list.listIterator();
             for (Object arr1 : arr) {
@@ -114,7 +168,15 @@ public interface RandomDistribution {
         }
 
     }
-
+    
+    /**
+     * @param <T> type
+     * @param col collection 
+     * @param amount to pick from collection
+     * @param startingAmount amount to start with from index 0
+     * @param amountDecay how much to decrease amount after each index in collection until there's only 1 per index
+     * @return 
+     */
     public default <T> LinkedList<T> pickRandomPreferLow(Collection<T> col, int amount, int startingAmount, int amountDecay) {
 
         int limit = Math.min(amount, col.size());

@@ -7,7 +7,7 @@ package lt.lb.commons.containers;
 
 import java.util.Collection;
 import java.util.HashMap;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 
 /**
  *

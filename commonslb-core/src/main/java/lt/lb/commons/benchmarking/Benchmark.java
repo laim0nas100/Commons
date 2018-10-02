@@ -8,7 +8,8 @@ package lt.lb.commons.benchmarking;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
+import lt.lb.commons.Timer;
 import lt.lb.commons.threads.Promise;
 import lt.lb.commons.threads.UnsafeRunnable;
 
@@ -72,7 +73,8 @@ public class Benchmark {
         }
         Promise waiter = new Promise().waitFor(promises);
 
-        long time = System.nanoTime();
+        
+        Timer t = new Timer();
 
         for (Promise p : promises) {
             exe.execute(p);
@@ -83,6 +85,6 @@ public class Benchmark {
         } catch (InterruptedException | ExecutionException ex) {
             ex.printStackTrace();
         }
-        return System.nanoTime() - time;
+        return t.stopNanos();
     }
 }

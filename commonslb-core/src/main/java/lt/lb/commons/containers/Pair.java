@@ -5,7 +5,7 @@
  */
 package lt.lb.commons.containers;
 
-import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  *
@@ -21,9 +21,9 @@ public class Pair<Type> extends Tuple<Type, Type> {
 
     }
 
-    public Type getRandomPreferNotNull(Random rnd) {
+    public Type getRandomPreferNotNull(Supplier<Boolean> rnd) {
         if (full()) {
-            return rnd.nextBoolean() ? g1 : g2;
+            return rnd.get() ? g1 : g2;
         } else {
             return g1 == null ? g2 : g1;
         }

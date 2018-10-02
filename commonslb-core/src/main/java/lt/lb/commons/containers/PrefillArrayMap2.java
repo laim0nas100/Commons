@@ -6,7 +6,7 @@
 package lt.lb.commons.containers;
 
 import java.util.*;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 
 /**
  *
@@ -79,7 +79,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
 
     public void grow(int to) {
         int oldCap = data.length;
-        int newCap = (int) Math.max(Math.ceil(oldCap + 10), to);
+        int newCap = (int) Math.max(Math.ceil(oldCap*1.1), to); // increase by 10%
 
         data = Arrays.copyOf(data, newCap);
         Arrays.fill(data, oldCap, newCap, this.nullObject);
