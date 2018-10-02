@@ -12,7 +12,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.graphtheory.paths.GraphGenerator;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 import lt.lb.commons.misc.RandomDistribution;
 import org.junit.After;
 import org.junit.AfterClass;

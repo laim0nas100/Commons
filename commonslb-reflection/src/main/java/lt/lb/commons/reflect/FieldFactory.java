@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 import sun.misc.Unsafe;
 
 /**

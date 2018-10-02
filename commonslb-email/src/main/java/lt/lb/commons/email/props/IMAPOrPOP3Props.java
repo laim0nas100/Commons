@@ -12,7 +12,7 @@ import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 
 /**
  *

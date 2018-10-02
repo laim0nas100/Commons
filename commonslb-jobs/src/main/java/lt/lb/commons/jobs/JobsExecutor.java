@@ -7,6 +7,7 @@ package lt.lb.commons.jobs;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author laim0nas100
  */
-public class JobsExecutor {
+public class JobsExecutor extends AbstractExecutorService implements ExecutorService{
 
     private ExecutorService exe;
 
@@ -34,33 +35,33 @@ public class JobsExecutor {
         };
     }
 
-    public void submit(Runnable run) {
-        this.submit(Job.fromRunnable(run));
-    }
 
     public void submit(Job job) {
         if (isShutdown) {
-            throw new Error("Shutdown was called");
+            throw new IllegalStateException("Shutdown was called");
         }
         jobs.add(job);
         job.addListener(JobEvent.ON_DONE, rescanJobs);
         addScanRequest();
     }
 
-    private synchronized void addScanRequest() {
+    private void addScanRequest() {
         Runnable r = () -> {
             rescanJobs();
         };
-        scanner.submit(r);
+        scanner.execute(r);
     }
 
     public void rescanJobs() {
         Iterator<Job> iterator = jobs.iterator();
         while (iterator.hasNext()) {
             Job job = iterator.next();
+            if(job == null){
+                continue;
+            }
             if (job.isDiscardable()) {
                 iterator.remove();
-            } else if (job.isReady()) {
+            } else if (job.canRun()) {
                 exe.submit(job);
             }
         }
@@ -100,5 +101,11 @@ public class JobsExecutor {
     public boolean awaitTermination(long l, TimeUnit tu) throws InterruptedException {
         return this.exe.awaitTermination(l, tu);
     }
+
+    @Override
+    public void execute(Runnable command) {
+        submit(Job.fromRunnable(command));
+    }
+
 
 }

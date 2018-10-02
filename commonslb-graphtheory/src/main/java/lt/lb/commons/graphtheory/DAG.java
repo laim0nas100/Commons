@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Random;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
+import lt.lb.commons.misc.RandomDistribution;
 
 /**
  *
@@ -28,17 +29,17 @@ public class DAG extends Orgraph {
         }
     }
 
-    public static DAG generateRandomDAGNaive(Random rnd,long linkCount, long maxWeight) {
+    public static DAG generateRandomDAGNaive(RandomDistribution rnd, long linkCount, long maxWeight) {
         HashSet triedLinks = new HashSet<>();
         DAG graph = new DAG();
         graph.nodes.put(0l, new GNode(0));
-        Double w = new Double(F.RND.nextLong(rnd, 1, maxWeight));
+        Double w = new Double(rnd.nextLong(1L, maxWeight));
         while (graph.links.size() < linkCount) {
             long nodeFrom = 0;
             long nodeTo = 0;
             while (nodeTo == nodeFrom) {
-                nodeFrom = F.RND.nextInt(rnd, 0, graph.nodes.size() + 1);
-                nodeTo = F.RND.nextInt(rnd, 0, graph.nodes.size() + 1);
+                nodeFrom = rnd.nextInt(0, graph.nodes.size() + 1);
+                nodeTo = rnd.nextInt(0, graph.nodes.size() + 1);
             }
 
             GLink link = new GLink(nodeTo, nodeFrom, w);
@@ -47,7 +48,7 @@ public class DAG extends Orgraph {
                 if (graph.addLinkIfNoCycles(link)) {
                     triedLinks.add(link.reverse().key());
 
-                    w = new Double(F.RND.nextLong(rnd, 1, maxWeight));
+                    w = new Double(rnd.nextLong(1L, maxWeight));
                 }
             }
         }
@@ -55,7 +56,7 @@ public class DAG extends Orgraph {
 
     }
 
-    public static DAG generateRandomDAGBetter(Random rnd,long linkCount, long maxWeight, double batchSize) {
+    public static DAG generateRandomDAGBetter(RandomDistribution rnd, long linkCount, long maxWeight, double batchSize) {
         DAG graph = new DAG();
         graph.nodes.put(0l, new GNode(0));
         while (graph.links.size() < linkCount) {
@@ -65,14 +66,13 @@ public class DAG extends Orgraph {
 
             HashSet<Long> parentSet;
 
-            long nodeFrom = F.RND.nextInt(rnd, 0,graph.nodes.size()-1);
+            long nodeFrom = rnd.nextInt(0, graph.nodes.size() - 1);
             parentSet = Algorithms.getParentSet(graph, nodeFrom);
             parentSet.add(nodeFrom);
             Optional<GNode> node = graph.getNode(nodeFrom);
-            if(node.isPresent()){
+            if (node.isPresent()) {
                 parentSet.addAll(node.get().linksTo);
             }
-            
 
             possibleCandidates.removeAll(parentSet);
             possibleCandidates.add((long) graph.nodes.size());
@@ -80,10 +80,10 @@ public class DAG extends Orgraph {
             long iterLimit = (long) Math.min(batchSize * possibleCandidates.size(), possibleCandidates.size());
             iterLimit = (long) Math.max(Math.min(linkCount - graph.links.size(), iterLimit), 1);
 
-            F.RND.seededShuffle(possibleCandidates, rnd);
+            rnd.shuffle(possibleCandidates);
             ArrayDeque<Long> candidates = new ArrayDeque<>(possibleCandidates);
             for (long i = 0; i < iterLimit; i++) {
-                double w = F.RND.nextDouble(rnd, 0, maxWeight);
+                double w = rnd.nextDouble(0D, (double) maxWeight);
                 graph.addLink(graph.newLink(nodeFrom, candidates.removeFirst(), w));
             }
         }

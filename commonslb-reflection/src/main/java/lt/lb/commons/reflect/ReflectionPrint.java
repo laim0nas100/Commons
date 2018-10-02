@@ -15,7 +15,7 @@ import java.util.function.Function;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Log;
 import lt.lb.commons.interfaces.StringBuilderActions;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 
 /**
  *

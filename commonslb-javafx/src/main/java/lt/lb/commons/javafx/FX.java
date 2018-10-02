@@ -11,7 +11,7 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import javafx.application.Platform;
 import lt.lb.commons.containers.Value;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 import lt.lb.commons.threads.UnsafeRunnable;
 
 /**

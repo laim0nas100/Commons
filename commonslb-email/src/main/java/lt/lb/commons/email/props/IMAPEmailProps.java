@@ -5,13 +5,12 @@
  */
 package lt.lb.commons.email.props;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 
 /**
  *
@@ -38,7 +37,7 @@ public class IMAPEmailProps extends IMAPOrPOP3Props {
     public List<Consumer<Message>> getAfterReadActions() {
         List<Consumer<Message>> list = super.getAfterReadActions();
         list.add((m) -> {
-            if(this.getFolderOpenMode() != Folder.READ_WRITE){
+            if (this.getFolderOpenMode() != Folder.READ_WRITE) {
                 return;
             }
             F.unsafeRun(() -> {

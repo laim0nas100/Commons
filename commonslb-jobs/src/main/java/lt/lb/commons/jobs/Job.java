@@ -95,7 +95,7 @@ public abstract class Job implements Runnable {
         }
     }
 
-    public boolean isReady() {
+    public boolean canRun() {
 
         if (this.isDiscardable()) {
             return false;
@@ -172,19 +172,19 @@ public abstract class Job implements Runnable {
 
     @Override
     public void run() {
-        if (!this.isReady()) {
+        if (!this.canRun()) {
             return;
         }
-        if (this.running.compareAndSet(false, true)) {
+        if (this.running.compareAndSet(false, true)) { // ensure only one running instance
             if (leftToRun > 0) {
                 this.leftToRun--;
             }
-            Exception e = null;
+            Throwable e = null;
             try {
                 logic();
                 this.successfull = true;
 
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 this.failed = true;
                 e = ex;
             }

@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import lt.lb.commons.graphtheory.Orgraph;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 import lt.lb.commons.misc.RandomDistribution;
 
 /**

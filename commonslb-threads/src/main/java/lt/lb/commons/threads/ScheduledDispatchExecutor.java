@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author laim0nas100
  */
 public class ScheduledDispatchExecutor {
-    
 
     protected ScheduledExecutorService dispatcher;
     protected HashMap<String, AtomicBoolean> enabledMap = new HashMap<>();
@@ -31,18 +30,16 @@ public class ScheduledDispatchExecutor {
         Runnable runProxy = () -> {
             if (enabled.get()) {
                 exe.execute(call);
-            } 
+            }
         };
         String nextUUID = UUID.randomUUID().toString();
-        while(enabledMap.containsKey(nextUUID)){
+        while (enabledMap.containsKey(nextUUID)) {
             nextUUID = UUID.randomUUID().toString();
         }
         enabledMap.put(nextUUID, enabled);
         getDispatcher().scheduleAtFixedRate(runProxy, dur, dur, tu);
         return nextUUID;
     }
-
-
 
     protected ScheduledExecutorService getDispatcher() {
         if (dispatcher == null) {
@@ -61,12 +58,11 @@ public class ScheduledDispatchExecutor {
             this.enabledMap.get(uuid).set(enable);
         }
     }
-    
-    public void setEnabledAll(boolean enabled){
-        this.enabledMap.values().forEach(value ->{
+
+    public void setEnabledAll(boolean enabled) {
+        this.enabledMap.values().forEach(value -> {
             value.set(enabled);
         });
     }
 
-    
 }

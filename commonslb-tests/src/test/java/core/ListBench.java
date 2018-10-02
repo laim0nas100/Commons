@@ -241,7 +241,7 @@ Benchmark b = new Benchmark();
         int mult = 1;
         List<Long> bank = this.getBank(size * mult, seed);
 //        Log.print(executeBench(100, "ArrayList read", makeBenchRead(makeList(this.getBank(size * mult, seed), new ArrayList<>()), new Random(seed), iterations)));
-        Log.print(b.executeBench(150, "BigList read", makeBenchRead(makeList(bank, new BigList<>(20000)), new Random(seed), iterations)));
+        Log.print(b.executeBench(150, "BigList read", makeBenchRead(makeList(bank, new BigList<>(1000)), new Random(seed), iterations)));
         Log.print(b.executeBench(150, "PagedHashedList read", makeBenchRead(makeList(bank, new PagedHashList<>()), new Random(seed), iterations)));
         Log.print(b.executeBench(150, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
 

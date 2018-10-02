@@ -7,7 +7,7 @@ package threading;
 
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Log;
-import lt.lb.commons.misc.F;
+import lt.lb.commons.F;
 import lt.lb.commons.threads.FastExecutor;
 import org.junit.Test;
 
