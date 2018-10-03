@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 /**
  * Value that loads after being called. Can override manually setting it;
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class LazyValue<T> extends Value<T> {
 
