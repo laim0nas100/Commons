@@ -45,6 +45,8 @@ public class FileReader {
         ArrayList<String> finalList = new ArrayList<>();
         boolean scanLine = !StringUtils.isEmpty(lineComment);
         boolean scanComment = !(StringUtils.isEmpty(commentStart) || StringUtils.isEmpty(commentEnd));
+        int lenS = scanComment ? commentStart.length() : 0;
+        int lenE = scanComment ? commentEnd.length() : 0;
 
         for (String str : lines) {
             boolean useBuilder = false;
@@ -56,7 +58,7 @@ public class FileReader {
                     if (str.contains(commentEnd)) {
 
                         int indexOf = str.indexOf(commentEnd);
-                        str = str.substring(indexOf + commentEnd.length());
+                        str = str.substring(indexOf + lenE);
 
                         //skip all text until that comment end
                         inComment = false;
@@ -79,34 +81,35 @@ public class FileReader {
                             break;
                         }
                     } else {
-                        if (scanComment && str.contains(commentStart)) {
-                            if (str.contains(commentEnd)) {// we scan through subcomments
+                        int iStart = str.indexOf(commentStart);
+                        if (scanComment && iStart >= 0) {
+                            if (str.substring(iStart + lenS).contains(commentEnd)) {// line contains both comment end and start we scan through subcomments
                                 StringBuilder builder = new StringBuilder();
                                 useBuilder = true;
                                 while (true) {
-                                    if(!str.contains(commentStart)){
+                                    if (!str.contains(commentStart)) {
                                         break;
                                     }
                                     int indexOf = str.indexOf(commentStart);
                                     String beforeComment = str.substring(0, indexOf);
                                     builder.append(beforeComment);
-                                    str = str.substring(indexOf + commentStart.length());
-                                    if (str.contains(commentEnd)) {
-                                        int iEnd = str.indexOf(commentEnd);
-                                        str = str.substring(iEnd + commentEnd.length());
+                                    str = str.substring(indexOf + lenS);
+                                    int iEnd = str.indexOf(commentEnd);
+                                    if (iEnd >= 0) {
+                                        str = str.substring(iEnd + lenE);
                                     } else {
                                         break;
                                     }
                                 } // no longer has multi line comments
                                 sb.append(builder.toString());
-                                if(scanLine && str.contains(lineComment)){
+                                if (scanLine && str.contains(lineComment)) {
                                     int indexOf = str.indexOf(lineComment);
-                                    sb.append(str.substring(0,indexOf));
+                                    sb.append(str.substring(0, indexOf));
                                     break;
-                                }else{
+                                } else {
                                     sb.append(str);
                                     break;
-                                    // just regolar line after this point
+                                    // just regular line after this point
                                 }
                             } else {
                                 //simple end line from comment start
