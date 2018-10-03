@@ -26,6 +26,10 @@ public class ScheduledDispatchExecutor {
     }
 
     public String addSchedulingTask(Executor exe, Runnable call, TimeUnit tu, long dur) {
+        return this.addSchedulingTask(exe, call, tu, dur, dur);
+    }
+    
+    public String addSchedulingTask(Executor exe, Runnable call, TimeUnit tu, long initialDelay, long period) {
         AtomicBoolean enabled = new AtomicBoolean(true);
         Runnable runProxy = () -> {
             if (enabled.get()) {
@@ -37,7 +41,7 @@ public class ScheduledDispatchExecutor {
             nextUUID = UUID.randomUUID().toString();
         }
         enabledMap.put(nextUUID, enabled);
-        getDispatcher().scheduleAtFixedRate(runProxy, dur, dur, tu);
+        getDispatcher().scheduleAtFixedRate(runProxy, initialDelay, period, tu);
         return nextUUID;
     }
 
