@@ -8,9 +8,10 @@ package lt.lb.commons.containers;
 import java.util.function.Supplier;
 
 /**
- * Value that loads after being called. Can override manually setting it;
+ * Value that loads after being called. Can manually set it.
  *
  * @author laim0nas100
+ * @param <T> type
  */
 public class LazyValue<T> extends Value<T> {
 
@@ -28,7 +29,7 @@ public class LazyValue<T> extends Value<T> {
     @Override
     public void set(T val) {
         loaded = true;
-        super.set(val); //To change body of generated methods, choose Tools | Templates.
+        super.set(val); 
     }
 
     @Override
@@ -36,7 +37,7 @@ public class LazyValue<T> extends Value<T> {
         if (!loaded) {
             this.set(supply.get());
         }
-        return super.get(); //To change body of generated methods, choose Tools | Templates.
+        return super.get(); 
     }
 
 }
