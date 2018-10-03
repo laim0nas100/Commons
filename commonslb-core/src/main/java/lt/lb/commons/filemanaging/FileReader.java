@@ -75,7 +75,7 @@ public class FileReader {
 
                     if (scanLine && str.contains(lineComment)) {
                         int indexOf = str.indexOf(lineComment);
-                        str = str.substring(0, indexOf); // save evertything before line comment start
+                        str = str.substring(0, indexOf); // save everything before line comment start
                         if (str.isEmpty()) {  // the comment was at the beggining. Line cleared.
                             toAdd = false;
                             break;
@@ -83,7 +83,7 @@ public class FileReader {
                     } else {
                         int iStart = str.indexOf(commentStart);
                         if (scanComment && iStart >= 0) {
-                            if (str.substring(iStart + lenS).contains(commentEnd)) {// line contains both comment end and start we scan through subcomments
+                            if (str.substring(iStart + lenS).contains(commentEnd)) {// line contains both comment end and start, so we scan through subcomments
                                 StringBuilder builder = new StringBuilder();
                                 useBuilder = true;
                                 while (true) {
@@ -112,13 +112,13 @@ public class FileReader {
                                     // just regular line after this point
                                 }
                             } else {
-                                //simple end line from comment start
+                                //simple end line with single comment start
                                 int indexOf = str.indexOf(commentStart);
                                 str = str.substring(0, indexOf);
                                 inComment = true;
                                 break;
                             }
-                        } else {//normal line
+                        } else {//regular line. Just add.
                             break;
                         }
                     }
