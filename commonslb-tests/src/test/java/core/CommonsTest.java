@@ -100,11 +100,22 @@ public class CommonsTest {
     
     @Test
     public void readFile() throws Exception{
-            String desktop = "C:\\Users\\Lemmin\\Desktop\\";
-            String url = desktop+"myFile.txt";
-            ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "/*", "*/");
-            Log.instant = true;
-            Log.printLines(readFromFile);
+        
+            String desktop = "C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\";
+            
+            F.unsafeRun(()->{
+                String url = desktop + "myFile.txt";
+                ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "/*", "*/");
+                Log.instant = true;
+                Log.printLines(readFromFile);
+            });
+            F.unsafeRun(()->{
+                String url = desktop + "myFile2.txt";
+                ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "**", "**");
+                Log.instant = true;
+                Log.printLines(readFromFile);
+            });
+            
     }
     
 //    @Test
