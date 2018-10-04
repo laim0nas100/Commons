@@ -5,13 +5,12 @@
  */
 package lt.lb.commons;
 
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
-import lt.lb.commons.ArrayOp;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Equator.HashEquator;
@@ -27,9 +26,9 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
-    public static <T, V> Predicate<T> castPredicate(Predicate<V> predicate) {
+    public static <T, V> Predicate<T> convertPredicate(Function<T,V> func, Predicate<V> predicate) {
         return (T t) -> {
-            return predicate.test(F.cast(t));
+            return predicate.test(func.apply(t));
         };
     }
 
@@ -53,9 +52,9 @@ public class F {
         return (T) ob;
     }
 
-    public static <T, K extends T> void addCast(Collection<T> from, Collection<K> to) {
+    public static <T, K> void convertCollection(Function<T,K> func,Collection<T> from, Collection<K> to) {
         for (T t : from) {
-            to.add((K) t);
+            to.add(func.apply(t));
         }
     }
 
@@ -138,22 +137,22 @@ public class F {
         return len1 - len2;
     }
 
-    public static <T> List<T> filterParallel(Collection<T> col, Predicate<T> pred, Executor exe) {
+    public static <T> ArrayList<T> filterParallel(Collection<T> col, Predicate<T> pred, Executor exe) {
         int size = col.size();
         boolean[] satisfied = new boolean[size];
 
         AtomicInteger satisfiedCount = new AtomicInteger(0);
         ArrayDeque<Promise> deque = new ArrayDeque<>(size);
         F.iterate(col, (i, item) -> {
-              Promise<Void> prom = new Promise(() -> {
-                  boolean test = pred.test(item);
-                  satisfied[i] = test;
-                  if (test) {
-                      satisfiedCount.incrementAndGet();
-                  }
+            Promise<Void> prom = new Promise(() -> {
+                boolean test = pred.test(item);
+                satisfied[i] = test;
+                if (test) {
+                    satisfiedCount.incrementAndGet();
+                }
 
-              }).collect(deque).execute(exe);
-          });
+            }).collect(deque).execute(exe);
+        });
 
         Promise waiter = new Promise().waitFor(deque);
 
@@ -167,17 +166,17 @@ public class F {
 
     }
 
-    private static <T> List<T> removeByConditionIndex(Collection<T> col, boolean[] satisfied) {
+    private static <T> ArrayList<T> removeByConditionIndex(Collection<T> col, boolean[] satisfied) {
         ArrayList<T> removed = new ArrayList<>();
         if (col instanceof RandomAccess) { // rewrite
-            ArrayList<T> kept = new ArrayList<>();
+            ArrayList<T> kept = new ArrayList<>(satisfied.length);
             F.iterate(col, (i, item) -> {
-                  if (satisfied[i]) {
-                      kept.add(item);
-                  } else {
-                      removed.add(item);
-                  }
-              });
+                if (satisfied[i]) {
+                    kept.add(item);
+                } else {
+                    removed.add(item);
+                }
+            });
             col.clear();
             col.addAll(kept);
 
@@ -204,13 +203,13 @@ public class F {
      * LinkedHashMap
      * @return all removed elements
      */
-    public static <T> List<T> filterDistinct(Collection<T> col, HashEquator<T> equator) {
+    public static <T> ArrayList<T> filterDistinct(Collection<T> col, HashEquator<T> equator) {
         if (col instanceof RandomAccess) {
             return filterDistinctRewrite(col, equator);
         }
 
         LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
-        LinkedList<T> removed = new LinkedList<>();
+        ArrayList<T> removed = new ArrayList<>();
         Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
@@ -233,19 +232,19 @@ public class F {
      * @param equator equality condition
      * @return all removed elements
      */
-    public static <T> List<T> filterDistinct(Collection<T> col, Equator<T> equator) {
+    public static <T> ArrayList<T> filterDistinct(Collection<T> col, Equator<T> equator) {
 
         if (col instanceof RandomAccess) {
             return filterDistinctRewrite(col, equator);
         }
-        LinkedList<T> kept = new LinkedList<>();
-        LinkedList<T> removed = new LinkedList<>();
+        ArrayList<T> kept = new ArrayList<>();
+        ArrayList<T> removed = new ArrayList<>();
         Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
             Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> {
-                                                  return equator.equals(next, item);
-                                              });
+                return equator.equals(next, item);
+            });
             if (find.isPresent()) {
                 removed.add(next);
                 iterator.remove();
@@ -265,16 +264,14 @@ public class F {
      * @param equator equality condition
      * @return all removed elements
      */
-    public static <T> List filterDistinctRewrite(Collection<T> col, Equator<T> equator) {
-        LinkedList<T> kept = new LinkedList<>();
-        LinkedList<T> removed = new LinkedList<>();
+    public static <T> ArrayList filterDistinctRewrite(Collection<T> col, Equator<T> equator) {
+        ArrayList<T> kept = new ArrayList<>();
+        ArrayList<T> removed = new ArrayList<>();
 
         Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
-            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> {
-                                                  return equator.equals(next, item);
-                                              });
+            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(next, item));
             if (find.isPresent()) {
                 removed.add(next);
             } else {
@@ -296,25 +293,26 @@ public class F {
      * LinkedHashMap
      * @return all removed elements
      */
-    public static <T> List filterDistinctRewrite(Collection<T> col, HashEquator<T> equator) {
+    public static <T> ArrayList filterDistinctRewrite(Collection<T> col, HashEquator<T> equator) {
         LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
-        LinkedList<T> removed = new LinkedList<>();
+        ArrayList<T> removed = new ArrayList<>();
 
-        F.find(col, (i, next) -> (boolean) equator.equals(next, next));
+        F.find(col, (i, next) -> equator.equals(next, next));
 
         F.iterate(col, (i, next) -> {
-              Object hash = equator.getHashable(next);
-              if (kept.containsKey(hash)) {
-                  removed.add(next);
-              } else {
-                  kept.put(hash, next);
-              }
-          });
+            Object hash = equator.getHashable(next);
+            if (kept.containsKey(hash)) {
+                removed.add(next);
+            } else {
+                kept.put(hash, next);
+            }
+        });
 
         col.clear();
         col.addAll(kept.values());
         return removed;
     }
+    
 
     public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {
         Set<Map.Entry<K, V>> entrySet = map.entrySet();

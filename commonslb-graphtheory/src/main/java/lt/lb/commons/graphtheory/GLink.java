@@ -69,12 +69,12 @@ public class GLink implements Cloneable{
         return super.clone();
     }
     
-    public static boolean equal(GLink link1, GLink link2){
+    public static boolean equalNodes(GLink link1, GLink link2){
         return link1.nodeFrom == link2.nodeFrom && link1.nodeTo == link2.nodeTo;
     }
     
-    public static boolean equalBidirectional(GLink link1, GLink link2){
-        return equal(link1,link2) || equal(link1.reverse(),link2);
+    public static boolean equalNodesBidirectional(GLink link1, GLink link2){
+        return equalNodes(link1,link2) || equalNodes(link1.reverse(),link2);
     }
     
     

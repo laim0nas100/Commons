@@ -13,14 +13,27 @@ import lt.lb.commons.containers.Tuple;
 /**
  * RandomGenerator based on Double number generator
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public interface RandomDistribution {
 
+    /**
+     * Uniform distribution
+     *
+     * @param rnd
+     * @return
+     */
     public static RandomDistribution uniform(Supplier<Double> rnd) {
         return () -> rnd.get();
     }
 
+    /**
+     * Dice distribution (average of uniform distributions)
+     *
+     * @param rnd
+     * @param diceAmount
+     * @return
+     */
     public static RandomDistribution dice(Supplier<Double> rnd, int diceAmount) {
         return () -> {
             double x = 0;
@@ -31,14 +44,36 @@ public interface RandomDistribution {
         };
     }
 
+    /**
+     * Uniform distribution but to the power. (Generally lower than uniform)
+     *
+     * @param rnd
+     * @param power
+     * @return
+     */
     public static RandomDistribution xPower(Supplier<Double> rnd, final double power) {
         return () -> Math.pow(rnd.get(), power);
     }
 
+    /**
+     * Uniform distribution but to the power. (Generally higher than uniform)
+     *
+     * @param rnd
+     * @param power
+     * @return
+     */
     public static RandomDistribution oneMinusXpower(Supplier<Double> rnd, final double power) {
         return () -> 1 - Math.pow(rnd.get(), power);
     }
 
+    /**
+     * Average of uniforms, before applied power.
+     *
+     * @param rnd
+     * @param dice
+     * @param power
+     * @return
+     */
     public static RandomDistribution diceToPower(Supplier<Double> rnd, final int dice, final double power) {
 
         return () -> {
@@ -51,6 +86,33 @@ public interface RandomDistribution {
         };
     }
 
+    /**
+     * Average of uniforms, after applied power.
+     *
+     * @param rnd
+     * @param dice
+     * @param power
+     * @return
+     */
+    public static RandomDistribution powerToDice(Supplier<Double> rnd, final int dice, final double power) {
+
+        return () -> {
+            double x = 0;
+            for (int i = 0; i < dice; i++) {
+                x += Math.pow(rnd.get(), power);
+            }
+            x = x / dice;
+            return x;
+        };
+    }
+
+    /**
+     * Extremes. Combines to xPower distributions.
+     *
+     * @param rnd
+     * @param power
+     * @return
+     */
     public static RandomDistribution extremes(Supplier<Double> rnd, final double power) {
         RandomDistribution xPower = xPower(rnd, power);
 
@@ -62,6 +124,7 @@ public interface RandomDistribution {
 
     /**
      * Base method.
+     *
      * @return returns distributed Double
      */
     public Double nextDouble();
@@ -70,32 +133,37 @@ public interface RandomDistribution {
         return () -> this.nextBoolean();
     }
 
-    public default Supplier<Integer> getIntegerSuppplier(Integer upperBound) {
+    public default Supplier<Integer> getIntSupplier(Integer upperBound) {
         return () -> this.nextInt(upperBound);
     }
 
-    public default Supplier<Integer> getIntegerSuppplier(Integer lowerBound, Integer upperBound) {
+    public default Supplier<Integer> getIntegerSupplier(Integer lowerBound, Integer upperBound) {
         return () -> this.nextInt(lowerBound, upperBound);
     }
 
-    public default Supplier<Double> getDoubleSuppplier(Double upperBound) {
+    public default Supplier<Double> getDoubleSupplier() {
+        return () -> this.nextDouble();
+    }
+
+    public default Supplier<Double> getDoubleSupplier(Double upperBound) {
         return () -> this.nextDouble(upperBound);
     }
 
-    public default Supplier<Double> getDoubleSuppplier(Double lowerBound, Double upperBound) {
+    public default Supplier<Double> getDoubleSupplier(Double lowerBound, Double upperBound) {
         return () -> this.nextDouble(lowerBound, upperBound);
     }
 
-    public default Supplier<Long> getLongSuppplier(Long upperBound) {
+    public default Supplier<Long> getLongSupplier(Long upperBound) {
         return () -> this.nextLong(upperBound);
     }
 
-    public default Supplier<Long> getLongSuppplier(Long lowerBound, Long upperBound) {
+    public default Supplier<Long> getLongSupplier(Long lowerBound, Long upperBound) {
         return () -> this.nextLong(lowerBound, upperBound);
     }
 
     /**
      * Default implementation calls nextInt(0,2) > 0
+     *
      * @return returns boolean
      */
     public default Boolean nextBoolean() {
@@ -115,13 +183,13 @@ public interface RandomDistribution {
     }
 
     /**
-     * Base method. Override for better performance.
-     * Default implementation calls nextDouble(lowerBound, upperBound);
+     * Base method. Override for better performance. Default implementation
+     * calls nextDouble(lowerBound, upperBound);
+     *
      * @param lowerBound
      * @param upperBound
      * @return
      */
-
     public default Long nextLong(Long lowerBound, Long upperBound) {
         return (long) Math.floor(nextDouble(lowerBound.doubleValue(), upperBound.doubleValue()));
     }
@@ -146,6 +214,11 @@ public interface RandomDistribution {
         return nextInt(0, upperBound);
     }
 
+    /**
+     * Shuffle list based on this RandomDistribution.
+     *
+     * @param list
+     */
     public default void shuffle(List list) {
 
         // copy from Collections.shuffle
@@ -168,14 +241,15 @@ public interface RandomDistribution {
         }
 
     }
-    
+
     /**
      * @param <T> type
-     * @param col collection 
+     * @param col collection
      * @param amount to pick from collection
      * @param startingAmount amount to start with from index 0
-     * @param amountDecay how much to decrease amount after each index in collection until there's only 1 per index
-     * @return 
+     * @param amountDecay how much to decrease amount after each index in
+     * collection until there's only 1 per index
+     * @return
      */
     public default <T> LinkedList<T> pickRandomPreferLow(Collection<T> col, int amount, int startingAmount, int amountDecay) {
 
@@ -199,6 +273,13 @@ public interface RandomDistribution {
 
     }
 
+    /**
+     *
+     * @param <T>
+     * @param col collection to explore
+     * @param amount how many elements to return
+     * @return
+     */
     public default <T> LinkedList<T> pickRandom(Collection<T> col, int amount) {
 
         int limit = Math.min(amount, col.size());
@@ -218,21 +299,46 @@ public interface RandomDistribution {
 
     }
 
+    /**
+     *
+     * @param <T>
+     * @param col collection to explore
+     * @return return random element
+     */
     public default <T> T pickRandom(List<T> col) {
         int i = nextInt(0, col.size());
         return col.get(i);
     }
 
+    /**
+     *
+     * @param <T>
+     * @param col collection to explore
+     * @return return random element
+     */
     public default <T> T pickRandom(Collection<T> col) {
         return pickRandom(col, 1).getFirst();
     }
 
+    /**
+     *
+     * @param <T>
+     * @param col collection to modify
+     * @return return random element and remove from collection
+     */
     public default <T> T removeRandom(Collection<T> col) {
         T pickRandom = pickRandom(col);
         col.remove(pickRandom);
         return pickRandom;
     }
 
+    /**
+     *
+     * @param <T>
+     * @param amount how many elements to pick
+     * @param tuples <Size,Object> distribution of elements
+     * @return
+     */
     public default <T> LinkedList<T> pickRandomDistributed(int amount, Tuple<Integer, T>... tuples) {
         ArrayList<T> list = new ArrayList<>();
 
@@ -244,6 +350,13 @@ public interface RandomDistribution {
         return pickRandom(list, amount);
     }
 
+    /**
+     *
+     * @param <T>
+     * @param amount how many elements to pick
+     * @param tuples <Size,Object> distribution of elements
+     * @return
+     */
     public default <T> LinkedList<T> pickRandomDistributed(int amount, Collection<Tuple<Integer, T>> tuples) {
         ArrayList<T> list = new ArrayList<>();
 
