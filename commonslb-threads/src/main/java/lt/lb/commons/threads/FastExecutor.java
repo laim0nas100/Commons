@@ -5,6 +5,7 @@
  */
 package lt.lb.commons.threads;
 
+import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,23 +17,21 @@ import java.util.function.Consumer;
  */
 public class FastExecutor implements Executor {
 
-    protected final ConcurrentLinkedDeque<Runnable> tasks = new ConcurrentLinkedDeque<>();
+    protected Deque<Runnable> tasks = new ConcurrentLinkedDeque<>();
 
     protected int maxThreads; // 
     protected AtomicInteger startingThreads = new AtomicInteger(0);
     protected AtomicInteger runningThreads = new AtomicInteger(0);
     protected AtomicInteger finishingThreads = new AtomicInteger(0);
-    
+
     protected Consumer<Throwable> errorChannel = (err) -> {
     };
 
     /**
      *
-     * @param maxThreads 
-     * positive limited threads
-     * negative unlimited threads
+     * @param maxThreads positive limited threads negative unlimited threads
      * zero no threads, execute during update
-     * 
+     *
      */
     public FastExecutor(int maxThreads) {
         this.maxThreads = maxThreads;
@@ -56,20 +55,25 @@ public class FastExecutor implements Executor {
         update(this.maxThreads);
     }
 
+    protected Runnable getMainBody() {
+        return () -> {
+            while (!tasks.isEmpty()) {
+                Runnable last = tasks.pollLast();
+                if (last != null) {
+                    last.run();
+                }
+
+            }
+        };
+    }
+
     protected Runnable getRun(final int bakedMax) {
         return () -> {
             runningThreads.incrementAndGet();
             startingThreads.decrementAndGet(); //thread started
 
             try {
-
-                while (!tasks.isEmpty()) {
-                    Runnable last = tasks.pollLast();
-                    if (last != null) {
-                        last.run();
-                    }
-
-                }
+                getMainBody().run();
             } catch (Throwable th) {
                 try {
                     getErrorChannel().accept(th);
