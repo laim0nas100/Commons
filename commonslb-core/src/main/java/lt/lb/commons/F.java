@@ -11,7 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import lt.lb.commons.containers.Pair;
 import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.containers.Value;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Equator.HashEquator;
 import lt.lb.commons.interfaces.Iter;
@@ -26,7 +28,7 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
-    public static <T, V> Predicate<T> convertPredicate(Function<T,V> func, Predicate<V> predicate) {
+    public static <T, V> Predicate<T> convertPredicate(Function<T, V> func, Predicate<V> predicate) {
         return (T t) -> {
             return predicate.test(func.apply(t));
         };
@@ -52,7 +54,7 @@ public class F {
         return (T) ob;
     }
 
-    public static <T, K> void convertCollection(Function<T,K> func,Collection<T> from, Collection<K> to) {
+    public static <T, K> void convertCollection(Function<T, K> func, Collection<T> from, Collection<K> to) {
         for (T t : from) {
             to.add(func.apply(t));
         }
@@ -137,6 +139,16 @@ public class F {
         return len1 - len2;
     }
 
+    /**
+     * Execute filter condition check in parallel,
+     * then modify given collection. Uses RandomAccess interface check to optimize removal.
+     *
+     * @param <T>
+     * @param col
+     * @param pred
+     * @param exe
+     * @return
+     */
     public static <T> ArrayList<T> filterParallel(Collection<T> col, Predicate<T> pred, Executor exe) {
         int size = col.size();
         boolean[] satisfied = new boolean[size];
@@ -145,9 +157,8 @@ public class F {
         ArrayDeque<Promise> deque = new ArrayDeque<>(size);
         F.iterate(col, (i, item) -> {
             Promise<Void> prom = new Promise(() -> {
-                boolean test = pred.test(item);
-                satisfied[i] = test;
-                if (test) {
+                satisfied[i] = pred.test(item);
+                if (satisfied[i]) {
                     satisfiedCount.incrementAndGet();
                 }
 
@@ -197,6 +208,115 @@ public class F {
 
     /**
      *
+     * @param <T>
+     * @param c1
+     * @param c2
+     * @param eq
+     * @return
+     */
+    public static <T> ArrayList<T> intersection(Collection<T> c1, Collection<T> c2, Equator<T> eq) {
+        ArrayList<T> common = new ArrayList<>();
+        HashSet<Long> map = new HashSet<>();
+        long offset = c1.size();
+        F.iterate(c1, (i, obj1) -> {
+            F.iterate(c2, (j, obj2) -> {
+                long k1 = i;
+                long k2 = offset + j;
+                if (eq.equals(obj1, obj2)) {
+                    if(!map.contains(k1)){
+                        map.add(k1);
+                        common.add(obj1);
+                    }
+                    if(!map.contains(k2)){
+                        map.add(k2);
+                        common.add(obj2);
+                    }
+                }
+            });
+        });
+        return common;
+    }
+
+    public static <T> ArrayList<Pair<T>> intersection(Collection<T> c1, Collection<T> c2, HashEquator<T> eq) {
+        ArrayList<Pair<T>> common = new ArrayList<>();
+        LinkedHashMap<Object, T> m1 = new LinkedHashMap<>();
+
+        for (T obj1 : c1) {
+            Object key1 = eq.getHashable(obj1);
+            m1.put(key1, obj1);
+        }
+        for (T obj1 : c2) {
+            Object key1 = eq.getHashable(obj1);
+            if(m1.containsKey(key1)){
+                common.add(new Pair<>(m1.get(key1),obj1));
+            }
+        }
+        return common;
+    }
+    
+    /**
+     * Basic intersection using HashSet.
+     * @param <T>
+     * @param c1
+     * @param c2
+     * @return 
+     */
+    public static <T> HashSet<T> intersection(Collection<T> c1, Collection<T> c2) {
+        HashSet<T> set = new HashSet<>(c1);
+        set.retainAll(c2);
+        return set;
+    }
+
+    /**
+     * Check if collection is distinct by set Hash equator. Uses HashMap;
+     *
+     * @param <T>
+     * @param col
+     * @param equator
+     * @return
+     */
+    public static <T> boolean isDistinct(Collection<T> col, HashEquator<T> equator) {
+        HashMap<Object, T> kept = new HashMap<>();
+        Iterator<T> iterator = col.iterator();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            Object hash = equator.getHashable(next);
+            if (kept.containsKey(hash)) {
+                return false;
+            } else {
+                kept.put(hash, next);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if collection is distinct by set Hash equator. Uses ArrayList;
+     *
+     * @param <T>
+     * @param col
+     * @param equator
+     * @return
+     */
+    public static <T> boolean isDistinct(Collection<T> col, Equator<T> equator) {
+        ArrayList<T> kept = new ArrayList<>();
+        Iterator<T> iterator = col.iterator();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(next, item));
+            if (find.isPresent()) {
+                return false;
+            } else {
+                kept.add(next);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     *
      * @param <T> type
      * @param col collection to be modified
      * @param equator equality condition with hashing, so we can use
@@ -242,9 +362,7 @@ public class F {
         Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
-            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> {
-                return equator.equals(next, item);
-            });
+            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(next, item));
             if (find.isPresent()) {
                 removed.add(next);
                 iterator.remove();
@@ -312,7 +430,6 @@ public class F {
         col.addAll(kept.values());
         return removed;
     }
-    
 
     public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {
         Set<Map.Entry<K, V>> entrySet = map.entrySet();
