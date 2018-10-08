@@ -18,6 +18,7 @@ import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.F;
+import lt.lb.commons.Log;
 import lt.lb.commons.misc.RandomDistribution;
 
 /**
@@ -112,11 +113,12 @@ public class PathGenerator {
 
         List<GLink> finalList = new ArrayList<>();
         F.iterateBackwards(pathBackward, (i, item) -> {
-            if (i > 0) {// don't add starting node
-                finalList.add(item);
-            }
+                finalList.add(item.reverse());
         });
+        
+        Log.print("Got path:",pathBackward,"And",pathForward,"Joined "+startNode);
         finalList.addAll(pathForward);
+        Log.print("FinalPath",finalList);
 
         return finalList;
 

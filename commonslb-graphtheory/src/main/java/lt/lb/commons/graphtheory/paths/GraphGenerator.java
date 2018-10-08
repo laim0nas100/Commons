@@ -6,6 +6,7 @@
 package lt.lb.commons.graphtheory.paths;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import lt.lb.commons.graphtheory.Orgraph;
@@ -43,7 +44,7 @@ public class GraphGenerator {
             throw new IllegalArgumentException("Impossible node degree:" + minNodeDegree + " nodes:" + gr.nodes.size());
         }
         F.find(gr.nodes, (ID, node) -> {
-            int tryCount = 10000;
+            int tryCount = 100;
             Predicate<Long> suitableNode = (n) -> {
                 return !(n.equals(ID) || node.linksTo.contains(n));
             };
@@ -51,6 +52,8 @@ public class GraphGenerator {
                 boolean found = false;
                 Long pickRandom = null;
                 while (!found) {
+                    Set<Long> set = gr.nodes.keySet();
+                    F.filterParallel(set, suitableNode, r->r.run());
                     pickRandom = rnd.pickRandom(gr.nodes.keySet());
                     found = suitableNode.test(pickRandom);
                     if (tryCount < 0) {
