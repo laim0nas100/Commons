@@ -5,6 +5,7 @@
  */
 package lt.lb.commons.javafx.scenemanagement;
 
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class MultiStageManager {
     public URL getResource(String path) {
         return getClass().getResource(path);
     }
-
+    
     public Frame newFrame(URL resource, String ID, String title, boolean singleton) throws FrameException, InterruptedException, ExecutionException {
         if (!singleton) {
             int index = findSmallestAvailable(frames, ID);
@@ -95,13 +96,14 @@ public class MultiStageManager {
             frame.listenerY = listenerY;
             stage.xProperty().addListener(listenerX);
             stage.yProperty().addListener(listenerY);
-            controller.initialize();
-
+            
             // optional inject
             if (controller instanceof InjectableController) {
                 InjectableController inj = F.cast(controller);
-                inj.frame = frame;
+                inj.inject(frame, resource, loader.getResources());
             }
+            controller.initialize();
+            
             return frame;
         };
         FutureTask<Frame> ftask = new FutureTask<>(call);
