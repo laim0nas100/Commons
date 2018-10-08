@@ -33,7 +33,7 @@ public class Interval extends MinMax {
     private static double d(Number val) {
         return val.doubleValue();
     }
-
+    
     public boolean inRange(Number val, boolean minInclusive, boolean maxInclusive) {
         boolean inRange = true;
 
@@ -70,15 +70,8 @@ public class Interval extends MinMax {
 
     public Interval expand(Number val) {
         double v = d(val);
-        Number newMax = this.max;
-        if (d(newMax) < v) {
-            newMax = val;
-        }
-
-        Number newMin = this.min;
-        if (d(newMax) > v) {
-            newMax = val;
-        }
+        double newMax = Math.max(d(max),v);
+        double newMin = Math.min(d(min), v);
         return new Interval(newMin, newMax);
     }
 

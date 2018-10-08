@@ -17,4 +17,8 @@ public class MinMax {
         this.min = min;
         this.max= max;
     }
+    
+    public String toString(){
+        return min + " "+max;
+    }
 }
