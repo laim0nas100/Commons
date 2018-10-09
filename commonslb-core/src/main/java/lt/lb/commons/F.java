@@ -138,6 +138,19 @@ public class F {
         }
         return len1 - len2;
     }
+    
+    public static <T> ArrayList filterInPlace(Collection<T> col, Predicate<T> pred){
+        Iterator<T> iterator = col.iterator();
+        ArrayList<T> removed = new ArrayList<>();
+        while(iterator.hasNext()){
+            T next = iterator.next();
+            if(!pred.test(next)){
+                iterator.remove();
+                removed.add(next);
+            }
+        }
+        return removed;
+    }
 
     /**
      * Execute filter condition check in parallel,
