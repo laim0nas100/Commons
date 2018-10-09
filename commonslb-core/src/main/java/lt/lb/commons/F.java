@@ -165,7 +165,7 @@ public class F {
             }).collect(deque).execute(exe);
         });
 
-        Promise waiter = new Promise().waitFor(deque);
+        Promise waiter = new Promise().waitFor(deque).execute(exe);
 
         F.unsafeRun(() -> {
             waiter.get();
