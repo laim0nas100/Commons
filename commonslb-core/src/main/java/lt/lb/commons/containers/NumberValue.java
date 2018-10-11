@@ -53,15 +53,6 @@ public class NumberValue<T extends Number> extends Value<T> {
         return setAndGet(() -> NumberOp.divide(get(), n));
     }
 
-    public T setAndGet(Supplier<T> func) {
-        set(func.get());
-        return get();
-    }
-
-    public  T getAndSet(Supplier<T> func) {
-        T get = this.get();
-        set(func.get());
-        return get;
-    }
+    
 
 }

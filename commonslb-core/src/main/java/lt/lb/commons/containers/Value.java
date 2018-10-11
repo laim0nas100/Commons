@@ -5,6 +5,8 @@
  */
 package lt.lb.commons.containers;
 
+import java.util.function.Supplier;
+
 /**
  *
  * @author laim0nas100
@@ -34,6 +36,17 @@ public class Value<T> {
     @Override
     public String toString() {
         return this.value + "";
+    }
+
+    public T setAndGet(Supplier<T> func) {
+        set(func.get());
+        return get();
+    }
+
+    public T getAndSet(Supplier<T> func) {
+        T got = this.get();
+        set(func.get());
+        return got;
     }
 
 }
