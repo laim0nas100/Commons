@@ -5,12 +5,19 @@
  */
 package lt.lb.commons.graphtheory.paths;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.F;
+import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.graphtheory.GLink;
+import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.misc.RandomDistribution;
 
 /**
@@ -39,6 +46,40 @@ public class GraphGenerator {
         }
     }
 
+    public static void addSomeBidirectionalLinksToAllNodes(RandomDistribution rnd, Orgraph gr, int minNodeDegree, Supplier<Double> linkWeight) {
+        while (true) {
+            Optional<Tuple<Long, GNode>> find = F.find(gr.nodes, (ID, node) -> {
+                return node.degree() < minNodeDegree;
+            });
+            if (!find.isPresent()) {
+                return;
+            }
+            GraphGenerator.addSomeBidirectionalLinksToNode(rnd, gr, find.get().g2.ID, minNodeDegree, linkWeight);
+        }
+    }
+
+    public static void addSomeBidirectionalLinksToNode(RandomDistribution rnd, Orgraph gr, long nodeId, int minNodeDegree, Supplier<Double> linkWeight) {
+        if (gr.nodes.size() < minNodeDegree) {
+            throw new IllegalArgumentException("Impossible node degree:" + minNodeDegree + " nodes:" + gr.nodes.size());
+        }
+
+        Optional<GNode> getNode = gr.getNode(nodeId);
+        if (!getNode.isPresent()) {
+            return;
+        }
+        GNode node = getNode.get();
+
+        List<Long> candidates = new LinkedList<>(gr.nodes.keySet());
+        F.filterInPlace(candidates, n -> {
+            return !(node.linkedFrom.contains(n) || node.linksTo.contains(n));
+        });
+
+        F.iterate(candidates, (i, can) -> {
+            gr.add2wayLink(new GLink(node.ID, can, linkWeight.get()));
+        });
+
+    }
+
     public static void densify(RandomDistribution rnd, Orgraph gr, int minNodeDegree, Supplier<Double> linkWeight) {
         if (gr.nodes.size() < minNodeDegree) {
             throw new IllegalArgumentException("Impossible node degree:" + minNodeDegree + " nodes:" + gr.nodes.size());
@@ -53,7 +94,7 @@ public class GraphGenerator {
                 Long pickRandom = null;
                 while (!found) {
                     Set<Long> set = gr.nodes.keySet();
-                    F.filterParallel(set, suitableNode, r->r.run());
+                    F.filterParallel(set, suitableNode, r -> r.run());
                     pickRandom = rnd.pickRandom(gr.nodes.keySet());
                     found = suitableNode.test(pickRandom);
                     if (tryCount < 0) {

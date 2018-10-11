@@ -8,9 +8,11 @@ package lt.lb.commons.graphtheory;
 import lt.lb.commons.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import lt.lb.commons.F;
 
 /**
  *
@@ -178,6 +180,41 @@ public class Orgraph {
             }
         });
         return list;
+    }
+    
+    public void sanityCheck(){
+        F.iterate(links,(p,link)->{
+            GNode from = nodes.get(link.nodeFrom);
+            GNode to = nodes.get(link.nodeTo);
+            if(!from.linksTo.contains(to.ID)){
+                throw new IllegalStateException("Invalid state");
+            }
+            if(!to.linkedFrom.contains(from.ID)){
+                throw new IllegalStateException("Invalid state");
+            }
+        });
+    }
+    
+    public int bidirectionalLinkCount(){
+        HashSet<Long> visited = new HashSet<>();
+       
+        int count = 0;
+        for(GNode node:this.nodes.values()){
+            long id = node.ID;
+            
+            for(Long otherID:node.linksTo){
+                if(visited.contains(otherID)){
+                    continue;
+                }
+                GNode other = nodes.get(otherID);
+                if(other.linksTo.contains(id)){
+                    count++;
+                }
+            }
+            visited.add(id);
+            
+        }
+        return count;
     }
     
 }

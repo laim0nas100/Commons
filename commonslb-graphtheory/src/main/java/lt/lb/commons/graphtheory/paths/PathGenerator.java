@@ -113,7 +113,7 @@ public class PathGenerator {
 
         List<GLink> finalList = new ArrayList<>();
         F.iterateBackwards(pathBackward, (i, item) -> {
-                finalList.add(item.reverse());
+            finalList.add(item.reverse());
         });
         
         Log.print("Got path:",pathBackward,"And",pathForward,"Joined "+startNode);
@@ -122,6 +122,20 @@ public class PathGenerator {
 
         return finalList;
 
+    }
+    
+    public static String isPathValid(Orgraph gr, List<Long> nodes) {
+        for (int i = 1; i < nodes.size(); i++) {
+            Long prev = nodes.get(i - 1);
+            Long n = nodes.get(i);
+
+                if (gr.linkExists(prev, n)) {
+                    // all good
+                } else {
+                    return "No such link:" + prev + " -> " + n;
+                }
+        }
+        return "Yes";
     }
 
 }
