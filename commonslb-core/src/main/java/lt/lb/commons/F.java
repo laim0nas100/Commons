@@ -13,7 +13,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import lt.lb.commons.containers.Pair;
 import lt.lb.commons.containers.Tuple;
-import lt.lb.commons.containers.Value;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Equator.HashEquator;
 import lt.lb.commons.interfaces.Iter;
@@ -217,6 +216,20 @@ public class F {
             }
         }
         return removed;
+    }
+    
+    /**
+     * Adds all of other collections to the base collection
+     * @param <T>
+     * @param base collection
+     * @param other array of collections to add to base
+     * @return modified base collection
+     */
+    public static <T> Collection<T> mergeCollections(Collection<T> base, Collection<T>... other){
+        for(Collection<T> col:other){
+            base.addAll(col);
+        }
+        return base;
     }
 
     /**
