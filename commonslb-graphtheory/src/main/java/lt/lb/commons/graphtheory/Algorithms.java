@@ -9,6 +9,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,7 +29,7 @@ public class Algorithms {
         return path;
     }
 
-    public static <T,V extends Comparable> T getMapExtremum(Map<T,V> m, boolean maximise) {
+    public static <T, V extends Comparable> T getMapExtremum(Map<T, V> m, boolean maximise) {
         T ID = new ArrayList<>(m.keySet()).get(0);
         V extremum = m.get(ID);
 
@@ -216,6 +217,10 @@ public class Algorithms {
             }
         }
         return false;
+    }
+
+    public static Double getPathWeight(List<GLink> path) {
+        return path.stream().mapToDouble(l -> l.weight).sum();
     }
 
 }

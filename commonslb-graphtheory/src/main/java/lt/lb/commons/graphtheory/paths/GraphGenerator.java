@@ -73,8 +73,10 @@ public class GraphGenerator {
         F.filterInPlace(candidates, n -> {
             return !(node.linkedFrom.contains(n) || node.linksTo.contains(n));
         });
-
-        F.iterate(candidates, (i, can) -> {
+        
+        int howMany = minNodeDegree - node.degree();
+        
+        F.iterate(rnd.pickRandom(candidates, howMany), (i, can) -> {
             gr.add2wayLink(new GLink(node.ID, can, linkWeight.get()));
         });
 

@@ -9,6 +9,7 @@ import lt.lb.commons.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -104,10 +105,10 @@ public class Orgraph {
             return Optional.empty();
         }
     }
-    
-    public Optional<GLink> getLink(long from,long to){
+
+    public Optional<GLink> getLink(long from, long to) {
         Object hashMe = GLink.hashMe(from, to);
-        if(links.containsKey(hashMe)){
+        if (links.containsKey(hashMe)) {
             return Optional.of(links.get(hashMe));
         }
         return Optional.empty();
@@ -152,69 +153,94 @@ public class Orgraph {
         }
         return str;
     }
-    
-    public GLink newLink(long nodeFrom, long nodeTo, double weight){
-        return new GLink(nodeFrom,nodeTo,weight);
+
+    public GLink newLink(long nodeFrom, long nodeTo, double weight) {
+        return new GLink(nodeFrom, nodeTo, weight);
     }
-    public GNode newNode(long ID){
+
+    public GNode newNode(long ID) {
         return new GNode(ID);
     }
-    
-    public List<GLink> resolveLinkedTo(GNode node, Predicate<Long> includeCondition){
+
+    public List<GLink> resolveLinkedTo(GNode node, Predicate<Long> includeCondition) {
         ArrayList<GLink> list = new ArrayList<>();
-        node.linksTo.stream().filter(includeCondition).forEach(linkTo ->{
+        node.linksTo.stream().filter(includeCondition).forEach(linkTo -> {
             Optional<GLink> link = this.getLink(node.ID, linkTo);
-            if(link.isPresent()){
+            if (link.isPresent()) {
                 list.add(link.get());
             }
         });
         return list;
     }
-    
-    public List<GLink> resolveLinkedFrom(GNode node,Predicate<Long> includeCondition){
+
+    public List<GLink> resolveLinkedFrom(GNode node, Predicate<Long> includeCondition) {
         ArrayList<GLink> list = new ArrayList<>();
-        node.linkedFrom.stream().filter(includeCondition).forEach(linkFrom ->{
+        node.linkedFrom.stream().filter(includeCondition).forEach(linkFrom -> {
             Optional<GLink> link = this.getLink(linkFrom, node.ID);
-            if(link.isPresent()){
+            if (link.isPresent()) {
                 list.add(link.get());
             }
         });
         return list;
     }
-    
-    public void sanityCheck(){
-        F.iterate(links,(p,link)->{
+
+    public void sanityCheck() {
+        F.iterate(links, (p, link) -> {
             GNode from = nodes.get(link.nodeFrom);
             GNode to = nodes.get(link.nodeTo);
-            if(!from.linksTo.contains(to.ID)){
-                throw new IllegalStateException("Invalid state");
+            if (!from.linksTo.contains(link.nodeTo)) {
+                throw new IllegalStateException("Node:" + from.ID + " has no node:" + to.ID + " in linksTo set, but such link exists");
             }
-            if(!to.linkedFrom.contains(from.ID)){
-                throw new IllegalStateException("Invalid state");
+            if (!to.linkedFrom.contains(link.nodeFrom)) {
+                throw new IllegalStateException("Node:" + to.ID + " has no node:" + from.ID + " in linkedFrom set, but such link exists");
             }
         });
+        //link -> nodes OK
+
+        F.iterate(nodes, (idFrom, node) -> {
+            F.iterate(node.linksTo, (otherI, ID) -> {
+                if (!this.linkExists(idFrom, ID)) {
+                    throw new IllegalStateException("Nodes has link: " + idFrom + " -> " + ID + " but no such link info");
+                }
+            });
+            F.iterate(node.linkedFrom, (otherI, ID) -> {
+                if (!this.linkExists(ID, idFrom)) {
+                    throw new IllegalStateException("Nodes has link: " + ID + " -> " + idFrom + " but no such link info");
+                }
+            });
+        });
+
+        //nodes -> link ok
     }
-    
-    public int bidirectionalLinkCount(){
+
+    public int bidirectionalLinkCount() {
         HashSet<Long> visited = new HashSet<>();
-       
+
         int count = 0;
-        for(GNode node:this.nodes.values()){
+        for (GNode node : this.nodes.values()) {
             long id = node.ID;
-            
-            for(Long otherID:node.linksTo){
-                if(visited.contains(otherID)){
+
+            for (Long otherID : node.linksTo) {
+                if (visited.contains(otherID)) {
                     continue;
                 }
                 GNode other = nodes.get(otherID);
-                if(other.linksTo.contains(id)){
+                if (other.linksTo.contains(id)) {
                     count++;
                 }
             }
             visited.add(id);
-            
+
         }
         return count;
     }
-    
+
+    public List<GLink> doesNotHaveAPair() {
+        LinkedList<GLink> links = new LinkedList<>();
+        links.addAll(this.links.values());
+        return F.filterInPlace(links, l -> {
+            return this.linkExists(l.nodeTo, l.nodeFrom);
+        });
+    }
+
 }
