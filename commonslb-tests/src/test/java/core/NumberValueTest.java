@@ -52,6 +52,8 @@ public class NumberValueTest {
         byte b = 0xa;
         Log.print(numberVal.incrementAndGet(10));
         
+        
+        
         F.unsafeRun(()->{
             Log.await(1, TimeUnit.HOURS);
         });
