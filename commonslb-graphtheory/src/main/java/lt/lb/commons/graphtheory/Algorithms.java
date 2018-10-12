@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lt.lb.commons.ArrayOp;
 
 /**
  *
@@ -221,6 +222,24 @@ public class Algorithms {
 
     public static Double getPathWeight(List<GLink> path) {
         return path.stream().mapToDouble(l -> l.weight).sum();
+    }
+
+    public static Double getPathWeight(List<Long> path, Orgraph gr) {
+
+        Long[] array = ArrayOp.newArray(path, Long.class);
+        double sum = 0d;
+        for (int i = 1; i < array.length; i++) {
+            long from = array[i - 1];
+            long to = array[i];
+            Optional<GLink> link = gr.getLink(from, to);
+            if (link.isPresent()) {
+                sum += link.get().weight;
+            } else {
+                throw new IllegalArgumentException("No such link " + from + " -> " + to);
+            }
+        }
+        return sum;
+
     }
 
 }

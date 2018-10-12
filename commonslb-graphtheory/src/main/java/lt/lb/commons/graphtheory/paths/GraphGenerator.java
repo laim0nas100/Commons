@@ -5,13 +5,10 @@
  */
 package lt.lb.commons.graphtheory.paths;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.F;
@@ -78,39 +75,6 @@ public class GraphGenerator {
         
         F.iterate(rnd.pickRandom(candidates, howMany), (i, can) -> {
             gr.add2wayLink(new GLink(node.ID, can, linkWeight.get()));
-        });
-
-    }
-
-    public static void densify(RandomDistribution rnd, Orgraph gr, int minNodeDegree, Supplier<Double> linkWeight) {
-        if (gr.nodes.size() < minNodeDegree) {
-            throw new IllegalArgumentException("Impossible node degree:" + minNodeDegree + " nodes:" + gr.nodes.size());
-        }
-        F.find(gr.nodes, (ID, node) -> {
-            int tryCount = 100;
-            Predicate<Long> suitableNode = (n) -> {
-                return !(n.equals(ID) || node.linksTo.contains(n));
-            };
-            while (node.degree() < minNodeDegree) {
-                boolean found = false;
-                Long pickRandom = null;
-                while (!found) {
-                    Set<Long> set = gr.nodes.keySet();
-                    F.filterParallel(set, suitableNode, r -> r.run());
-                    pickRandom = rnd.pickRandom(gr.nodes.keySet());
-                    found = suitableNode.test(pickRandom);
-                    if (tryCount < 0) {
-                        return false;
-                    }
-                    tryCount--;
-                }
-                gr.newLink(ID, pickRandom, linkWeight.get());
-                if (tryCount < 0) {
-                    return false;
-                }
-                tryCount--;
-            }
-            return false;
         });
 
     }
