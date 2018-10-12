@@ -5,7 +5,6 @@
  */
 package lt.lb.commons.containers;
 
-import java.util.function.Supplier;
 import lt.lb.commons.NumberOp;
 
 /**
