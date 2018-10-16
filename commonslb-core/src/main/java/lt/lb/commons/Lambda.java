@@ -1,5 +1,12 @@
 package lt.lb.commons;
 
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import lt.lb.commons.misc.RandomDistribution;
+
 /**
  *
  * Explicit type Lambdas for everybody.
@@ -90,33 +97,42 @@ public class Lambda {
         return l;
     }
 
-    public interface L0 {
+    public interface L0 extends Runnable{
 
-        public void apply();
+        public default void apply(){
+            run();
+        }
     }
 
-    public interface L0R<R> {
+    public interface L0R<R> extends Supplier<R>{
 
-        public R apply();
+        public default R apply(){
+            return get();
+        }
     }
 
-    public interface L1<P1> {
+    public interface L1<P1> extends Consumer<P1>{
 
-        public void apply(P1 p1);
+        public default void apply(P1 p1){
+            accept(p1);
+        }
     }
 
-    public interface L1R<P1, R> {
-
+    public interface L1R<P1, R> extends Function<P1,R>{
+        @Override
         public R apply(P1 p1);
     }
 
-    public interface L2<P1, P2> {
+    public interface L2<P1, P2> extends BiConsumer<P1,P2> {
 
-        public void apply(P1 p1, P2 p2);
+        public default void apply(P1 p1, P2 p2){
+            accept(p1,p2);
+        }
     }
 
-    public interface L2R<P1, P2, R> {
-
+    public interface L2R<P1, P2, R> extends BiFunction<P1,P2,R>{
+        
+        @Override
         public R apply(P1 p1, P2 p2);
     }
 
@@ -188,6 +204,11 @@ public class Lambda {
     public interface L9R<P1, P2, P3, P4, P5, P6, P7, P8, P9, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9);
+    }
+    
+    public static void ok(){
+        L0R<Double> of = Lambda.of(()->10D);
+        RandomDistribution rnd = RandomDistribution.dice(of::apply, 1);
     }
 
 }
