@@ -5,7 +5,7 @@
  */
 package lt.lb.commons.jpa.decorators;
 
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Path;
 
 /**
  *
@@ -13,5 +13,5 @@ import javax.persistence.criteria.Root;
  */
 public interface IOrderMaker<T> extends IQueryDecorator<T> {
 
-    public OrderSort getOrderSort(Root<T> root);
+    public OrderSort getOrderSort(Path<T> root);
 }
