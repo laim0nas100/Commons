@@ -5,15 +5,12 @@
  */
 package lt.lb.commons.reflect.nodes;
 
-import lt.lb.commons.reflect.nodes.ArrayReflectNode;
-import lt.lb.commons.reflect.nodes.FinalReflectNode;
-import lt.lb.commons.reflect.nodes.RepeatedReflectNode;
-import lt.lb.commons.interfaces.Visitor;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import lt.lb.commons.Lambda;
 import lt.lb.commons.reflect.FieldFactory;
 import lt.lb.commons.reflect.FieldHolder;
 import lt.lb.commons.reflect.FieldHolder.FieldMap;
@@ -183,7 +180,7 @@ public class ReflectNode {
         HashMap<String, ReflectNode> accumulator = new HashMap<>();
         while (node != null) {
             for (Map.Entry<String, ReflectNode> entry : getter.apply(node).entrySet()) {
-                visiter.visit(accumulator, entry);
+                visiter.apply(accumulator, entry);
             }
             node = node.superClassNode;
 
@@ -191,7 +188,7 @@ public class ReflectNode {
         return accumulator;
     }
 
-    public static interface NodeVisitor extends Visitor<Map<String, ReflectNode>, Map.Entry<String, ReflectNode>> {
+    public static interface NodeVisitor extends Lambda.L2<Map<String, ReflectNode>, Map.Entry<String, ReflectNode>> {
     }
 
     public static interface NodeGetter extends Function<ReflectNode, Map<String, ReflectNode>> {
