@@ -11,13 +11,13 @@ import javax.persistence.criteria.*;
  *
  * @author laim0nas100
  */
-public class SetRef<T> extends SingularRef<T> {
+public class SetRef<T> extends JoinRef<T> {
 
-    public <E> SetJoin<E, T> join(Root<E> root) {
+    public <E> SetJoin<E, T> join(From<E,T> root) {
         return this.join(root, JoinType.INNER);
     }
 
-    public <E> SetJoin<E, T> join(Root<E> root, JoinType jt) {
+    public <E> SetJoin<E, T> join(From<E,T> root, JoinType jt) {
         return root.joinSet(this.local, jt);
     }
 

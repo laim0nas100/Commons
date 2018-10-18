@@ -11,13 +11,13 @@ import javax.persistence.criteria.*;
  *
  * @author laim0nas100
  */
-public class MapRef<K, T> extends SingularRef<T> {
+public class MapRef<K, T> extends JoinRef<T> {
 
-    public <E> MapJoin<E, K, T> join(Root<E> root) {
+    public <E> MapJoin<E, K, T> join(From<E,T> root) {
         return this.join(root, JoinType.INNER);
     }
 
-    public <E> MapJoin<E, K, T> join(Root<E> root, JoinType jt) {
+    public <E> MapJoin<E, K, T> join(From<E,T> root, JoinType jt) {
         return root.joinMap(local, jt);
     }
 

@@ -15,8 +15,8 @@ import lt.lb.commons.refmodel.RefCompiler;
  * @author laim0nas100
  */
 public class SingularRef<T> extends Ref<T> {
-
-    public Path<T> getPath(Path p) {
+    
+    public Path<T> getPathFrom(Path p) {
         String quoteReplacement = Matcher.quoteReplacement(RefCompiler.separator);
         String[] split = this.get().split(quoteReplacement);
 //        String[] split = this.get().split("\\.");
@@ -26,11 +26,11 @@ public class SingularRef<T> extends Ref<T> {
         return p;
     }
 
-    public <E> Fetch<E, T> fetch(Root<E> root, JoinType jt) {
+    public <A,B> Fetch<A,T> fetch(FetchParent<A,B> root, JoinType jt) {
         return root.fetch(local, jt);
     }
 
-    public <E> Fetch<E, T> fetch(Root<E> root) {
+    public <A,B> Fetch<A,T> fetch(FetchParent<A,B> root) {
         return this.fetch(root, JoinType.INNER);
     }
 }
