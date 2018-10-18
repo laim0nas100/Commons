@@ -11,8 +11,8 @@ package lt.lb.commons.refmodel;
  */
 public class Ref<Type> {
 
-    protected String local;
-    protected String relative;
+    public String local;
+    public String relative;
 
     public String get() {
         return relative;

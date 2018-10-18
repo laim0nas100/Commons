@@ -80,9 +80,11 @@ public class RefModelTest {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<SomeEntity> q = cb.createQuery(SomeEntity.class);
         Root<SomeEntity> from = q.from(SomeEntity.class);
+        ListJoin<SomeEntity, String> join = r1.owner.ownedToys.join(from);
+        MapJoin<SomeEntity, String, Double> join1 = r1.owner.toyValues.join(from);
         q.select(from);
 
-        Fetch<SomeEntity, String> fetch = r1.owner.child.ownedToys.fetch(from);
+        Fetch<SomeEntity, String> fetch = r1.owner.child.ownedToys.fetch(from,JoinType.INNER);
         //            .where(cb.greaterThanOrEqualTo(r1.owner.child.date.getPath(from), cb.currentDate()));
     }
 
