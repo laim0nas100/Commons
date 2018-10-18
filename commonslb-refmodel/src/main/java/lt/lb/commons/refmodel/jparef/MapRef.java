@@ -13,11 +13,12 @@ import javax.persistence.criteria.*;
  */
 public class MapRef<K, T> extends JoinRef<T> {
 
-    public <E> MapJoin<E, K, T> join(From<E,T> root) {
+    
+    public <E,A> MapJoin<E, K, T> join(From<E,A> root) {
         return this.join(root, JoinType.INNER);
     }
 
-    public <E> MapJoin<E, K, T> join(From<E,T> root, JoinType jt) {
+    public <E,A> MapJoin<E, K, T> join(From<E,A> root, JoinType jt) {
         return root.joinMap(local, jt);
     }
 

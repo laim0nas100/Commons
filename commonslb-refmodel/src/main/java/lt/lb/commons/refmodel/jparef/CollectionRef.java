@@ -13,11 +13,11 @@ import javax.persistence.criteria.*;
  */
 public class CollectionRef<T> extends JoinRef<T> {
 
-    public <E> CollectionJoin<E, T> join(From<E,T> root) {
+    public <E, A> CollectionJoin<E, T> join(From<E, A> root) {
         return this.join(root, JoinType.INNER);
     }
 
-    public <E> CollectionJoin<E, T> join(From<E,T> root, JoinType jt) {
+    public <E, A> CollectionJoin<E, T> join(From<E, A> root, JoinType jt) {
         return root.joinCollection(this.local, jt);
     }
 
