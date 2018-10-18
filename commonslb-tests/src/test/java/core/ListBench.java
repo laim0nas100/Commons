@@ -208,7 +208,7 @@ Benchmark b = new Benchmark();
 
     public static void main(String[] a) throws Exception {
         Log.instant = true;
-        Log.keepBuffer = false;
+        Log.keepBufferForFile = false;
 //        Log.disable = true;
         new ListBench().listBench();
 //        PagedHashList list = new PagedHashList<>();
