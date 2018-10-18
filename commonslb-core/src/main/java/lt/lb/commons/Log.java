@@ -11,60 +11,55 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  *
  * @author laim0nas100
  */
 public class Log {
+    public enum LogStream{
+        FILE,STD_OUT,STD_ERR
+    }
+    
 
-    private PrintStream printStream;
-    private boolean console = true;
+    private static PrintStream printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+    private static boolean isFileOpen = false;
     public static boolean instant = false;
-    public static boolean keepBuffer = true;
+    public static boolean keepBufferForFile = false;
     public static boolean timeStamp = true;
+    public static boolean threadName = true;
     public static boolean display = true;
     public static boolean disable = false;
     private static DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     private static ExecutorService exe = Executors.newSingleThreadExecutor();
-    private static final Log INSTANCE = new Log();
-    public final ConcurrentLinkedDeque<String> list;
+    public static final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
     protected Log() {
 
-        printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
-        list = new ConcurrentLinkedDeque<>();
-
     }
 
-    public static Log getInstance() {
-        return INSTANCE;
-    }
-
-    public static void useTimeFormat(String format, boolean concat) {
+    public static void useTimeFormat(String format) {
         timeStringFormat = DateTimeFormatter.ofPattern(format);
 
     }
 
-    public static void changeStream(char c, String... path) throws IOException {
-        INSTANCE.console = true;
-        switch (c) {
-            case ('f'): {
-                try {
-                    INSTANCE.printStream = new PrintStream(path[0], "UTF-8");
-                    INSTANCE.console = false;
-                } catch (FileNotFoundException ex) {
-                }
+    public static void changeStream(LogStream c, String... path) throws IOException {
+        isFileOpen = false;
+        if(null == c){
+            printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+        }else switch (c) {
+            case FILE:
+                printStream = new PrintStream(path[0], "UTF-8");
+                isFileOpen = true;
                 break;
-            }
-            case ('e'): {
-                INSTANCE.printStream = new PrintStream(new FileOutputStream(FileDescriptor.err));
+            case STD_ERR:
+                printStream = new PrintStream(new FileOutputStream(FileDescriptor.err));
                 break;
-            }
-            default: {
-                INSTANCE.printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+            default:
+                printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
                 break;
-            }
         }
     }
 
@@ -76,20 +71,20 @@ public class Log {
     }
 
     public static void flushBuffer() {
-        while (!INSTANCE.list.isEmpty()) {
-            String string = INSTANCE.list.pollFirst();
-            INSTANCE.printStream.println(string);
+        while (!list.isEmpty()) {
+            String string = list.pollFirst();
+            printStream.println(string);
         }
 
     }
 
     public static void close() {
         try {
-            INSTANCE.exe.shutdown();
-            INSTANCE.exe.awaitTermination(10, TimeUnit.MINUTES);
-            INSTANCE.printStream.flush();
-            if (!INSTANCE.console) {
-                INSTANCE.printStream.close();
+            exe.shutdown();
+            exe.awaitTermination(10, TimeUnit.MINUTES);
+            printStream.flush();
+            if (isFileOpen) {
+                printStream.close();
             }
         } catch (InterruptedException ex) {
         }
@@ -99,97 +94,96 @@ public class Log {
         if (disable) {
             return;
         }
-        long millis = System.currentTimeMillis();
-        final Thread t = Thread.currentThread();
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                LineStringBuilder string = new LineStringBuilder();
-                if (col.size() > 0) {
-                    for (Object s : col) {
-                        string.appendLine(s);
-                    }
-                    string.prependLine();
-                }
-                logThis(string.toString(), t, millis);
-            }
-        };
-        submit(r);
+        processString(printLinesDecorator.apply(col));
     }
 
     public static <T> void print(T... objects) {
         if (disable) {
             return;
         }
-        long millis = System.currentTimeMillis();
-        final Thread t = Thread.currentThread();
-
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                LineStringBuilder string = new LineStringBuilder();
-                if (objects.length > 0) {
-                    for (T s : objects) {
-                        string.append(", " + s);
-                    }
-                    string.delete(0, 2);
-                }
-                logThis(string.toString(), t, millis);
-            }
-        };
-        submit(r);
-
-    }
-
-    private static void submit(Runnable run) {
-        if (instant) {
-            run.run();
-        } else {
-            INSTANCE.exe.submit(run);
-        }
+        processString(printDecorator.apply(objects));
     }
 
     public static <T> void println(T... objects) {
         if (disable) {
             return;
         }
-        long millis = System.currentTimeMillis();
-        final Thread t = Thread.currentThread();
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
 
-                LineStringBuilder sb = new LineStringBuilder();
-                if (objects.length == 1) {
-                    sb.append(String.valueOf(objects[0]));
-                } else if (objects.length > 1) {
-                    for (T s : objects) {
-                        sb.appendLine(String.valueOf(s));
-                    }
-
-                }
-                if (sb.length() > 0) {
-                    sb.removeFromEnd(LineStringBuilder.LINE_END.length());
-                }
-                logThis(sb.toString(), t, millis);
-            }
-        };
-        submit(r);
+        processString(printLnDecorator.apply(objects));
     }
 
-    private static void logThis(String string, Thread thread, long millis) {
-        String time = getZonedDateTime(timeStringFormat, millis);
-        String res = string;
-        if (timeStamp) {
-            res = time + "[" + thread.getName() + "] {" + res + "}";
+    private static void processString(Supplier<String> string) {
+        if (override == null) {
+            long millis = System.currentTimeMillis();
+            final Thread thread = Thread.currentThread();
+            if (instant) {
+                logThis(string.get(), thread, millis);
+            } else {
+                exe.submit(() -> logThis(string.get(), thread, millis));
+            }
+
+        } else {
+            override.accept(string);
         }
+    }
+
+    private static final Lambda.L1R<Object[], Supplier<String>> printLnDecorator = Lambda.of((Object[] objs) -> {
+        return () -> {
+            LineStringBuilder sb = new LineStringBuilder();
+            if (objs.length == 1) {
+                sb.append(String.valueOf(objs[0]));
+            } else if (objs.length > 1) {
+                for (Object s : objs) {
+                    sb.appendLine(String.valueOf(s));
+                }
+            }
+            if (sb.length() > 0) {
+                sb.removeFromEnd(LineStringBuilder.LINE_END.length());
+            }
+            return sb.toString();
+        };
+
+    });
+
+    private static final Lambda.L1R<Object[], Supplier<String>> printDecorator = Lambda.of((Object[] objs) -> {
+        return () -> {
+            LineStringBuilder string = new LineStringBuilder();
+            if (objs.length > 0) {
+                for (Object s : objs) {
+                    string.append(", " + s);
+                }
+                string.delete(0, 2);
+            }
+            return string.toString();
+        };
+
+    });
+
+    private static final Lambda.L1R<Collection, Supplier<String>> printLinesDecorator = Lambda.of((Collection col) -> {
+        return () -> {
+            LineStringBuilder string = new LineStringBuilder();
+            if (!col.isEmpty()) {
+                for (Object s : col) {
+                    string.appendLine(s);
+                }
+                string.prependLine();
+            }
+            return string.toString();
+        };
+
+    });
+
+    private static void logThis(String string, Thread thread, long millis) {
+        String timeSt = timeStamp ? getZonedDateTime(timeStringFormat, millis) : "";
+        String threadSt = threadName ? "[" + thread.getName() + "]" : "";
+        String res = timeSt + threadSt + "{" + string + "}";
         if (display) {
             System.out.println(res);
         }
-        if (keepBuffer) {
-            Log.INSTANCE.list.add(res);
+        if (keepBufferForFile) {
+            Log.list.add(res);
         }
-        if (!INSTANCE.console) {
+        if (isFileOpen) {
             flushBuffer();
         }
 
@@ -213,6 +207,8 @@ public class Log {
     }
 
     public static PrintStream getPrintStream() {
-        return INSTANCE.printStream;
+        return printStream;
     }
+
+    public static Consumer<Supplier<String>> override;
 }
