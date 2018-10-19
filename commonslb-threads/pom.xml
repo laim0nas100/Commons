@@ -12,6 +12,11 @@
     </parent>
     <dependencies>
         <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-core</artifactId>
+            <version>local-jar</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
