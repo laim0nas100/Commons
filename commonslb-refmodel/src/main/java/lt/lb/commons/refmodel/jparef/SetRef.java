@@ -18,7 +18,7 @@ public class SetRef<T> extends JoinRef<T> {
     }
 
     public <E,A> SetJoin<E, T> join(From<E,A> root, JoinType jt) {
-        return root.joinSet(this.local, jt);
+        return this.resolveJoin(root).joinSet(this.local, jt);
     }
 
 }

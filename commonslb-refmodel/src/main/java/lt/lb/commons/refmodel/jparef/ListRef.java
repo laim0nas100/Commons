@@ -18,7 +18,7 @@ public class ListRef<T> extends JoinRef<T> {
     }
 
     public <E,A> ListJoin<E, T> join(From<E,A> root, JoinType jt) {
-        return root.joinList(this.local, jt);
+        return this.resolveJoin(root).joinList(this.local, jt);
     }
 
 }

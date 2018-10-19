@@ -19,7 +19,6 @@ public class SingularRef<T> extends Ref<T> {
     public Path<T> getPathFrom(Path p) {
         String quoteReplacement = Matcher.quoteReplacement(RefCompiler.separator);
         String[] split = this.get().split(quoteReplacement);
-//        String[] split = this.get().split("\\.");
         for (String path : split) {
             p = p.get(path);
         }

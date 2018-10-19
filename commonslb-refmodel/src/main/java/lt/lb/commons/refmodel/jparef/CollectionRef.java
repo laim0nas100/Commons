@@ -18,7 +18,7 @@ public class CollectionRef<T> extends JoinRef<T> {
     }
 
     public <E, A> CollectionJoin<E, T> join(From<E, A> root, JoinType jt) {
-        return root.joinCollection(this.local, jt);
+        return this.resolveJoin(root).joinCollection(this.local, jt);
     }
 
 }

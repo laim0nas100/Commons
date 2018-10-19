@@ -19,7 +19,7 @@ public class MapRef<K, T> extends JoinRef<T> {
     }
 
     public <E,A> MapJoin<E, K, T> join(From<E,A> root, JoinType jt) {
-        return root.joinMap(local, jt);
+        return this.resolveJoin(root).joinMap(local, jt);
     }
 
 }
