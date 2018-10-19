@@ -98,10 +98,7 @@ public class ArrayBasedCounter {
     }
 
     private void transitionToNegative(int index, int val) {
-//        System.out.println("To negative");
         this.isNegative = !this.isNegative;
-//        Log.print("To negative",index,val);
-//        Log.print(this.toString());
         ArrayList<Integer> newList = new ArrayList<>();
         Iterator<Integer> iterator = list.iterator();
         int oldVal = 0;
