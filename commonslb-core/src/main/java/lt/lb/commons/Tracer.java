@@ -11,8 +11,8 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.Predicate;
-import lt.lb.commons.threads.DisposableExecutor;
 
 /**
  *
@@ -43,7 +43,7 @@ public class Tracer {
     }
 
     public static PrintStream stream = System.out;
-    public static Executor service = new DisposableExecutor(1);
+    public static Executor service = Executors.newSingleThreadExecutor();
     public static DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
     public void print(final String str) {

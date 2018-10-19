@@ -13,7 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import lt.lb.commons.Log;
-import lt.lb.commons.filemanaging.FileReader;
+import lt.lb.commons.io.FileReader;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.parsing.LexerWithStrings;
 import lt.lb.commons.parsing.Token;

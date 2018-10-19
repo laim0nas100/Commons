@@ -49,6 +49,15 @@ public class F {
         }
     }
 
+    public static Optional<Throwable> checkedRun(UnsafeRunnable r) {
+        try {
+            r.unsafeRun();
+            return Optional.empty();
+        } catch (Throwable t) {
+            return Optional.of(t);
+        }
+    }
+
     public static <T extends E, E> T cast(E ob) throws ClassCastException {
         return (T) ob;
     }
@@ -137,13 +146,13 @@ public class F {
         }
         return len1 - len2;
     }
-    
-    public static <T> ArrayList filterInPlace(Collection<T> col, Predicate<T> pred){
+
+    public static <T> ArrayList filterInPlace(Collection<T> col, Predicate<T> pred) {
         Iterator<T> iterator = col.iterator();
         ArrayList<T> removed = new ArrayList<>();
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
             T next = iterator.next();
-            if(!pred.test(next)){
+            if (!pred.test(next)) {
                 iterator.remove();
                 removed.add(next);
             }
@@ -152,8 +161,8 @@ public class F {
     }
 
     /**
-     * Execute filter condition check in parallel,
-     * then modify given collection. Uses RandomAccess interface check to optimize removal.
+     * Execute filter condition check in parallel, then modify given collection.
+     * Uses RandomAccess interface check to optimize removal.
      *
      * @param <T>
      * @param col
@@ -217,16 +226,17 @@ public class F {
         }
         return removed;
     }
-    
+
     /**
      * Adds all of other collections to the base collection
+     *
      * @param <T>
      * @param base collection
      * @param other array of collections to add to base
      * @return modified base collection
      */
-    public static <T> Collection<T> mergeCollections(Collection<T> base, Collection<T>... other){
-        for(Collection<T> col:other){
+    public static <T> Collection<T> mergeCollections(Collection<T> base, Collection<T>... other) {
+        for (Collection<T> col : other) {
             base.addAll(col);
         }
         return base;
@@ -249,11 +259,11 @@ public class F {
                 long k1 = i;
                 long k2 = offset + j;
                 if (eq.equals(obj1, obj2)) {
-                    if(!map.contains(k1)){
+                    if (!map.contains(k1)) {
                         map.add(k1);
                         common.add(obj1);
                     }
-                    if(!map.contains(k2)){
+                    if (!map.contains(k2)) {
                         map.add(k2);
                         common.add(obj2);
                     }
@@ -273,19 +283,20 @@ public class F {
         }
         for (T obj1 : c2) {
             Object key1 = eq.getHashable(obj1);
-            if(m1.containsKey(key1)){
-                common.add(new Pair<>(m1.get(key1),obj1));
+            if (m1.containsKey(key1)) {
+                common.add(new Pair<>(m1.get(key1), obj1));
             }
         }
         return common;
     }
-    
+
     /**
      * Basic intersection using HashSet.
+     *
      * @param <T>
      * @param c1
      * @param c2
-     * @return 
+     * @return
      */
     public static <T> HashSet<T> intersection(Collection<T> c1, Collection<T> c2) {
         HashSet<T> set = new HashSet<>(c1);

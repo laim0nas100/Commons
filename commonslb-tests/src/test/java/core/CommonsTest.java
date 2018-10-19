@@ -17,7 +17,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
-import lt.lb.commons.filemanaging.FileReader;
+import lt.lb.commons.io.FileReader;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.Value;
