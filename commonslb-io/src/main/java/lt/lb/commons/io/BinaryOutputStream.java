@@ -1,4 +1,4 @@
-package lt.lb.commons.filemanaging;
+package lt.lb.commons.io;
 
 /**
  * ***********************************************************************
