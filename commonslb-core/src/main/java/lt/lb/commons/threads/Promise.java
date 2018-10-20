@@ -5,7 +5,6 @@
  */
 package lt.lb.commons.threads;
 
-import lt.lb.commons.threads.UnsafeRunnable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.*;

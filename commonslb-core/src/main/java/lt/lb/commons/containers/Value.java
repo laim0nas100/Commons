@@ -18,17 +18,32 @@ public class Value<T> {
 
     protected T value;
 
+    /**
+     * Create with null
+     */
     public Value() {
     }
 
+    /**
+     * Create with explicit initial value
+     * @param val 
+     */
     public Value(T val) {
         this.value = val;
     }
 
+    /**
+     * 
+     * @return current value
+     */
     public T get() {
         return value;
     }
 
+    /**
+     * 
+     * @param val new value
+     */
     public void set(T val) {
         this.value = val;
     }
@@ -38,11 +53,20 @@ public class Value<T> {
         return this.value + "";
     }
 
+    /**
+     * 
+     * @param func new value
+     * @return updated value
+     */
     public T setAndGet(Supplier<T> func) {
         set(func.get());
         return get();
     }
 
+    /**
+     * @param func new value
+     * @return old value
+     */
     public T getAndSet(Supplier<T> func) {
         T got = this.get();
         set(func.get());

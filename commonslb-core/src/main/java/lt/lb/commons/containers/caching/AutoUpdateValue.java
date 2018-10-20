@@ -8,6 +8,7 @@ package lt.lb.commons.containers.caching;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -15,12 +16,13 @@ import lt.lb.commons.containers.Value;
 
 /**
  *
+ * Late updating value, unless forceUpdate = true
  * @author laim0nas100
  */
 public class AutoUpdateValue<T> extends Value<T> {
 
     protected volatile AtomicLong called = new AtomicLong(-1);
-    protected volatile AtomicLong completed = new AtomicLong(-1);
+    protected volatile AtomicLong lastSetTime = new AtomicLong(-1);
     protected volatile AtomicReference<FutureTask<T>> ref = new AtomicReference();
     protected Callable<T> cld;
     protected boolean forceUpdate;
@@ -34,15 +36,24 @@ public class AutoUpdateValue<T> extends Value<T> {
 
     }
 
+    /**
+     * Gets last read value, and updates in case there has been changes
+     * @return 
+     */
     @Override
     public T get() {
-
         return this.get(this.forceUpdate);
     }
 
+    
+    /**
+     * Gets explicitly updated mode last read value 
+     * @param forceUpdate
+     * @return 
+     */
     public T get(boolean forceUpdate) {
         if (forceUpdate) {
-            FutureTask<T> update = this.update();
+            Future<T> update = this.update();
             try {
                 return update.get();
             } catch (InterruptedException | ExecutionException ex) {
@@ -55,7 +66,7 @@ public class AutoUpdateValue<T> extends Value<T> {
             return super.get();
         }
         if (called.get() <= now) {
-            if (completed.get() > now) {
+            if (lastSetTime.get() > now) {
                 return super.get();
             } else {
                 this.update();
@@ -64,7 +75,11 @@ public class AutoUpdateValue<T> extends Value<T> {
         return super.get();
     }
 
-    public FutureTask<T> createUpdateFunction() {
+    /**
+     * 
+     * @return update task, that you can execute at your own volition and set new value afterwards
+     */
+    private FutureTask<T> createUpdateFunction() {
         AutoUpdateValue<T> me = this;
         FutureTask<T> task = new FutureTask<>(() -> {
             T call = this.cld.call();
@@ -74,7 +89,11 @@ public class AutoUpdateValue<T> extends Value<T> {
         return task;
     }
 
-    public FutureTask<T> update() {
+    /**
+     * updates value in background
+     * @return Future so you can monitor when update is finished
+     */
+    public Future<T> update() {
         long now = System.nanoTime();
         long lastCalled = called.get();
         if (called.compareAndSet(lastCalled, now)) {
@@ -86,16 +105,24 @@ public class AutoUpdateValue<T> extends Value<T> {
         return ref.get(); // return last reference
     }
 
+    /**
+     * Sets new value, updates completed time
+     * @param val 
+     */
     @Override
     public void set(T val) {
         long now = System.nanoTime();
-        long lastSet = completed.get();
-        if(lastSet < now && completed.compareAndSet(lastSet, now)){
+        long lastSet = lastSetTime.get();
+        if(lastSet < now && lastSetTime.compareAndSet(lastSet, now)){
             super.set(val);
         }
         
     }
 
+    /**
+     * Change update policy
+     * @param force 
+     */
     public void setForceUpdate(boolean force) {
         this.forceUpdate = force;
     }

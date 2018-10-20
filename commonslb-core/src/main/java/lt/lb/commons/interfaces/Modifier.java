@@ -27,8 +27,12 @@ public interface Modifier<Type> extends Function<Type,Type>{
         };
     }
 
+    /**
+     * Any Modifiable object can be modified with builder pattern
+     * @param <ObjectType> 
+     */
     public static interface Modifiable<ObjectType> {
        
-        public ObjectType apply(Modifier<ObjectType> mod);//builder pattern, but with functions
+        public ObjectType apply(Modifier<ObjectType> mod);
     }
 }

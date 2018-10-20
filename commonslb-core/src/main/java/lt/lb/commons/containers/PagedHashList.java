@@ -14,12 +14,12 @@ import java.util.*;
 public class PagedHashList<T> implements List<T>, RandomAccess {
 
     protected int initialPageSize = 512;
-    double pageIncrMult = 2;
+    protected double pageIncrMult = 2;
     protected int pageSize = initialPageSize;
     protected ArrayList<T> cachedList;
 
 //    protected Map<Integer, Page<T>> pageHash = new HashMap<>();
-    public PrefillArrayMap2<Page<T>> pageHash = new PrefillArrayMap2<>();
+    protected PrefillArrayMap2<Page<T>> pageHash = new PrefillArrayMap2<>();
 //    public Map<Integer, Page<T>> pageHash = new PrefillArrayMap<Page<T>>().asMap();
 
     public PagedHashList() {

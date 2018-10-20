@@ -1,16 +1,5 @@
 package lt.lb.commons.io;
 
-/**
- * ***********************************************************************
- * Compilation: javac BinaryStdIn.java Execution: java BinaryStdIn < input >
- * output
- *
- * Supports reading binary data from standard input.
- *
- * % java BinaryStdIn < input.jpg > output.jpg % diff input.jpg output.jpg
- *
- ************************************************************************
- */
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * <i>Binary standard input</i>. This class provides methods for reading in bits
+ * <i>Binary input</i>. This class provides methods for reading in bits
  * from standard input, either one bit at a time (as a <tt>boolean</tt>), 8 bits
  * at a time (as a <tt>byte</tt> or <tt>char</tt>), 16 bits at a time (as a
  * <tt>short</tt>), 32 bits at a time (as an <tt>int</tt> or <tt>float</tt>), or
@@ -52,7 +41,7 @@ public final class BinaryInputStream {
             buffer = in.read();
             N = 8;
         } catch (IOException e) {
-            System.out.println("EOF");
+//            System.out.println("EOF");
             buffer = EOF;
             N = -1;
         }
@@ -61,13 +50,8 @@ public final class BinaryInputStream {
     /**
      * Close this input stream and release any associated system resources.
      */
-    public void close() {
-        try {
+    public void close() throws IOException {
             in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Could not close BinaryStdIn");
-        }
     }
 
     /**

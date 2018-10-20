@@ -9,7 +9,8 @@ import java.util.Comparator;
 
 /**
  *
- * @author Lemmin
+ * Comparator with use friendly methods to compare items
+ * @author laim0nas100
  */
 public interface ExtComparator<T> extends Comparator<T> {
 
@@ -32,18 +33,31 @@ public interface ExtComparator<T> extends Comparator<T> {
     public default boolean greaterThan(T o1, T o2) {
         return this.compare(o1, o2) > 0;
     }
+    
 
+    /**
+     * Create ExtComparator using Comparator 
+     * @param <F>
+     * @param cmp
+     * @return 
+     */
     public static <F> ExtComparator<F> of(Comparator<F> cmp) {
         return (F o1, F o2) -> cmp.compare(o1, o2);
     }
 
+    
+    /**
+     * Create ExtComparator using known Comparable class as basis of order
+     * @param <F>
+     * @return 
+     */
     public static <F extends Comparable> ExtComparator<F> ofComparable() {
         return (F o1, F o2) -> {
             if (o1 == null) {
                 if (o2 == null) {
                     return 0;
                 }
-                return -1 * o2.compareTo(o1);
+                return -o2.compareTo(o1);
             }
 
             return o1.compareTo(o2);
@@ -51,6 +65,11 @@ public interface ExtComparator<T> extends Comparator<T> {
 
     }
     
+    /**
+     * Create comparable object using this as basis for order
+     * @param obj
+     * @return 
+     */
     public default Comparable<T> asComparable(T obj){
         return (T o) -> this.compare(obj, o);
     }
