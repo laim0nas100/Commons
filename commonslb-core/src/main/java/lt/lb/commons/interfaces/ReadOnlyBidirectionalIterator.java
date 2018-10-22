@@ -11,7 +11,8 @@ package lt.lb.commons.interfaces;
  */
 public interface ReadOnlyBidirectionalIterator<T> extends ReadOnlyIterator<T> {
     
-    public Boolean hasPrevious();
-    public T getPrevious();
+    public boolean hasPrevious();
+    
+    public T previous();
     
 }
