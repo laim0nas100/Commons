@@ -19,14 +19,14 @@ import java.util.function.Supplier;
  * @author laim0nas100
  */
 public class Log {
-    public enum LogStream{
-        FILE,STD_OUT,STD_ERR
+
+    public enum LogStream {
+        FILE, STD_OUT, STD_ERR
     }
-    
 
     private static PrintStream printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
     private static boolean isFileOpen = false;
-    public static boolean instant = false;
+    public static boolean async = true;
     public static boolean keepBufferForFile = false;
     public static boolean timeStamp = true;
     public static boolean threadName = true;
@@ -47,19 +47,21 @@ public class Log {
 
     public static void changeStream(LogStream c, String... path) throws IOException {
         isFileOpen = false;
-        if(null == c){
+        if (null == c) {
             printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
-        }else switch (c) {
-            case FILE:
-                printStream = new PrintStream(path[0], "UTF-8");
-                isFileOpen = true;
-                break;
-            case STD_ERR:
-                printStream = new PrintStream(new FileOutputStream(FileDescriptor.err));
-                break;
-            default:
-                printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
-                break;
+        } else {
+            switch (c) {
+                case FILE:
+                    printStream = new PrintStream(path[0], "UTF-8");
+                    isFileOpen = true;
+                    break;
+                case STD_ERR:
+                    printStream = new PrintStream(new FileOutputStream(FileDescriptor.err));
+                    break;
+                default:
+                    printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+                    break;
+            }
         }
     }
 
@@ -116,10 +118,10 @@ public class Log {
         if (override == null) {
             long millis = System.currentTimeMillis();
             final Thread thread = Thread.currentThread();
-            if (instant) {
-                logThis(string.get(), thread, millis);
-            } else {
+            if (async) {
                 exe.submit(() -> logThis(string.get(), thread, millis));
+            } else {
+                logThis(string.get(), thread, millis);
             }
 
         } else {
