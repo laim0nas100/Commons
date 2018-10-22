@@ -27,7 +27,7 @@ import org.junit.Test;
 public class CollectionTest {
 
     static {
-        Log.instant = true;
+        Log.async = true;
     }
 
     public static void print(Object... args) {
@@ -98,7 +98,7 @@ public class CollectionTest {
         //532200000
         //536800000
         Log.print(Integer.MAX_VALUE);
-        Log.instant = false;
+        Log.async = false;
         
         Object ref = new Object();
         for (long i = 0; i < (long)Integer.MAX_VALUE+1; i++) {

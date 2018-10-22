@@ -26,7 +26,7 @@ import org.magicwerk.brownies.collections.BigList;
 public class ListBench {
 
     static {
-        Log.instant = true;
+        Log.async = true;
     }
 
 
@@ -207,7 +207,7 @@ Benchmark b = new Benchmark();
     }
 
     public static void main(String[] a) throws Exception {
-        Log.instant = true;
+        Log.async = true;
         Log.keepBufferForFile = false;
 //        Log.disable = true;
         new ListBench().listBench();

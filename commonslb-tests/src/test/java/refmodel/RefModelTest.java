@@ -64,7 +64,7 @@ public class RefModelTest {
 
     @Test
     public void refModelTest() throws Exception {
-        Log.instant = true;
+        Log.async = true;
         R2 r1 = RefCompiler.compile(R2.class);
         Ref<Date> date = r1.owner.child.child.date;
         Log.print(date, date.getClass());

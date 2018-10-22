@@ -171,7 +171,7 @@ public class ParamParserTest {
 
 //    @Test
     public void ok() throws Exception {
-        Log.instant = true;
+        Log.async = true;
         Log.display = true;
         String url = "C:\\MyWorkspace\\Commons\\fileToRead.txt";
         Collection<String> readFromFile = FileReader.readFromFile(url, "//", "/*", "*/");
@@ -266,12 +266,12 @@ public class ParamParserTest {
         public int current = 0;
 
         @Override
-        public Boolean hasNext() {
+        public boolean hasNext() {
             return current + 1 < tokens.size();
         }
 
         @Override
-        public Token getNext() {
+        public Token next() {
             if (hasNext()) {
                 current++;
                 return tokens.get(current);

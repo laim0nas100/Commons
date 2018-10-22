@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -21,7 +21,9 @@ import lt.lb.commons.io.FileReader;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.Value;
+import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.parsing.CommentParser;
 import org.junit.*;
 
 /**
@@ -50,7 +52,7 @@ public class CommonsTest {
     }
 
     static {
-        Log.instant = true;
+        Log.async = true;
     }
 
     // TODO add test methods here.
@@ -100,30 +102,50 @@ public class CommonsTest {
 
     }
 
-//    @Test
+    @Test
     public void readFile() throws Exception {
 
         String desktop = "C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\";
 
+        Log.async = false;
+        Log.threadName = false;
+        Log.timeStamp = false;
         F.unsafeRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "/*", "*/");
-            Log.instant = true;
+            
             Log.printLines(readFromFile);
+            Log.print("########");
         });
+        
+        F.unsafeRun(() -> {
+            String url = desktop + "myFile.txt";
+            ArrayList<String> readFromFile = FileReader.readFromFile(url);
+//            Log.printLines(readFromFile);
+            ReadOnlyIterator<String> parseAllComments = CommentParser.parseAllComments(ReadOnlyIterator.of(readFromFile), "#", "/*", "*/");
+            ArrayList<String> parsed = new ArrayList<>();
+            for(String s:parseAllComments){
+//                Log.print(s);
+                parsed.add(s);
+            }
+            Log.print("########");
+            Log.printLines(parsed);
+        });
+        
         F.unsafeRun(() -> {
             String url = desktop + "myFile2.txt";
             ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "**", "**");
-            Log.instant = true;
-            Log.printLines(readFromFile);
+//            Log.printLines(readFromFile);
+            Log.await(1, TimeUnit.HOURS);
         });
+        
 
     }
 
 //    @Test
     public void convertToArff() {
 
-        Log.instant = true;
+        Log.async = true;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
@@ -150,7 +172,7 @@ public class CommonsTest {
 
     public void convertToArffNew() {
 
-        Log.instant = true;
+        Log.async = true;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
@@ -183,7 +205,7 @@ public class CommonsTest {
 //    @Test
     public void convertToArffNewFinal() {
 
-        Log.instant = true;
+        Log.async = true;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
@@ -237,7 +259,7 @@ public class CommonsTest {
         }
     }
 
-    @Test
+//    @Test
     public void defaultSort() {
         Generator<Value<Integer>> gen = new Generator<Value<Integer>>() {
             @Override
@@ -257,7 +279,7 @@ public class CommonsTest {
         
         
         Collections.sort(vals, of);
-        Log.print(vals);
+        Log.printLines(vals);
         F.unsafeRun(()->{
             Log.await(1, TimeUnit.HOURS);
         });
