@@ -250,7 +250,7 @@ public class TokenFiniteAutomata {
                     throw new IllegalStateException("Illegal stream end on node " + node);
                 }
             } else {
-                Token next = stream.getNext();
+                Token next = stream.next();
 
                 Optional<TNode> firstMatch = node.getFirstMatch(next);
 
