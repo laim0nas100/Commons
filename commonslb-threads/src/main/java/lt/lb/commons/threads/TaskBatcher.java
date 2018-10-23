@@ -6,7 +6,6 @@
 package lt.lb.commons.threads;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -15,7 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.Value;
@@ -34,7 +32,7 @@ public class TaskBatcher implements Executor {
         this.exe = exe;
     }
     
-    public <T> Future<T> submit(Callable<T> call) {
+    public <T> Future<T> execute(Callable<T> call) {
         FutureTask<T> task = new FutureTask<>(call);
         execute(task);
         return task;
