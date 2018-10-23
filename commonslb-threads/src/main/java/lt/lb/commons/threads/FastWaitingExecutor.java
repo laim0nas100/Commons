@@ -11,19 +11,18 @@ import java.util.concurrent.TimeUnit;
 /**
  *  Similar to FastExecutor, but spawns new Threads sparingly.
  *  Simply waiting set time for new tasks become available before exiting.
- *  Default wait time is 1 millisecond.
+ *  Default wait time is 1 second.
  * 
  * @author laim0nas100
  */
 public class FastWaitingExecutor extends FastExecutor{
     
     
-    protected long toWait = 1L;
-    protected TimeUnit tu = TimeUnit.MILLISECONDS;
+    protected long toWait;
+    protected TimeUnit tu;
     
     public FastWaitingExecutor(int maxThreads) {
-        super(maxThreads);
-        this.tasks = new LinkedBlockingDeque<>();
+        this(maxThreads,1,TimeUnit.SECONDS);
     }
     
     public FastWaitingExecutor(int maxThreads, long timeToWait, TimeUnit tu) {
