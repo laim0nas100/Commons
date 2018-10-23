@@ -5,16 +5,14 @@
  */
 package lt.lb.commons.threads.sync;
 
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.misc.ExtComparator;
 
 /**
  *
- * COnvenient class to group TimeUnit and long for concurrent waiting.
+ * Convenient class to group TimeUnit and long for concurrent waiting.
  *
  * @author laim0nas100
  */
@@ -57,8 +55,7 @@ public class WaitTime {
     }
 
     public static WaitTime convert(WaitTime current, TimeUnit unit) {
-        long convert = unit.convert(current.time, current.unit);
-        return new WaitTime(convert, unit);
+        return new WaitTime(unit.convert(current.time, current.unit), unit);
     }
 
     private static final TimeUnit[] units = ArrayOp.asArray(
@@ -72,8 +69,7 @@ public class WaitTime {
     );
 
     private static int unitOrder(TimeUnit tu) {
-        Optional<Tuple<Integer, TimeUnit>> find = F.find(units, (i, u) -> u == tu);
-        return find.get().g1;
+        return F.find(units, (i, u) -> u == tu).get().g1; // ordinal() might work, but order of definition might be different in other JVM's
     }
 
     public static WaitTime add(WaitTime a, WaitTime b) {
@@ -106,7 +102,7 @@ public class WaitTime {
             sum = b.unit.convert(a.time, a.unit) - b.time;
             unit = b.unit;
         } else {
-            sum = a.unit.convert(b.time, b.unit) - a.time;
+            sum = a.time - a.unit.convert(b.time, b.unit);
         }
         return new WaitTime(sum, unit);
     }
