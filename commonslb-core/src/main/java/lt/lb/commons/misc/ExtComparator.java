@@ -9,13 +9,12 @@ import java.util.Comparator;
 
 /**
  *
- * Comparator with use friendly methods to compare items
+ * Comparator with use friendly and clear methods to compare items
  * @author laim0nas100
  */
 public interface ExtComparator<T> extends Comparator<T> {
 
     /**
-     *
      * @param o1
      * @param o2
      * @return think of it like: o1 &lt o2
@@ -25,13 +24,34 @@ public interface ExtComparator<T> extends Comparator<T> {
     }
 
     /**
-     *
      * @param o1
      * @param o2
      * @return think of it like: o1 &gt o2
      */
     public default boolean greaterThan(T o1, T o2) {
         return this.compare(o1, o2) > 0;
+    }
+    
+    public default boolean greaterThanOrEq(T o1, T o2){
+        return this.compare(o1, o2) >= 0;
+    }
+    
+    public default boolean lessThenOrEq(T o1, T o2){
+        return this.compare(o1, o2) <= 0;
+    }
+    
+    public default boolean notEqual(T o1, T o2){
+        return this.compare(o1, o2) != 0;
+    }
+    
+    
+    /**
+     * @param o1
+     * @param o2
+     * @return  think of it like: o1 &eq o2
+     */
+    public default boolean equals(T o1, T o2){
+        return this.compare(o1, o2) == 0;
     }
     
 
