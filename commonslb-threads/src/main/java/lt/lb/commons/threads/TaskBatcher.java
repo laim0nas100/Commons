@@ -15,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.Value;
 import lt.lb.commons.threads.sync.WaitTime;
@@ -24,20 +25,22 @@ import lt.lb.commons.threads.sync.WaitTime;
  * @author laim0nas100
  */
 public class TaskBatcher implements Executor {
-    
+
     private LinkedBlockingDeque<Future> deque = new LinkedBlockingDeque<>();
     private Executor exe;
-    
+    private volatile FutureTask<BatchRunSummary> waitingTask = new FutureTask<>(() -> null);
+    private AtomicBoolean inTask = new AtomicBoolean(false);
+
     public TaskBatcher(Executor exe) {
         this.exe = exe;
     }
-    
+
     public <T> Future<T> execute(Callable<T> call) {
         FutureTask<T> task = new FutureTask<>(call);
         execute(task);
         return task;
     }
-    
+
     @Override
     public void execute(Runnable command) {
         FutureTask task;
@@ -46,23 +49,23 @@ public class TaskBatcher implements Executor {
         } else {
             task = F.cast(command);
         }
-        exe.execute(command);
+        exe.execute(task);
         deque.addFirst(task);
     }
-    
+
     public static class BatchRunSummary {
-        
+
         public final int total;
         public final int timedOut;
         public final int successful;
         public final Collection<Throwable> failures;
-        
+
         public BatchRunSummary(int total, int ok, int timedOut, Collection<Throwable> th) {
             this.total = total;
             this.successful = ok;
             this.timedOut = timedOut;
             this.failures = th;
-            
+
         }
     }
 
@@ -97,64 +100,83 @@ public class TaskBatcher implements Executor {
      * it's synchronized.
      *
      * @param failFast cancel execution on first failure
-     * @param pollWait how long to wait for new task to arrive. Set time to 0 or less to disable;
-     * @param executionWait how long to wait for current task to end. Set time to 0 or less to disable.
+     * @param pollWait how long to wait for new task to arrive. Set time to 0 or
+     * less to disable;
+     * @param executionWait how long to wait for current task to end. Set time
+     * to 0 or less to disable.
      * @return
      */
-    public synchronized BatchRunSummary await(boolean failFast, WaitTime pollWait, WaitTime executionWait){
-        int total = 0;
-        int ok = 0;
-        int timeout = 0;
-        ArrayDeque<Throwable> failures = new ArrayDeque<>();
-        boolean waitPoll = pollWait.time > 0;
-        boolean waitGet = executionWait.time > 0;
-        while (!deque.isEmpty()) {
-            Value<Future> last = new Value<>(null);
-            F.checkedRun(()->{
-                Future pollLast = waitPoll ? deque.pollLast(pollWait.time, pollWait.unit) : deque.pollLast();
-                last.set(pollLast);
-            });
-            
-            boolean failed = false;
-            boolean timeEx = false;
-            Throwable err = null;
-            if (last.get() != null) {
-                Future fut = last.get();
-                if (waitGet) {
-                    Optional<Throwable> ex = F.checkedRun(() -> {
-                        fut.get(executionWait.time, executionWait.unit);
+    public BatchRunSummary await(boolean failFast, WaitTime pollWait, WaitTime executionWait) {
+        if (this.inTask.compareAndSet(false, true)) {
+
+            Callable<BatchRunSummary> call = () -> {
+                int total = 0;
+                int ok = 0;
+                int timeout = 0;
+                ArrayDeque<Throwable> failures = new ArrayDeque<>();
+                boolean waitPoll = pollWait.time > 0;
+                boolean waitGet = executionWait.time > 0;
+                while (!deque.isEmpty()) {
+                    Value<Future> last = new Value<>(null);
+                    F.checkedRun(() -> {
+                        Future pollLast = waitPoll ? deque.pollLast(pollWait.time, pollWait.unit) : deque.pollLast();
+                        last.set(pollLast);
                     });
-                    if (ex.isPresent()) {
-                        Throwable get = ex.get();
-                        if (get instanceof TimeoutException) {
-                            timeEx = true;
+
+                    boolean failed = false;
+                    boolean timeEx = false;
+                    Throwable err = null;
+                    if (last.get() != null) {
+                        Future fut = last.get();
+                        if (waitGet) {
+                            Optional<Throwable> ex = F.checkedRun(() -> {
+                                fut.get(executionWait.time, executionWait.unit);
+                            });
+                            if (ex.isPresent()) {
+                                Throwable get = ex.get();
+                                if (get instanceof TimeoutException) {
+                                    timeEx = true;
+                                } else {
+                                    failed = true;
+                                }
+                                err = get;
+                            }
                         } else {
-                            failed = true;
+                            Optional<Throwable> checkedRun = F.checkedRun(fut::get);
+                            if (checkedRun.isPresent()) {
+                                failed = true;
+                                err = checkedRun.get();
+                            }
                         }
-                        err = get;
+                        total++;
+                        ok += failed ? 0 : 1;
+                        timeout += timeEx ? 1 : 0;
+                        boolean hasError = failed || timeEx;
+                        if (hasError) {
+                            failures.add(err);
+                        }
+
+                        if (failFast && hasError) {
+                            break;
+                        }
                     }
-                } else {
-                    Optional<Throwable> checkedRun = F.checkedRun(fut::get);
-                    if (checkedRun.isPresent()) {
-                        failed = true;
-                        err = checkedRun.get();
-                    }
                 }
-                total++;
-                ok += failed ? 0 : 1;
-                timeout += timeEx ? 1 : 0;
-                boolean hasError = failed || timeEx;
-                if (hasError) {
-                    failures.add(err);
+                if(!inTask.compareAndSet(true, false)){
+                    throw new IllegalStateException("IMPOSSIBLE!!!");
                 }
-                
-                if (failFast && hasError) {
-                    break;
-                }
-            }
+                return new BatchRunSummary(total, ok, timeout, failures);
+            };
+            FutureTask<BatchRunSummary> run = new FutureTask<>(call);
+            this.waitingTask = run;
+
         }
-        
-        return new BatchRunSummary(total, ok, timeout, failures);
+        Value<BatchRunSummary> val = new Value<>();
+        F.unsafeRun(() -> {
+            waitingTask.run();
+            val.set(waitingTask.get());
+
+        });
+        return val.get();
     }
-    
+
 }
