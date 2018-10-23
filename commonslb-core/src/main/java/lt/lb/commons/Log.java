@@ -6,13 +6,16 @@
 package lt.lb.commons;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import lt.lb.commons.containers.StringValue;
 
 /**
  *
@@ -22,11 +25,10 @@ public class Log {
 
     private static Log mainLog = new Log();
 
-    
-    public static Log main(){
+    public static Log main() {
         return mainLog;
     }
-    
+
     public static enum LogStream {
         FILE, STD_OUT, STD_ERR
     }
@@ -37,6 +39,7 @@ public class Log {
     public boolean keepBufferForFile = false;
     public boolean timeStamp = true;
     public boolean threadName = true;
+    public boolean stackTrace = true;
     public boolean display = true;
     public boolean disable = false;
     public Consumer<Supplier<String>> override;
@@ -152,20 +155,67 @@ public class Log {
         println(mainLog, objects);
     }
 
+//    private static StackTraceElement getStackElement(int elem) {
+//        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+//        return trace[elem];
+//    }
+    private static StackTraceElement getStackElement(Throwable th, int elem) throws Exception {
+//        thMethod.setAccessible(true);
+        Object invoke = thMethod.invoke(th, elem);
+//        thMethod.setAccessible(false);
+        return F.cast(invoke);
+    }
+
+    private static Class<Throwable> threadClass = Throwable.class;
+    private static Method thMethod = getThrowableMethod();
+
+    private static Method getThrowableMethod() {
+        try {
+            Method declaredMethod = threadClass.getDeclaredMethod("getStackTraceElement", Integer.TYPE);
+            declaredMethod.setAccessible(true);
+            return declaredMethod;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private static void processString(Log log, Supplier<String> string) {
         if (log.override == null) {
             long millis = System.currentTimeMillis();
-            final Thread thread = Thread.currentThread();
+            final String threadName = Thread.currentThread().getName();
+
+            StringValue trace = new StringValue();
+            if (log.stackTrace) {
+                Throwable th = new Throwable();
+                try {
+                    trace.set(getStackElement(th, 3).toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             if (log.async) {
-                log.exe.submit(() -> logThis(log, string.get(), thread, millis));
+                log.exe.submit(() -> logThis(log, finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get())));
             } else {
-                logThis(log, string.get(), thread, millis);
+                logThis(log, finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get()));
             }
 
         } else {
             log.override.accept(string);
         }
     }
+
+    private static final Lambda.L5R<Log, String, String, Long, String, String> finalPrintDecorator = Lambda.of((Log log, String trace, String name, Long millis, String string) -> {
+        String timeSt = log.timeStamp ? getZonedDateTime(log.timeStringFormat, millis) : "";
+        String threadSt = log.threadName ? "[" + name + "]" : "";
+        int firstComma = trace.indexOf("(");
+        int lastComma = trace.indexOf(")");
+        if (firstComma > 0 && lastComma > firstComma && lastComma > 0) {
+            trace = trace.substring(firstComma + 1, lastComma);
+        }
+        return timeSt + threadSt + "@" + trace + ":{" + string + "}";
+    });
 
     private static final Lambda.L1R<Object[], Supplier<String>> printLnDecorator = Lambda.of((Object[] objs) -> {
         return () -> {
@@ -213,10 +263,7 @@ public class Log {
 
     });
 
-    private static void logThis(Log log, String string, Thread thread, long millis) {
-        String timeSt = log.timeStamp ? getZonedDateTime(log.timeStringFormat, millis) : "";
-        String threadSt = log.threadName ? "[" + thread.getName() + "]" : "";
-        String res = timeSt + threadSt + "{" + string + "}";
+    private static void logThis(Log log, String res) {
         if (log.display) {
             System.out.println(res);
         }
