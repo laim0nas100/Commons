@@ -20,112 +20,150 @@ import java.util.function.Supplier;
  */
 public class Log {
 
-    public enum LogStream {
+    private static Log mainLog = new Log();
+
+    
+    public static Log main(){
+        return mainLog;
+    }
+    
+    public static enum LogStream {
         FILE, STD_OUT, STD_ERR
     }
 
-    private static PrintStream printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
-    private static boolean isFileOpen = false;
-    public static boolean async = true;
-    public static boolean keepBufferForFile = false;
-    public static boolean timeStamp = true;
-    public static boolean threadName = true;
-    public static boolean display = true;
-    public static boolean disable = false;
-    private static DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    private static ExecutorService exe = Executors.newSingleThreadExecutor();
-    public static final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
+    protected PrintStream printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+    protected boolean isFileOpen = false;
+    public boolean async = true;
+    public boolean keepBufferForFile = false;
+    public boolean timeStamp = true;
+    public boolean threadName = true;
+    public boolean display = true;
+    public boolean disable = false;
+    public Consumer<Supplier<String>> override;
+    protected DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+    protected ExecutorService exe = Executors.newSingleThreadExecutor();
+    public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
     protected Log() {
 
     }
 
     public static void useTimeFormat(String format) {
-        timeStringFormat = DateTimeFormatter.ofPattern(format);
-
+        useTimeFormat(mainLog, format);
     }
 
-    public static void changeStream(LogStream c, String... path) throws IOException {
-        isFileOpen = false;
+    public static void useTimeFormat(Log log, String format) {
+        log.timeStringFormat = DateTimeFormatter.ofPattern(format);
+    }
+
+    public static void changeStream(Log log, LogStream c, String... path) throws IOException {
+        log.isFileOpen = false;
         if (null == c) {
-            printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+            log.printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
         } else {
             switch (c) {
                 case FILE:
-                    printStream = new PrintStream(path[0], "UTF-8");
-                    isFileOpen = true;
+                    log.printStream = new PrintStream(path[0], "UTF-8");
+                    log.isFileOpen = true;
                     break;
                 case STD_ERR:
-                    printStream = new PrintStream(new FileOutputStream(FileDescriptor.err));
+                    log.printStream = new PrintStream(new FileOutputStream(FileDescriptor.err));
                     break;
                 default:
-                    printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+                    log.printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
                     break;
             }
         }
     }
 
-    public static void await(long timeout, TimeUnit tu) throws InterruptedException {
-        ExecutorService serv = exe;
-        exe = Executors.newSingleThreadExecutor();
+    public static void changeStream(LogStream c, String... path) throws IOException {
+        changeStream(mainLog, c, path);
+    }
+
+    public static void await(Log log, long timeout, TimeUnit tu) throws InterruptedException {
+        ExecutorService serv = log.exe;
+        log.exe = Executors.newSingleThreadExecutor();
         serv.shutdown();
         serv.awaitTermination(timeout, tu);
     }
 
-    public static void flushBuffer() {
-        while (!list.isEmpty()) {
-            String string = list.pollFirst();
-            printStream.println(string);
-        }
+    public static void await(long timeout, TimeUnit tu) throws InterruptedException {
+        await(mainLog, timeout, tu);
+    }
 
+    public static void flushBuffer() {
+        flushBuffer(mainLog);
+    }
+
+    public static void flushBuffer(Log log) {
+        while (!log.list.isEmpty()) {
+            String string = log.list.pollFirst();
+            log.printStream.println(string);
+        }
     }
 
     public static void close() {
+        close(mainLog);
+    }
+
+    public static void close(Log log) {
         try {
-            exe.shutdown();
-            exe.awaitTermination(10, TimeUnit.MINUTES);
-            printStream.flush();
-            if (isFileOpen) {
-                printStream.close();
+            log.exe.shutdown();
+            log.exe.awaitTermination(10, TimeUnit.MINUTES);
+            log.printStream.flush();
+            if (log.isFileOpen) {
+                log.printStream.close();
             }
         } catch (InterruptedException ex) {
         }
     }
 
     public static void printLines(Collection col) {
-        if (disable) {
+        printLines(mainLog, col);
+    }
+
+    public static void printLines(Log log, Collection col) {
+        if (log.disable) {
             return;
         }
-        processString(printLinesDecorator.apply(col));
+        processString(log, printLinesDecorator.apply(col));
+    }
+
+    public static <T> void print(Log log, T... objects) {
+        if (log.disable) {
+            return;
+        }
+        processString(log, printDecorator.apply(objects));
     }
 
     public static <T> void print(T... objects) {
-        if (disable) {
+        print(mainLog, objects);
+    }
+
+    public static <T> void println(Log log, T... objects) {
+        if (log.disable) {
             return;
         }
-        processString(printDecorator.apply(objects));
+
+        processString(log, printLnDecorator.apply(objects));
     }
 
     public static <T> void println(T... objects) {
-        if (disable) {
-            return;
-        }
-
-        processString(printLnDecorator.apply(objects));
+        println(mainLog, objects);
     }
 
-    private static void processString(Supplier<String> string) {
-        if (override == null) {
+    private static void processString(Log log, Supplier<String> string) {
+        if (log.override == null) {
             long millis = System.currentTimeMillis();
             final Thread thread = Thread.currentThread();
-            if (async) {
-                exe.submit(() -> logThis(string.get(), thread, millis));
+            if (log.async) {
+                log.exe.submit(() -> logThis(log, string.get(), thread, millis));
             } else {
-                logThis(string.get(), thread, millis);
+                logThis(log, string.get(), thread, millis);
             }
 
         } else {
-            override.accept(string);
+            log.override.accept(string);
         }
     }
 
@@ -175,17 +213,17 @@ public class Log {
 
     });
 
-    private static void logThis(String string, Thread thread, long millis) {
-        String timeSt = timeStamp ? getZonedDateTime(timeStringFormat, millis) : "";
-        String threadSt = threadName ? "[" + thread.getName() + "]" : "";
+    private static void logThis(Log log, String string, Thread thread, long millis) {
+        String timeSt = log.timeStamp ? getZonedDateTime(log.timeStringFormat, millis) : "";
+        String threadSt = log.threadName ? "[" + thread.getName() + "]" : "";
         String res = timeSt + threadSt + "{" + string + "}";
-        if (display) {
+        if (log.display) {
             System.out.println(res);
         }
-        if (keepBufferForFile) {
-            Log.list.add(res);
+        if (log.keepBufferForFile) {
+            log.list.add(res);
         }
-        if (isFileOpen) {
+        if (log.isFileOpen) {
             flushBuffer();
         }
 
@@ -209,8 +247,11 @@ public class Log {
     }
 
     public static PrintStream getPrintStream() {
-        return printStream;
+        return getPrintStream(mainLog);
     }
 
-    public static Consumer<Supplier<String>> override;
+    public static PrintStream getPrintStream(Log log) {
+        return log.printStream;
+    }
+
 }
