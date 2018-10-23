@@ -30,11 +30,12 @@ public class FastExecutorTest {
     
     public Runnable makeRun(String s){
         return ()->{
-            Log.async = true;
+            Log.main().async = false;
             F.unsafeRun(()->{
                 Thread.sleep(100);
                 Log.print(s);
             });
+            
             
         };
     }

@@ -26,7 +26,7 @@ import org.magicwerk.brownies.collections.BigList;
 public class ListBench {
 
     static {
-        Log.async = true;
+        Log.main().async = true;
     }
 
 
@@ -207,8 +207,8 @@ Benchmark b = new Benchmark();
     }
 
     public static void main(String[] a) throws Exception {
-        Log.async = true;
-        Log.keepBufferForFile = false;
+        Log.main().async = true;
+        Log.main().keepBufferForFile = false;
 //        Log.disable = true;
         new ListBench().listBench();
 //        PagedHashList list = new PagedHashList<>();
@@ -455,7 +455,7 @@ Benchmark b = new Benchmark();
         toTest.clear();
         toTest.add(0L);
         safeList.add(0L);
-        Log.disable = false;
+        Log.main().disable = false;
 
         ListOp.randomAddAll.d(safeList, rndSeed, size);
         ListOp.randomAddAll.d(toTest, rndSeed, size);

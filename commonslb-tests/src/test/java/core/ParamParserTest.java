@@ -171,8 +171,8 @@ public class ParamParserTest {
 
 //    @Test
     public void ok() throws Exception {
-        Log.async = true;
-        Log.display = true;
+        Log.main().async = false;
+        Log.main().display = true;
         String url = "C:\\MyWorkspace\\Commons\\fileToRead.txt";
         Collection<String> readFromFile = FileReader.readFromFile(url, "//", "/*", "*/");
 
@@ -217,7 +217,7 @@ public class ParamParserTest {
         } while (p.hasNext());
         Log.print("RESULTS");
         Log.printLines(globalList);
-        Log.display = true;
+        Log.main().display = true;
 
 //        Log.flushBuffer();
 //        Log.await(1, TimeUnit.HOURS);

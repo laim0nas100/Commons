@@ -175,7 +175,7 @@ public class ReflectTest {
         c1.change(50f);
 
         DefaultFieldFactory factory = new DefaultFieldFactory();
-        Log.async = true;
+        Log.main().async = false;
         rp.dump(c1);
 
         CCls2Override c2 = factory.reflectionClone(c1);
@@ -191,7 +191,7 @@ public class ReflectTest {
 
         b.useGChint = false;
         b.useGVhintAfterFullBench = true;
-        Log.async = true;
+        Log.main().async = true;
         Log.print("GO GO");
 
         CCls2Override c1 = new CCls2Override(0);

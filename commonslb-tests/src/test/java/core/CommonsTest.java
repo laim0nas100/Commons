@@ -52,7 +52,7 @@ public class CommonsTest {
     }
 
     static {
-        Log.async = true;
+        Log.main().async = true;
     }
 
     // TODO add test methods here.
@@ -107,9 +107,9 @@ public class CommonsTest {
 
         String desktop = "C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\";
 
-        Log.async = false;
-        Log.threadName = false;
-        Log.timeStamp = false;
+        Log.main().async = true;
+        Log.main().threadName = false;
+        Log.main().timeStamp = false;
         F.unsafeRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "/*", "*/");
@@ -145,7 +145,7 @@ public class CommonsTest {
 //    @Test
     public void convertToArff() {
 
-        Log.async = true;
+        Log.main().async = true;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
@@ -172,7 +172,7 @@ public class CommonsTest {
 
     public void convertToArffNew() {
 
-        Log.async = true;
+        Log.main().async = false;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
@@ -205,7 +205,7 @@ public class CommonsTest {
 //    @Test
     public void convertToArffNewFinal() {
 
-        Log.async = true;
+        Log.main().async = false;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 

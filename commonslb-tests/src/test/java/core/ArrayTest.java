@@ -21,7 +21,7 @@ public class ArrayTest {
 
     @Test
     public void arrayTest() throws InterruptedException {
-        Log.async = true;
+        Log.main().async = true;
         Integer[] arr = new Integer[]{1, 2, 3};
         Log.print(arr);
         List list = new ArrayList<>();

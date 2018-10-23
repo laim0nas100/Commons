@@ -52,7 +52,7 @@ public class SimpleGraphGenerate {
     // @Test
     // public void hello() {}
     static {
-        Log.async = true;
+        Log.main().async = true;
     }
 
     @Test
