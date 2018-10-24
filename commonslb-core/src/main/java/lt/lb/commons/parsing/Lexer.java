@@ -5,7 +5,7 @@
  */
 package lt.lb.commons.parsing;
 
-import lt.lb.commons.containers.SelfSortingMap;
+import lt.lb.commons.containers.collections.SelfSortingMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

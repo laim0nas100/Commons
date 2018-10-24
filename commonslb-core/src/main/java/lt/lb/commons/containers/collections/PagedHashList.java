@@ -3,9 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lt.lb.commons.containers;
+package lt.lb.commons.containers.collections;
 
 import java.util.*;
+import lt.lb.commons.containers.Pair;
+import lt.lb.commons.containers.SkippingListIterator;
+import lt.lb.commons.containers.Tuple;
 
 /**
  *

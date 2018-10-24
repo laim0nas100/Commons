@@ -5,10 +5,9 @@
  */
 package lt.lb.commons.threads;
 
-import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -20,9 +19,13 @@ import lt.lb.commons.threads.sync.ConditionalWait;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class EventQueue {
+    
+    public EventQueue(Executor exe){
+        this.exe = exe;
+    }
 
     public static final String defaultTag = "DEFAULT";
 
@@ -49,7 +52,9 @@ public class EventQueue {
     }
     private ConcurrentLinkedDeque<Event> events = new ConcurrentLinkedDeque<>();
 
-    private ExecutorService exe = Executors.newSingleThreadExecutor();
+    private Executor exe;
+    
+    private volatile boolean shutdown = false;
 
     public Future add(UnsafeRunnable run) {
         return add(defaultTag, run);
@@ -81,7 +86,7 @@ public class EventQueue {
             return ev.run;
         }
 
-        if (exe.isShutdown()) {
+        if (shutdown) {
             throw new IllegalStateException("Is shutdown");
         }
         this.events.addLast(ev);
@@ -116,7 +121,7 @@ public class EventQueue {
                 }
 
             };
-            exe.submit(run);
+            exe.execute(run);
         }
 
     }
@@ -138,9 +143,10 @@ public class EventQueue {
         waiter.wakeUp();
 
     }
-
-    public void dispose() {
-        this.exe.shutdown();
+    
+    public void shutdown(){
+        shutdown = true;
     }
+
 
 }

@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lt.lb.commons.containers;
+package lt.lb.commons.containers.collections;
 
 import java.util.Map;
+import lt.lb.commons.containers.Tuple;
 
 /**
  *
@@ -43,7 +44,7 @@ public class AssociativeMap<One, Two> {
         return new Tuple<>(remove1, remove2);
     }
 
-    public boolean contains(Object ob) {
+    public boolean containsAny(Object ob) {
         return firstMap.containsKey(ob) || secondMap.containsKey(ob);
     }
 
