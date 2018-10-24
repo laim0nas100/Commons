@@ -25,6 +25,24 @@ public class Tuple<Type1, Type2> {
 
     }
 
+    public Type1 getG1() {
+        return g1;
+    }
+
+    public void setG1(Type1 g1) {
+        this.g1 = g1;
+    }
+
+    public Type2 getG2() {
+        return g2;
+    }
+
+    public void setG2(Type2 g2) {
+        this.g2 = g2;
+    }
+
+    
+    
     public boolean full() {
         return this.g1 != null && this.g2 != null;
     }
