@@ -26,14 +26,15 @@ public class Value<T> {
 
     /**
      * Create with explicit initial value
-     * @param val 
+     *
+     * @param val
      */
     public Value(T val) {
         this.value = val;
     }
 
     /**
-     * 
+     *
      * @return current value
      */
     public T get() {
@@ -41,11 +42,29 @@ public class Value<T> {
     }
 
     /**
-     * 
+     *
      * @param val new value
      */
     public void set(T val) {
         this.value = val;
+    }
+
+    /**
+     * Use as a Bean
+     *
+     * @return value
+     */
+    public T getValue() {
+        return value;
+    }
+
+    /**
+     * Use as a Bean
+     *
+     * @param value to set
+     */
+    public void setValue(T value) {
+        this.value = value;
     }
 
     @Override
@@ -54,7 +73,7 @@ public class Value<T> {
     }
 
     /**
-     * 
+     *
      * @param func new value
      * @return updated value
      */
