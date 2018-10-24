@@ -4,6 +4,7 @@ package core;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import org.junit.Test;
@@ -20,7 +21,7 @@ import org.junit.Test;
 public class ArrayTest {
 
     @Test
-    public void arrayTest() throws InterruptedException {
+    public void arrayTest() throws InterruptedException, TimeoutException {
         Log.main().async = true;
         Integer[] arr = new Integer[]{1, 2, 3};
         Log.print(arr);

@@ -8,10 +8,11 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.containers.PrefillArrayList;
+import java.util.concurrent.TimeoutException;
+import lt.lb.commons.containers.collections.PrefillArrayList;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.PrefillArrayMap;
+import lt.lb.commons.containers.collections.PrefillArrayMap;
 import lt.lb.commons.misc.MyRandom;
 import org.junit.Test;
 
@@ -38,7 +39,7 @@ public class CollectionTest {
         System.out.println(s);
     }
 
-    public void test() throws InterruptedException {
+    public void test() throws InterruptedException, TimeoutException {
         PrefillArrayList<Long> list = new PrefillArrayList<>(0L);
         for (int i = 0; i < 10; i++) {
             list.put(i, (long) i * 2);

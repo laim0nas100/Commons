@@ -1,11 +1,12 @@
 package core;
 
 
-import lt.lb.commons.containers.PagedList;
-import lt.lb.commons.containers.PagedHashList;
-import lt.lb.commons.containers.PrefillArrayMapList;
+import lt.lb.commons.containers.collections.PagedList;
+import lt.lb.commons.containers.collections.PagedHashList;
+import lt.lb.commons.containers.collections.PrefillArrayMapList;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
@@ -50,7 +51,7 @@ public class ListBench {
 
     @Ignore
     @Test
-    public void test() throws InterruptedException {
+    public void test() throws InterruptedException, TimeoutException {
         PagedHashList<Long> list = new PagedHashList<>();
         for (int i = 0; i < 10; i++) {
 //            dPrintList(list);

@@ -20,7 +20,7 @@ import lt.lb.commons.email.EmailChannels;
 import lt.lb.commons.email.EmailChecker;
 import lt.lb.commons.email.props.POP3EmailProps;
 import lt.lb.commons.F;
-import lt.lb.commons.threads.DisposableExecutor;
+import lt.lb.commons.threads.FastExecutor;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -97,7 +97,7 @@ public class JavaMailTest {
             Log.print(objs);
             return checker.debug;
         };
-        String taskID = checker.addSchedulingTask(new DisposableExecutor(1), createPop3Poller, TimeUnit.SECONDS, 20);
+        String taskID = checker.addSchedulingTask(new FastExecutor(1), createPop3Poller, TimeUnit.SECONDS, 20);
         int i = 1;
         boolean enabled = true;
         while (true) {
@@ -117,7 +117,7 @@ public class JavaMailTest {
     }
     
     public void other(){
-        Executor e = new DisposableExecutor(1);
+        Executor e = new FastExecutor(1);
         EmailChecker ch = new EmailChecker();
         ch.addSchedulingTask(e, ()->{
             Log.print("Hi 2");
