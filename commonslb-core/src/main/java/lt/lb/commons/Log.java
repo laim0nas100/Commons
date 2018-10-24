@@ -9,13 +9,13 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.StringValue;
+import lt.lb.commons.threads.FastWaitingExecutor;
 
 /**
  *
@@ -42,17 +42,18 @@ public class Log {
     public boolean stackTrace = true;
     public boolean display = true;
     public boolean disable = false;
+    protected boolean closed = false;
     public Consumer<Supplier<String>> override;
     protected DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    protected ExecutorService exe = Executors.newSingleThreadExecutor();
+    protected Executor exe = new FastWaitingExecutor(1, 30, TimeUnit.SECONDS);
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
-    protected Log() {
+    public Log() {
 
     }
 
     public static void useTimeFormat(String format) {
-        useTimeFormat(mainLog, format);
+        useTimeFormat(main(), format);
     }
 
     public static void useTimeFormat(Log log, String format) {
@@ -80,22 +81,26 @@ public class Log {
     }
 
     public static void changeStream(LogStream c, String... path) throws IOException {
-        changeStream(mainLog, c, path);
+        changeStream(main(), c, path);
     }
 
-    public static void await(Log log, long timeout, TimeUnit tu) throws InterruptedException {
-        ExecutorService serv = log.exe;
-        log.exe = Executors.newSingleThreadExecutor();
-        serv.shutdown();
-        serv.awaitTermination(timeout, tu);
+    public static void await(Log log, long timeout, TimeUnit tu) throws InterruptedException, TimeoutException {
+        FutureTask shutdown = new FutureTask(() -> {
+            return null;
+        });
+        log.exe.execute(shutdown);
+        try {
+            shutdown.get(timeout, tu);
+        } catch (ExecutionException e) {
+        }
     }
 
-    public static void await(long timeout, TimeUnit tu) throws InterruptedException {
-        await(mainLog, timeout, tu);
+    public static void await(long timeout, TimeUnit tu) throws InterruptedException, TimeoutException {
+        await(main(), timeout, tu);
     }
 
     public static void flushBuffer() {
-        flushBuffer(mainLog);
+        flushBuffer(main());
     }
 
     public static void flushBuffer(Log log) {
@@ -106,45 +111,46 @@ public class Log {
     }
 
     public static void close() {
-        close(mainLog);
+        close(main());
     }
 
     public static void close(Log log) {
-        try {
-            log.exe.shutdown();
-            log.exe.awaitTermination(10, TimeUnit.MINUTES);
-            log.printStream.flush();
+
+        log.printStream.flush();
+
+        log.exe.execute(() -> {
+            log.closed = true;
             if (log.isFileOpen) {
                 log.printStream.close();
             }
-        } catch (InterruptedException ex) {
-        }
+        });
+
     }
 
     public static void printLines(Collection col) {
-        printLines(mainLog, col);
+        printLines(main(), col);
     }
 
     public static void printLines(Log log, Collection col) {
-        if (log.disable) {
+        if (log.disable || log.closed) {
             return;
         }
         processString(log, printLinesDecorator.apply(col));
     }
 
     public static <T> void print(Log log, T... objects) {
-        if (log.disable) {
+        if (log.disable || log.closed) {
             return;
         }
         processString(log, printDecorator.apply(objects));
     }
 
     public static <T> void print(T... objects) {
-        print(mainLog, objects);
+        print(main(), objects);
     }
 
     public static <T> void println(Log log, T... objects) {
-        if (log.disable) {
+        if (log.disable || log.closed) {
             return;
         }
 
@@ -152,32 +158,26 @@ public class Log {
     }
 
     public static <T> void println(T... objects) {
-        println(mainLog, objects);
+        println(main(), objects);
     }
 
-//    private static StackTraceElement getStackElement(int elem) {
-//        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-//        return trace[elem];
-//    }
     private static StackTraceElement getStackElement(Throwable th, int elem) throws Exception {
-//        thMethod.setAccessible(true);
-        Object invoke = thMethod.invoke(th, elem);
-//        thMethod.setAccessible(false);
+        Object invoke = getThrowableMethod().invoke(th, elem);
         return F.cast(invoke);
     }
 
     private static Class<Throwable> threadClass = Throwable.class;
-    private static Method thMethod = getThrowableMethod();
+    private static Method thMethod;
 
-    private static Method getThrowableMethod() {
-        try {
-            Method declaredMethod = threadClass.getDeclaredMethod("getStackTraceElement", Integer.TYPE);
-            declaredMethod.setAccessible(true);
-            return declaredMethod;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+    private static Method getThrowableMethod() throws Exception {
+        if (thMethod != null) {
+            return thMethod;
         }
+        Method declaredMethod = threadClass.getDeclaredMethod("getStackTraceElement", Integer.TYPE);
+        declaredMethod.setAccessible(true);
+        thMethod = declaredMethod;
+        return thMethod;
+
     }
 
     private static void processString(Log log, Supplier<String> string) {
@@ -188,15 +188,13 @@ public class Log {
             StringValue trace = new StringValue();
             if (log.stackTrace) {
                 Throwable th = new Throwable();
-                try {
+                F.unsafeRun(() -> {
                     trace.set(getStackElement(th, 3).toString());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                });
             }
 
             if (log.async) {
-                log.exe.submit(() -> logThis(log, finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get())));
+                log.exe.execute(() -> logThis(log, finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get())));
             } else {
                 logThis(log, finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get()));
             }
@@ -209,12 +207,15 @@ public class Log {
     private static final Lambda.L5R<Log, String, String, Long, String, String> finalPrintDecorator = Lambda.of((Log log, String trace, String name, Long millis, String string) -> {
         String timeSt = log.timeStamp ? getZonedDateTime(log.timeStringFormat, millis) : "";
         String threadSt = log.threadName ? "[" + name + "]" : "";
-        int firstComma = trace.indexOf("(");
-        int lastComma = trace.indexOf(")");
-        if (firstComma > 0 && lastComma > firstComma && lastComma > 0) {
-            trace = trace.substring(firstComma + 1, lastComma);
+        if (!trace.isEmpty()) {
+            int firstComma = trace.indexOf("(");
+            int lastComma = trace.indexOf(")");
+            if (firstComma > 0 && lastComma > firstComma && lastComma > 0) {
+                trace = "@" + trace.substring(firstComma + 1, lastComma) + ":";
+            }
         }
-        return timeSt + threadSt + "@" + trace + ":{" + string + "}";
+
+        return timeSt + threadSt + trace + "{" + string + "}";
     });
 
     private static final Lambda.L1R<Object[], Supplier<String>> printLnDecorator = Lambda.of((Object[] objs) -> {
@@ -294,7 +295,7 @@ public class Log {
     }
 
     public static PrintStream getPrintStream() {
-        return getPrintStream(mainLog);
+        return getPrintStream(main());
     }
 
     public static PrintStream getPrintStream(Log log) {
