@@ -45,13 +45,13 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
             @Override
             public T next() {
                 if (queue.isEmpty()) {
-                    stream.tryAdvance(cons);
+                    if (!stream.tryAdvance(cons)) {
+                        throw new NoSuchElementException();
+                    }
                 }
-                if (queue.isEmpty()) {
-                    throw new NoSuchElementException();
-                }
-                current.set(queue.pollFirst());
-                return current.get();
+                T next = queue.pollFirst();
+                current.set(next);
+                return next;
             }
 
             @Override
