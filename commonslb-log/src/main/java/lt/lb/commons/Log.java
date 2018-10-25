@@ -15,6 +15,7 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.StringValue;
+import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.threads.FastWaitingExecutor;
 
 /**
@@ -137,6 +138,17 @@ public class Log {
         }
         processString(log, printLinesDecorator.apply(col));
     }
+    
+    public static void printLines(Log log,ReadOnlyIterator iter){
+        if (log.disable || log.closed) {
+            return;
+        }
+        processString(log, printIterDecorator.apply(iter));
+    }
+    
+    public static void printLines(ReadOnlyIterator iter){
+        printLines(main(), iter);
+    }
 
     public static <T> void print(Log log, T... objects) {
         if (log.disable || log.closed) {
@@ -254,6 +266,20 @@ public class Log {
         return () -> {
             LineStringBuilder string = new LineStringBuilder();
             if (!col.isEmpty()) {
+                for (Object s : col) {
+                    string.appendLine(s);
+                }
+                string.prependLine();
+            }
+            return string.toString();
+        };
+
+    });
+    
+    private static final Lambda.L1R<ReadOnlyIterator, Supplier<String>> printIterDecorator = Lambda.of((ReadOnlyIterator col) -> {
+        return () -> {
+            LineStringBuilder string = new LineStringBuilder();
+            if (!col.hasNext()) {
                 for (Object s : col) {
                     string.appendLine(s);
                 }

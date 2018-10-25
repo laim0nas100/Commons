@@ -14,6 +14,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
+import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.parsing.CommentParser;
 
 /**
@@ -31,8 +32,6 @@ public class FileReader {
         }
         return list;
     }
-
-    
 
     public static ArrayList<String> readFromFile(String URL, String lineComment, String commentStart, String commentEnd) throws FileNotFoundException, IOException {
         ArrayList<String> list = new ArrayList<>();
@@ -56,10 +55,16 @@ public class FileReader {
     }
 
     public static void writeToFile(String URL, Collection<String> list) throws FileNotFoundException, UnsupportedEncodingException {
+        writeToFile(URL, ReadOnlyIterator.of(list));
+    }
+    
+    public static void writeToFile(String URL,ReadOnlyIterator<String> lines) throws FileNotFoundException, UnsupportedEncodingException {
         try (PrintWriter out = new PrintWriter(URL, "UTF-8")) {
-            for (String line : list) {
+            for (String line : lines) {
                 out.println(line);
             }
         }
     }
+    
+    
 }
