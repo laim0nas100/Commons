@@ -1,4 +1,4 @@
-package lt.lb.commons.misc;
+package lt.lb.commons.misc.rng;
 
 /**
  * A random number generator based on the simple and fast xor-shift pseudo
