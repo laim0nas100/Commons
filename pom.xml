@@ -16,6 +16,7 @@
     <name>CommonsLB</name>
     <modules>
         <module>commonslb-core</module>
+        <module>commonslb-log</module>
         <module>commonslb-refmodel</module>
         <module>commonslb-javafx</module>
         <module>commonslb-threads</module>
@@ -68,6 +69,11 @@
             <dependency>
                 <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-tests</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-log</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             

@@ -5,7 +5,7 @@
  */
 package lt.lb.commons.javafx;
 
-import lt.lb.commons.Log;
+//import lt.lb.commons.Log;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -76,7 +76,6 @@ public class FXTaskPooler extends FXTask {
 
     @Override
     protected Void call() throws Exception {
-        Log.print("Executor started");
         while (!this.isCancelled()) {
 
             if (tasks.isEmpty() && activeTasks.isEmpty()) {
@@ -101,13 +100,11 @@ public class FXTaskPooler extends FXTask {
                 return null;
             }
         }
-        Log.print("Executor ended");
         cancelAllTasks();
         return null;
     }
 
     public void cancelAllTasks() {
-        Log.print("CANCEL ALL TASKS");
         cancelRunningTasks();
         for (Future task : tasks) {
             task.cancel(true);
@@ -118,7 +115,6 @@ public class FXTaskPooler extends FXTask {
     public void cancelRunningTasks() {
         for (Future task : activeTasks) {
             task.cancel(true);
-            Log.print("Cancel active task");
         }
     }
 

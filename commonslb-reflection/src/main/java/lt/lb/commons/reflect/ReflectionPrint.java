@@ -13,9 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.Log;
 import lt.lb.commons.interfaces.StringBuilderActions;
 import lt.lb.commons.F;
+import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 
 /**
  *
@@ -24,13 +24,15 @@ import lt.lb.commons.F;
 public class ReflectionPrint {
 
     private FieldFactory fac = new DefaultFieldFactory();
+    private ILineAppender log;
 
     private Map<Class, Function<?, String>> customPrint = new HashMap<>();
 
-    public ReflectionPrint() {
+    public ReflectionPrint(ILineAppender log) {
         this.addCustomPrint(Date.class, (d) -> {
             return d.toString();
         });
+        this.log = log;
     }
 
     public <T> void addCustomPrint(Class<T> cls, Function<T, String> getter) {
@@ -73,15 +75,8 @@ public class ReflectionPrint {
 
     private String keepPrinting(ReflectNode node) {
         LineStringBuilder sb = new LineStringBuilder();
-        StringBuilderActions.ILineAppender sucker = new StringBuilderActions.ILineAppender() {
-            @Override
-            public StringBuilderActions.ILineAppender appendLine(Object... objs) {
-                Log.print(sb.append(objs).clear());
-                return this;
-            }
-        };
 
-        keepPrinting(node, "", sucker, new ReferenceCounter<>());
+        keepPrinting(node, "", this.log, new ReferenceCounter<>());
         return sb.toString();
     }
 

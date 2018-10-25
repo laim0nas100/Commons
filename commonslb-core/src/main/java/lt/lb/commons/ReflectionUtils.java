@@ -31,7 +31,6 @@ public class ReflectionUtils {
     private static Map<Class, DumpProp> getMap() {
         map = new HashMap<Class, DumpProp>();
         map.put(DateTimeFormatter.class, DumpProp.exclude());
-        map.put(Tracer.class, DumpProp.exclude());
         exclude(Class.class);
         exclude(Object.class);
         exclude(ClassLoader.class);
@@ -185,17 +184,17 @@ public class ReflectionUtils {
             return format(ob);
         }
         if (arrayOrCollection(ob)) {
-            List<String> elements = new LinkedList<String>();
+            List<String> elements = new LinkedList<>();
             List<Object> list;
             if (ob.getClass().isArray()) {
                 int length = Array.getLength(ob);
-                list = new ArrayList<Object>(length);
+                list = new ArrayList<>(length);
                 for (int i = 0; i < length; i++) {
                     list.add(Array.get(ob, i));
                     
                 }
             } else {
-                list = new ArrayList<Object>();
+                list = new ArrayList<>();
                 list.addAll((Collection) ob);
             }
             for (Object element : list) {
@@ -221,7 +220,7 @@ public class ReflectionUtils {
             return map.get(cls).formatMe(ob, current, stackLimit);
         }
         //collect declared fields
-        LinkedList<Field> declaredFields = new LinkedList<Field>();
+        LinkedList<Field> declaredFields = new LinkedList<>();
         while (!cls.equals(Object.class) && !map.containsKey(cls)) {
 
             for (Field f : cls.getDeclaredFields()) {
@@ -230,7 +229,7 @@ public class ReflectionUtils {
             cls = cls.getSuperclass();
 
         }
-        LinkedList<String[]> fields = new LinkedList<String[]>();
+        LinkedList<String[]> fields = new LinkedList<>();
         for (Field f : declaredFields) {
             try {
                 boolean addToEnd = true;

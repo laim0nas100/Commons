@@ -8,6 +8,7 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.ObjectBuffer;
+import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.reflect.DefaultFieldFactory;
 import lt.lb.commons.reflect.ReflectionPrint;
 import lt.lb.commons.threads.UnsafeRunnable;
@@ -163,7 +164,14 @@ public class ReflectTest {
 
     }
 
-    ReflectionPrint rp = new ReflectionPrint();
+    ILineAppender appender = new ILineAppender() {
+        @Override
+        public ILineAppender appendLine(Object... objs) {
+            Log.print(objs);
+            return appender;
+        }
+    };
+    ReflectionPrint rp = new ReflectionPrint(appender);
 
     Benchmark b = new Benchmark();
 

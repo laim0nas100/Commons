@@ -11,17 +11,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import lt.lb.commons.Log;
+//import lt.lb.commons.Log;
 import lt.lb.commons.UUIDgenerator;
 import lt.lb.commons.containers.Tuple;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.F;
+import lt.lb.commons.interfaces.StringBuilderActions;
+import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 
 /**
  *
  * @author laim0nas100
  */
 public class TokenFiniteAutomata {
+    public static ILineAppender log = ILineAppender.empty;
 
     public static class TraversedResult {
 
@@ -227,7 +230,7 @@ public class TokenFiniteAutomata {
             resNode.tnode = node;
             resNode.isKeyword = node.isKeyword();
 
-            Log.print(node, token);
+            log.appendLine(node, token);
 
             boolean isLiteral = token instanceof Literal;
             boolean nodeIsLiteral = !node.isKeyword();
@@ -283,7 +286,7 @@ public class TokenFiniteAutomata {
         }
 
         public void fullTraverse(ReadOnlyIterator<Token> stream, List<TraversedResult> resList) {
-            Log.print("Traverse ", this.graphId);
+            log.appendLine("Traverse ", this.graphId);
             TraversedResult res = this.traverse(stream);
 
             Token t = stream.getCurrent();
@@ -294,7 +297,7 @@ public class TokenFiniteAutomata {
                 TraversedResult lastResult = getLast(resList);
                 ResultNode lastNode = getLast(lastResult.nodeList);
                 if (t == lastNode.token) {
-                    Log.print("Repeated token parsing. Exiting");
+                    log.appendLine("Repeated token parsing. Exiting");
                     return;
                 }
 
@@ -309,7 +312,7 @@ public class TokenFiniteAutomata {
 
                     nextGraph.fullTraverse(stream, resList);
                 } else {
-                    Log.print("Can't proceed after", t);
+                    log.appendLine("Can't proceed after", t);
                 }
             }
 
