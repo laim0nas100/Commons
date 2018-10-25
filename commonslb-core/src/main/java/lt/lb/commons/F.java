@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import lt.lb.commons.containers.NumberValue;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
@@ -466,6 +468,62 @@ public class F {
         col.clear();
         col.addAll(kept.values());
         return removed;
+    }
+
+    public static void repeat(Integer starting, Integer inc, Supplier<Boolean> condition, Consumer<Integer> cons) {
+        Consumer<Number> cons2 = (n) -> {
+            cons.accept(n.intValue());
+        };
+        repeat(NumberValue.of(starting), NumberValue.of(inc), condition, cons2);
+    }
+
+    public static void repeat(Double starting, Double inc, Supplier<Boolean> condition, Consumer<Double> cons) {
+        Consumer<Number> cons2 = (n) -> {
+            cons.accept(n.doubleValue());
+        };
+        repeat(NumberValue.of(starting), NumberValue.of(inc), condition, cons2);
+    }
+
+    private static void repeat(NumberValue<Number> starting, NumberValue<Number> inc, Supplier<Boolean> condition, Consumer<Number> cons) {
+        while (condition.get()) {
+            cons.accept(starting.getAndIncrement(inc.get()));
+        }
+    }
+
+    public static void repeat(Integer starting, Integer inc, Integer until, Consumer<Integer> cons) {
+        NumberValue<Number> st = NumberValue.of(starting);
+        NumberValue<Number> incr = NumberValue.of(inc);
+        Supplier<Boolean> sup = () -> {
+            return st.get().intValue() < until;
+        };
+        Consumer<Number> cons2 = (n) -> {
+            cons.accept(n.intValue());
+        };
+        repeat(st, incr, sup, cons2);
+    }
+
+    public static void repeat(Integer starting, Integer until, Consumer<Integer> cons) {
+        repeat(starting, 1, until, cons);
+    }
+
+    public static void repeat(Integer until, Consumer<Integer> cons) {
+        repeat(0, until, cons);
+    }
+    
+    public static void repeat(Double starting, Double inc,Double until, Consumer<Double> cons) {
+        NumberValue<Number> st = NumberValue.of(starting);
+        NumberValue<Number> incr = NumberValue.of(inc);
+        Supplier<Boolean> sup = () -> {
+            return st.get().doubleValue() < until;
+        };
+        Consumer<Number> cons2 = (n) -> {
+            cons.accept(n.doubleValue());
+        };
+        repeat(st, incr, sup, cons2);
+    }
+
+    public static void repeat(Double starting, Double until, Consumer<Double> cons) {
+        repeat(starting, 1d, until, cons);
     }
 
     public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {
