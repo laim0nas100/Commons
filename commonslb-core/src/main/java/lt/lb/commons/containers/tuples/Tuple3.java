@@ -15,10 +15,10 @@ public class Tuple3<Type1, Type2, Type3> extends Tuple<Type1, Type2> {
 
     public Type3 g3;
 
-    public Tuple3(){
+    public Tuple3() {
         super();
     }
-    
+
     public Tuple3(Type1 t1, Type2 t2, Type3 t3) {
         super(t1, t2);
         this.g3 = t3;
@@ -66,7 +66,5 @@ public class Tuple3<Type1, Type2, Type3> extends Tuple<Type1, Type2> {
         }
         return super.equals(obj);
     }
-    
-    
 
 }
