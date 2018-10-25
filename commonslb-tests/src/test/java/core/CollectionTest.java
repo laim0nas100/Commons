@@ -13,7 +13,7 @@ import lt.lb.commons.containers.collections.PrefillArrayList;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
-import lt.lb.commons.misc.MyRandom;
+import lt.lb.commons.misc.rng.FastRandom;
 import org.junit.Test;
 
 /*
@@ -121,17 +121,17 @@ public class CollectionTest {
 
         b.threads = 1;
         b.useGVhintAfterFullBench = true;
-        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new MyRandom(1337), 10000)));
-        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new MyRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
 
-        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new MyRandom(1337), 10000)));
-        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new MyRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
 
-        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new MyRandom(1337), 10000)));
-        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new MyRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
 
-        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new MyRandom(1337), 10000)));
-        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new MyRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
 
     }
 }

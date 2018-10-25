@@ -16,7 +16,11 @@ public class FastRandom extends java.util.Random {
     long x, y, z, w;
 
     public FastRandom() {
-        seed((int) System.currentTimeMillis());
+        this((int) System.currentTimeMillis());
+    }
+    
+    public FastRandom(int seed){
+        seed(seed);
     }
 
     @Override

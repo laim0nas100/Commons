@@ -17,7 +17,7 @@ import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
-import lt.lb.commons.misc.RandomDistribution;
+import lt.lb.commons.misc.rng.RandomDistribution;
 
 /**
  *
