@@ -7,7 +7,7 @@ package lt.lb.commons.graphtheory;
 
 import java.util.Comparator;
 import java.util.Optional;
-import lt.lb.commons.containers.Pair;
+import lt.lb.commons.containers.tuples.Pair;
 
 /**
  *

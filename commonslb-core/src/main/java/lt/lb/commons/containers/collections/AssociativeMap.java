@@ -6,7 +6,7 @@
 package lt.lb.commons.containers.collections;
 
 import java.util.Map;
-import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  *

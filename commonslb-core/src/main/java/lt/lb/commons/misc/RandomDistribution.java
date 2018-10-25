@@ -8,7 +8,7 @@ package lt.lb.commons.misc;
 import lt.lb.commons.F;
 import java.util.*;
 import java.util.function.Supplier;
-import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  * RandomGenerator based on Double number generator

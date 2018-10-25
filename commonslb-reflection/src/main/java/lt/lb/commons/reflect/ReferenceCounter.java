@@ -10,7 +10,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Predicate;
-import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  *

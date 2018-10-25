@@ -6,9 +6,9 @@
 package lt.lb.commons.containers.collections;
 
 import java.util.*;
-import lt.lb.commons.containers.Pair;
+import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.SkippingListIterator;
-import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  *

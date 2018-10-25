@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.Tuple;
+import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.misc.RandomDistribution;
