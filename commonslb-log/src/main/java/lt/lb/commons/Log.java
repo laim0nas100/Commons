@@ -43,6 +43,7 @@ public class Log {
     public boolean stackTrace = true;
     public boolean display = true;
     public boolean disable = false;
+    public boolean surroundString = true;
     protected boolean closed = false;
     public Consumer<Supplier<String>> override;
     protected DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -107,7 +108,9 @@ public class Log {
     public static void flushBuffer(Log log) {
         while (!log.list.isEmpty()) {
             String string = log.list.pollFirst();
-            log.printStream.println(string);
+            if (string != null) {
+                log.printStream.println(string);
+            }
         }
     }
 
@@ -116,11 +119,11 @@ public class Log {
     }
 
     public static void close(Log log) {
-
-        log.printStream.flush();
-
+        log.closed = true;
         log.exe.execute(() -> {
-            log.closed = true;
+            
+            flushBuffer(log);
+            log.printStream.flush();
             if (log.isFileOpen) {
                 log.printStream.close();
             }
@@ -138,15 +141,15 @@ public class Log {
         }
         processString(log, printLinesDecorator.apply(col));
     }
-    
-    public static void printLines(Log log,ReadOnlyIterator iter){
+
+    public static void printLines(Log log, ReadOnlyIterator iter) {
         if (log.disable || log.closed) {
             return;
         }
         processString(log, printIterDecorator.apply(iter));
     }
-    
-    public static void printLines(ReadOnlyIterator iter){
+
+    public static void printLines(ReadOnlyIterator iter) {
         printLines(main(), iter);
     }
 
@@ -181,7 +184,7 @@ public class Log {
     private static Class<Throwable> threadClass = Throwable.class;
     private static Method thMethod;
 
-    private static Method getThrowableMethod() throws Exception {
+    private static Method getThrowableMethod() throws NoSuchMethodException {
         if (thMethod != null) {
             return thMethod;
         }
@@ -197,7 +200,7 @@ public class Log {
             long millis = System.currentTimeMillis();
             final String threadName = Thread.currentThread().getName();
 
-            StringValue trace = new StringValue();
+            StringValue trace = new StringValue("");
             if (log.stackTrace) {
                 Throwable th = new Throwable();
                 F.unsafeRun(() -> {
@@ -226,8 +229,8 @@ public class Log {
                 trace = "@" + trace.substring(firstComma + 1, lastComma) + ":";
             }
         }
-
-        return timeSt + threadSt + trace + "{" + string + "}";
+        String str = log.surroundString ? "{" + string + "}" : string;
+        return timeSt + threadSt + trace + str;
     });
 
     private static final Lambda.L1R<Object[], Supplier<String>> printLnDecorator = Lambda.of((Object[] objs) -> {
@@ -275,7 +278,7 @@ public class Log {
         };
 
     });
-    
+
     private static final Lambda.L1R<ReadOnlyIterator, Supplier<String>> printIterDecorator = Lambda.of((ReadOnlyIterator col) -> {
         return () -> {
             LineStringBuilder string = new LineStringBuilder();
@@ -294,11 +297,12 @@ public class Log {
         if (log.display) {
             System.out.println(res);
         }
-        if (log.keepBufferForFile) {
+
+        if (log.keepBufferForFile || log.isFileOpen) {
             log.list.add(res);
         }
         if (log.isFileOpen) {
-            flushBuffer();
+            flushBuffer(log);
         }
 
     }

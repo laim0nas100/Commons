@@ -17,6 +17,8 @@ import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
+import lt.lb.commons.containers.tuples.Tuple3;
+import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.misc.rng.RandomDistribution;
 
 /**
@@ -25,37 +27,26 @@ import lt.lb.commons.misc.rng.RandomDistribution;
  */
 public class PathGenerator {
 
-    public static class GraphInfo {
-
-        public Orgraph graph;
-        public Set<Long> visitedNodes;
-
-        public GraphInfo(Orgraph org, Set<Long> visited) {
-            this.graph = org;
-            this.visitedNodes = visited;
-        }
-    }
-
     public static ILinkPicker nearestNeighbour() {
-        return (Tuple<GraphInfo, GNode> f) -> {
-            return f.g1.graph.resolveLinkedTo(f.g2, n -> !f.g1.visitedNodes.contains(n)).stream()
+        return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
+            return f.g1.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)).stream()
                     .min(GLink.Cmp.weightMinimizingCmp());
         };
     }
 
     public static ILinkPicker maxDegreeNeighbour() {
-        return (Tuple<GraphInfo, GNode> f) -> {
-            Orgraph gr = f.g1.graph;
-            return gr.resolveLinkedTo(f.g2, n -> !f.g1.visitedNodes.contains(n)).stream()
+        return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
+            Orgraph gr = f.g1;
+            return gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)).stream()
                     .max(GLink.Cmp.nodeDegreeMinimizingCmp(gr).reversed());
         };
     }
 
     public static ILinkPicker nodeDegreeDistributed(RandomDistribution rnd) {
-        return (Tuple<GraphInfo, GNode> f) -> {
-            Orgraph gr = f.g1.graph;
+        return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
+            Orgraph gr = f.g1;
             ArrayList<Tuple<Integer, Long>> nodeList = new ArrayList<>();
-            F.iterate(gr.resolveLinkedTo(f.g2, n -> !f.g1.visitedNodes.contains(n)), (i, n) -> {
+            F.iterate(gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)), (i, n) -> {
                 Optional<GNode> node = gr.getNode(n.nodeTo);
                 if (node.isPresent()) {
                     nodeList.add(new Tuple<>(node.get().degree(), node.get().ID));
@@ -67,11 +58,11 @@ public class PathGenerator {
             }
             Long nodeTo = rnd.pickRandomDistributed(1, nodeList).getFirst();
 
-            return gr.getLink(f.g2.ID, nodeTo);
+            return gr.getLink(f.g3.ID, nodeTo);
         };
     }
 
-    public interface ILinkPicker extends Function<Tuple<GraphInfo, GNode>, Optional<GLink>> {
+    public interface ILinkPicker extends Function<Tuple3<Orgraph, Set<Long>, GNode>, Optional<GLink>> {
     }
 
     public static List<GLink> genericUniquePathVisit(Orgraph gr, long startNode, ILinkPicker picker) {
@@ -91,7 +82,7 @@ public class PathGenerator {
     }
 
     private static Optional<GNode> genericPathVisitGetNextNode(Orgraph gr, List<GLink> list, GNode currentNode, Set<Long> visited, ILinkPicker picker) {
-        Optional<GLink> optLink = picker.apply(new Tuple<>(new GraphInfo(gr, visited), currentNode));
+        Optional<GLink> optLink = picker.apply(Tuples.of(gr, visited, currentNode));
         if (optLink.isPresent()) {
             GLink link = optLink.get();
             list.add(link);
@@ -113,25 +104,25 @@ public class PathGenerator {
         F.iterateBackwards(pathBackward, (i, item) -> {
             finalList.add(item.reverse());
         });
-        
-        Log.print("Got path:",pathBackward,"And",pathForward,"Joined "+startNode);
+
+//        Log.print("Got path:", pathBackward, "And", pathForward, "Joined " + startNode);
         finalList.addAll(pathForward);
-        Log.print("FinalPath",finalList);
+//        Log.print("FinalPath", finalList);
 
         return finalList;
 
     }
-    
+
     public static String isPathValid(Orgraph gr, List<Long> nodes) {
         for (int i = 1; i < nodes.size(); i++) {
             Long prev = nodes.get(i - 1);
             Long n = nodes.get(i);
 
-                if (gr.linkExists(prev, n)) {
-                    // all good
-                } else {
-                    return "No such link:" + prev + " -> " + n;
-                }
+            if (gr.linkExists(prev, n)) {
+                // all good
+            } else {
+                return "No such link:" + prev + " -> " + n;
+            }
         }
         return "Yes";
     }

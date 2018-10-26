@@ -28,6 +28,48 @@ public interface RandomDistribution {
     }
 
     /**
+     * Uniform distribution. Use faster methods.
+     *
+     * @param rnd
+     * @return
+     */
+    public static RandomDistribution uniform(Random rnd) {
+        return new RandomDistribution() {
+            @Override
+            public Integer nextInt(Integer lowerBound, Integer upperBound) {
+                Integer diff = upperBound - lowerBound;
+                if (diff <= 0) {
+                    throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
+                }
+                return lowerBound + rnd.nextInt(diff);
+            }
+
+            @Override
+            public Long nextLong(Long lowerBound, Long upperBound) {
+                if (lowerBound == 0L) {
+                    return rnd.nextLong() % upperBound;
+                } else {
+                    Long diff = upperBound - lowerBound;
+                    if (diff <= 0) {
+                        throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
+                    }
+                    return lowerBound + rnd.nextLong() % diff;
+                }
+            }
+
+            @Override
+            public Boolean nextBoolean() {
+                return rnd.nextBoolean(); //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            public Double nextDouble() {
+                return rnd.nextDouble();
+            }
+        };
+    }
+
+    /**
      * Dice distribution (average of uniform distributions)
      *
      * @param rnd
@@ -133,7 +175,7 @@ public interface RandomDistribution {
         return () -> this.nextBoolean();
     }
 
-    public default Supplier<Integer> getIntSupplier(Integer upperBound) {
+    public default Supplier<Integer> getIntegerSupplier(Integer upperBound) {
         return () -> this.nextInt(upperBound);
     }
 

@@ -29,12 +29,6 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
-    public static <T, V> Predicate<T> convertPredicate(Function<T, V> func, Predicate<V> predicate) {
-        return (T t) -> {
-            return predicate.test(func.apply(t));
-        };
-    }
-
     public static void unsafeRun(UnsafeRunnable r) {
         try {
             r.unsafeRun();
@@ -62,12 +56,6 @@ public class F {
 
     public static <T extends E, E> T cast(E ob) throws ClassCastException {
         return (T) ob;
-    }
-
-    public static <T, K> void convertCollection(Function<T, K> func, Collection<T> from, Collection<K> to) {
-        for (T t : from) {
-            to.add(func.apply(t));
-        }
     }
 
     public static boolean instanceOf(Object ob, Class... cls) {
@@ -468,62 +456,6 @@ public class F {
         col.clear();
         col.addAll(kept.values());
         return removed;
-    }
-
-    public static void repeat(Integer starting, Integer inc, Supplier<Boolean> condition, Consumer<Integer> cons) {
-        Consumer<Number> cons2 = (n) -> {
-            cons.accept(n.intValue());
-        };
-        repeat(NumberValue.of(starting), NumberValue.of(inc), condition, cons2);
-    }
-
-    public static void repeat(Double starting, Double inc, Supplier<Boolean> condition, Consumer<Double> cons) {
-        Consumer<Number> cons2 = (n) -> {
-            cons.accept(n.doubleValue());
-        };
-        repeat(NumberValue.of(starting), NumberValue.of(inc), condition, cons2);
-    }
-
-    private static void repeat(NumberValue<Number> starting, NumberValue<Number> inc, Supplier<Boolean> condition, Consumer<Number> cons) {
-        while (condition.get()) {
-            cons.accept(starting.getAndIncrement(inc.get()));
-        }
-    }
-
-    public static void repeat(Integer starting, Integer inc, Integer until, Consumer<Integer> cons) {
-        NumberValue<Number> st = NumberValue.of(starting);
-        NumberValue<Number> incr = NumberValue.of(inc);
-        Supplier<Boolean> sup = () -> {
-            return st.get().intValue() < until;
-        };
-        Consumer<Number> cons2 = (n) -> {
-            cons.accept(n.intValue());
-        };
-        repeat(st, incr, sup, cons2);
-    }
-
-    public static void repeat(Integer starting, Integer until, Consumer<Integer> cons) {
-        repeat(starting, 1, until, cons);
-    }
-
-    public static void repeat(Integer until, Consumer<Integer> cons) {
-        repeat(0, until, cons);
-    }
-    
-    public static void repeat(Double starting, Double inc,Double until, Consumer<Double> cons) {
-        NumberValue<Number> st = NumberValue.of(starting);
-        NumberValue<Number> incr = NumberValue.of(inc);
-        Supplier<Boolean> sup = () -> {
-            return st.get().doubleValue() < until;
-        };
-        Consumer<Number> cons2 = (n) -> {
-            cons.accept(n.doubleValue());
-        };
-        repeat(st, incr, sup, cons2);
-    }
-
-    public static void repeat(Double starting, Double until, Consumer<Double> cons) {
-        repeat(starting, 1d, until, cons);
     }
 
     public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {
