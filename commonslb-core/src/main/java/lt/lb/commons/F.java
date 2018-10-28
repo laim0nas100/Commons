@@ -9,10 +9,7 @@ import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
-import lt.lb.commons.containers.NumberValue;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
@@ -29,7 +26,27 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
-    public static void unsafeRun(UnsafeRunnable r) {
+    public static boolean willOverflowIfAdd(int a, int b) {
+        return willOverflowIfAdd(a, b, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
+    public static boolean willOverflowIfAdd(long a, long b) {
+        return willOverflowIfAdd(a, b, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
+    public static boolean willOverflowIfAdd(long a, long b, long minValue, long maxValue) {
+        if(minValue >= maxValue){
+            throw new IllegalArgumentException("Invalid range ["+minValue+";"+maxValue+"]");
+        }
+        if (a > 0 && b > 0) {//both positive
+            return maxValue - a < b;
+        } else if (a < 0 && b < 0) { // both negative
+            return minValue - a > b;
+        }
+        return false;
+    }
+
+    public static void unsafeRun(UnsafeRunnable r) throws RuntimeException {
         try {
             r.unsafeRun();
         } catch (Exception e) {

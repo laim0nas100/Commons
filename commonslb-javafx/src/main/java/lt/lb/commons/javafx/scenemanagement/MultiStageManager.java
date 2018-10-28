@@ -5,7 +5,6 @@
  */
 package lt.lb.commons.javafx.scenemanagement;
 
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;

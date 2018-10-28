@@ -82,7 +82,7 @@ public class PathGenerator {
     }
 
     private static Optional<GNode> genericPathVisitGetNextNode(Orgraph gr, List<GLink> list, GNode currentNode, Set<Long> visited, ILinkPicker picker) {
-        Optional<GLink> optLink = picker.apply(Tuples.of(gr, visited, currentNode));
+        Optional<GLink> optLink = picker.apply(Tuples.create(gr, visited, currentNode));
         if (optLink.isPresent()) {
             GLink link = optLink.get();
             list.add(link);
