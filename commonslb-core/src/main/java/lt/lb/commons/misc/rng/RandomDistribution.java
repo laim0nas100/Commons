@@ -36,36 +36,30 @@ public interface RandomDistribution {
     public static RandomDistribution uniform(Random rnd) {
         return new RandomDistribution() {
             @Override
-            public Integer nextInt(Integer lowerBound, Integer upperBound) {
-                Integer diff = upperBound - lowerBound;
-                if (diff <= 0) {
-                    throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
-                }
-                return lowerBound + rnd.nextInt(diff);
-            }
-
-            @Override
-            public Long nextLong(Long lowerBound, Long upperBound) {
-                if (lowerBound == 0L) {
-                    return rnd.nextLong() % upperBound;
-                } else {
-                    Long diff = upperBound - lowerBound;
-                    if (diff <= 0) {
-                        throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
-                    }
-                    return lowerBound + rnd.nextLong() % diff;
-                }
+            public Long nextLong() {
+                return rnd.nextLong();
             }
 
             @Override
             public Boolean nextBoolean() {
-                return rnd.nextBoolean(); //To change body of generated methods, choose Tools | Templates.
+                return rnd.nextBoolean();
             }
 
             @Override
             public Double nextDouble() {
                 return rnd.nextDouble();
             }
+
+            @Override
+            public Integer nextInt() {
+                return rnd.nextInt(); //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            public Integer nextInt(Integer upperbound) {
+                return rnd.nextInt(upperbound);
+            }
+
         };
     }
 
@@ -209,15 +203,15 @@ public interface RandomDistribution {
      * @return returns boolean
      */
     public default Boolean nextBoolean() {
-        return nextInt(0, 2) > 0;
+        return nextInt() % 2 == 0;
     }
 
     public default Double nextDouble(Double lowerBound, Double upperBound) {
-        double diff = upperBound - lowerBound;
-        if (diff <= 0) {
+        if (upperBound <= lowerBound) {
             throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
         }
-        return lowerBound + (nextDouble() * diff);
+        Double d = nextDouble();
+        return lowerBound + (d * upperBound - d * lowerBound);
     }
 
     public default Double nextDouble(Double upperBound) {
@@ -233,7 +227,27 @@ public interface RandomDistribution {
      * @return
      */
     public default Long nextLong(Long lowerBound, Long upperBound) {
-        return (long) Math.floor(nextDouble(lowerBound.doubleValue(), upperBound.doubleValue()));
+        if (upperBound <= lowerBound) {
+            throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
+        }
+        boolean overflowable = F.willOverflowIfAdd(lowerBound, -upperBound);
+        long nextLong = nextLong();
+        if (overflowable) {
+            boolean inLower = nextLong >= lowerBound;
+            boolean inUpper = nextLong <= upperBound;
+
+            if (inLower && inUpper) {
+                return nextLong;
+            } else {
+                return nextLong += Long.MAX_VALUE;
+            }
+
+        } else {
+            long diff = upperBound - lowerBound;
+            int sign = Long.signum(nextLong);
+            long mod = (nextLong % diff);
+            return lowerBound + sign * (mod);
+        }
     }
 
     public default Long nextLong(Long upperBound) {
@@ -241,19 +255,59 @@ public interface RandomDistribution {
     }
 
     /**
-     * Base method. Default implementation calls nextDouble. Override for better
-     * gains.
+     * Override this for performance gains. Returns Long value.
+     *
+     * @return
+     */
+    public default Long nextLong() {
+        double next = nextDouble(-4d, 4d);
+        long plus =  (long)Math.abs(next) % 2 == 1 ? 1L : 0L;
+        return (long) (next * (Long.MAX_VALUE / 4)) + plus;
+    }
+
+    /**
      *
      * @param lowerBound
      * @param upperBound
      * @return returns Integer in interval [loweBound, upperBound)
      */
     public default Integer nextInt(Integer lowerBound, Integer upperBound) {
-        return (int) Math.floor(nextDouble(lowerBound.doubleValue(), upperBound.doubleValue()));
+        if (upperBound <= lowerBound) {
+            throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
+        }
+        boolean overflowable = F.willOverflowIfAdd(lowerBound, -upperBound);
+        int nextInt = nextInt();
+        if (overflowable) {
+            boolean inLower = nextInt >= lowerBound;
+            boolean inUpper = nextInt <= upperBound;
+
+            if (inLower && inUpper) {
+                return nextInt;
+            } else {
+                return nextInt += Integer.MAX_VALUE;
+            }
+
+        } else {
+            int diff = upperBound - lowerBound;
+            int sign = Integer.signum(nextInt);
+            int mod = (nextInt % diff);
+            return lowerBound + sign * (mod);
+        }
     }
 
     public default Integer nextInt(Integer upperBound) {
         return nextInt(0, upperBound);
+    }
+
+    /**
+     * Override this for performance gains. Returns Integer value.
+     *
+     * @return
+     */
+    public default Integer nextInt() {
+        double next = nextDouble(-4d, 4d);
+        int plus =  (int)Math.abs(next) % 2 == 1 ? 1 : 0;
+        return (int) (next * (Integer.MAX_VALUE / 4)) + plus;
     }
 
     /**
@@ -309,7 +363,13 @@ public interface RandomDistribution {
         int last = indexArray.size() - 1;
         int first = last - limit;
         for (int i = last; i > first; i--) {
-            result.add(array.get(indexArray.remove(i)));
+            int superLast = indexArray.size() - 1;
+            Integer get = indexArray.get(superLast);
+
+            while (Objects.equals(indexArray.get(superLast), get)) {
+                indexArray.remove(superLast);
+            }
+            result.add(array.get(get));
         }
         return result;
 
@@ -335,7 +395,7 @@ public interface RandomDistribution {
         int last = indexArray.size() - 1;
         int first = last - limit;
         for (int i = last; i > first; i--) {
-            result.add(array.get(indexArray.remove(i)));
+            result.add(array.get(indexArray.get(i)));
         }
         return result;
 
@@ -344,7 +404,7 @@ public interface RandomDistribution {
     /**
      *
      * @param <T>
-     * @param col collection to explore
+     * @param col list to explore
      * @return return random element
      */
     public default <T> T pickRandom(List<T> col) {
@@ -359,7 +419,7 @@ public interface RandomDistribution {
      * @return return random element
      */
     public default <T> T pickRandom(Collection<T> col) {
-        return pickRandom(col, 1).getFirst();
+        return F.find(col, nextInt(col.size()), (i, item) -> true).get().getG2();
     }
 
     /**

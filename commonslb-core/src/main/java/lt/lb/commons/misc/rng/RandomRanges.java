@@ -36,7 +36,7 @@ public class RandomRanges<T> {
         }
     }
 
-    private final ExtComparator<RandomRange> cmp = ExtComparator.of((r1, r2) -> Double.compare(r1.span, r2.span));
+    private final ExtComparator<RandomRange> cmp = (r1, r2) -> Double.compare(r1.span, r2.span);
 
     public RandomRange<T> pickMax() {
         return Collections.max(this.ranges, cmp);
