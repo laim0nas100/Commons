@@ -47,7 +47,7 @@ public class Log {
     protected boolean closed = false;
     public Consumer<Supplier<String>> override;
     protected DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    protected Executor exe = new FastWaitingExecutor(1, 30, TimeUnit.SECONDS);
+    protected Executor exe = new FastWaitingExecutor(1, 15, TimeUnit.SECONDS);
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
     public Log() {

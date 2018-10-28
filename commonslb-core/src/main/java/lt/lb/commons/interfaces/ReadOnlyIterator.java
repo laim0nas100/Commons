@@ -5,6 +5,7 @@
  */
 package lt.lb.commons.interfaces;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import lt.lb.commons.containers.NumberValue;
 import lt.lb.commons.containers.Value;
 
@@ -112,6 +114,31 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
                 return current.get();
             }
         };
+    }
+
+    /**
+     * Puts remaining elements to ArrayList.
+     *
+     * @param <T>
+     * @param iter
+     * @return
+     */
+    public static <T> ArrayList<T> toArrayList(ReadOnlyIterator<T> iter) {
+        ArrayList<T> list = new ArrayList();
+        for (T item : iter) {
+            list.add(item);
+        }
+        return list;
+    }
+
+    /**
+     * Creates a Stream of remaining elements.
+     * @param <T>
+     * @param iter
+     * @return 
+     */
+    public static <T> Stream<T> toStream(ReadOnlyIterator<T> iter) {
+        return StreamSupport.stream(iter.spliterator(), false);
     }
 
     @Override
