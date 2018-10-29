@@ -75,9 +75,9 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
         return of(col.iterator());
     }
 
-    public static <T> ReadOnlyIterator<T> of(T[] array) {
+    public static <T> ReadOnlyBidirectionalIterator<T> of(T[] array) {
 
-        return new ReadOnlyIterator<T>() {
+        return new ReadOnlyBidirectionalIterator<T>() {
             NumberValue<Integer> i = NumberValue.of(-1);
             Value<T> current = new Value<>();
 
@@ -101,6 +101,18 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
             @Override
             public Integer getCurrentIndex() {
                 return i.get();
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return i.get() > 0;
+            }
+
+            @Override
+            public T previous() {
+                T val = array[i.decrementAndGet()];
+                current.set(val);
+                return val;
             }
         };
     }
