@@ -30,6 +30,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
     public static <T> ReadOnlyIterator<T> of(Spliterator<T> stream) {
 
         return new ReadOnlyIterator<T>() {
+            NumberValue<Integer> index = NumberValue.of(-1);
             Value<T> current = new Value<>();
             LinkedList<T> queue = new LinkedList<>();
             Consumer<T> cons = (item) -> {
@@ -52,6 +53,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
                     }
                 }
                 T next = queue.pollFirst();
+                index.incrementAndGet();
                 current.set(next);
                 return next;
             }
@@ -59,6 +61,11 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
             @Override
             public T getCurrent() {
                 return current.get();
+            }
+
+            @Override
+            public Integer getCurrentIndex() {
+                return index.get();
             }
 
         };
@@ -71,17 +78,17 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
     public static <T> ReadOnlyIterator<T> of(T[] array) {
 
         return new ReadOnlyIterator<T>() {
-            NumberValue<Integer> i = NumberValue.of(0);
+            NumberValue<Integer> i = NumberValue.of(-1);
             Value<T> current = new Value<>();
 
             @Override
             public boolean hasNext() {
-                return i.get() < array.length;
+                return i.get() < array.length - 1;
             }
 
             @Override
             public T next() {
-                T val = array[i.getAndIncrement()];
+                T val = array[i.incrementAndGet()];
                 current.set(val);
                 return val;
             }
@@ -90,13 +97,18 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
             public T getCurrent() {
                 return current.get();
             }
+
+            @Override
+            public Integer getCurrentIndex() {
+                return i.get();
+            }
         };
     }
 
     public static <T> ReadOnlyIterator<T> of(Iterator<T> it) {
         return new ReadOnlyIterator<T>() {
             Value<T> current = new Value<>();
-
+            NumberValue<Integer> i = NumberValue.of(-1);
             @Override
             public boolean hasNext() {
                 return it.hasNext();
@@ -106,12 +118,18 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
             public T next() {
                 T val = it.next();
                 current.set(val);
+                i.incrementAndGet();
                 return val;
             }
 
             @Override
             public T getCurrent() {
                 return current.get();
+            }
+
+            @Override
+            public Integer getCurrentIndex() {
+                return i.get();
             }
         };
     }
@@ -133,9 +151,10 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
 
     /**
      * Creates a Stream of remaining elements.
+     *
      * @param <T>
      * @param iter
-     * @return 
+     * @return
      */
     public static <T> Stream<T> toStream(ReadOnlyIterator<T> iter) {
         return StreamSupport.stream(iter.spliterator(), false);
@@ -150,6 +169,8 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
     default T getNext() {
         return next();
     }
+
+    Integer getCurrentIndex();
 
     T getCurrent();
 
