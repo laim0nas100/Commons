@@ -9,21 +9,21 @@ package lt.lb.commons.misc;
  *
  * @author laim0nas100
  */
-public class Interval extends MinMax {
+public class Interval<T> extends MinMax<Double> {
 
-    public static Interval newExtendable() {
-        return new Interval(Double.MAX_VALUE, -Double.MAX_VALUE);
+    public static Interval<Double> newExtendable() {
+        return new Interval<>(Double.MAX_VALUE, -Double.MAX_VALUE);
     }
 
-    public static final Interval ZERO_ONE = new Interval(0, 1);
-    public static final Interval MINUS_ONE_ONE = new Interval(-1, 1);
+    public static final Interval<Double> ZERO_ONE = new Interval(0d, 1d);
+    public static final Interval<Double> MINUS_ONE_ONE = new Interval(-1d, 1d);
 
-    public Interval(Number min, Number max) {
+    public Interval(Double min, Double max) {
         super(min, max);
     }
 
     public double getDiff() {
-        return max.doubleValue() - min.doubleValue();
+        return max - min;
     }
 
     public double getAbsDiff() {
@@ -33,22 +33,22 @@ public class Interval extends MinMax {
     private static double d(Number val) {
         return val.doubleValue();
     }
-    
-    public boolean inRange(Number val, boolean minInclusive, boolean maxInclusive) {
+
+    public boolean inRange(double val, boolean minInclusive, boolean maxInclusive) {
         boolean inRange = true;
 
         double v = d(val);
         if (minInclusive) {
-            inRange = v >= d(min);
+            inRange = v >= min;
         } else {
-            inRange = v > d(min);
+            inRange = v > min;
         }
 
         if (inRange) {
             if (maxInclusive) {
-                inRange = v <= d(max);
+                inRange = v <= max;
             } else {
-                inRange = v < d(max);
+                inRange = v < max;
             }
         }
 
@@ -56,22 +56,21 @@ public class Interval extends MinMax {
 
     }
 
-    public boolean inRangeExclusive(Number val) {
+    public boolean inRangeExclusive(double val) {
         return this.inRange(val, false, false);
     }
 
-    public boolean inRangeInclusive(Number val) {
+    public boolean inRangeInclusive(double val) {
         return this.inRange(val, true, true);
     }
 
-    public double clamp(Number val) {
-        return Math.min(Math.max(d(val), d(min)), d(max));
+    public double clamp(double val) {
+        return Math.min(Math.max(val, min), max);
     }
 
-    public Interval expand(Number val) {
-        double v = d(val);
-        double newMax = Math.max(d(max),v);
-        double newMin = Math.min(d(min), v);
+    public Interval expand(double v) {
+        double newMax = Math.max(max, v);
+        double newMin = Math.min(min, v);
         return new Interval(newMin, newMax);
     }
 

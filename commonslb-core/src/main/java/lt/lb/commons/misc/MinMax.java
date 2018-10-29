@@ -9,11 +9,11 @@ package lt.lb.commons.misc;
  *
  * @author laim0nas100
  */
-public class MinMax {
+public class MinMax<T extends Number> {
 
-    public final Number min, max;
+    public final T min, max;
 
-    public MinMax(Number min, Number max) {
+    public MinMax(T min, T max) {
         this.min = min;
         this.max= max;
     }
