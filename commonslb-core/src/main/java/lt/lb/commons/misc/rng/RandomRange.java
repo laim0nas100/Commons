@@ -13,6 +13,7 @@ public class RandomRange<T> {
 
     public final T value;
     public final Double span;
+    public boolean disabled = false;
 
     public RandomRange(T value, Double span) {
         this.value = value;

@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 import lt.lb.commons.containers.tuples.Tuple;
 
 /**
- * RandomGenerator based on Double number generator
+ * Pseudo-random number generator based on Double number generator
  *
  * @author laim0nas100
  */
@@ -261,7 +261,7 @@ public interface RandomDistribution {
      */
     public default Long nextLong() {
         double next = nextDouble(-4d, 4d);
-        long plus =  (long)Math.abs(next) % 2 == 1 ? 1L : 0L;
+        long plus = (long) Math.abs(next) % 2 == 1 ? 1L : 0L;
         return (long) (next * (Long.MAX_VALUE / 4)) + plus;
     }
 
@@ -306,36 +306,8 @@ public interface RandomDistribution {
      */
     public default Integer nextInt() {
         double next = nextDouble(-4d, 4d);
-        int plus =  (int)Math.abs(next) % 2 == 1 ? 1 : 0;
+        int plus = (int) Math.abs(next) % 2 == 1 ? 1 : 0;
         return (int) (next * (Integer.MAX_VALUE / 4)) + plus;
-    }
-
-    /**
-     * Shuffle list based on this RandomDistribution.
-     *
-     * @param list
-     */
-    public default void shuffle(List list) {
-
-        // copy from Collections.shuffle
-        int size = list.size();
-        if (size < 8 || list instanceof RandomAccess) {
-            for (int i = size; i > 1; i--) {
-                F.swap(list, i - 1, nextInt(i));
-            }
-        } else {
-            Object arr[] = list.toArray();
-            // Shuffle array
-            for (int i = size; i > 1; i--) {
-                F.swap(arr, i - 1, nextInt(i));
-            }
-            ListIterator it = list.listIterator();
-            for (Object arr1 : arr) {
-                it.next();
-                it.set(arr1);
-            }
-        }
-
     }
 
     /**
@@ -349,29 +321,12 @@ public interface RandomDistribution {
      */
     public default <T> LinkedList<T> pickRandomPreferLow(Collection<T> col, int amount, int startingAmount, int amountDecay) {
 
-        int limit = Math.min(amount, col.size());
-        ArrayList<Integer> indexArray = new ArrayList<>();
-        for (int i = 0; i < col.size(); i++) {
-            for (int indexAm = Math.max(1, startingAmount); indexAm > 0; indexAm--) {
-                indexArray.add(i);
-            }
-            startingAmount -= amountDecay;
+        ArrayList<Tuple<Double, T>> tuples = new ArrayList<>(amount);
+        for (T item : col) {
+            tuples.add(new Tuple<>((double) startingAmount, item));
+            startingAmount = Math.max(startingAmount - amountDecay, 1);
         }
-        ArrayList<T> array = new ArrayList<>(col);
-        LinkedList<T> result = new LinkedList<>();
-        shuffle(indexArray);
-        int last = indexArray.size() - 1;
-        int first = last - limit;
-        for (int i = last; i > first; i--) {
-            int superLast = indexArray.size() - 1;
-            Integer get = indexArray.get(superLast);
-
-            while (Objects.equals(indexArray.get(superLast), get)) {
-                indexArray.remove(superLast);
-            }
-            result.add(array.get(get));
-        }
-        return result;
+        return this.pickRandomDistributed(amount, tuples);
 
     }
 
@@ -384,20 +339,13 @@ public interface RandomDistribution {
      */
     public default <T> LinkedList<T> pickRandom(Collection<T> col, int amount) {
 
-        int limit = Math.min(amount, col.size());
-        ArrayList<Integer> indexArray = new ArrayList<>();
-        for (int i = 0; i < col.size(); i++) {
-            indexArray.add(i);
-        }
-        ArrayList<T> array = new ArrayList<>(col);
-        LinkedList<T> result = new LinkedList<>();
-        shuffle(indexArray);
-        int last = indexArray.size() - 1;
-        int first = last - limit;
-        for (int i = last; i > first; i--) {
-            result.add(array.get(indexArray.get(i)));
-        }
-        return result;
+        ArrayList<RandomRange<T>> rrList = new ArrayList<>();
+        F.iterate(col, (i, item) -> {
+            rrList.add(new RandomRange(item, 1d));
+        });
+        RandomRanges<T> rrr = new RandomRanges(rrList);
+        ArrayList<T> pickRandom = rrr.pickRandom(amount, () -> this.nextDouble(rrr.getLimit()));
+        return new LinkedList<>(pickRandom);
 
     }
 
@@ -408,8 +356,7 @@ public interface RandomDistribution {
      * @return return random element
      */
     public default <T> T pickRandom(List<T> col) {
-        int i = nextInt(0, col.size());
-        return col.get(i);
+        return col.get(nextInt(col.size()));
     }
 
     /**
@@ -441,17 +388,9 @@ public interface RandomDistribution {
      * @param tuples <Size,Object> distribution of elements
      * @return
      */
-    public default <T> LinkedList<T> pickRandomDistributed(int amount, Tuple<Integer, T>... tuples) {
-        ArrayList<T> list = new ArrayList<>();
-
-        F.iterate(tuples, (index, t) -> {
-            for (int i = 0; i < t.g1; i++) {
-                list.add(t.g2);
-            }
-        });
-        return pickRandom(list, amount);
+    public default <T> LinkedList<T> pickRandomDistributed(int amount, Tuple<Double, T>... tuples) {
+        return pickRandomDistributed(amount, Arrays.asList(tuples));
     }
-
     /**
      *
      * @param <T>
@@ -459,15 +398,61 @@ public interface RandomDistribution {
      * @param tuples <Size,Object> distribution of elements
      * @return
      */
-    public default <T> LinkedList<T> pickRandomDistributed(int amount, Collection<Tuple<Integer, T>> tuples) {
-        ArrayList<T> list = new ArrayList<>();
-
-        F.iterate(tuples, (index, t) -> {
-            for (int i = 0; i < t.g1; i++) {
-                list.add(t.g2);
-            }
+    public default <T> LinkedList<T> pickRandomDistributed(int amount, Collection<Tuple<Double, T>> tuples) {
+        ArrayList<RandomRange<T>> rrList = new ArrayList<>(tuples.size());
+        F.iterate(tuples, (i, item) -> {
+            rrList.add(new RandomRange(item.getG2(), item.g1));
         });
-        return pickRandom(list, amount);
+        RandomRanges<T> rrr = new RandomRanges(rrList);
+        ArrayList<T> pickRandom = rrr.pickRandom(amount, () -> this.nextDouble(rrr.getLimit()));
+        return new LinkedList<>(pickRandom);
+    }
+    
+    
+    public static Random asRandom(RandomDistribution rng){
+        return new Random(){
+            @Override
+            protected int next(int bits) {
+                return rng.nextInt();
+            }
+
+            @Override
+            public double nextDouble() {
+                return rng.nextDouble(); 
+            }
+
+            @Override
+            public boolean nextBoolean() {
+                return rng.nextBoolean(); 
+            }
+
+            @Override
+            public long nextLong() {
+                return rng.nextLong(); 
+            }
+
+            @Override
+            public int nextInt() {
+                return rng.nextInt(); 
+            }
+
+            @Override
+            public synchronized void setSeed(long seed) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public float nextFloat() {
+                return rng.nextDouble().floatValue();
+            }
+
+            @Override
+            public int nextInt(int bound) {
+                return rng.nextInt(bound);
+            }
+            
+            
+        };
     }
 
 }

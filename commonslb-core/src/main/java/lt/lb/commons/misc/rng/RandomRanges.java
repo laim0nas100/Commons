@@ -8,6 +8,8 @@ package lt.lb.commons.misc.rng;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
+import lt.lb.commons.F;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.Interval;
 
@@ -22,6 +24,9 @@ public class RandomRanges<T> {
     public Double getLimit() {
         double lim = 0;
         for (RandomRange rr : ranges) {
+            if(rr.disabled){
+                continue;
+            }
             lim += rr.span;
         }
         return lim;
@@ -62,7 +67,11 @@ public class RandomRanges<T> {
         double cur = 0;
         int selected = 0;
         for (int i = 0; i < ranges.size(); i++) {
+            
             RandomRange rr = ranges.get(i);
+            if(rr.disabled){
+                continue;
+            }
             cur += rr.span;
             if (cur > dub) {
                 selected = i;
@@ -71,5 +80,21 @@ public class RandomRanges<T> {
 
         }
         return ranges.get(selected);
+    }
+    
+    public ArrayList<T> pickRandom(int amount,Supplier<Double> rng){
+        ArrayList<RandomRange<T>> list = new ArrayList<>(amount);
+        for(int i = 0; i < amount; i++){
+            RandomRange<T> pick = this.pickRandom(rng.get());
+            pick.disabled = true;
+            list.add(pick);
+        }
+        
+        ArrayList<T> res = new ArrayList<>(amount);
+        F.iterate(list, (i,item)->{
+            res.add(item.value);
+            item.disabled = false;
+        });
+        return res;
     }
 }

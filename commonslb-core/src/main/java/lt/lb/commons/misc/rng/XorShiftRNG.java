@@ -42,13 +42,7 @@ public class XorShiftRNG extends Random {
         long nextseed = nextLong();
         return (int) (nextseed & ((1L << bits) - 1));
     }
-
-//    @Override
-//    public double nextDouble() {
-//        return Double.longBitsToDouble(nextLong()); //To change body of generated methods, choose Tools | Templates.
-//    }
-    
-    
+        
 
     private long xorShift(long x) {
         x ^= (x << 21);
