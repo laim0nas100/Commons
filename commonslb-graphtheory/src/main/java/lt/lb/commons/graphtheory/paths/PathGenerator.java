@@ -45,11 +45,11 @@ public class PathGenerator {
     public static ILinkPicker nodeDegreeDistributed(RandomDistribution rnd) {
         return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
             Orgraph gr = f.g1;
-            ArrayList<Tuple<Integer, Long>> nodeList = new ArrayList<>();
+            ArrayList<Tuple<Double, Long>> nodeList = new ArrayList<>();
             F.iterate(gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)), (i, n) -> {
                 Optional<GNode> node = gr.getNode(n.nodeTo);
                 if (node.isPresent()) {
-                    nodeList.add(new Tuple<>(node.get().degree(), node.get().ID));
+                    nodeList.add(new Tuple<>((double) node.get().degree(), node.get().ID));
                 }
             });
 
@@ -59,6 +59,25 @@ public class PathGenerator {
             Long nodeTo = rnd.pickRandomDistributed(1, nodeList).getFirst();
 
             return gr.getLink(f.g3.ID, nodeTo);
+        };
+    }
+
+    public static ILinkPicker nodeWeightDistributed(RandomDistribution rnd, boolean minimize) {
+        return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
+            Orgraph gr = f.g1;
+            ArrayList<Tuple<Double, GLink>> linkList = new ArrayList<>();
+            F.iterate(gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)), (i, n) -> {
+                double w = n.weight;
+                if (minimize) {
+                    w = 1d / w;
+                }
+                linkList.add(new Tuple<>(w, n));
+            });
+
+            if (linkList.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(rnd.pickRandomDistributed(1, linkList).getFirst());
         };
     }
 

@@ -288,6 +288,11 @@ public class ParamParserTest {
             }
         }
 
+        @Override
+        public Integer getCurrentIndex() {
+            return current;
+        }
+
     }
 
 }

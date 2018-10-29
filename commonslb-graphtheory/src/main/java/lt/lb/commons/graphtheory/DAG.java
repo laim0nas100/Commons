@@ -7,6 +7,7 @@ package lt.lb.commons.graphtheory;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import lt.lb.commons.misc.rng.RandomDistribution;
@@ -78,7 +79,7 @@ public class DAG extends Orgraph {
             long iterLimit = (long) Math.min(batchSize * possibleCandidates.size(), possibleCandidates.size());
             iterLimit = (long) Math.max(Math.min(linkCount - graph.links.size(), iterLimit), 1);
 
-            rnd.shuffle(possibleCandidates);
+            Collections.shuffle(possibleCandidates, RandomDistribution.asRandom(rnd));
             ArrayDeque<Long> candidates = new ArrayDeque<>(possibleCandidates);
             for (long i = 0; i < iterLimit; i++) {
                 double w = rnd.nextDouble(0D, (double) maxWeight);
