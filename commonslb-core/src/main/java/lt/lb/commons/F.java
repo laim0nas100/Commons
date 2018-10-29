@@ -10,6 +10,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
@@ -35,8 +36,8 @@ public class F {
     }
 
     public static boolean willOverflowIfAdd(long a, long b, long minValue, long maxValue) {
-        if(minValue >= maxValue){
-            throw new IllegalArgumentException("Invalid range ["+minValue+";"+maxValue+"]");
+        if (minValue >= maxValue) {
+            throw new IllegalArgumentException("Invalid range [" + minValue + ";" + maxValue + "]");
         }
         if (a > 0 && b > 0) {//both positive
             return maxValue - a < b;
@@ -390,32 +391,61 @@ public class F {
     }
 
     /**
+     * Fill ArrayList of given stream
+     * @param stream
+     * @return 
+     */
+    public static <T extends Collection> T fillCollection(Stream stream, T col){
+        stream.forEachOrdered(col::add);
+        return col;
+    }
+    
+    /**
+     * 
+     * @param <T>
+     * @param equator on how compare elements
+     * @return Predicate to use in a stream
+     */
+    public static <T> Predicate<T> filterDistinct(HashEquator<T> equator) {
+
+        return  new Predicate<T>() {
+            LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
+
+            @Override
+            public boolean test(T t) {
+                Object hash = equator.getHashable(t);
+                if (kept.containsKey(hash)) {
+                    return false;
+                } else {
+                    kept.put(hash, t);
+                    return true;
+                }
+            }
+        };
+    }
+
+    /**
      *
      * @param <T> type
-     * @param col collection to be modified
      * @param equator equality condition
-     * @return all removed elements
+     * @return Predicate to use in a stream
      */
-    public static <T> ArrayList<T> filterDistinct(Collection<T> col, Equator<T> equator) {
+    public static <T> Predicate<T> filterDistinct(Equator<T> equator) {
 
-        if (col instanceof RandomAccess) {
-            return filterDistinctRewrite(col, equator);
-        }
-        ArrayList<T> kept = new ArrayList<>();
-        ArrayList<T> removed = new ArrayList<>();
-        Iterator<T> iterator = col.iterator();
-        while (iterator.hasNext()) {
-            T next = iterator.next();
-            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(next, item));
-            if (find.isPresent()) {
-                removed.add(next);
-                iterator.remove();
-            } else {
-                kept.add(next);
+        return new Predicate<T>() {
+            ArrayList<T> kept = new ArrayList<>();
+            ArrayList<T> removed = new ArrayList<>();
+
+            @Override
+            public boolean test(T t) {
+                Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(t, item));
+                boolean toKeep = !find.isPresent();
+                if (toKeep) {
+                    kept.add(t);
+                }
+                return false;
             }
-        }
-
-        return removed;
+        };
     }
 
     /**
