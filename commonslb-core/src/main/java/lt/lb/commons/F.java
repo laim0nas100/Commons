@@ -313,102 +313,27 @@ public class F {
     }
 
     /**
-     * Check if collection is distinct by set Hash equator. Uses HashMap;
-     *
-     * @param <T>
-     * @param col
-     * @param equator
-     * @return
-     */
-    public static <T> boolean isDistinct(Collection<T> col, HashEquator<T> equator) {
-        HashMap<Object, T> kept = new HashMap<>();
-        Iterator<T> iterator = col.iterator();
-        while (iterator.hasNext()) {
-            T next = iterator.next();
-            Object hash = equator.getHashable(next);
-            if (kept.containsKey(hash)) {
-                return false;
-            } else {
-                kept.put(hash, next);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Check if collection is distinct by set Hash equator. Uses ArrayList;
-     *
-     * @param <T>
-     * @param col
-     * @param equator
-     * @return
-     */
-    public static <T> boolean isDistinct(Collection<T> col, Equator<T> equator) {
-        ArrayList<T> kept = new ArrayList<>();
-        Iterator<T> iterator = col.iterator();
-        while (iterator.hasNext()) {
-            T next = iterator.next();
-            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(next, item));
-            if (find.isPresent()) {
-                return false;
-            } else {
-                kept.add(next);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     *
-     * @param <T> type
-     * @param col collection to be modified
-     * @param equator equality condition with hashing, so we can use
-     * LinkedHashMap
-     * @return all removed elements
-     */
-    public static <T> ArrayList<T> filterDistinct(Collection<T> col, HashEquator<T> equator) {
-        if (col instanceof RandomAccess) {
-            return filterDistinctRewrite(col, equator);
-        }
-
-        LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
-        ArrayList<T> removed = new ArrayList<>();
-        Iterator<T> iterator = col.iterator();
-        while (iterator.hasNext()) {
-            T next = iterator.next();
-            Object hash = equator.getHashable(next);
-            if (kept.containsKey(hash)) {
-                removed.add(next);
-                iterator.remove();
-            } else {
-                kept.put(hash, next);
-            }
-        }
-
-        return removed;
-    }
-
-    /**
      * Fill ArrayList of given stream
+     *
+     * @param <T>
      * @param stream
-     * @return 
+     * @param col
+     * @return
      */
-    public static <T extends Collection> T fillCollection(Stream stream, T col){
+    public static <T extends Collection> T fillCollection(Stream stream, T col) {
         stream.forEachOrdered(col::add);
         return col;
     }
-    
+
     /**
-     * 
+     *
      * @param <T>
      * @param equator on how compare elements
      * @return Predicate to use in a stream
      */
     public static <T> Predicate<T> filterDistinct(HashEquator<T> equator) {
 
-        return  new Predicate<T>() {
+        return new Predicate<T>() {
             LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
 
             @Override
@@ -433,8 +358,7 @@ public class F {
     public static <T> Predicate<T> filterDistinct(Equator<T> equator) {
 
         return new Predicate<T>() {
-            ArrayList<T> kept = new ArrayList<>();
-            ArrayList<T> removed = new ArrayList<>();
+            LinkedList<T> kept = new LinkedList<>();
 
             @Override
             public boolean test(T t) {
@@ -443,66 +367,9 @@ public class F {
                 if (toKeep) {
                     kept.add(t);
                 }
-                return false;
+                return toKeep;
             }
         };
-    }
-
-    /**
-     *
-     * @param <T> type
-     * @param col collection where removing elements in the middle is expensive,
-     * collection is simply rewritten
-     * @param equator equality condition
-     * @return all removed elements
-     */
-    public static <T> ArrayList filterDistinctRewrite(Collection<T> col, Equator<T> equator) {
-        ArrayList<T> kept = new ArrayList<>();
-        ArrayList<T> removed = new ArrayList<>();
-
-        Iterator<T> iterator = col.iterator();
-        while (iterator.hasNext()) {
-            T next = iterator.next();
-            Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(next, item));
-            if (find.isPresent()) {
-                removed.add(next);
-            } else {
-                kept.add(next);
-            }
-        }
-
-        col.clear();
-        col.addAll(kept);
-        return removed;
-    }
-
-    /**
-     *
-     * @param <T> type
-     * @param col collection where removing elements in the middle is expensive,
-     * collection is simply rewritten
-     * @param equator equality condition with hashing, so we can use
-     * LinkedHashMap
-     * @return all removed elements
-     */
-    public static <T> ArrayList filterDistinctRewrite(Collection<T> col, HashEquator<T> equator) {
-        LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
-        ArrayList<T> removed = new ArrayList<>();
-
-        F.find(col, (i, next) -> equator.equals(next, next));
-
-        F.iterate(col, (i, next) -> {
-            Object hash = equator.getHashable(next);
-            if (kept.containsKey(hash)) {
-                removed.add(next);
-            } else {
-                kept.put(hash, next);
-            }
-        });
-
-        col.clear();
-        col.addAll(kept.values());
-        return removed;
     }
 
     public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {

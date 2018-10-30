@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
 import lt.lb.commons.io.FileReader;
@@ -88,21 +89,25 @@ public class CommonsTest {
         Thread.sleep(500);
     }
 
-//    @Test
+    @Test
     public void testFilterDistinct() {
         Collection<Integer> collection = new LinkedList<>(Arrays.asList(1, 1, 2, 3, 4, 5, 6, 6, 7, 8, 9, 10));
 
 //        List<Integer> filterParallel = F.filterParallel(collection, n -> n%2 == 0, new DisposableExecutor(4));
 //        Log.print("Removed after filter",filterParallel);
         Log.print("Left after filter", collection);
-        List<Integer> filterDistinct = F.filterDistinct(collection, Equator.valueHashEquator(n -> n % 2 == 0 ? -1 : n.hashCode()));
+        Predicate<Integer> pred = F.filterDistinct(Equator.primitiveHashEquator());
+        List<Integer> filterDistinct = F.fillCollection(collection.stream().filter(pred), new ArrayList<>());
 
         Log.print("Removed filter distinct", filterDistinct);
         Log.print("Left", collection);
+        F.checkedRun(()->{
+            Log.await(1, TimeUnit.HOURS);
+        });
 
     }
 
-    @Test
+//    @Test
     public void readFile() throws Exception {
 
         String desktop = "C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\";

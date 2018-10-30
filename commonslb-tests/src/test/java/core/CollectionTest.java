@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.PrefillArrayList;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
@@ -112,8 +113,8 @@ public class CollectionTest {
         Log.print("Size",list.size());
     }
 
-//    @Test
-    public void bechHash() {
+    @Test
+    public void benchHash() {
         Benchmark b = new Benchmark();
 
         Map<Integer, String> map1 = new HashMap<>();
@@ -121,17 +122,19 @@ public class CollectionTest {
 
         b.threads = 1;
         b.useGVhintAfterFullBench = true;
-        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
-        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        Log.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        Log.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
 
-        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
-        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        Log.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        Log.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
 
-        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
-        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        Log.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        Log.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
 
-        System.out.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
-        System.out.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
-
+        Log.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        Log.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        F.checkedRun(()->{
+            Log.await(1, TimeUnit.HOURS);
+        });
     }
 }

@@ -90,6 +90,9 @@ public class StackTraceTest {
         Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
         Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
 
+        Log.print(of.apply(rng.pickRandom(list, 2)));
+        
+        
         Log.await(1, TimeUnit.HOURS);
 
     }
