@@ -5,10 +5,12 @@
  */
 package threading;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Log;
 import lt.lb.commons.F;
 import lt.lb.commons.threads.FastExecutor;
+import lt.lb.commons.threads.sync.ThreadBottleneck;
 import org.junit.Test;
 
 /**
@@ -16,7 +18,7 @@ import org.junit.Test;
  * @author Laimonas-Beniusis-PC
  */
 public class FastExecutorTest {
-    
+
     public FastExecutorTest() {
     }
 
@@ -25,42 +27,45 @@ public class FastExecutorTest {
     //
     // @Test
     // public void hello() {}
-    
-    
-    
-    public Runnable makeRun(String s){
-        return ()->{
-            Log.main().async = false;
-            F.unsafeRun(()->{
-                Thread.sleep(100);
-                Log.print(s);
+    ThreadBottleneck sb = new ThreadBottleneck(3);
+
+    public Runnable makeRun(String s) {
+        return () -> {
+
+            F.unsafeRun(() -> {
+                Optional<Throwable> execute = sb.execute(() -> {
+                    Thread.sleep(100);
+                    Log.print(s);
+                });
+                if (execute.isPresent()) {
+                    execute.get().printStackTrace();
+                }
             });
-            
-            
+
         };
     }
-    
+
     @Test
-    public void TestMe(){
-        FastExecutor exe = new FastExecutor(-1);
-        
-        for(int i = 0; i < 10; i++){
-            exe.execute(makeRun(""+i));
+    public void TestMe() {
+        Log.main().async = false;
+        FastExecutor exe = new FastExecutor(4);
+
+        for (int i = 0; i < 10; i++) {
+            exe.execute(makeRun("" + i));
         }
-        F.unsafeRun(()->{
+        F.unsafeRun(() -> {
             Log.print("Sleep");
             Thread.sleep(2000);
             Log.print("End");
         });
-        for(int i = 0; i < 100; i++){
-            exe.execute(makeRun(""+i));
+        for (int i = 0; i < 100; i++) {
+            exe.execute(makeRun("" + i));
         }
-        for(int i = 0; i < 100; i++){
-            exe.execute(makeRun(""+i));
+        for (int i = 0; i < 100; i++) {
+            exe.execute(makeRun("" + i));
         }
-        
-        
-        F.unsafeRun(()->{
+
+        F.unsafeRun(() -> {
             Log.print("Sleep");
             Thread.sleep(8000);
             Log.print("End");

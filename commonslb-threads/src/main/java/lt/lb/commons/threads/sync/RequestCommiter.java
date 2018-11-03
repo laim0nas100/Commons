@@ -13,6 +13,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import lt.lb.commons.F;
+import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
  *
@@ -30,26 +32,26 @@ public class RequestCommiter<T> {
     protected LocalDateTime lastRequestAdd = LocalDateTime.now();
     protected Executor commitExecutor;
 
-    protected Callable<Void> timeRun = () -> {
+    protected Runnable timeRun = () -> {
+        F.checkedRun(() -> {
+            long sleepTime = 0;
+            do {
+                if (sleepTime > 0) {
+                    Thread.sleep(sleepTime);
+                }
+                LocalDateTime lastRq = this.getLastRequestAdd();
+                LocalDateTime now = LocalDateTime.now();
+                // get time difference after sleep
+                Duration between = java.time.Duration.between(now, lastRq.plusSeconds(timeoutSeconds));
 
-        long sleepTime = 0;
-        do {
-            if (sleepTime > 0) {
-                Thread.sleep(sleepTime);
-            }
-            LocalDateTime lastRq = this.getLastRequestAdd();
-            LocalDateTime now = LocalDateTime.now();
-            // get time difference after sleep
-            Duration between = java.time.Duration.between(now, lastRq.plusSeconds(timeoutSeconds));
-
-            if (between.isNegative() || between.isZero()) {
-                break;
-            }
-            sleepTime = between.toMillis();
-        } while (true);
-        commit();
+                if (between.isNegative() || between.isZero()) {
+                    break;
+                }
+                sleepTime = between.toMillis();
+            } while (true);
+            commit();
+        });
         timeoutRunning.set(false);
-        return null;
     };
 
     public RequestCommiter(long timeoutSeconds, long requestThreshold, Callable<T> call, Executor commitExecutor) {
@@ -71,7 +73,7 @@ public class RequestCommiter<T> {
     protected void update() {
 
         if (timeoutRunning.compareAndSet(false, true)) {
-            Thread thread = new Thread(new FutureTask<>(timeRun));
+            Thread thread = new Thread(timeRun);
             thread.start();
         }
 
