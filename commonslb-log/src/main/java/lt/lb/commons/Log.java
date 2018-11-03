@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 import lt.lb.commons.containers.StringValue;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.threads.FastWaitingExecutor;
+import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  *
@@ -47,7 +48,7 @@ public class Log {
     protected boolean closed = false;
     public Consumer<Supplier<String>> override;
     protected DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    protected Executor exe = new FastWaitingExecutor(1, 15, TimeUnit.SECONDS);
+    protected Executor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
     public Log() {

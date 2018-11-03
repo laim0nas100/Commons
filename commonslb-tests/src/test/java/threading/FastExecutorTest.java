@@ -6,10 +6,12 @@
 package threading;
 
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Log;
 import lt.lb.commons.F;
 import lt.lb.commons.threads.FastExecutor;
+import lt.lb.commons.threads.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
 import org.junit.Test;
 
@@ -48,7 +50,7 @@ public class FastExecutorTest {
     @Test
     public void TestMe() {
         Log.main().async = false;
-        FastExecutor exe = new FastExecutor(4);
+        Executor exe = new FastWaitingExecutor(4);
 
         for (int i = 0; i < 10; i++) {
             exe.execute(makeRun("" + i));
