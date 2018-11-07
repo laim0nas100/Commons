@@ -65,7 +65,6 @@ public class TaskBatcher implements Executor {
             this.successful = ok;
             this.timedOut = timedOut;
             this.failures = th;
-
         }
     }
 
@@ -77,7 +76,7 @@ public class TaskBatcher implements Executor {
     public BatchRunSummary awaitFailOnFirst() {
         Value<BatchRunSummary> v = new Value<>();
         F.unsafeRun(() -> {  // 
-            v.set(await(false, WaitTime.ofDays(0), WaitTime.ofDays(0))); // s should not throw InterruptedException
+            v.set(await(false, WaitTime.ofDays(0), WaitTime.ofDays(0))); // should not throw InterruptedException
         });
         return v.get();
     }
@@ -96,8 +95,7 @@ public class TaskBatcher implements Executor {
     }
 
     /**
-     * Manual await configuration, only 1 thread should use this at a time, so
-     * it's synchronized.
+     * Manual await configuration. Should only call this on 1 waiting thread.
      *
      * @param failFast cancel execution on first failure
      * @param pollWait how long to wait for new task to arrive. Set time to 0 or
@@ -161,13 +159,12 @@ public class TaskBatcher implements Executor {
                         }
                     }
                 }
-                if(!inTask.compareAndSet(true, false)){
+                if (!inTask.compareAndSet(true, false)) {
                     throw new IllegalStateException("IMPOSSIBLE!!!");
                 }
                 return new BatchRunSummary(total, ok, timeout, failures);
             };
-            FutureTask<BatchRunSummary> run = new FutureTask<>(call);
-            this.waitingTask = run;
+            this.waitingTask = new FutureTask<>(call);
 
         }
         Value<BatchRunSummary> val = new Value<>();

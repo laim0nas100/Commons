@@ -118,7 +118,6 @@ public class ArrayOp {
             if (!set.contains(t)) {
                 list.add(t);
             }
-
         }
 
         Class<T> componentType = (Class<T>) one.getClass().getComponentType();
@@ -186,8 +185,7 @@ public class ArrayOp {
         }
         T[] array = makeArray(arraySize, cls);
         for (int i = 0; i < arraySize; i++) {
-            int valIndex = i % values.length;
-            array[i] = values[valIndex];
+            array[i] = values[i % values.length];
         }
 
         return array;
@@ -201,8 +199,7 @@ public class ArrayOp {
         }
         T[] array = makeArray(arraySize, baseClass);
         for (int i = 0; i < arraySize; i++) {
-            int valIndex = i % values.length;
-            array[i] = values[valIndex].get();
+            array[i] = values[i % values.length].get();
         }
 
         return array;

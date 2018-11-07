@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads;
 
 import java.util.concurrent.Callable;
@@ -22,38 +17,31 @@ import lt.lb.commons.threads.sync.ConditionalWait;
  * @author laim0nas100
  */
 public class EventQueue {
-    
-    public EventQueue(Executor exe){
+
+    public EventQueue(Executor exe) {
         this.exe = exe;
     }
 
     public static final String defaultTag = "DEFAULT";
 
-    private static class Event implements Runnable {
+    private static class Event extends FutureTask<Void> {
 
         public String tag = "DEFAULT";
-        public FutureTask run;
 
         public Event(Callable call, String tag) {
+            super(call);
             this.tag = tag;
-            this.run = new FutureTask<>(call);
         }
 
         public Event(Runnable run, String tag) {
             this(Executors.callable(run), tag);
 
         }
-
-        @Override
-        public void run() {
-            run.run();
-        }
-
     }
-    private ConcurrentLinkedDeque<Event> events = new ConcurrentLinkedDeque<>();
 
+    private ConcurrentLinkedDeque<Event> events = new ConcurrentLinkedDeque<>();
     private Executor exe;
-    
+
     private volatile boolean shutdown = false;
 
     public Future add(UnsafeRunnable run) {
@@ -83,7 +71,7 @@ public class EventQueue {
     private Future add(Event ev) {
         if (executing.get() && (executingThread.compareAndSet(Thread.currentThread(), Thread.currentThread()))) { // nested add
             ev.run();
-            return ev.run;
+            return ev;
         }
 
         if (shutdown) {
@@ -91,7 +79,7 @@ public class EventQueue {
         }
         this.events.addLast(ev);
         executeNext();
-        return ev.run;
+        return ev;
     }
 
     private volatile ConditionalWait waiter = new ConditionalWait();
@@ -117,13 +105,10 @@ public class EventQueue {
                     } else {
                         pollFirst.run();
                     }
-
                 }
-
             };
             exe.execute(run);
         }
-
     }
 
     private Predicate<Event> containsAny(String[] tags) {
@@ -141,12 +126,10 @@ public class EventQueue {
         waiter.requestWait();
         F.filterInPlace(events, containsAny(tags).negate());
         waiter.wakeUp();
-
     }
-    
-    public void shutdown(){
+
+    public void shutdown() {
         shutdown = true;
     }
-
 
 }
