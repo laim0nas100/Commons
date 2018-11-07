@@ -25,6 +25,8 @@ public interface JPACommands {
     public <T> Long count(Class<T> clz, IQueryDecorator<T>... predicates);
 
     public <T> void remove(Class<?> clz, Object primaryKey);
+    
+    public <T> void remove(T obj);
 
     public <T> void merge(T obj);
 

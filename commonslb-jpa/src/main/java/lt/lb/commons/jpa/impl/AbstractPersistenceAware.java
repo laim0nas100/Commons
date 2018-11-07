@@ -26,6 +26,11 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     @Override
+    public <T> void remove(T obj){
+        getEntityManager().remove(obj);
+    }
+    
+    @Override
     public <T> void remove(Class<?> clz, Object primaryKey) {
         try {
             Object ref = getEntityManager().getReference(clz, primaryKey);
