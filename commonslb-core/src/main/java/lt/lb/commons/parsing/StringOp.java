@@ -12,7 +12,7 @@ import java.util.Locale;
  *
  * @author laim0nas100
  */
-public class StringOperations extends org.apache.commons.lang3.StringUtils {
+public class StringOp extends org.apache.commons.lang3.StringUtils {
 
     public static class StringInfo {
 
