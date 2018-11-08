@@ -96,6 +96,92 @@ public class Lambda {
         return l;
     }
 
+
+    /*
+     * For one liners, with type inference
+     * 
+    */
+    public static <T1> L0R<T1> ofResult(L0R<T1> l) {
+        return l;
+    }
+
+    public static <T1, R1> L1R<T1, R1> ofResult(L1R<T1, R1> l) {
+        return l;
+    }
+
+    public static <T1, T2, R1> L2R<T1, T2, R1> ofResult(L2R<T1, T2, R1> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, R1> L3R<T1, T2, T3, R1> ofResult(L3R<T1, T2, T3, R1> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, R1> L4R<T1, T2, T3, T4, R1> ofResult(L4R<T1, T2, T3, T4, R1> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, R1> L5R<T1, T2, T3, T4, T5, R1> ofResult(L5R<T1, T2, T3, T4, T5, R1> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, T6, R1> L6R<T1, T2, T3, T4, T5, T6, R1> ofResult(L6R<T1, T2, T3, T4, T5, T6, R1> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, T6, T7, R1> L7R<T1, T2, T3, T4, T5, T6, T7, R1> ofResult(L7R<T1, T2, T3, T4, T5, T6, T7, R1> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, T6, T7, T8, R1> L8R<T1, T2, T3, T4, T5, T6, T7, T8, R1> ofResult(L8R<T1, T2, T3, T4, T5, T6, T7, T8, R1> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, R1> L9R<T1, T2, T3, T4, T5, T6, T7, T8, T9, R1> ofResult(L9R<T1, T2, T3, T4, T5, T6, T7, T8, T9, R1> l) {
+        return l;
+    }
+    
+    /*
+     * For one liners, with type inference
+     * 
+    */
+    public static <R1> L1<R1> ofVoid(L1<R1> l) {
+        return l;
+    }
+
+    public static <T1, T2> L2<T1, T2> ofVoid(L2<T1, T2> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3> L3<T1, T2, T3> ofVoid(L3<T1, T2, T3> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4> L4<T1, T2, T3, T4> ofVoid(L4<T1, T2, T3, T4> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5> L5<T1, T2, T3, T4, T5> ofVoid(L5<T1, T2, T3, T4, T5> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, T6> L6<T1, T2, T3, T4, T5, T6> ofVoid(L6<T1, T2, T3, T4, T5, T6> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, T6, T7> L7<T1, T2, T3, T4, T5, T6, T7> ofVoid(L7<T1, T2, T3, T4, T5, T6, T7> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, T6, T7, T8> L8<T1, T2, T3, T4, T5, T6, T7, T8> ofVoid(L8<T1, T2, T3, T4, T5, T6, T7, T8> l) {
+        return l;
+    }
+
+    public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> L9<T1, T2, T3, T4, T5, T6, T7, T8, T9> ofVoid(L9<T1, T2, T3, T4, T5, T6, T7, T8, T9> l) {
+        return l;
+    }
+    
+
     public interface L0 extends Runnable{
 
         public default void apply(){
