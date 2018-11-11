@@ -6,6 +6,7 @@
 package lt.lb.commons.misc;
 
 import java.util.Comparator;
+import java.util.function.Function;
 
 /**
  *
@@ -70,7 +71,7 @@ public interface ExtComparator<T> extends Comparator<T> {
     }
 
     /**
-     * 
+     *
      * @param o1
      * @param o2
      * @return bigger value by this comparator
@@ -83,7 +84,7 @@ public interface ExtComparator<T> extends Comparator<T> {
     }
 
     /**
-     * 
+     *
      * @param o1
      * @param o2
      * @return smaller value by this comparator
@@ -106,6 +107,13 @@ public interface ExtComparator<T> extends Comparator<T> {
         return (F o1, F o2) -> cmp.compare(o1, o2);
     }
 
+    public static <F, V extends Comparable> ExtComparator<F> ofValue(Function<F, V> func) {
+        ExtComparator<V> ofComparable = ofComparable();
+        return ExtComparator.of((v1, v2) -> {
+            return ofComparable.compare(func.apply(v1), func.apply(v2));
+        });
+    }
+
     /**
      * Create ExtComparator using known Comparable class as basis of order
      *
@@ -118,7 +126,7 @@ public interface ExtComparator<T> extends Comparator<T> {
                 if (o2 == null) {
                     return 0;
                 }
-                return -1 * o2.compareTo(o1); 
+                return -1 * o2.compareTo(o1);
             }
 
             return o1.compareTo(o2);

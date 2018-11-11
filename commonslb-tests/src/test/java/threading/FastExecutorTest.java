@@ -12,6 +12,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.F;
 import lt.lb.commons.threads.FastExecutor;
 import lt.lb.commons.threads.FastWaitingExecutor;
+import lt.lb.commons.threads.PriorityFastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
 import org.junit.Test;
 

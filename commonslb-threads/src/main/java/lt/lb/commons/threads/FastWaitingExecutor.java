@@ -1,6 +1,7 @@
 package lt.lb.commons.threads;
 
 import java.util.concurrent.LinkedBlockingDeque;
+import lt.lb.commons.F;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -27,7 +28,7 @@ public class FastWaitingExecutor extends FastExecutor {
     @Override
     protected Runnable getMainBody() {
         return () -> {
-            LinkedBlockingDeque<Runnable> deque = (LinkedBlockingDeque) tasks;
+            LinkedBlockingDeque<Runnable> deque = F.cast(tasks);
             Runnable last = null;
             do {
 

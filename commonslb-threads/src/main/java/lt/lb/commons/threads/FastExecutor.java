@@ -5,11 +5,13 @@
  */
 package lt.lb.commons.threads;
 
+import java.util.Collection;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import lt.lb.commons.F;
 
 /**
  *
@@ -17,7 +19,7 @@ import java.util.function.Consumer;
  */
 public class FastExecutor implements Executor {
 
-    protected Deque<Runnable> tasks = new ConcurrentLinkedDeque<>();
+    protected Collection<? extends Runnable> tasks = new ConcurrentLinkedDeque<>();
 
     protected int maxThreads; // 
     protected AtomicInteger startingThreads = new AtomicInteger(0);
@@ -51,14 +53,16 @@ public class FastExecutor implements Executor {
 
     @Override
     public void execute(Runnable command) {
-        tasks.addFirst(command);
+        Deque<Runnable> cast = F.cast(tasks);
+        cast.addFirst(command);
         update(this.maxThreads);
     }
 
     protected Runnable getMainBody() {
         return () -> {
-            while (!tasks.isEmpty()) {
-                Runnable last = tasks.pollLast();
+            Deque<Runnable> cast = F.cast(tasks);
+            while (!cast.isEmpty()) {
+                Runnable last = cast.pollLast();
                 if (last != null) {
                     last.run();
                 }
