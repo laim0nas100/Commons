@@ -71,7 +71,7 @@ public class FastExecutor implements Executor {
         };
     }
 
-    protected Runnable getRun(final int bakedMax) {
+    protected final Runnable getRun(final int bakedMax) {
         return () -> {
             runningThreads.incrementAndGet();
             startingThreads.decrementAndGet(); //thread started

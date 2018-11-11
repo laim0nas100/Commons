@@ -91,5 +91,12 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
     public void execute(int priority, Runnable run) {
         this.execute(new PriorityRunnable(run, priority));
     }
+    
+    @Override
+    public void execute(Runnable command) {
+        PriorityBlockingQueue<Runnable> cast = F.cast(tasks);
+        cast.add(command);
+        update(this.maxThreads);
+    }
 
 }
