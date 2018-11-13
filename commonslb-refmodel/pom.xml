@@ -17,13 +17,8 @@
             <artifactId>commonslb-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-jpa</artifactId>
         </dependency>
     </dependencies>
     
