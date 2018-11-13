@@ -48,6 +48,11 @@
             </dependency>
             <dependency>
                 <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-jpa</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-refmodel</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
