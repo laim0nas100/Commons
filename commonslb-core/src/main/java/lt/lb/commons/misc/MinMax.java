@@ -9,7 +9,7 @@ package lt.lb.commons.misc;
  *
  * @author laim0nas100
  */
-public class MinMax<T extends Number> {
+public class MinMax<T> {
 
     public final T min, max;
 

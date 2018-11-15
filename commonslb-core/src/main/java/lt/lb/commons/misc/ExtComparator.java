@@ -107,17 +107,33 @@ public interface ExtComparator<T> extends Comparator<T> {
         return (F o1, F o2) -> cmp.compare(o1, o2);
     }
 
+    /**
+     * 
+     * @param <F> Base object
+     * @param <V> particular value of F object. Should handle null comparisons
+     * @param func mapping function
+     * @return 
+     */
     public static <F, V extends Comparable> ExtComparator<F> ofValue(Function<F, V> func) {
-        ExtComparator<V> ofComparable = ofComparable();
-        return ExtComparator.of((v1, v2) -> {
-            return ofComparable.compare(func.apply(v1), func.apply(v2));
-        });
+        return ofValue(func, ofComparable());
     }
 
     /**
-     * Create ExtComparator using known Comparable class as basis of order
+     * 
+     * @param <F> Base object
+     * @param <V> particular value of F object
+     * @param func mapping function
+     * @param cmp comparator to compare mapped value
+     * @return 
+     */
+    public static <F, V> ExtComparator<F> ofValue(Function<F, V> func, Comparator<V> cmp) {
+        return ExtComparator.of((v1, v2) -> cmp.compare(func.apply(v1), func.apply(v2)));
+    }
+
+    /**
+     * Create ExtComparator using known Comparable class as basis of order.
      *
-     * @param <F>
+     * @param <F> must implement comparison with null's
      * @return
      */
     public static <F extends Comparable> ExtComparator<F> ofComparable() {
@@ -128,7 +144,29 @@ public interface ExtComparator<T> extends Comparator<T> {
                 }
                 return -1 * o2.compareTo(o1);
             }
+            return o1.compareTo(o2);
+        };
 
+    }
+
+    /**
+     * Create ExtComparator using known Comparable class as basis of order.
+     *
+     * @param <F> is not responsible if null is encountered
+     * @param nullFirst null order policy
+     * @return
+     */
+    public static <F extends Comparable> ExtComparator<F> ofComparable(boolean nullFirst) {
+        return (F o1, F o2) -> {
+            if (o1 == null) {
+                if (o2 == null) {
+                    return 0;
+                }
+                return nullFirst ? -1 : 1;
+            }
+            if (o2 == null) {
+                return nullFirst ? 1 : -1;
+            }
             return o1.compareTo(o2);
         };
 
