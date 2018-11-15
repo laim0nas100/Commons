@@ -122,7 +122,7 @@ public class Log {
     public static void close(Log log) {
         log.closed = true;
         log.exe.execute(() -> {
-            
+
             flushBuffer(log);
             log.printStream.flush();
             if (log.isFileOpen) {
@@ -220,7 +220,7 @@ public class Log {
         }
     }
 
-    private static final Lambda.L5R<Log, String, String, Long, String, String> finalPrintDecorator = Lambda.of((Log log, String trace, String name, Long millis, String string) -> {
+    private static final Lambda.L5R<Log, String, String, Long, String, String> finalPrintDecorator = (Log log, String trace, String name, Long millis, String string) -> {
         String timeSt = log.timeStamp ? getZonedDateTime(log.timeStringFormat, millis) : "";
         String threadSt = log.threadName ? "[" + name + "]" : "";
         if (!trace.isEmpty()) {
@@ -232,9 +232,9 @@ public class Log {
         }
         String str = log.surroundString ? "{" + string + "}" : string;
         return timeSt + threadSt + trace + str;
-    });
+    };
 
-    private static final Lambda.L1R<Object[], Supplier<String>> printLnDecorator = Lambda.of((Object[] objs) -> {
+    private static final Lambda.L1R<Object[], Supplier<String>> printLnDecorator = (Object[] objs) -> {
         return () -> {
             LineStringBuilder sb = new LineStringBuilder();
             if (objs.length == 1) {
@@ -250,9 +250,9 @@ public class Log {
             return sb.toString();
         };
 
-    });
+    };
 
-    private static final Lambda.L1R<Object[], Supplier<String>> printDecorator = Lambda.of((Object[] objs) -> {
+    private static final Lambda.L1R<Object[], Supplier<String>> printDecorator = (Object[] objs) -> {
         return () -> {
             LineStringBuilder string = new LineStringBuilder();
             if (objs.length > 0) {
@@ -264,9 +264,9 @@ public class Log {
             return string.toString();
         };
 
-    });
+    };
 
-    private static final Lambda.L1R<Collection, Supplier<String>> printLinesDecorator = Lambda.of((Collection col) -> {
+    private static final Lambda.L1R<Collection, Supplier<String>> printLinesDecorator = (Collection col) -> {
         return () -> {
             LineStringBuilder string = new LineStringBuilder();
             if (!col.isEmpty()) {
@@ -278,9 +278,9 @@ public class Log {
             return string.toString();
         };
 
-    });
+    };
 
-    private static final Lambda.L1R<ReadOnlyIterator, Supplier<String>> printIterDecorator = Lambda.of((ReadOnlyIterator col) -> {
+    private static final Lambda.L1R<ReadOnlyIterator, Supplier<String>> printIterDecorator = (ReadOnlyIterator col) -> {
         return () -> {
             LineStringBuilder string = new LineStringBuilder();
             if (!col.hasNext()) {
@@ -292,7 +292,7 @@ public class Log {
             return string.toString();
         };
 
-    });
+    };
 
     private static void logThis(Log log, String res) {
         if (log.display) {

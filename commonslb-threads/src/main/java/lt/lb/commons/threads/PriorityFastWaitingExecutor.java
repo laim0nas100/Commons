@@ -7,6 +7,7 @@ package lt.lb.commons.threads;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
+import lt.lb.commons.Lambda;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.sync.WaitTime;
 
@@ -16,13 +17,14 @@ import lt.lb.commons.threads.sync.WaitTime;
  */
 public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
 
-    private ExtComparator<Runnable> priorityComparator = ExtComparator.ofValue((r) -> {
+    private Lambda.L1R<Runnable, Integer> mapping = (r) -> {
         if (r instanceof PriorityRunnable) {
             PriorityRunnable pr = F.cast(r);
             return pr.order;
         }
         return 0;
-    });
+    };
+    private ExtComparator<Runnable> priorityComparator = ExtComparator.ofValue(mapping, ExtComparator.ofComparable(false));
 
     private class PriorityRunnable implements Runnable {
 
@@ -40,7 +42,7 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
     }
 
     /**
-     * 
+     *
      * @inheritDoc
      */
     public PriorityFastWaitingExecutor(int maxThreads) {
@@ -84,14 +86,16 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
     }
 
     /**
-     * Higher priority means execute sooner. If priority below 0, executes after runnables without priority
+     * Higher priority means execute sooner. If priority below 0, executes after
+     * runnables without priority
+     *
      * @param priority
-     * @param run 
+     * @param run
      */
     public void execute(int priority, Runnable run) {
         this.execute(new PriorityRunnable(run, priority));
     }
-    
+
     @Override
     public void execute(Runnable command) {
         PriorityBlockingQueue<Runnable> cast = F.cast(tasks);

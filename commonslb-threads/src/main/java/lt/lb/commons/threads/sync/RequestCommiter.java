@@ -5,16 +5,14 @@
  */
 package lt.lb.commons.threads.sync;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.F;
-import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
  *
@@ -28,8 +26,8 @@ public class RequestCommiter<T> {
     protected long timeoutSeconds;
 
     protected Callable<T> task;
-    protected FutureTask<T> lastCommitTask;
-    protected LocalDateTime lastRequestAdd = LocalDateTime.now();
+    protected volatile FutureTask<T> lastCommitTask;
+    protected volatile long lastRequestAdd = System.nanoTime();
     protected Executor commitExecutor;
 
     protected Runnable timeRun = () -> {
@@ -39,15 +37,14 @@ public class RequestCommiter<T> {
                 if (sleepTime > 0) {
                     Thread.sleep(sleepTime);
                 }
-                LocalDateTime lastRq = this.getLastRequestAdd();
-                LocalDateTime now = LocalDateTime.now();
-                // get time difference after sleep
-                Duration between = java.time.Duration.between(now, lastRq.plusSeconds(timeoutSeconds));
-
-                if (between.isNegative() || between.isZero()) {
+                long lastRq = this.getLastRequestAdd();
+                
+                long now = System.nanoTime();
+                
+                sleepTime = (now - lastRq)/10000000; // to milliseonds
+                if (sleepTime <= 0) {
                     break;
                 }
-                sleepTime = between.toMillis();
             } while (true);
             commit();
         });
@@ -62,7 +59,8 @@ public class RequestCommiter<T> {
     }
 
     public void addRequest() {
-        lastRequestAdd = LocalDateTime.now();
+        
+        lastRequestAdd = System.nanoTime();
         update();
         if (pendingRequests.incrementAndGet() >= requestThreshhold) {
             commit();
@@ -87,7 +85,7 @@ public class RequestCommiter<T> {
         }
     }
 
-    public FutureTask<T> commit() {
+    public Future<T> commit() {
         if (pendingRequests.get() == 0) {
             return lastCommitTask;
         }
@@ -98,7 +96,7 @@ public class RequestCommiter<T> {
         return commit;
     }
 
-    protected LocalDateTime getLastRequestAdd() {
+    protected long getLastRequestAdd() {
         return this.lastRequestAdd;
     }
 

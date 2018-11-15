@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Log;
 import lt.lb.commons.F;
 import lt.lb.commons.threads.FastExecutor;
+import lt.lb.commons.threads.FastExecutor1;
 import lt.lb.commons.threads.FastWaitingExecutor;
 import lt.lb.commons.threads.PriorityFastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
@@ -36,13 +37,13 @@ public class FastExecutorTest {
         return () -> {
 
             F.unsafeRun(() -> {
-                Optional<Throwable> execute = sb.execute(() -> {
+//                Optional<Throwable> execute = sb.execute(() -> {
                     Thread.sleep(100);
                     Log.print(s);
-                });
-                if (execute.isPresent()) {
-                    execute.get().printStackTrace();
-                }
+//                });
+//                if (execute.isPresent()) {
+//                    execute.get().printStackTrace();
+//                }
             });
 
         };
@@ -51,7 +52,7 @@ public class FastExecutorTest {
     @Test
     public void TestMe() {
         Log.main().async = false;
-        Executor exe = new FastWaitingExecutor(4);
+        Executor exe = new FastExecutor1(1);
 
         for (int i = 0; i < 10; i++) {
             exe.execute(makeRun("" + i));

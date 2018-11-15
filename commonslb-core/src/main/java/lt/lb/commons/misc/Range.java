@@ -54,7 +54,6 @@ public class Range<T> extends MinMax<T> {
     }
 
     public Range<T> expand(T val) {
-        return new Range(cmp.min(val, min), cmp.max(val, max), cmp) {
-        };
+        return new Range(cmp.min(val, min), cmp.max(val, max), cmp);
     }
 }
