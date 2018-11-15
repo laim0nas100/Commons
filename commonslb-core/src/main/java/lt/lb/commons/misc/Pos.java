@@ -22,17 +22,17 @@ public class Pos {
         }
     }
 
-    public Double[] normalized(MinMax[] minmax) {
+    public Double[] normalized(MinMax<Double>[] minmax) {
         Double[] res = new Double[vector.length];
         for (int i = 0; i < vector.length; i++) {
-            Double min = minmax[i].min.doubleValue();
-            Double max = minmax[i].max.doubleValue();
+            Double min = minmax[i].min;
+            Double max = minmax[i].max;
             res[i] = (vector[i] - min) / (max - min);
         }
         return res;
     }
 
-    public Double[] normalized(MinMax[] minmax, Number rangeStart, Number rangeEnd) {
+    public Double[] normalized(MinMax<Double>[] minmax, Number rangeStart, Number rangeEnd) {
         Double[] res = this.normalized(minmax);
         for (int i = 0; i < res.length; i++) {
             res[i] = res[i] * (rangeEnd.doubleValue() - rangeStart.doubleValue()) + rangeStart.doubleValue();
