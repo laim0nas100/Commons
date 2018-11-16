@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.misc;
 
 import java.util.Comparator;
@@ -77,10 +72,7 @@ public interface ExtComparator<T> extends Comparator<T> {
      * @return bigger value by this comparator
      */
     public default T max(T o1, T o2) {
-        if (this.greaterThanOrEq(o1, o2)) {
-            return o1;
-        }
-        return o2;
+        return this.greaterThanOrEq(o1, o2) ? o1 : o2;
     }
 
     /**
@@ -90,10 +82,7 @@ public interface ExtComparator<T> extends Comparator<T> {
      * @return smaller value by this comparator
      */
     public default T min(T o1, T o2) {
-        if (this.lessThanOrEq(o1, o2)) {
-            return o1;
-        }
-        return o2;
+        return this.lessThanOrEq(o1, o2) ? o1 : o2;
     }
 
     /**
@@ -133,7 +122,7 @@ public interface ExtComparator<T> extends Comparator<T> {
     /**
      * Create ExtComparator using known Comparable class as basis of order.
      *
-     * @param <F> must implement comparison with null's
+     * @param <F> must implement compareTo with null's
      * @return
      */
     public static <F extends Comparable> ExtComparator<F> ofComparable() {
