@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package lt.lb.commons.threads.sync;
 
 import java.util.Objects;
@@ -15,7 +11,7 @@ import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.misc.Range;
 
 /**
- *
+ * Combines AtomicInteger to manage how many threads enter each state
  * @author laim0nas100
  */
 public class ThreadBoundedState {
@@ -31,7 +27,7 @@ public class ThreadBoundedState {
 
     /**
      *
-     * @param stateCount number of states [0..stateCount]
+     * @param stateCount number of states starting from 0
      * @param maxThreads number of threads. if less or equal to 0, then
      * unbounded
      */
@@ -44,6 +40,11 @@ public class ThreadBoundedState {
         });
     }
 
+    /**
+     * Give a name to a state
+     * @param alias
+     * @param stateIndex 
+     */
     public void setAlias(String alias, int stateIndex) {
 
         //unique check
@@ -54,6 +55,11 @@ public class ThreadBoundedState {
         states[stateIndex].name = alias;
     }
 
+    /**
+     * set thread bound of a state
+     * @param bound
+     * @param stateIndex 
+     */
     public void setThreadBound(int bound, int stateIndex) {
         states[stateIndex].threadBound = bound;
     }
@@ -67,22 +73,48 @@ public class ThreadBoundedState {
         }
     }
 
+    /**
+     * Get state index by name
+     * @param stateName
+     * @return 
+     */
     public Optional<Integer> nameToStateIndex(String stateName) {
         return F.find(states, (i, st) -> Objects.equals(st.name, stateName)).map(t -> t.g1);
     }
 
+    /**
+     * Enter a state by name
+     * @param stateName
+     * @return 
+     */
     public boolean enter(String stateName) {
         return enter(this.nameToIndex(stateName));
     }
 
+    /**
+     * Exit a state by name
+     * @param stateName
+     * @return 
+     */
     public boolean exit(String stateName) {
         return exit(this.nameToIndex(stateName));
     }
 
+    /**
+     * Transition states by name
+     * @param from
+     * @param to
+     * @return 
+     */
     public boolean transition(String from, String to) {
         return transition(nameToIndex(from), nameToIndex(to));
     }
 
+    /**
+     * Enter a state
+     * @param state
+     * @return 
+     */
     public boolean enter(int state) {
         StateInfo st = states[state];
         if (st.threadBound <= 0) {
@@ -97,6 +129,11 @@ public class ThreadBoundedState {
         }
     }
 
+    /**
+     * Exit a state
+     * @param state
+     * @return 
+     */
     public boolean exit(int state) {
         StateInfo st = states[state];
         if (st.threadBound <= 0) {
@@ -112,9 +149,15 @@ public class ThreadBoundedState {
         }
     }
 
+    /**
+     * Transition states
+     * @param from
+     * @param to
+     * @return 
+     */
     public boolean transition(int from, int to) {
-        Range<Integer> range = Range.of(0, states.length - 1);
-        if ((!range.inRangeInclusive(from) || !range.inRangeInclusive(to)) || from == to) {
+        Range<Integer> range = Range.of(0, states.length);
+        if ((!range.inRangeIncExc(from) || !range.inRangeIncExc(to)) || from == to) {
             throw new IllegalArgumentException("Expected different arguments in range " + range.toString());
         }
         StateInfo stateFrom = states[from];
@@ -137,10 +180,12 @@ public class ThreadBoundedState {
             stateTo.threadCount.incrementAndGet();
             success = true;
         }
-        if (!success) { // everything has been reverted
+        if (!success) { // nothing to revert just yet
             return false;
         }
 
+        //successfully modified stateTo
+        
         if (!noBound2) {
             if (stateFrom.threadCount.decrementAndGet() < 0) {
                 stateFrom.threadCount.incrementAndGet();
@@ -159,10 +204,20 @@ public class ThreadBoundedState {
 
     }
 
+    /**
+     * Get threads in given state currently
+     * @param state
+     * @return 
+     */
     public int getStateThreadCount(int state) {
         return states[state].threadCount.get();
     }
 
+    /**
+     * Get threads in given state currently by name
+     * @param name
+     * @return 
+     */
     public int getStateThreadCount(String name) {
         return getStateThreadCount(nameToIndex(name));
     }

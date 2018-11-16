@@ -20,7 +20,7 @@ public class Range<T> extends MinMax<T> {
         super(min, max);
         this.cmp = ExtComparator.of(cmp);
     }
-
+    
     public static <T extends Comparable> Range<T> of(T min, T max) {
         return new Range(min, max, ExtComparator.ofComparable());
     }
@@ -33,18 +33,38 @@ public class Range<T> extends MinMax<T> {
 
     }
 
+    /**
+     * inside [min,max]
+     * @param val
+     * @return 
+     */
     public boolean inRangeExclusive(T val) {
         return this.inRange(val, false, false);
     }
 
+    /**
+     * inside (min,max)
+     * @param val
+     * @return 
+     */
     public boolean inRangeInclusive(T val) {
         return this.inRange(val, true, true);
     }
 
+    /**
+     * inside [min,max)
+     * @param val
+     * @return 
+     */
     public boolean inRangeIncExc(T val) {
         return this.inRange(val, true, false);
     }
 
+    /**
+     * inside (min,max]
+     * @param val
+     * @return 
+     */
     public boolean inRangeExcInc(T val) {
         return this.inRange(val, false, true);
     }

@@ -52,7 +52,7 @@ public class FastExecutorTest {
     @Test
     public void TestMe() {
         Log.main().async = false;
-        Executor exe = new FastExecutor1(1);
+        Executor exe = new FastExecutor1(10);
 
         for (int i = 0; i < 10; i++) {
             exe.execute(makeRun("" + i));

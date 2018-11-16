@@ -36,6 +36,12 @@ public class FastExecutor1 implements Executor {
     public FastExecutor1(int maxThreads) {
         this.maxThreads = maxThreads;
         state = new ThreadBoundedState(2, maxThreads); // Running or Finishing
+        state.setThreadBound(1, maxThreads);
+    }
+    
+    public void setMaxThreads(int maxThreads) {
+        this.maxThreads = maxThreads;
+        state.setThreadBound(1, maxThreads);
     }
 
     public void setErrorChannel(Consumer<Throwable> channel) {
