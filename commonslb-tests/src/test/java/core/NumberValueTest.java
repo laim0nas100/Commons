@@ -8,14 +8,12 @@ package core;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
-import lt.lb.commons.NumberOp;
 import lt.lb.commons.containers.NumberValue;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -44,16 +42,16 @@ public class NumberValueTest {
     
     @Test
     public void testMe(){
-        NumberValue<Integer> numberVal = NumberValue.of(10);
+        NumberValue<Double> numberVal = NumberValue.of(10d);
         Log.print(numberVal.incrementAndGet());
         Log.print(numberVal.incrementAndGet());
         Log.print(numberVal.incrementAndGet());
         Log.print(numberVal.incrementAndGet());
         
         byte b = 0xa;
-        Log.print(numberVal.incrementAndGet(10));
+        Log.print(numberVal.incrementAndGet(10d));
         short sh = 10;
-        Log.print(NumberOp.add(sh, new Integer(1)));
+//        Log.print(NumberOp.add(sh, new Integer(1)));
         
         
         
