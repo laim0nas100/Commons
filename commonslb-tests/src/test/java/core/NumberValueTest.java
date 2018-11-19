@@ -49,7 +49,7 @@ public class NumberValueTest {
         Log.print(numberVal.incrementAndGet());
         
         byte b = 0xa;
-        Log.print(numberVal.incrementAndGet(10d));
+        Log.print(numberVal.incrementAndGet(10));
         short sh = 10;
 //        Log.print(NumberOp.add(sh, new Integer(1)));
         
