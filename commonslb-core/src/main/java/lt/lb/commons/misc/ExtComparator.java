@@ -11,6 +11,8 @@ import java.util.function.Function;
  */
 public interface ExtComparator<T> extends Comparator<T> {
 
+    public static final ExtComparator NO_ORDER = (a, b) -> 0;
+
     /**
      * @param o1
      * @param o2
@@ -97,26 +99,68 @@ public interface ExtComparator<T> extends Comparator<T> {
     }
 
     /**
-     * 
+     *
      * @param <F> Base object
      * @param <V> particular value of F object. Should handle null comparisons
      * @param func mapping function
-     * @return 
+     * @return
      */
-    public static <F, V extends Comparable> ExtComparator<F> ofValue(Function<F, V> func) {
+    public static <F, V extends Comparable> ExtComparator<F> ofValue(Function<? super F, ? extends V> func) {
         return ofValue(func, ofComparable());
     }
 
     /**
-     * 
+     *
+     * @param <F> Base object
+     * @param <V> particular value of F object. Should handle null comparisons
+     * @param func mapping functions
+     * @return
+     */
+    public static <F, V extends Comparable> ExtComparator<F> ofValues(Function<? super F, ? extends V>... func) {
+        ExtComparator<F> cmp = NO_ORDER;
+        if (func.length == 0) {
+            return NO_ORDER;
+        }
+        if (func.length >= 1) {
+            cmp = ExtComparator.ofValue(func[0]);
+            for (int i = 1; i < func.length; i++) {
+                cmp = cmp.thenComparing(func[i]);
+            }
+        }
+
+        return cmp;
+    }
+
+    /**
+     *
      * @param <F> Base object
      * @param <V> particular value of F object
      * @param func mapping function
      * @param cmp comparator to compare mapped value
-     * @return 
+     * @return
      */
-    public static <F, V> ExtComparator<F> ofValue(Function<F, V> func, Comparator<V> cmp) {
+    public static <F, V> ExtComparator<F> ofValue(Function<? super F, ? extends V> func, Comparator<? super V> cmp) {
         return ExtComparator.of((v1, v2) -> cmp.compare(func.apply(v1), func.apply(v2)));
+    }
+
+    @Override
+    public default ExtComparator<T> thenComparing(Comparator<? super T> other) {
+        return ExtComparator.of(Comparator.super.thenComparing(other));
+    }
+
+    @Override
+    public default ExtComparator<T> reversed() {
+        return ExtComparator.of(Comparator.super.reversed());
+    }
+
+    @Override
+    public default <U> ExtComparator<T> thenComparing(Function<? super T, ? extends U> keyExtractor, Comparator<? super U> keyComparator) {
+        return this.thenComparing(ExtComparator.ofValue(keyExtractor, keyComparator));
+    }
+
+    @Override
+    public default <U extends Comparable<? super U>> ExtComparator<T> thenComparing(Function<? super T, ? extends U> keyExtractor) {
+        return this.thenComparing(ExtComparator.ofValue(keyExtractor));
     }
 
     /**
