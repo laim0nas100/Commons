@@ -204,30 +204,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
             Tuple<Boolean, T> item = unwrap(data[i]);
             
             if (!isAbsent(item)) {
-                final Integer key = i;
-                final T value = item.g2;
-                Entry<Integer, T> en = new Entry() {
-                    @Override
-                    public Object getKey() {
-                        return key;
-                    }
-
-                    @Override
-                    public Object getValue() {
-                        return value;
-                    }
-
-                    @Override
-                    public Object setValue(Object val) {
-                        return me.put(key, val);
-                    }
-
-                    @Override
-                    public String toString() {
-                        return this.getKey() + " = " + this.getValue();
-                    }
-                };
-                set.add(en);
+                set.add(MapEntries.byKey(me, i));
             }
 
         }

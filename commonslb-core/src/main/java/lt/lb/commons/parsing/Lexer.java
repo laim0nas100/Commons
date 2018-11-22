@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import lt.lb.commons.F;
 
 /**
@@ -53,7 +54,7 @@ public class Lexer {
     public boolean skipWhitespace;
 
     public Lexer(Collection<String> allLines) {
-        this.keywords = new SelfSortingMap<>(cmp);
+        this.keywords = new SelfSortingMap<>(cmp,new HashMap<>());
         this.lines = new ArrayList<>();
         this.resetLines(allLines);
     }

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers;
 
 import java.util.function.Supplier;
@@ -90,6 +85,17 @@ public class Value<T> {
         T got = this.get();
         set(func.get());
         return got;
+    }
+    /**
+     * Method for making exceptions
+     * @param opname operation name
+     * @param val
+     * @return 
+     */
+    protected Supplier<RuntimeException> makeException(String opname, Object val) {
+        return () -> {
+            return new RuntimeException("Invalid operation (" + this.get() + " " + opname + " " + val + ")");
+        };
     }
 
 }

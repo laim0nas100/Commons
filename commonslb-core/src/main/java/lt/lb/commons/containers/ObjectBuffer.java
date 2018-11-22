@@ -42,11 +42,9 @@ public class ObjectBuffer<T> {
     }
 
     public void flush() {
-//        new Thread(() ->{
         ArrayList<T> ok = new ArrayList<>(buffer);
         buffer.clear();
         flushHere.addAll(ok);
-//        }).start();
 
     }
 

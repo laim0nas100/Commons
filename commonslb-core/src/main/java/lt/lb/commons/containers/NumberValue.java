@@ -1,11 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers;
 
-import java.util.function.Supplier;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.numbers.NumberBiFunctions;
 import lt.lb.commons.misc.numbers.TypedBiFunction;
@@ -43,58 +37,52 @@ public class NumberValue<T extends Number> extends Value<T> {
         return getAndIncrement(1);
     }
 
-    protected Supplier<ArithmeticException> makeException(String opname, Number val) {
-        return () -> {
-            return new ArithmeticException("Invalid operation ("+this.get() +" "+ opname +" "+ val + ")");
-        };
-    }
-
-    public T getAndIncrement(Number n) {
-        return getAndSet(() -> F.cast(PLUS.apply(get(), n).orElseThrow(makeException("+",n))));
+    public T decrementAndGet() {
+        return decrementAndGet(1);
     }
 
     public T getAndDecrement() {
         return getAndDecrement(1);
     }
 
-    public T getAndDecrement(Number n) {
-        return getAndSet(() -> F.cast(MINUS.apply(get(), n).orElseThrow(makeException("-",n))));
+    public T getAndIncrement(Number n) {
+        return getAndSet(() -> F.cast(PLUS.apply(get(), n).orElseThrow(makeException("+", n))));
     }
 
     public T incrementAndGet(Number n) {
-        return setAndGet(() -> F.cast(PLUS.apply(get(), n).orElseThrow(makeException("+",n))));
+        return setAndGet(() -> F.cast(PLUS.apply(get(), n).orElseThrow(makeException("+", n))));
+    }
+
+    public T getAndDecrement(Number n) {
+        return getAndSet(() -> F.cast(MINUS.apply(get(), n).orElseThrow(makeException("-", n))));
     }
 
     public T decrementAndGet(Number n) {
-        return setAndGet(() -> F.cast(MINUS.apply(get(), n).orElseThrow(makeException("-",n))));
-    }
-
-    public T decrementAndGet() {
-        return decrementAndGet(1);
+        return setAndGet(() -> F.cast(MINUS.apply(get(), n).orElseThrow(makeException("-", n))));
     }
 
     public T multiplyAndGet(Number n) {
-        return setAndGet(() -> F.cast(MULT.apply(get(), n).orElseThrow(makeException("*",n))));
+        return setAndGet(() -> F.cast(MULT.apply(get(), n).orElseThrow(makeException("*", n))));
     }
 
     public T getAndMultiply(Number n) {
-        return getAndSet(() -> F.cast(MULT.apply(get(), n).orElseThrow(makeException("*",n))));
+        return getAndSet(() -> F.cast(MULT.apply(get(), n).orElseThrow(makeException("*", n))));
     }
 
     public T divideAndGet(Number n) {
-        return setAndGet(() -> F.cast(DIV.apply(get(), n).orElseThrow(makeException("/",n))));
+        return setAndGet(() -> F.cast(DIV.apply(get(), n).orElseThrow(makeException("/", n))));
     }
 
     public T getAndDivide(Number n) {
-        return getAndSet(() -> F.cast(DIV.apply(get(), n).orElseThrow(makeException("/",n))));
+        return getAndSet(() -> F.cast(DIV.apply(get(), n).orElseThrow(makeException("/", n))));
     }
 
     public T modAndGet(Number n) {
-        return setAndGet(() -> F.cast(MOD.apply(get(), n).orElseThrow(makeException("%",n))));
+        return setAndGet(() -> F.cast(MOD.apply(get(), n).orElseThrow(makeException("%", n))));
     }
 
     public T getAndMod(Number n) {
-        return getAndSet(() -> F.cast(MOD.apply(get(), n).orElseThrow(makeException("%",n))));
+        return getAndSet(() -> F.cast(MOD.apply(get(), n).orElseThrow(makeException("%", n))));
     }
 
 }

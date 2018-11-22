@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers.collections;
 
 import java.util.*;
@@ -17,9 +12,9 @@ import lt.lb.commons.containers.tuples.Tuple;
  */
 public class PrefillArrayMap<T> implements Map<Integer, T> {
 
-    private Map<Integer, T> positive;
-    private Map<Integer, T> negative;
-    private Tuple<Boolean, T> nullCase = new Tuple<>(false, null);
+    protected Map<Integer, T> positive;
+    protected Map<Integer, T> negative;
+    protected Tuple<Boolean, T> nullCase = new Tuple<>(false, null);
 
     public PrefillArrayMap() {
         this.positive = new PrefillArrayMap2<>();
@@ -110,8 +105,8 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
     @Override
     public void putAll(Map<? extends Integer, ? extends T> m) {
         F.iterate(m, (k, v) -> {
-              this.put(k, v);
-          });
+            this.put(k, v);
+        });
     }
 
     @Override
@@ -130,8 +125,8 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
         }
         set.addAll(positive.keySet());
         F.iterate(negative.keySet(), (i, val) -> {
-              set.add(-val);
-          });
+            set.add(-val);
+        });
         return set;
 
     }
@@ -151,49 +146,15 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
     public Set<Entry<Integer, T>> entrySet() {
         HashSet<Entry<Integer, T>> set = new HashSet<>();
         if (this.nullCase.g1) {
-            final T nullVal = nullCase.g2;
-            set.add(new Map.Entry<Integer, T>() {
-                @Override
-                public Integer getKey() {
-                    return null;
-                }
-
-                @Override
-                public T getValue() {
-                    return nullVal;
-                }
-
-                @Override
-                public T setValue(T value) {
-                    nullCase.g1 = true;
-                    T old = nullCase.g2;
-                    nullCase.g2 = value;
-                    return old;
-                }
-            });
+            set.add(MapEntries.byKey(this, null));
 
         }
         F.iterate(negative.entrySet(), (i, entry) -> {
-              set.add(new Map.Entry<Integer, T>() {
-                  @Override
-                  public Integer getKey() {
-                      return entry.getKey() * (-1);
-                  }
-
-                  @Override
-                  public T getValue() {
-                      return entry.getValue();
-                  }
-
-                  @Override
-                  public T setValue(T value) {
-                      return entry.setValue(value);
-                  }
-              });
-          });
-
-        set.addAll(positive.entrySet());
-
+            set.add(MapEntries.byMappingKey(this, () -> entry.getKey() * (-1)));
+        });
+        F.iterate(positive.entrySet(), (i, entry) -> {
+            set.add(MapEntries.byKey(this, i));
+        });
         return set;
 
     }
