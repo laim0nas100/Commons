@@ -2,6 +2,7 @@ package lt.lb.commons.misc;
 
 import java.util.Comparator;
 import java.util.function.Function;
+import lt.lb.commons.interfaces.Equator;
 
 /**
  *
@@ -9,7 +10,7 @@ import java.util.function.Function;
  *
  * @author laim0nas100
  */
-public interface ExtComparator<T> extends Comparator<T> {
+public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
 
     public static final ExtComparator NO_ORDER = (a, b) -> 0;
 
@@ -63,6 +64,7 @@ public interface ExtComparator<T> extends Comparator<T> {
      * @param o2
      * @return o1 = o2
      */
+    @Override
     public default boolean equals(T o1, T o2) {
         return this.compare(o1, o2) == 0;
     }
@@ -130,6 +132,7 @@ public interface ExtComparator<T> extends Comparator<T> {
 
         return cmp;
     }
+
     /**
      *
      * @param <T> Base object
@@ -150,7 +153,6 @@ public interface ExtComparator<T> extends Comparator<T> {
 
         return cmp;
     }
-    
 
     /**
      *

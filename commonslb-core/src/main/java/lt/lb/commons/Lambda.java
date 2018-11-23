@@ -24,7 +24,7 @@ public class Lambda {
         };
     }
 
-    public static <R1> L1<R1> of(L1<R1>... l) {
+    public static <T> L1<T> of(L1<T>... l) {
         return (p) -> {
             F.iterate(l, (i, lam) -> {
                 lam.apply(p);
@@ -281,6 +281,9 @@ public class Lambda {
         return of(l);
     }
 
+    /**
+     * Lambda with no parameters and no result
+     */
     public interface L0 extends Runnable {
 
         public default void apply() {
@@ -288,6 +291,9 @@ public class Lambda {
         }
     }
 
+    /**
+     * Lambda with no parameters and result
+     */
     public interface L0R<R> extends Supplier<R> {
 
         public default R apply() {
@@ -295,6 +301,9 @@ public class Lambda {
         }
     }
 
+    /**
+     * Lambda with 1 parameter and no result
+     */
     public interface L1<P1> extends Consumer<P1> {
 
         public default void apply(P1 p1) {
@@ -302,12 +311,18 @@ public class Lambda {
         }
     }
 
+    /**
+     * Lambda with 1 parameter and result
+     */
     public interface L1R<P1, R> extends Function<P1, R> {
 
         @Override
         public R apply(P1 p1);
     }
 
+    /**
+     * Lambda with 2 parameters and no result
+     */
     public interface L2<P1, P2> extends BiConsumer<P1, P2> {
 
         public default void apply(P1 p1, P2 p2) {
@@ -315,80 +330,325 @@ public class Lambda {
         }
     }
 
+    /**
+     * Lambda with 2 parameters and result
+     */
     public interface L2R<P1, P2, R> extends BiFunction<P1, P2, R> {
 
         @Override
         public R apply(P1 p1, P2 p2);
     }
 
+    /**
+     * Lambda with 3 parameters and no result
+     */
     public interface L3<P1, P2, P3> {
 
         public void apply(P1 p1, P2 p2, P3 p3);
     }
 
+    /**
+     * Lambda with 3 parameters and result
+     */
     public interface L3R<P1, P2, P3, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3);
     }
 
+    /**
+     * Lambda with 4 parameters and no result
+     */
     public interface L4<P1, P2, P3, P4> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4);
     }
 
+    /**
+     * Lambda with 4 parameters and result
+     */
     public interface L4R<P1, P2, P3, P4, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4);
     }
 
+    /**
+     * Lambda with 5 parameters and no result
+     */
     public interface L5<P1, P2, P3, P4, P5> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
     }
 
+    /**
+     * Lambda with 5 parameters and result
+     */
     public interface L5R<P1, P2, P3, P4, P5, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
     }
 
+    /**
+     * Lambda with 6 parameters and no result
+     */
     public interface L6<P1, P2, P3, P4, P5, P6> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
     }
 
+    /**
+     * Lambda with 6 parameters and result
+     */
     public interface L6R<P1, P2, P3, P4, P5, P6, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
     }
 
+    /**
+     * Lambda with 7 parameters and no result
+     */
     public interface L7<P1, P2, P3, P4, P5, P6, P7> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7);
     }
 
+    /**
+     * Lambda with 7 parameters and result
+     */
     public interface L7R<P1, P2, P3, P4, P5, P6, P7, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7);
     }
 
+    /**
+     * Lambda with 8 parameters and no result
+     */
     public interface L8<P1, P2, P3, P4, P5, P6, P7, P8> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8);
     }
 
+    /**
+     * Lambda with 8 parameters and result
+     */
     public interface L8R<P1, P2, P3, P4, P5, P6, P7, P8, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8);
     }
 
+    /**
+     * Lambda with 9 parameters and no result
+     */
     public interface L9<P1, P2, P3, P4, P5, P6, P7, P8, P9> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9);
     }
 
+    /**
+     * Lambda with 9 parameters and result
+     */
     public interface L9R<P1, P2, P3, P4, P5, P6, P7, P8, P9, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9);
+    }
+
+    /**
+     * Lambda with 2 parameters of same type and no result
+     * @param <T> parameter type
+     */
+    public interface L2S<T> extends L2<T, T> {
+    }
+
+    /**
+     * Lambda with 3 parameters of same type and no result
+     * @param <T> parameter type
+     */
+    public interface L3S<T> extends L3<T, T, T> {
+    }
+
+    /**
+     * Lambda with 4 parameters of same type and no result
+     * @param <T> parameter type
+     */
+    public interface L4S<T> extends L4<T, T, T, T> {
+    }
+
+    /**
+     * Lambda with 5 parameters of same type and no result
+     * @param <T> parameter type
+     */
+    public interface L5S<T> extends L5<T, T, T, T, T> {
+    }
+
+    /**
+     * Lambda with 6 parameters of same type and no result
+     * @param <T> parameter type
+     */
+    public interface L6S<T> extends L6<T, T, T, T, T, T> {
+    }
+
+    /**
+     * Lambda with 7 parameters of same type and no result
+     * @param <T> parameter type
+     */
+    public interface L7S<T> extends L7<T, T, T, T, T, T, T> {
+    }
+
+    /**
+     * Lambda with 8 parameters of same type and no result
+     * @param <T> parameter type
+     */
+    public interface L8S<T> extends L8<T, T, T, T, T, T, T, T> {
+    }
+
+    /**
+     * Lambda with 9 parameters of same type and no result
+     * @param <T> parameter type
+     */
+    public interface L9S<T> extends L9<T, T, T, T, T, T, T, T, T> {
+    }
+
+    /**
+     * Lambda with 2 parameters of same type and result
+     *
+     * @param <T> parameter type
+     * @param <R> result type
+     */
+    public interface L2SR<T, R> extends L2R<T, T, R> {
+    }
+
+    /**
+     * Lambda with 3 parameters of same type and result
+     *
+     * @param <T> parameter type
+     * @param <R> result type
+     */
+    public interface L3SR<T, R> extends L3R<T, T, T, R> {
+    }
+
+    /**
+     * Lambda with 4 parameters of same type and result
+     *
+     * @param <T> parameter type
+     * @param <R> result type
+     */
+    public interface L4SR<T, R> extends L4R<T, T, T, T, R> {
+    }
+
+    /**
+     * Lambda with 5 parameters of same type and result
+     *
+     * @param <T> parameter type
+     * @param <R> result type
+     */
+    public interface L5SR<T, R> extends L5R<T, T, T, T, T, R> {
+    }
+
+    /**
+     * Lambda with 6 parameters of same type and result
+     *
+     * @param <T> parameter type
+     * @param <R> result type
+     */
+    public interface L6SR<T, R> extends L6R<T, T, T, T, T, T, R> {
+    }
+
+    /**
+     * Lambda with 7 parameters of same type and result
+     *
+     * @param <T> parameter type
+     * @param <R> result type
+     */
+    public interface L7SR<T, R> extends L7R<T, T, T, T, T, T, T, R> {
+    }
+
+    /**
+     * Lambda with 8 parameters of same type and result
+     *
+     * @param <T> parameter type
+     * @param <R> result type
+     */
+    public interface L8SR<T, R> extends L8R<T, T, T, T, T, T, T, T, R> {
+    }
+
+    /**
+     * Lambda with 9 parameters of same type and result
+     *
+     * @param <T> parameter type
+     * @param <R> result type
+     */
+    public interface L9SR<T, R> extends L9R<T, T, T, T, T, T, T, T, T, R> {
+    }
+
+    /**
+     * Lambda with 1 parameter and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L1RS<T> extends L1R<T, T> {
+    }
+
+    /**
+     * Lambda with 2 parameters and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L2RS<T> extends L2SR<T, T> {
+    }
+
+    /**
+     * Lambda with 3 parameters and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L3RS<T> extends L3SR<T, T> {
+    }
+
+    /**
+     * Lambda with 4 parameters and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L4RS<T> extends L4SR<T, T> {
+    }
+
+    /**
+     * Lambda with 5 parameters and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L5RS<T> extends L5SR<T, T> {
+    }
+
+    /**
+     * Lambda with 6 parameters and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L6RS<T> extends L6SR<T, T> {
+    }
+
+    /**
+     * Lambda with 7 parameters and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L7RS<T> extends L7SR<T, T> {
+    }
+
+    /**
+     * Lambda with 8 parameters and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L8RS<T> extends L8SR<T, T> {
+    }
+
+    /**
+     * Lambda with 9 parameters and result of same type
+     *
+     * @param <T> parameter and result type
+     */
+    public interface L9RS<T> extends L9SR<T, T> {
     }
 
 }
