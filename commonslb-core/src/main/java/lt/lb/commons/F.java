@@ -18,6 +18,7 @@ import lt.lb.commons.interfaces.Equator.HashEquator;
 import lt.lb.commons.interfaces.Iter;
 import lt.lb.commons.interfaces.Iter.IterMap;
 import lt.lb.commons.interfaces.Iter.IterMapNoStop;
+import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.threads.Promise;
 import lt.lb.commons.threads.UnsafeRunnable;
 
@@ -461,6 +462,24 @@ public class F {
         return Optional.empty();
     }
 
+    public static <T> Optional<Tuple<Integer, T>> find(ReadOnlyIterator<T> iterator, Integer from, Iter<T> iter) {
+        int index = 0;
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            if (index >= from) {
+                if (iter.visit(index, next)) {
+                    return Optional.of(new Tuple<>(index, next));
+                }
+            }
+            index++;
+        }
+        return Optional.empty();
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> find(ReadOnlyIterator<T> iterator, Iter<T> iter) {
+        return find(iterator, 0, iter);
+    }
+
     public static <T> Optional<Tuple<Integer, T>> find(T[] array, Iter<T> iter) {
         return find(array, 0, iter);
     }
@@ -484,5 +503,13 @@ public class F {
     public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
         return find(list, from, iter);
     }
+    
+    public static <T> Optional<Tuple<Integer, T>> iterate(ReadOnlyIterator<T> iterator, Integer from, Iter.IterNoStop<T> iter) {
+        return find(iterator, from, iter);
+    }
+    public static <T> Optional<Tuple<Integer, T>> iterate(ReadOnlyIterator<T> iterator, Iter.IterNoStop<T> iter) {
+        return find(iterator, 0, iter);
+    }
+    
 
 }

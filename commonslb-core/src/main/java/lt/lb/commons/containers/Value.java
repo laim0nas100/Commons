@@ -1,6 +1,7 @@
 package lt.lb.commons.containers;
 
 import java.util.function.Supplier;
+import lt.lb.commons.interfaces.ValueProxy;
 
 /**
  *
@@ -9,7 +10,7 @@ import java.util.function.Supplier;
  * Proxy class
  * @param <T> generic type
  */
-public class Value<T> {
+public class Value<T> implements ValueProxy<T>{
 
     protected T value;
 
@@ -32,6 +33,7 @@ public class Value<T> {
      *
      * @return current value
      */
+    @Override
     public T get() {
         return value;
     }
@@ -40,26 +42,9 @@ public class Value<T> {
      *
      * @param val new value
      */
+    @Override
     public void set(T val) {
         this.value = val;
-    }
-
-    /**
-     * Use as a Bean
-     *
-     * @return value
-     */
-    public T getValue() {
-        return value;
-    }
-
-    /**
-     * Use as a Bean
-     *
-     * @param value to set
-     */
-    public void setValue(T value) {
-        this.value = value;
     }
 
     @Override

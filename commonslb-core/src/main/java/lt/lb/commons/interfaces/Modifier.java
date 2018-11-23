@@ -5,13 +5,13 @@
  */
 package lt.lb.commons.interfaces;
 
-import java.util.function.Function;
+import lt.lb.commons.Lambda;
 
 /**
  *
  * @author laim0nas100
  */
-public interface Modifier<Type> extends Function<Type,Type>{
+public interface Modifier<Type> extends Lambda.L1R<Type,Type>{
 
     public default Modifier<Type> chainNext(Modifier<Type> next) {
         Modifier<Type> me = this;

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.misc.rng;
 
 import lt.lb.commons.F;
@@ -52,7 +47,7 @@ public interface RandomDistribution {
 
             @Override
             public Integer nextInt() {
-                return rnd.nextInt(); //To change body of generated methods, choose Tools | Templates.
+                return rnd.nextInt();
             }
 
             @Override

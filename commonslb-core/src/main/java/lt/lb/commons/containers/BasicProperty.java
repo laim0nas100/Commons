@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers;
 
 import java.util.HashMap;
@@ -17,12 +12,11 @@ import javafx.beans.value.ObservableValue;
  * @author laim0nas100
  * @param <V>
  */
-public class BasicProperty<V> implements Property<V> {
+public class BasicProperty<V> extends Value<V> implements Property<V> {
 
     protected final String name;
     protected HashSet<Object> listeners = new HashSet<>();
     protected HashMap<ObservableValue, HashSet<Object>> bindings = new HashMap<>();
-    protected V value;
     private boolean changeInit;
 
     public BasicProperty(V val) {
@@ -52,12 +46,12 @@ public class BasicProperty<V> implements Property<V> {
     }
 
     @Override
-    public V getValue() {
+    public V get() {
         return this.value;
     }
 
     @Override
-    public void setValue(V value) {
+    public void set(V value) {
         if (this.changeInit) {
             return;
         }
@@ -153,6 +147,17 @@ public class BasicProperty<V> implements Property<V> {
     public String getName() {
         return this.name;
     }
+
+    @Override
+    public V getValue() {
+        return this.get();
+    }
+
+    @Override
+    public void setValue(V v) {
+        this.set(v);
+    }
+
 
 
 }

@@ -130,6 +130,27 @@ public interface ExtComparator<T> extends Comparator<T> {
 
         return cmp;
     }
+    /**
+     *
+     * @param <T> Base object
+     * @param func mapping functions
+     * @return
+     */
+    public static <T> ExtComparator<T> ofComparators(Comparator<T>... func) {
+        ExtComparator<T> cmp = NO_ORDER;
+        if (func.length == 0) {
+            return NO_ORDER;
+        }
+        if (func.length >= 1) {
+            cmp = ExtComparator.of(func[0]);
+            for (int i = 1; i < func.length; i++) {
+                cmp = cmp.thenComparing(func[i]);
+            }
+        }
+
+        return cmp;
+    }
+    
 
     /**
      *
