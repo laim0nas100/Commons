@@ -1,17 +1,13 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.misc.rng;
+
+import lt.lb.commons.containers.Value;
 
 /**
  *
  * @author laim0nas100
  */
-public class RandomRange<T> {
+public class RandomRange<T> extends Value<T> {
 
-    public final T value;
     public final Double span;
     public boolean disabled = false;
 
@@ -19,4 +15,5 @@ public class RandomRange<T> {
         this.value = value;
         this.span = span;
     }
+
 }

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.misc.rng;
 
 import java.util.ArrayList;
@@ -92,7 +87,7 @@ public class RandomRanges<T> {
         
         ArrayList<T> res = new ArrayList<>(amount);
         F.iterate(list, (i,item)->{
-            res.add(item.value);
+            res.add(item.get());
             item.disabled = false;
         });
         return res;

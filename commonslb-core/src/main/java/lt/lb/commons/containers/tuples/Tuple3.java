@@ -6,6 +6,7 @@
 package lt.lb.commons.containers.tuples;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  *
@@ -35,6 +36,12 @@ public class Tuple3<Type1, Type2, Type3> extends Tuple<Type1, Type2> {
 
     public void setG3(Type3 g3) {
         this.g3 = g3;
+    }
+    
+    public Tuple3<Type1,Type2,Type3> assign(Tuple3<Type1,Type2,Type3> t){
+        super.assign(t);
+        this.setG3(t.getG3());
+        return this;
     }
 
     @Override

@@ -31,6 +31,12 @@ public class Tuple4<Type1, Type2, Type3, Type4> extends Tuple3<Type1, Type2, Typ
     public void setG4(Type4 g4) {
         this.g4 = g4;
     }
+    
+    public Tuple4<Type1,Type2,Type3,Type4> assign(Tuple4<Type1,Type2,Type3,Type4> t){
+        super.assign(t);
+        this.setG4(t.getG4());
+        return this;
+    }
 
     @Override
     public int hashCode() {

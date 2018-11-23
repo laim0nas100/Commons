@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers.tuples;
 
 import java.util.Objects;
@@ -40,6 +35,14 @@ public class Tuple<Type1, Type2> {
     public void setG2(Type2 g2) {
         this.g2 = g2;
     }
+    
+    public Tuple<Type1,Type2> assign(Tuple<Type1,Type2> t){
+        this.setG1(t.getG1());
+        this.setG2(t.getG2());
+        return this;
+    }
+    
+    
 
     
     
