@@ -2,10 +2,13 @@ package lt.lb.commons.containers;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.function.Function;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+
+import lt.lb.commons.interfaces.ValueProxy;
 
 /**
  *
@@ -18,6 +21,22 @@ public class BasicProperty<V> extends Value<V> implements Property<V> {
     protected HashSet<Object> listeners = new HashSet<>();
     protected HashMap<ObservableValue, HashSet<Object>> bindings = new HashMap<>();
     private boolean changeInit;
+
+    public static <V> BasicProperty<V> ofProxy(ValueProxy<V> proxy) {
+        return new BasicProperty<V>(null) {
+            @Override
+            public void set(V value) {
+                super.set(value); 
+                proxy.set(value);
+            }
+
+            @Override
+            public V get() {
+                return proxy.get();
+            }
+
+        };
+    }
 
     public BasicProperty(V val) {
         this.value = val;
@@ -158,6 +177,20 @@ public class BasicProperty<V> extends Value<V> implements Property<V> {
         this.set(v);
     }
 
+    public <T> BasicProperty<T> mappedAs(Function<V, T> forward, Function<T, V> backward) {
+        BasicProperty<V> me = this;
+        ValueProxy<T> proxy = new ValueProxy<T>() {
+            @Override
+            public T get() {
+                return forward.apply(me.get());
+            }
 
+            @Override
+            public void set(T v) {
+                me.set(backward.apply(v));
+            }
+        };
+        return BasicProperty.ofProxy(proxy);
+    }
 
 }

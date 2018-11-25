@@ -13,6 +13,10 @@ public class LazyValue<T> extends Value<T> {
     private boolean loaded = false;
     private Supplier<T> supply;
 
+    public static <T> LazyValue<T> of(Supplier<T> sup){
+        return new LazyValue<>(sup);
+    }
+    
     public LazyValue(Supplier<T> supply) {
         this.supply = supply;
     }

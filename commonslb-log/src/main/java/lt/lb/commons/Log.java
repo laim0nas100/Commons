@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons;
 
 import java.io.*;
@@ -16,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.StringValue;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
+import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.threads.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
 
@@ -205,7 +201,8 @@ public class Log {
             if (log.stackTrace) {
                 Throwable th = new Throwable();
                 F.unsafeRun(() -> {
-                    trace.set(getStackElement(th, 3).toString());
+                    String toString = getStackElement(th, 3).toString();
+                    trace.set(StringOp.remove(toString, ".java"));
                 });
             }
 
