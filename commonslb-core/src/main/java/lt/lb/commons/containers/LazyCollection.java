@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public class LazyCollection<E> implements Collection<E>{
     private Supplier<? extends Collection<E>> lazy;
     public LazyCollection(Supplier<? extends Collection<E>> sup){
-        this.lazy = LazyValue.of(sup);
+        this.lazy = sup;
     }
 
     
