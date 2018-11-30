@@ -1,6 +1,7 @@
 package lt.lb.commons.misc.rng;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -25,6 +26,10 @@ public class RandomRanges<T> {
             lim += rr.span;
         }
         return lim;
+    }
+    
+    public RandomRanges(RandomRange<T>...ranges){
+        this(Arrays.asList(ranges));
     }
 
     public RandomRanges(List<RandomRange<T>> ranges) {
