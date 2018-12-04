@@ -16,10 +16,10 @@ import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.F;
-import lt.lb.commons.Log;
 import lt.lb.commons.containers.tuples.Tuple3;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.misc.rng.RandomDistribution;
+import lt.lb.commons.misc.rng.RandomRanges;
 
 /**
  *
@@ -42,14 +42,18 @@ public class PathGenerator {
         };
     }
 
-    public static ILinkPicker nodeDegreeDistributed(RandomDistribution rnd) {
+    public static ILinkPicker nodeDegreeDistributed(RandomDistribution rnd, boolean minimize) {
         return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
             Orgraph gr = f.g1;
             ArrayList<Tuple<Double, Long>> nodeList = new ArrayList<>();
             F.iterate(gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)), (i, n) -> {
                 Optional<GNode> node = gr.getNode(n.nodeTo);
                 if (node.isPresent()) {
-                    nodeList.add(new Tuple<>((double) node.get().degree(), node.get().ID));
+                    double deg = node.get().degree();
+                    if(minimize){
+                        deg = 1d / deg;
+                    }
+                    nodeList.add(new Tuple<>(deg, node.get().ID));
                 }
             });
 
@@ -80,6 +84,12 @@ public class PathGenerator {
             return Optional.of(rnd.pickRandomDistributed(1, linkList).getFirst());
         };
     }
+    
+    public static ILinkPicker linkPickerCombined(RandomRanges<ILinkPicker> ranges, RandomDistribution dist){
+        return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
+            return ranges.pickRandom(dist.nextDouble(ranges.getLimit())).get().apply(f);
+        };
+    }
 
     public interface ILinkPicker extends Function<Tuple3<Orgraph, Set<Long>, GNode>, Optional<GLink>> {
     }
@@ -98,6 +108,21 @@ public class PathGenerator {
             node = genericPathVisitGetNextNode(gr, path, node.get(), visited, picker);
         }
         return path;
+    }
+    
+    public static List<GLink> genericUniquePathBidirectionalVisitContinued(Orgraph gr, long startNode, List<GLink> path, Set<Long> visited, ILinkPicker picker) {
+        
+        List<GLink> pathForward = path;
+        List<GLink> pathBackward = new ArrayList<>();
+        genericUniquePathVisitContinued(gr, startNode, pathForward, visited, picker);
+        genericUniquePathVisitContinued(gr, path.get(0).nodeFrom, pathBackward, visited, picker);
+
+        List<GLink> finalList = new ArrayList<>();
+        F.iterateBackwards(pathBackward, (i, item) -> {
+            finalList.add(item.reverse());
+        });
+        finalList.addAll(pathForward);
+        return finalList;
     }
 
     private static Optional<GNode> genericPathVisitGetNextNode(Orgraph gr, List<GLink> list, GNode currentNode, Set<Long> visited, ILinkPicker picker) {

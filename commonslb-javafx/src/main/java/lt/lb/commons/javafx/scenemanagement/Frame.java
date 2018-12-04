@@ -36,7 +36,7 @@ public class Frame {
     }
 
     public <T extends BaseController> T getController() {
-        return (T)this.controller;
+        return (T) this.controller;
     }
 
     public void setController(BaseController controller) {
