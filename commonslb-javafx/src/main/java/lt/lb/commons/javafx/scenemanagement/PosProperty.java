@@ -19,6 +19,16 @@ public class PosProperty {
         this.x = new SimpleDoubleProperty(X);
         this.y = new SimpleDoubleProperty(Y);
     }
+    
+    public void setPos(double x, double y){
+        this.x.set(x);
+        this.y.set(y);
+    }
+    
+    public void setPos(PosProperty pos){
+        setPos(pos.x.get(), pos.y.get());
+    }
+    
 
     @Override
     public String toString() {
