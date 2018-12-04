@@ -35,8 +35,8 @@ public class Frame {
         this.ID = ID;
     }
 
-    public BaseController getController() {
-        return this.controller;
+    public <T extends BaseController> T getController() {
+        return (T) this.controller;
     }
 
     public void setController(BaseController controller) {
