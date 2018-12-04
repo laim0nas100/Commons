@@ -294,9 +294,9 @@ public class CosmeticsFX {
         if (list.size() == 1) {
             menu.visibleProperty().bind(list.pollFirst());
         } else if (list.size() > 1) {
-            BooleanBinding bind = list.pollFirst().or(list.pollFirst());
+            BooleanExpression bind = list.pollFirst();
             for (BooleanExpression b : list) {
-                bind = bind.or(b);
+                bind = Bindings.or(bind, b);
             }
             menu.visibleProperty().bind(bind);
         }
