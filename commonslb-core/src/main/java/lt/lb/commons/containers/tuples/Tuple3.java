@@ -6,7 +6,6 @@
 package lt.lb.commons.containers.tuples;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  *
@@ -52,7 +51,7 @@ public class Tuple3<Type1, Type2, Type3> extends Tuple<Type1, Type2> {
     @Override
     public int hashCode() {
         int hash = super.hashCode();
-        hash = 43 * hash + Objects.hashCode(this.g3);
+        hash = hash + 43 * Objects.hashCode(this.g3);
         return hash;
     }
 

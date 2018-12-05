@@ -41,7 +41,7 @@ public class Tuple4<Type1, Type2, Type3, Type4> extends Tuple3<Type1, Type2, Typ
     @Override
     public int hashCode() {
         int hash = super.hashCode();
-        hash = 43 * hash + Objects.hashCode(this.g4);
+        hash = hash + 17 * Objects.hashCode(this.g4);
         return hash;
     }
 

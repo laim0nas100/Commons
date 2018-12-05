@@ -57,7 +57,7 @@ public class Tuple<Type1, Type2> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(g1) + Objects.hash(g2);
+        return 13 * Objects.hash(g1) + 7 * Objects.hash(g2);
     }
 
     @Override
