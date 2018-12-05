@@ -3,6 +3,7 @@ package lt.lb.commons.containers;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
@@ -17,7 +18,6 @@ import lt.lb.commons.interfaces.ValueProxy;
  */
 public class BasicProperty<V> extends Value<V> implements Property<V> {
 
-    protected final String name;
     protected HashSet<Object> listeners = new HashSet<>();
     protected HashMap<ObservableValue, HashSet<Object>> bindings = new HashMap<>();
     private boolean changeInit;
@@ -37,10 +37,27 @@ public class BasicProperty<V> extends Value<V> implements Property<V> {
 
         };
     }
+    
+    public static <V> BasicProperty<V> readOnly(Supplier<V> sup){
+        return new BasicProperty<V>(null) {
+            @Override
+            public void set(V value) {
+                throw new UnsupportedOperationException("Read only");
+            }
+
+            @Override
+            public V get() {
+                return sup.get();
+            }
+
+        };
+    }
 
     public BasicProperty(V val) {
         this.value = val;
-        this.name = val.getClass().getSimpleName() + " " + this.getClass().getSimpleName();
+    }
+    public BasicProperty() {
+        this.value = null;
     }
 
     @Override
@@ -164,7 +181,10 @@ public class BasicProperty<V> extends Value<V> implements Property<V> {
 
     @Override
     public String getName() {
-        return this.name;
+        if(getValue() == null){
+            return null;
+        }
+        return getValue().getClass().getSimpleName() + " " + this.getClass().getSimpleName();
     }
 
     @Override

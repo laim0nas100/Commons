@@ -76,21 +76,21 @@ public class MultiStageManager {
             Frame frame = new Frame(stage, controller, type, finalID);
             frames.put(finalID, frame);
 
-            final Value<PosProperty> pos = new Value<>();
+            PosProperty pp = new PosProperty(0,0);
             if (!positionMemoryMap.containsKey(type)) {
-                pos.set(new PosProperty(stage.getX(), stage.getY()));
-                positionMemoryMap.put(type, pos.get());
+                pp.setPos(stage.getX(), stage.getY());
+                positionMemoryMap.put(type, pp);
             }
-            pos.set(positionMemoryMap.get(type));
+            pp.setPos(positionMemoryMap.get(type));
             ChangeListener listenerY = (ObservableValue observable, Object oldValue, Object newValue) -> {
-                pos.get().y.set((double) newValue);
+                pp.y.set(F.cast(newValue));
             };
             ChangeListener listenerX = (ObservableValue observable, Object oldValue, Object newValue) -> {
-                pos.get().x.set((double) newValue);
+                pp.x.set(F.cast(newValue));
             };
 
-            stage.setX(pos.get().x.get());
-            stage.setY(pos.get().y.get());
+            stage.setX(pp.x.get());
+            stage.setY(pp.y.get());
             frame.listenerX = listenerX;
             frame.listenerY = listenerY;
             stage.xProperty().addListener(listenerX);
