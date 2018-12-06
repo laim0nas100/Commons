@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.graphtheory;
 
 import java.util.ArrayDeque;
@@ -62,14 +57,11 @@ public class Algorithms {
         for (long i = 0; i < iterationMax; i++) {
             boolean changesMade = false;
             for (GNode node : graph.nodes.values()) {
-//                # prlong(node)
                 Double nodeValue = distanceMap.get(node.ID);
-//                # print(str(nodeValue) + " "+str(node.ID))
                 if (nodeValue >= 0) {
                     for (long neighbour : node.linksTo) {
                         Double distanceValue = distanceMap.get(neighbour);
                         Double newLinkValue = nodeValue + graph.weight(node.ID, neighbour);
-//                        # print(linkValue)
                         if (distanceValue > newLinkValue) {
                             distanceMap.put(neighbour, newLinkValue);
                             changesMade = true;
@@ -78,7 +70,6 @@ public class Algorithms {
                 }
             }
             if (!changesMade) {
-//                # print("Iterations: "+str(i+1))
                 break;
             }
         }
@@ -88,7 +79,6 @@ public class Algorithms {
     public static ArrayList<Long> topologicalSortKahn(Orgraph graph) {
         ArrayDeque<Long> workList = new ArrayDeque<>();
         ArrayList<Long> order = new ArrayList<>();
-//        # calculate in-degree for each Node
         HashMap<Long, Long> degreeMap = new HashMap<>();
         for (GNode node : graph.nodes.values()) {
             long degree = node.linkedFrom.size();
