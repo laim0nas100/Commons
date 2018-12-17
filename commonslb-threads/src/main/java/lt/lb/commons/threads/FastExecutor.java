@@ -5,8 +5,10 @@
  */
 package lt.lb.commons.threads;
 
+import java.io.Closeable;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,10 +19,13 @@ import lt.lb.commons.F;
  *
  * @author laim0nas100
  */
-public class FastExecutor implements Executor {
+public class FastExecutor implements Executor,Closeable {
 
     protected Collection<? extends Runnable> tasks = new ConcurrentLinkedDeque<>();
+    protected ThreadGroup tg = new ThreadGroup("FastExecutor");
+    
 
+    protected volatile boolean open = true;
     protected int maxThreads; // 
     protected AtomicInteger startingThreads = new AtomicInteger(0);
     protected AtomicInteger runningThreads = new AtomicInteger(0);
@@ -53,6 +58,9 @@ public class FastExecutor implements Executor {
 
     @Override
     public void execute(Runnable command) {
+        if(!open){
+            throw new IllegalStateException("Not open");
+        }
         Deque<Runnable> cast = F.cast(tasks);
         cast.addFirst(command);
         update(this.maxThreads);
@@ -102,10 +110,11 @@ public class FastExecutor implements Executor {
 
     }
 
-    protected void startThread(final int maxT) {
-        Thread t = new Thread(getRun(maxT));
+    protected Thread startThread(final int maxT) {
+        Thread t = new Thread(tg,getRun(maxT));
         t.setName("Fast Executor " + t.getName());
         t.start();
+        return t;
     }
 
     protected void maybeStartThread(final int maxT) {
@@ -126,5 +135,14 @@ public class FastExecutor implements Executor {
                 this.startingThreads.decrementAndGet();
             }
         }
+    }
+
+    @Override
+    public void close(){
+        if(!this.open){
+            throw new IllegalStateException("Is not open");
+        }
+        this.open = false;
+        
     }
 }

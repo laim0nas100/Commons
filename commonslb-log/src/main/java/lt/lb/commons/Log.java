@@ -5,6 +5,8 @@ import java.lang.reflect.Method;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -13,6 +15,7 @@ import lt.lb.commons.containers.StringValue;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.threads.FastWaitingExecutor;
+import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -32,7 +35,7 @@ public class Log {
     }
 
     protected PrintStream printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
-    protected boolean isFileOpen = false;
+    protected boolean closeable = false;
     public boolean async = true;
     public boolean keepBufferForFile = false;
     public boolean timeStamp = true;
@@ -42,9 +45,36 @@ public class Log {
     public boolean disable = false;
     public boolean surroundString = true;
     protected boolean closed = false;
-    public Consumer<Supplier<String>> override;
-    protected DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    protected Executor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
+    public Optional<Consumer<Supplier<String>>> override = Optional.empty();
+
+    /**
+     * Overridable decorators decorators.
+     */
+    /**
+     * Final string concatenation
+     *
+     * Log log, String trace, String name, Long millis, String string
+     */
+    public Lambda.L5R<Log, String, String, Long, String, String> finalPrintDecorator = DefaultLogDecorators.finalPrintDecorator();
+
+    /**
+     * Used in println Object[] objects
+     */
+    public Lambda.L1R<Object[], Supplier<String>> printLnDecorator = DefaultLogDecorators.printLnDecorator();
+    /**
+     * Used in print Object[] objects
+     */
+    public Lambda.L1R<Object[], Supplier<String>> printDecorator = DefaultLogDecorators.printDecorator();
+    /**
+     * Used in printLines Collection objects
+     */
+    public Lambda.L1R<Collection, Supplier<String>> printLinesDecorator = DefaultLogDecorators.printLinesDecorator();
+    /**
+     * Used in printIter
+     */
+    public Lambda.L1R<Iterator, Supplier<String>> printIterDecorator = DefaultLogDecorators.printIterDecorator();
+    public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+    protected FastWaitingExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
     public Log() {
@@ -60,33 +90,46 @@ public class Log {
     }
 
     public static void changeStream(Log log, LogStream c, String... path) throws IOException {
-        log.isFileOpen = false;
+        boolean closeable = false;
+        PrintStream stream;
         if (null == c) {
-            log.printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+            stream = new PrintStream(new FileOutputStream(FileDescriptor.out));
         } else {
             switch (c) {
                 case FILE:
-                    log.printStream = new PrintStream(path[0], "UTF-8");
-                    log.isFileOpen = true;
+                    stream = new PrintStream(path[0], "UTF-8");
+                    closeable = true;
                     break;
                 case STD_ERR:
-                    log.printStream = new PrintStream(new FileOutputStream(FileDescriptor.err));
+                    stream = new PrintStream(new FileOutputStream(FileDescriptor.err));
                     break;
                 default:
-                    log.printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
+                    stream = new PrintStream(new FileOutputStream(FileDescriptor.out));
                     break;
             }
         }
+
+        assignStream(log, stream, closeable);
     }
 
     public static void changeStream(LogStream c, String... path) throws IOException {
         changeStream(main(), c, path);
     }
 
+    public static void assignStream(Log log, PrintStream stream, boolean closeable) {
+        close(log);
+        log.closed = false;
+        log.exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
+        log.closeable = closeable;
+        log.printStream = stream;
+    }
+
+    public static void assignStream(PrintStream stream, boolean closeable) {
+        assignStream(main(), stream, closeable);
+    }
+
     public static void await(Log log, long timeout, TimeUnit tu) throws InterruptedException, TimeoutException {
-        FutureTask shutdown = new FutureTask(() -> {
-            return null;
-        });
+        FutureTask shutdown = Futures.empty();
         log.exe.execute(shutdown);
         try {
             shutdown.get(timeout, tu);
@@ -116,14 +159,21 @@ public class Log {
     }
 
     public static void close(Log log) {
+        if (log.closed) {
+            throw new IllegalStateException("Is allready closed");
+        }
         log.closed = true;
-        log.exe.execute(() -> {
-
+        FutureTask<Void> shutdownRequest = Futures.of(() -> {
             flushBuffer(log);
             log.printStream.flush();
-            if (log.isFileOpen) {
+            if (log.closeable) {
                 log.printStream.close();
             }
+        });
+        log.exe.execute(shutdownRequest);
+        F.unsafeRun(() -> {
+            shutdownRequest.get();
+            log.exe.close();
         });
 
     }
@@ -136,17 +186,17 @@ public class Log {
         if (log.disable || log.closed) {
             return;
         }
-        processString(log, printLinesDecorator.apply(col));
+        processString(log, log.printLinesDecorator.apply(col));
     }
 
-    public static void printLines(Log log, ReadOnlyIterator iter) {
+    public static void printLines(Log log, Iterator iter) {
         if (log.disable || log.closed) {
             return;
         }
-        processString(log, printIterDecorator.apply(iter));
+        processString(log, log.printIterDecorator.apply(iter));
     }
 
-    public static void printLines(ReadOnlyIterator iter) {
+    public static void printLines(Iterator iter) {
         printLines(main(), iter);
     }
 
@@ -154,7 +204,7 @@ public class Log {
         if (log.disable || log.closed) {
             return;
         }
-        processString(log, printDecorator.apply(objects));
+        processString(log, log.printDecorator.apply(objects));
     }
 
     public static <T> void print(T... objects) {
@@ -166,7 +216,7 @@ public class Log {
             return;
         }
 
-        processString(log, printLnDecorator.apply(objects));
+        processString(log, log.printLnDecorator.apply(objects));
     }
 
     public static <T> void println(T... objects) {
@@ -193,7 +243,7 @@ public class Log {
     }
 
     private static void processString(Log log, Supplier<String> string) {
-        if (log.override == null) {
+        if (!log.override.isPresent()) {
             long millis = System.currentTimeMillis();
             final String threadName = Thread.currentThread().getName();
 
@@ -207,99 +257,25 @@ public class Log {
             }
 
             if (log.async) {
-                log.exe.execute(() -> logThis(log, finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get())));
+                log.exe.execute(() -> logThis(log, log.finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get())));
             } else {
-                logThis(log, finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get()));
+                logThis(log, log.finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get()));
             }
 
         } else {
-            log.override.accept(string);
+            log.override.get().accept(string);
         }
     }
-
-    private static final Lambda.L5R<Log, String, String, Long, String, String> finalPrintDecorator = (Log log, String trace, String name, Long millis, String string) -> {
-        String timeSt = log.timeStamp ? getZonedDateTime(log.timeStringFormat, millis) : "";
-        String threadSt = log.threadName ? "[" + name + "]" : "";
-        if (!trace.isEmpty()) {
-            int firstComma = trace.indexOf("(");
-            int lastComma = trace.indexOf(")");
-            if (firstComma > 0 && lastComma > firstComma && lastComma > 0) {
-                trace = "@" + trace.substring(firstComma + 1, lastComma) + ":";
-            }
-        }
-        String str = log.surroundString ? "{" + string + "}" : string;
-        return timeSt + threadSt + trace + str;
-    };
-
-    private static final Lambda.L1R<Object[], Supplier<String>> printLnDecorator = (Object[] objs) -> {
-        return () -> {
-            LineStringBuilder sb = new LineStringBuilder();
-            if (objs.length == 1) {
-                sb.append(String.valueOf(objs[0]));
-            } else if (objs.length > 1) {
-                for (Object s : objs) {
-                    sb.appendLine(String.valueOf(s));
-                }
-            }
-            if (sb.length() > 0) {
-                sb.removeFromEnd(LineStringBuilder.LINE_END.length());
-            }
-            return sb.toString();
-        };
-
-    };
-
-    private static final Lambda.L1R<Object[], Supplier<String>> printDecorator = (Object[] objs) -> {
-        return () -> {
-            LineStringBuilder string = new LineStringBuilder();
-            if (objs.length > 0) {
-                for (Object s : objs) {
-                    string.append(", " + s);
-                }
-                string.delete(0, 2);
-            }
-            return string.toString();
-        };
-
-    };
-
-    private static final Lambda.L1R<Collection, Supplier<String>> printLinesDecorator = (Collection col) -> {
-        return () -> {
-            LineStringBuilder string = new LineStringBuilder();
-            if (!col.isEmpty()) {
-                for (Object s : col) {
-                    string.appendLine(s);
-                }
-                string.prependLine();
-            }
-            return string.toString();
-        };
-
-    };
-
-    private static final Lambda.L1R<ReadOnlyIterator, Supplier<String>> printIterDecorator = (ReadOnlyIterator col) -> {
-        return () -> {
-            LineStringBuilder string = new LineStringBuilder();
-            if (!col.hasNext()) {
-                for (Object s : col) {
-                    string.appendLine(s);
-                }
-                string.prependLine();
-            }
-            return string.toString();
-        };
-
-    };
 
     private static void logThis(Log log, String res) {
         if (log.display) {
             System.out.println(res);
         }
 
-        if (log.keepBufferForFile || log.isFileOpen) {
+        if (log.keepBufferForFile || log.closeable) {
             log.list.add(res);
         }
-        if (log.isFileOpen) {
+        if (log.closeable) {
             flushBuffer(log);
         }
 
@@ -329,5 +305,6 @@ public class Log {
     public static PrintStream getPrintStream(Log log) {
         return log.printStream;
     }
+
 
 }

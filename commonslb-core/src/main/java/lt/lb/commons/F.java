@@ -326,52 +326,7 @@ public class F {
         return col;
     }
 
-    /**
-     *
-     * @param <T>
-     * @param equator on how compare elements
-     * @return Predicate to use in a stream
-     */
-    public static <T> Predicate<T> filterDistinct(HashEquator<T> equator) {
-
-        return new Predicate<T>() {
-            LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
-
-            @Override
-            public boolean test(T t) {
-                Object hash = equator.getHashable(t);
-                if (kept.containsKey(hash)) {
-                    return false;
-                } else {
-                    kept.put(hash, t);
-                    return true;
-                }
-            }
-        };
-    }
-
-    /**
-     *
-     * @param <T> type
-     * @param equator equality condition
-     * @return Predicate to use in a stream
-     */
-    public static <T> Predicate<T> filterDistinct(Equator<T> equator) {
-
-        return new Predicate<T>() {
-            LinkedList<T> kept = new LinkedList<>();
-
-            @Override
-            public boolean test(T t) {
-                Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(t, item));
-                boolean toKeep = !find.isPresent();
-                if (toKeep) {
-                    kept.add(t);
-                }
-                return toKeep;
-            }
-        };
-    }
+   
 
     public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {
         Set<Map.Entry<K, V>> entrySet = map.entrySet();

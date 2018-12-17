@@ -20,6 +20,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.io.FileReader;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.F;
+import lt.lb.commons.Predicates;
 import lt.lb.commons.containers.Value;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
@@ -95,7 +96,7 @@ public class CommonsTest {
 //        List<Integer> filterParallel = F.filterParallel(collection, n -> n%2 == 0, new DisposableExecutor(4));
 //        Log.print("Removed after filter",filterParallel);
         Log.print("Left after filter", collection);
-        Predicate<Integer> pred = F.filterDistinct(Equator.primitiveHashEquator());
+        Predicate<Integer> pred = Predicates.filterDistinct(Equator.primitiveHashEquator());
         List<Integer> filterDistinct = F.fillCollection(collection.stream().filter(pred), new ArrayList<>());
 
         Log.print("Removed filter distinct", filterDistinct);

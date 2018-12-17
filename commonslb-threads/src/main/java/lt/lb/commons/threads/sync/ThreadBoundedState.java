@@ -1,4 +1,3 @@
-
 package lt.lb.commons.threads.sync;
 
 import java.util.Objects;
@@ -6,12 +5,14 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
+import lt.lb.commons.Predicates;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.misc.Range;
 
 /**
  * Combines AtomicInteger to manage how many threads enter each state
+ *
  * @author laim0nas100
  */
 public class ThreadBoundedState {
@@ -42,13 +43,14 @@ public class ThreadBoundedState {
 
     /**
      * Give a name to a state
+     *
      * @param alias
-     * @param stateIndex 
+     * @param stateIndex
      */
     public void setAlias(String alias, int stateIndex) {
 
         //unique check
-        int count = (int) Stream.of(states).filter(F.filterDistinct(Equator.valueEquator(st -> st.name))).count();
+        int count = (int) Stream.of(states).filter(Predicates.filterDistinct(Equator.valueEquator(st -> st.name))).count();
         if (alias == null || count != states.length) {
             throw new IllegalArgumentException("Illegal name for state" + alias);
         }
@@ -57,10 +59,12 @@ public class ThreadBoundedState {
 
     /**
      * set thread bound of a state
+     *
+     * @param stateIndex
      * @param bound
-     * @param stateIndex 
+     *
      */
-    public void setThreadBound(int bound, int stateIndex) {
+    public void setThreadBound(int stateIndex, int bound) {
         states[stateIndex].threadBound = bound;
     }
 
@@ -75,8 +79,9 @@ public class ThreadBoundedState {
 
     /**
      * Get state index by name
+     *
      * @param stateName
-     * @return 
+     * @return
      */
     public Optional<Integer> nameToStateIndex(String stateName) {
         return F.find(states, (i, st) -> Objects.equals(st.name, stateName)).map(t -> t.g1);
@@ -84,8 +89,9 @@ public class ThreadBoundedState {
 
     /**
      * Enter a state by name
+     *
      * @param stateName
-     * @return 
+     * @return
      */
     public boolean enter(String stateName) {
         return enter(this.nameToIndex(stateName));
@@ -93,8 +99,9 @@ public class ThreadBoundedState {
 
     /**
      * Exit a state by name
+     *
      * @param stateName
-     * @return 
+     * @return
      */
     public boolean exit(String stateName) {
         return exit(this.nameToIndex(stateName));
@@ -102,9 +109,10 @@ public class ThreadBoundedState {
 
     /**
      * Transition states by name
+     *
      * @param from
      * @param to
-     * @return 
+     * @return
      */
     public boolean transition(String from, String to) {
         return transition(nameToIndex(from), nameToIndex(to));
@@ -112,8 +120,9 @@ public class ThreadBoundedState {
 
     /**
      * Enter a state
+     *
      * @param state
-     * @return 
+     * @return
      */
     public boolean enter(int state) {
         StateInfo st = states[state];
@@ -131,8 +140,9 @@ public class ThreadBoundedState {
 
     /**
      * Exit a state
+     *
      * @param state
-     * @return 
+     * @return
      */
     public boolean exit(int state) {
         StateInfo st = states[state];
@@ -151,14 +161,15 @@ public class ThreadBoundedState {
 
     /**
      * Transition states
+     *
      * @param from
      * @param to
-     * @return 
+     * @return
      */
     public boolean transition(int from, int to) {
         Range<Integer> range = Range.of(0, states.length);
         if ((!range.inRangeIncExc(from) || !range.inRangeIncExc(to)) || from == to) {
-            throw new IllegalArgumentException("Expected different arguments in range " + range.toString());
+            throw new IllegalArgumentException("Expected different arguments in range " + range.toString()+" got "+from+" "+to);
         }
         StateInfo stateFrom = states[from];
         StateInfo stateTo = states[to];
@@ -185,7 +196,6 @@ public class ThreadBoundedState {
         }
 
         //successfully modified stateTo
-        
         if (!noBound2) {
             if (stateFrom.threadCount.decrementAndGet() < 0) {
                 stateFrom.threadCount.incrementAndGet();
@@ -206,8 +216,9 @@ public class ThreadBoundedState {
 
     /**
      * Get threads in given state currently
+     *
      * @param state
-     * @return 
+     * @return
      */
     public int getStateThreadCount(int state) {
         return states[state].threadCount.get();
@@ -215,8 +226,9 @@ public class ThreadBoundedState {
 
     /**
      * Get threads in given state currently by name
+     *
      * @param name
-     * @return 
+     * @return
      */
     public int getStateThreadCount(String name) {
         return getStateThreadCount(nameToIndex(name));

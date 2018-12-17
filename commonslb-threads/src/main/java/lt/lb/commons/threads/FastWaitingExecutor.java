@@ -1,7 +1,10 @@
 package lt.lb.commons.threads;
 
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import lt.lb.commons.F;
+import lt.lb.commons.Predicates;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -31,7 +34,9 @@ public class FastWaitingExecutor extends FastExecutor {
             LinkedBlockingDeque<Runnable> deque = F.cast(tasks);
             Runnable last = null;
             do {
-
+                if (deque.isEmpty() && !open) {
+                    break;
+                }
                 try {
                     last = deque.pollLast(wt.time, wt.unit);
                 } catch (InterruptedException ex) {
@@ -45,10 +50,21 @@ public class FastWaitingExecutor extends FastExecutor {
     }
 
     @Override
-    protected void startThread(final int maxT) {
-        Thread t = new Thread(getRun(maxT));
-        t.setName("Fast Waiting Executor " + t.getName());
-        t.start();
+    protected Thread startThread(final int maxT) {
+        Thread t = super.startThread(maxT);
+        t.setName("Waiting " + t.getName());
+        return t;
+    }
+
+    @Override
+    public void close() {
+        super.close();
+
+        Thread[] threads = new Thread[tg.activeCount()];
+        tg.enumerate(threads, false);
+        Predicate<Thread.State> anySleeping = Predicates.anyEqual(Thread.State.TIMED_WAITING, Thread.State.WAITING);
+        Predicate<Thread> anySleepingThread = Predicates.ofMapping(anySleeping, m -> m.getState());
+        Stream.of(threads).filter(anySleepingThread).forEach(Thread::interrupt);
     }
 
 }

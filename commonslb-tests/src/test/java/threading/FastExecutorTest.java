@@ -7,14 +7,18 @@ package threading;
 
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Log;
 import lt.lb.commons.F;
+import lt.lb.commons.misc.Range;
 import lt.lb.commons.threads.FastExecutor;
 import lt.lb.commons.threads.FastExecutor1;
 import lt.lb.commons.threads.FastWaitingExecutor;
+import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.PriorityFastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
+import lt.lb.commons.threads.sync.WaitTime;
 import org.junit.Test;
 
 /**
@@ -31,9 +35,9 @@ public class FastExecutorTest {
     //
     // @Test
     // public void hello() {}
-    ThreadBottleneck sb = new ThreadBottleneck(3);
+    static ThreadBottleneck sb = new ThreadBottleneck(3);
 
-    public Runnable makeRun(String s) {
+    public static Runnable makeRun(String s) {
         return () -> {
 
             F.unsafeRun(() -> {
@@ -50,9 +54,15 @@ public class FastExecutorTest {
     }
 
     @Test
-    public void TestMe() {
+    public void main() throws Exception{
         Log.main().async = false;
-        Executor exe = new FastExecutor1(10);
+        System.err.println("ERORR");
+        
+        Range<Integer> of = Range.of(0, 2);
+        Log.print(of.inRangeExcInc(0));
+         Log.print(of.inRangeExcInc(2));
+        
+        FastWaitingExecutor exe = new FastWaitingExecutor(2,WaitTime.ofSeconds(10));
 
         for (int i = 0; i < 10; i++) {
             exe.execute(makeRun("" + i));
@@ -68,11 +78,32 @@ public class FastExecutorTest {
         for (int i = 0; i < 100; i++) {
             exe.execute(makeRun("" + i));
         }
+        Log.changeStream(Log.LogStream.STD_ERR);
+        Log.print("ERROR LINE");
 
         F.unsafeRun(() -> {
             Log.print("Sleep");
             Thread.sleep(8000);
             Log.print("End");
         });
+        
+        FutureTask<Object> empty = Futures.empty();
+        exe.execute(empty);
+        
+        F.unsafeRun(()->{
+            empty.get();
+            Thread.sleep(1000);
+            
+        });
+        exe.close();
+//        Log.await(1, TimeUnit.HOURS);
+//        Log.close();
     }
+    
+    @Test
+    public void testClose(){
+        
+        
+    }
+    
 }

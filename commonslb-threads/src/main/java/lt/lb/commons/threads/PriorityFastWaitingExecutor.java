@@ -79,10 +79,11 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
     }
 
     @Override
-    protected void startThread(final int maxT) {
-        Thread t = new Thread(getRun(maxT));
+    protected Thread startThread(final int maxT) {
+        Thread t = super.startThread(maxT);
         t.setName("Priority Fast Waiting Executor " + t.getName());
         t.start();
+        return t;
     }
 
     /**

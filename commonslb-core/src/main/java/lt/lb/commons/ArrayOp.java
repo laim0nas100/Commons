@@ -16,6 +16,9 @@ import java.util.function.Supplier;
 public class ArrayOp {
 
     public static <T> boolean any(Predicate<T> test, T... array) {
+        if(array.length == 0){
+            return true;
+        }
         for (T t : array) {
             if (test.test(t)) {
                 return true;

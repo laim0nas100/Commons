@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import lt.lb.commons.containers.NumberValue;
@@ -151,6 +152,15 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
      */
     public static <T> ArrayList<T> toArrayList(ReadOnlyIterator<T> iter) {
         ArrayList<T> list = new ArrayList();
+        for (T item : iter) {
+            list.add(item);
+        }
+        return list;
+    }
+    
+    
+    public static <T> LinkedList<T> toLinkedList(ReadOnlyIterator<T> iter){
+        LinkedList<T> list = new LinkedList();
         for (T item : iter) {
             list.add(item);
         }

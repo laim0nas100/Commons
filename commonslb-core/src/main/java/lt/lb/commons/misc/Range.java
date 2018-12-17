@@ -21,8 +21,8 @@ public class Range<T> extends MinMax<T> {
     }
 
     public boolean inRange(T val, boolean minInclusive, boolean maxInclusive) {
-        Lambda.L2R<T, T, Boolean> cmpLess = minInclusive ? cmp::lessThanOrEq : cmp::lessThan;
-        Lambda.L2R<T, T, Boolean> cmpMore = maxInclusive ? cmp::greaterThanOrEq : cmp::greaterThan;
+        Lambda.L2R<T, T, Boolean> cmpLess = maxInclusive ? cmp::lessThanOrEq : cmp::lessThan;
+        Lambda.L2R<T, T, Boolean> cmpMore = minInclusive ? cmp::greaterThanOrEq : cmp::greaterThan;
 
         return cmpLess.apply(val, max) && cmpMore.apply(val, min);
 
@@ -64,10 +64,20 @@ public class Range<T> extends MinMax<T> {
         return this.inRange(val, false, true);
     }
 
+    /**
+     * Return the value, or the limit, if not in bounds. Inclusive.
+     * @param val
+     * @return 
+     */
     public T clamp(T val) {
         return cmp.min(cmp.max(val, min), max);
     }
 
+    /**
+     * Return new Range of expanded limits, if given value is not in range.
+     * @param val
+     * @return 
+     */
     public Range<T> expand(T val) {
         return new Range(cmp.min(val, min), cmp.max(val, max), cmp);
     }
