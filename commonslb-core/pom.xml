@@ -12,7 +12,7 @@
     </parent>
     <name>CommonsLB Core</name>
     <properties>
-        <apache.commons.version>3.7</apache.commons.version>
+        <apache.commons.version>3.8.1</apache.commons.version>
         
         
     </properties>

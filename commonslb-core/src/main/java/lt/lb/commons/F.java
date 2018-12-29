@@ -64,6 +64,11 @@ public class F {
         }
     }
 
+    /**
+     * Run and catch any possible error
+     * @param r
+     * @return 
+     */
     public static Optional<Throwable> checkedRun(UnsafeRunnable r) {
         try {
             r.unsafeRun();
@@ -72,7 +77,30 @@ public class F {
             return Optional.of(t);
         }
     }
+    
+    
+    /**
+     * Run and catch any possible error
+     * @param r
+     * @return 
+     */
+    public static Optional<Throwable> checkedRun(Runnable r) {
+        try {
+            r.run();
+            return Optional.empty();
+        } catch (Throwable t) {
+            return Optional.of(t);
+        }
+    }
 
+    /**
+     * Static cast function. This operation is quite major, so this makes is searchable.
+     * @param <T>
+     * @param <E>
+     * @param ob
+     * @return
+     * @throws ClassCastException 
+     */
     public static <T extends E, E> T cast(E ob) throws ClassCastException {
         return (T) ob;
     }
