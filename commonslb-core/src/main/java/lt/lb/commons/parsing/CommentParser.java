@@ -8,6 +8,7 @@ package lt.lb.commons.parsing;
 import java.util.ArrayList;
 import java.util.Collection;
 import lt.lb.commons.containers.BooleanValue;
+import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.NumberValue;
 import lt.lb.commons.containers.StringValue;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
@@ -142,7 +143,7 @@ public class CommentParser {
         BooleanValue inComment = BooleanValue.FALSE();
         ReadOnlyIterator<String> iter = new ReadOnlyIterator<String>() {
 
-            NumberValue<Integer> i = NumberValue.of(-1);
+            IntegerValue i = new IntegerValue(-1);
             StringValue current = new StringValue();
 
             @Override

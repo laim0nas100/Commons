@@ -7,10 +7,9 @@ import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import lt.lb.commons.containers.NumberValue;
+import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.Value;
 
 /**
@@ -27,7 +26,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
     public static <T> ReadOnlyIterator<T> of(Spliterator<T> stream) {
 
         return new ReadOnlyIterator<T>() {
-            NumberValue<Integer> index = NumberValue.of(-1);
+            IntegerValue index = new IntegerValue(-1);
             Value<T> current = new Value<>();
             LinkedList<T> queue = new LinkedList<>();
             Consumer<T> cons = (item) -> {
@@ -75,17 +74,17 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
     public static <T> ReadOnlyBidirectionalIterator<T> of(T[] array) {
 
         return new ReadOnlyBidirectionalIterator<T>() {
-            NumberValue<Integer> i = NumberValue.of(-1);
+            IntegerValue index = new IntegerValue(-1);
             Value<T> current = new Value<>();
 
             @Override
             public boolean hasNext() {
-                return i.get() < array.length - 1;
+                return index.get() < array.length - 1;
             }
 
             @Override
             public T next() {
-                T val = array[i.incrementAndGet()];
+                T val = array[index.incrementAndGet()];
                 current.set(val);
                 return val;
             }
@@ -97,17 +96,17 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
 
             @Override
             public Integer getCurrentIndex() {
-                return i.get();
+                return index.get();
             }
 
             @Override
             public boolean hasPrevious() {
-                return i.get() > 0;
+                return index.get() > 0;
             }
 
             @Override
             public T previous() {
-                T val = array[i.decrementAndGet()];
+                T val = array[index.decrementAndGet()];
                 current.set(val);
                 return val;
             }
@@ -117,7 +116,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
     public static <T> ReadOnlyIterator<T> of(Iterator<T> it) {
         return new ReadOnlyIterator<T>() {
             Value<T> current = new Value<>();
-            NumberValue<Integer> i = NumberValue.of(-1);
+            IntegerValue index = new IntegerValue(-1);
             @Override
             public boolean hasNext() {
                 return it.hasNext();
@@ -127,7 +126,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
             public T next() {
                 T val = it.next();
                 current.set(val);
-                i.incrementAndGet();
+                index.incrementAndGet();
                 return val;
             }
 
@@ -138,7 +137,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T> {
 
             @Override
             public Integer getCurrentIndex() {
-                return i.get();
+                return index.get();
             }
         };
     }

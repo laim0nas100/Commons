@@ -175,7 +175,7 @@ public class NumberBiFunctions {
         }
 
     }
-    
+
     public static class DefaultMod extends TypedBiFunction<Number, Number, Number> {
 
         public DefaultMod() {
