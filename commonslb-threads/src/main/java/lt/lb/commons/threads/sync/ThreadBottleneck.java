@@ -1,26 +1,27 @@
 package lt.lb.commons.threads.sync;
 
-import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedTransferQueue;
-import lt.lb.commons.ArrayOp;
+import java.util.concurrent.TransferQueue;
 import lt.lb.commons.F;
 import lt.lb.commons.threads.UnsafeRunnable;
 
 /**
  *
  * Bottle neck for threaded execution. Supports recursive calls in the same
- * thread. Same bottleneck can be shared in unrelated execute calls.
- * The execution isn't fair.
+ * thread. Same bottleneck can be shared in unrelated execute calls. The
+ * execution isn't fair.
+ *
  * @author laim0nas100
  */
 public class ThreadBottleneck {
 
-    private ThreadLocal<Boolean> inside = ThreadLocal.withInitial(() -> Boolean.FALSE);
-    private static final Object dummy = new Object();
+    protected ThreadLocal<Boolean> inside = ThreadLocal.withInitial(() -> Boolean.FALSE);
+    protected static final Object dummy = new Object();
 
-    private LinkedTransferQueue q = new LinkedTransferQueue();
+    protected BlockingQueue q = new LinkedTransferQueue();
 
     /**
      *
@@ -48,7 +49,7 @@ public class ThreadBottleneck {
         if (inside.get()) { // recursive call
             return F.checkedRun(run);
         }
-        Object poll = q.poll(time.time, time.unit);
+        Object poll = tryTakeToken(time);
         if (poll != null) {
             return uniqueThreadRun(run);
         } else {
@@ -56,16 +57,29 @@ public class ThreadBottleneck {
         }
     }
 
-    private Optional<Throwable> uniqueThreadRun(UnsafeRunnable r) {
-        inside.set(Boolean.TRUE);
-        Optional<Throwable> result = F.checkedRun(r);
-        if (!q.tryTransfer(dummy)) { // maybe there is a thread already waiting, so we try quick add
-            if (!q.add(dummy)) {
+    protected void reinsert() {
+        TransferQueue ltq = F.cast(q);
+        if (!ltq.tryTransfer(dummy)) { // maybe there is a thread already waiting, so we try quick add
+            if (!ltq.add(dummy)) {
                 throw new IllegalStateException("Failed to reinsert. Should not happen");
             }
         }
+    }
+
+    private Optional<Throwable> uniqueThreadRun(UnsafeRunnable r) {
+        inside.set(Boolean.TRUE);
+        Optional<Throwable> result = F.checkedRun(r);
+        reinsert();
         inside.set(Boolean.FALSE);
         return result;
+    }
+
+    protected Object tryTakeToken() throws InterruptedException {
+        return q.take();
+    }
+    
+    protected Object tryTakeToken(WaitTime wt) throws InterruptedException {
+        return q.poll(wt.time, wt.unit);
     }
 
     public Optional<Throwable> execute(Callable call) {
@@ -76,13 +90,13 @@ public class ThreadBottleneck {
         return execute(UnsafeRunnable.from(run));
     }
 
-    public Optional<Throwable> execute(UnsafeRunnable run) {
+    private Optional<Throwable> execute0(UnsafeRunnable run) {
         if (inside.get()) { // recursive call
             return F.checkedRun(run);
         }
         Object poll = null;
         try {
-            poll = q.take();
+            poll = tryTakeToken();
         } catch (InterruptedException ex) {
             return Optional.of(ex);
         }
@@ -91,6 +105,10 @@ public class ThreadBottleneck {
         } else {
             throw new IllegalStateException("Got null from queue. Should not happen");
         }
+    }
+
+    public Optional<Throwable> execute(UnsafeRunnable run) {
+        return execute0(run);
     }
 
 }

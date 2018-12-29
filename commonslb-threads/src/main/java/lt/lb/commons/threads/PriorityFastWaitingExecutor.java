@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads;
 
 import java.util.concurrent.PriorityBlockingQueue;
@@ -13,29 +8,47 @@ import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  *
+ * {@inheritDoc} Also supports
+ *
  * @author laim0nas100
  */
 public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
 
-    private Lambda.L1R<Runnable, Integer> mapping = (r) -> {
-        if (r instanceof PriorityRunnable) {
-            PriorityRunnable pr = F.cast(r);
-            return pr.order;
+    private ExtComparator<Runnable> priorityComparator = (Runnable r1, Runnable r2) -> {
+        if (r1 instanceof PriorityRunnable) {
+            PriorityRunnable p1 = F.cast(r1);
+            if (r2 instanceof PriorityRunnable) {
+                PriorityRunnable p2 = F.cast(r2);
+                int compare = Integer.compare(p2.order, p1.order);
+                if (compare != 0) {
+                    return compare;
+                }
+                return Long.compare(p2.time, p1.time);
+            } else {
+                return -1;
+            }
+        } else if (r2 instanceof PriorityRunnable) {
+            return 1;
         }
         return 0;
     };
-    private ExtComparator<Runnable> priorityComparator = ExtComparator.ofValue(mapping, ExtComparator.ofComparable(false));
 
     private class PriorityRunnable implements Runnable {
 
         int order;
+        long time;
         Runnable ru;
 
         public PriorityRunnable(Runnable r, int order) {
+            if (r == null) {
+                throw new NullPointerException("Runnable is null");
+            }
+            this.time = System.nanoTime();
             this.ru = r;
             this.order = order;
         }
 
+        @Override
         public void run() {
             this.ru.run();
         }
@@ -65,6 +78,9 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
             Runnable last = null;
             do {
 
+                if (deque.isEmpty() && !open) {
+                    break;
+                }
                 try {
 
                     last = deque.poll(wt.time, wt.unit);
@@ -81,8 +97,7 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
     @Override
     protected Thread startThread(final int maxT) {
         Thread t = super.startThread(maxT);
-        t.setName("Priority Fast Waiting Executor " + t.getName());
-        t.start();
+        t.setName("Priority " + t.getName());
         return t;
     }
 
@@ -94,13 +109,16 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
      * @param run
      */
     public void execute(int priority, Runnable run) {
-        this.execute(new PriorityRunnable(run, priority));
+        this.add(new PriorityRunnable(run, priority));
     }
 
     @Override
     public void execute(Runnable command) {
-        PriorityBlockingQueue<Runnable> cast = F.cast(tasks);
-        cast.add(command);
+        this.execute(0, command);
+    }
+
+    private void add(Runnable run) {
+        tasks.add(run);
         update(this.maxThreads);
     }
 

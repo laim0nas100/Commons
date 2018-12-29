@@ -8,7 +8,9 @@ import lt.lb.commons.Predicates;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
- * Similar to FastExecutor, but spawns new Threads sparingly. Simply waiting set
+ * 
+ * 
+ * Similar to @see FastExecutor, but spawns new Threads sparingly. Simply waiting set
  * time for new tasks become available before exiting. Default wait time is 1
  * second.
  *
@@ -56,10 +58,14 @@ public class FastWaitingExecutor extends FastExecutor {
         return t;
     }
 
+    
+    /**
+     * {@inheritDoc}
+     * Additionally interrupts threads in wait state.
+     */
     @Override
     public void close() {
         super.close();
-
         Thread[] threads = new Thread[tg.activeCount()];
         tg.enumerate(threads, false);
         Predicate<Thread.State> anySleeping = Predicates.anyEqual(Thread.State.TIMED_WAITING, Thread.State.WAITING);

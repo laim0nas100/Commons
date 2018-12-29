@@ -1,14 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads;
 
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,13 +11,15 @@ import lt.lb.commons.F;
 
 /**
  *
+ * Spawns new threads on demand. If all tasks are exhausted, thread terminates
+ * immediately.
+ *
  * @author laim0nas100
  */
-public class FastExecutor implements Executor,Closeable {
+public class FastExecutor implements Executor, Closeable {
 
-    protected Collection<? extends Runnable> tasks = new ConcurrentLinkedDeque<>();
+    protected Collection<Runnable> tasks = new ConcurrentLinkedDeque<>();
     protected ThreadGroup tg = new ThreadGroup("FastExecutor");
-    
 
     protected volatile boolean open = true;
     protected int maxThreads; // 
@@ -58,8 +54,11 @@ public class FastExecutor implements Executor,Closeable {
 
     @Override
     public void execute(Runnable command) {
-        if(!open){
+        if (!open) {
             throw new IllegalStateException("Not open");
+        }
+        if (command == null) {
+            throw new NullPointerException("null runnable recieved");
         }
         Deque<Runnable> cast = F.cast(tasks);
         cast.addFirst(command);
@@ -111,7 +110,7 @@ public class FastExecutor implements Executor,Closeable {
     }
 
     protected Thread startThread(final int maxT) {
-        Thread t = new Thread(tg,getRun(maxT));
+        Thread t = new Thread(tg, getRun(maxT));
         t.setName("Fast Executor " + t.getName());
         t.start();
         return t;
@@ -137,12 +136,17 @@ public class FastExecutor implements Executor,Closeable {
         }
     }
 
+    /**
+     * Threads close automatically when all tasks are exhausted. This method
+     * ensures no more runnables gets submitted. Does not actually wait for
+     * threads to close.
+     */
     @Override
-    public void close(){
-        if(!this.open){
+    public void close() {
+        if (!this.open) {
             throw new IllegalStateException("Is not open");
         }
         this.open = false;
-        
+
     }
 }
