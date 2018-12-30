@@ -53,7 +53,6 @@ public class FastExecutorTest {
         };
     }
 
-    @Test
     public void main() throws Exception{
         Log.main().async = false;
         System.err.println("ERORR");
@@ -63,7 +62,7 @@ public class FastExecutorTest {
          Log.print(of.inRangeExcInc(2));
         
         FastWaitingExecutor exe = new FastWaitingExecutor(2,WaitTime.ofSeconds(10));
-
+        
         for (int i = 0; i < 10; i++) {
             exe.execute(makeRun("" + i));
         }
@@ -101,7 +100,16 @@ public class FastExecutorTest {
     }
     
     @Test
-    public void testClose(){
+    public void testPriority() throws Exception{
+        Log.print("OK");
+        PriorityFastWaitingExecutor exe = new PriorityFastWaitingExecutor(5);
+        for(int i = 0; i < 100; i++){
+            int ii = i;
+            exe.execute(()->{
+                Log.print(ii);
+            });
+        }
+        Log.await(1, TimeUnit.HOURS);
         
         
     }
