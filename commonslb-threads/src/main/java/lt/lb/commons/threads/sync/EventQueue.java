@@ -43,7 +43,6 @@ public class EventQueue {
         }
         
         public void run(){
-            System.err.println("Executing event with tag:"+tag+ " and is done "+this.isDone());
             super.run();
         }
     }
