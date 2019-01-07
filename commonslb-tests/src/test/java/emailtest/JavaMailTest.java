@@ -5,7 +5,6 @@ package emailtest;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-import java.lang.reflect.Field;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,28 +13,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Store;
 import lt.lb.commons.Log;
 import lt.lb.commons.email.EmailChannels;
 import lt.lb.commons.email.EmailChecker;
 import lt.lb.commons.email.props.POP3EmailProps;
 import lt.lb.commons.F;
-import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.Tracer;
 import lt.lb.commons.containers.NumberValue;
-import lt.lb.commons.containers.Value;
-import lt.lb.commons.containers.tuples.Tuple;
-import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.io.FileReader;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.FastExecutor;
@@ -80,6 +69,8 @@ public class JavaMailTest {
     String user = "";
     String host = "";
 
+    
+    @Test
     public void ok() throws Exception {
 
         EmailChecker checker = new EmailChecker();
@@ -91,7 +82,7 @@ public class JavaMailTest {
         props.setFolderOpenMode(Folder.READ_WRITE);
 
         EmailChannels channels = new EmailChannels();
-        Consumer<Exception> errChannel = (e -> e.printStackTrace());
+        Consumer<Throwable> errChannel = (e -> e.printStackTrace());
         HashSet<String> ids = new HashSet<>();
         channels.errorChannel = errChannel;
         channels.inputChannel = (m -> {
@@ -123,11 +114,11 @@ public class JavaMailTest {
         while (true) {
             Log.print("WAITING XDD");
             Thread.sleep(10 * 1000);
-            if (i % 5 == 0) {
-                enabled = !enabled;
-                checker.setEnabledTask(taskID, enabled);
-            }
-            i++;
+//            if (i % 5 == 0) {
+//                enabled = !enabled;
+//                checker.setEnabledTask(taskID, enabled);
+//            }
+//            i++;
         }
     }
 
@@ -360,7 +351,6 @@ public class JavaMailTest {
 
     
 
-    @Test
     public void wekaParseEmails() throws Exception {
         DirectoryStream<Path> goodStream = Files.newDirectoryStream(Paths.get("E:\\University\\DM\\pratybos\\03\\enron1\\ham"));
         DirectoryStream<Path> spamStream = Files.newDirectoryStream(Paths.get("E:\\University\\DM\\pratybos\\03\\enron1\\spam"));

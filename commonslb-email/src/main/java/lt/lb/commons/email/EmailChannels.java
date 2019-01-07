@@ -15,5 +15,5 @@ import javax.mail.internet.MimeMessage;
 public class EmailChannels {
 
     public Consumer<MimeMessage> inputChannel = (m)-> {};
-    public Consumer<Exception> errorChannel = (e)->{};
+    public Consumer<Throwable> errorChannel = (e)->{};
 }

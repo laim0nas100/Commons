@@ -38,15 +38,15 @@ public class FX {
         return CompletableFuture.runAsync(run, platformExecutor);
     }
 
-    public static CompletableFuture<Void> submit(UnsafeRunnable run, Consumer<Exception> handler) {
+    public static CompletableFuture<Void> submit(UnsafeRunnable run, Consumer<Throwable> handler) {
         return CompletableFuture.runAsync(() -> F.unsafeRunWithHandler(handler, run), platformExecutor);
     }
 
-    public static <T> CompletableFuture<T> submit(Callable<T> call, Consumer<Exception> handler) {
+    public static <T> CompletableFuture<T> submit(Callable<T> call, Consumer<Throwable> handler) {
         return submitAsync(call, handler, platformExecutor);
     }
 
-    private static <T> CompletableFuture<T> submitAsync(Callable<T> call, Consumer<Exception> handler, Executor exe) {
+    private static <T> CompletableFuture<T> submitAsync(Callable<T> call, Consumer<Throwable> handler, Executor exe) {
         return CompletableFuture.supplyAsync(() -> {
             Value<T> val = new Value<>();
             F.unsafeRunWithHandler(
@@ -76,8 +76,7 @@ public class FX {
             F.unsafeRun(() -> {
                 f.get();
             });
-        }
-        );
+        });
     }
 
 }

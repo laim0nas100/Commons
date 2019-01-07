@@ -56,10 +56,10 @@ public class F {
         }
     }
 
-    public static void unsafeRunWithHandler(Consumer<Exception> cons, UnsafeRunnable run) {
+    public static void unsafeRunWithHandler(Consumer<Throwable> cons, UnsafeRunnable run) {
         try {
             run.unsafeRun();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             cons.accept(e);
         }
     }

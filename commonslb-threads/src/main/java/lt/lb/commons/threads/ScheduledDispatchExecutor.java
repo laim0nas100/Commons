@@ -11,7 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import lt.lb.commons.containers.BooleanValue;
 
 /**
  *
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ScheduledDispatchExecutor {
 
     protected ScheduledExecutorService dispatcher;
-    protected HashMap<String, AtomicBoolean> enabledMap = new HashMap<>();
+    protected HashMap<String, BooleanValue> enabledMap = new HashMap<>();
 
     public ScheduledDispatchExecutor() {
     }
@@ -30,7 +30,7 @@ public class ScheduledDispatchExecutor {
     }
     
     public String addSchedulingTask(Executor exe, Runnable call, TimeUnit tu, long initialDelay, long period) {
-        AtomicBoolean enabled = new AtomicBoolean(true);
+        BooleanValue enabled = new BooleanValue(true);
         Runnable runProxy = () -> {
             if (enabled.get()) {
                 exe.execute(call);
