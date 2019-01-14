@@ -66,8 +66,9 @@ public class F {
 
     /**
      * Run and catch any possible error
+     *
      * @param r
-     * @return 
+     * @return
      */
     public static Optional<Throwable> checkedRun(UnsafeRunnable r) {
         try {
@@ -77,12 +78,12 @@ public class F {
             return Optional.of(t);
         }
     }
-    
-    
+
     /**
      * Run and catch any possible error
+     *
      * @param r
-     * @return 
+     * @return
      */
     public static Optional<Throwable> checkedRun(Runnable r) {
         try {
@@ -94,12 +95,14 @@ public class F {
     }
 
     /**
-     * Static cast function. This operation is quite major, so this makes is searchable.
+     * Static cast function. This operation is quite major, so this makes is
+     * searchable.
+     *
      * @param <T>
      * @param <E>
      * @param ob
      * @return
-     * @throws ClassCastException 
+     * @throws ClassCastException
      */
     public static <T extends E, E> T cast(E ob) throws ClassCastException {
         return (T) ob;
@@ -354,8 +357,6 @@ public class F {
         return col;
     }
 
-   
-
     public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {
         Set<Map.Entry<K, V>> entrySet = map.entrySet();
         for (Map.Entry<K, V> entry : entrySet) {
@@ -446,15 +447,13 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(ReadOnlyIterator<T> iterator, Integer from, Iter<T> iter) {
-        int index = 0;
         while (iterator.hasNext()) {
             T next = iterator.next();
-            if (index >= from) {
-                if (iter.visit(index, next)) {
-                    return Optional.of(new Tuple<>(index, next));
+            if (iterator.getCurrentIndex() >= from) {
+                if (iter.visit(iterator.getCurrentIndex(), next)) {
+                    return Optional.of(new Tuple<>(iterator.getCurrentIndex(), next));
                 }
             }
-            index++;
         }
         return Optional.empty();
     }
@@ -469,6 +468,14 @@ public class F {
 
     public static <T> Optional<Tuple<Integer, T>> find(Collection<T> list, Iter<T> iter) {
         return find(list, 0, iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> find(Stream<T> stream, Iter<T> iter) {
+        return find(stream, 0, iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> find(Stream<T> stream, Integer from, Iter<T> iter) {
+        return find(ReadOnlyIterator.of(stream), from, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Iter.IterNoStop<T> iter) {
@@ -486,13 +493,21 @@ public class F {
     public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
         return find(list, from, iter);
     }
-    
+
     public static <T> Optional<Tuple<Integer, T>> iterate(ReadOnlyIterator<T> iterator, Integer from, Iter.IterNoStop<T> iter) {
         return find(iterator, from, iter);
     }
+
     public static <T> Optional<Tuple<Integer, T>> iterate(ReadOnlyIterator<T> iterator, Iter.IterNoStop<T> iter) {
         return find(iterator, 0, iter);
     }
     
+    public static <T> Optional<Tuple<Integer, T>> iterate(Stream<T> stream, Integer from, Iter.IterNoStop<T> iter) {
+        return find(stream, from, iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> iterate(Stream<T> stream, Iter.IterNoStop<T> iter) {
+        return find(stream, 0, iter);
+    }
 
 }
