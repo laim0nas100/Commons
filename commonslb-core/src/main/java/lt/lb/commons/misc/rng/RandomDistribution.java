@@ -4,6 +4,7 @@ import lt.lb.commons.F;
 import java.util.*;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.misc.numbers.OverflowCheck;
 
 /**
  * Pseudo-random number generator based on Double number generator
@@ -225,7 +226,7 @@ public interface RandomDistribution {
         if (upperBound <= lowerBound) {
             throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
         }
-        boolean overflowable = F.willOverflowIfAdd(lowerBound, -upperBound);
+        boolean overflowable = OverflowCheck.willOverflowIfAdd(lowerBound, -upperBound);
         long nextLong = nextLong();
         if (overflowable) {
             boolean inLower = nextLong >= lowerBound;
@@ -270,7 +271,7 @@ public interface RandomDistribution {
         if (upperBound <= lowerBound) {
             throw new IllegalArgumentException("Illegal random bounds:" + lowerBound + " " + upperBound);
         }
-        boolean overflowable = F.willOverflowIfAdd(lowerBound, -upperBound);
+        boolean overflowable = OverflowCheck.willOverflowIfAdd(lowerBound, -upperBound);
         int nextInt = nextInt();
         if (overflowable) {
             boolean inLower = nextInt >= lowerBound;

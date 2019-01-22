@@ -23,26 +23,6 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
-    public static boolean willOverflowIfAdd(int a, int b) {
-        return willOverflowIfAdd(a, b, Integer.MIN_VALUE, Integer.MAX_VALUE);
-    }
-
-    public static boolean willOverflowIfAdd(long a, long b) {
-        return willOverflowIfAdd(a, b, Long.MIN_VALUE, Long.MAX_VALUE);
-    }
-
-    public static boolean willOverflowIfAdd(long a, long b, long minValue, long maxValue) {
-        if (minValue >= maxValue) {
-            throw new IllegalArgumentException("Invalid range [" + minValue + ";" + maxValue + "]");
-        }
-        if (a > 0 && b > 0) {//both positive
-            return maxValue - a < b;
-        } else if (a < 0 && b < 0) { // both negative
-            return minValue - a > b;
-        }
-        return false;
-    }
-
     public static void unsafeRun(UnsafeRunnable r) throws RuntimeException {
         try {
             r.unsafeRun();
