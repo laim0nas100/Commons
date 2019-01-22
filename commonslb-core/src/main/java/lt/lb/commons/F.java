@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons;
 
 import java.util.*;
@@ -345,14 +340,15 @@ public class F {
     }
 
     /**
-     * Fill ArrayList of given stream
+     * Fill Collection of given stream
      *
      * @param <T>
+     * @param <E>
      * @param stream
      * @param col
      * @return
      */
-    public static <T extends Collection> T fillCollection(Stream stream, T col) {
+    public static <T extends Collection<E>,E> T fillCollection(Stream<E> stream, T col) {
         stream.forEachOrdered(col::add);
         return col;
     }

@@ -12,7 +12,8 @@ public class CallOrResult<T> {
 
     /**
      * Terminate call chain with no return value.
-     * @return 
+     *
+     * @return
      */
     public static CallOrResult returnVoid() {
         return new CallOrResult(null);
@@ -20,9 +21,10 @@ public class CallOrResult<T> {
 
     /**
      * Terminate call chain with return value.
+     *
      * @param <T>
      * @param val
-     * @return 
+     * @return
      */
     public static <T> CallOrResult<T> returnValue(T val) {
         return new CallOrResult(val);
@@ -30,9 +32,10 @@ public class CallOrResult<T> {
 
     /**
      * Extend call chain.
+     *
      * @param <T>
      * @param val
-     * @return 
+     * @return
      */
     public static <T> CallOrResult<T> returnCall(Callable<CallOrResult<T>> val) {
         return new CallOrResult(val);
@@ -40,16 +43,17 @@ public class CallOrResult<T> {
 
     /**
      * Extend call chain with optional termination value.
+     *
      * @param <T>
      * @param val
      * @param call
-     * @return 
+     * @return
      */
     public static <T> CallOrResult<T> returnIntermediate(T val, Callable<CallOrResult<T>> call) {
-        return new CallOrResult(val,call);
+        return new CallOrResult(val, call);
     }
 
-    private Optional<T> res;
+    private Optional<T> res = Optional.empty();
     private Callable<CallOrResult<T>> call;
 
     public CallOrResult(T ob) {
@@ -59,7 +63,7 @@ public class CallOrResult<T> {
     public CallOrResult(Callable<CallOrResult<T>> call) {
         this.call = call;
     }
-    
+
     public CallOrResult(T ob, Callable<CallOrResult<T>> call) {
         this.call = call;
         this.res = Optional.ofNullable(ob);
@@ -67,6 +71,7 @@ public class CallOrResult<T> {
 
     /**
      * Execute call chain.
+     *
      * @param <T>
      * @param limit set to positive to take into account
      * @param next first call
@@ -74,19 +79,21 @@ public class CallOrResult<T> {
      * @throws Exception
      */
     public static <T> Optional<T> iterative(long limit, CallOrResult<T> next) throws Exception {
-        long i = 0;
-        while (next.call != null) {
 
-            next = next.call.call();
-            i++;
-            if (limit > 0 && i >= limit) {
-                break;
+        if (limit > 0) {
+            while (next.call != null) {
+                next = next.call.call();
+                limit--;
+                if (0 >= limit) {
+                    break;
+                }
+            }
+        } else {
+            while (next.call != null) {
+                next = next.call.call();
             }
         }
-        if (next.res == null) {
-            String lim = limit > 0 ? "limit " + limit : "no limit";
-            throw new IllegalStateException("Recursive chain does not set a result. Terminated at iteration no. " + i + " with " + lim);
-        }
+
         return next.res;
     }
 }
