@@ -3,15 +3,20 @@ package lt.lb.commons.containers.collections;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 import lt.lb.commons.CallOrResult;
 import lt.lb.commons.F;
 import lt.lb.commons.Lambda;
+import lt.lb.commons.containers.IntegerValue;
+import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.misc.ExtComparator;
 
 /**
  *
@@ -33,15 +38,24 @@ public class RelationMap<K, V> implements Map<K, V> {
             val = v;
         }
 
-        boolean isPresent = true;
         K key;
         V val;
         Rnode<K, V> parent;
         HashMap<K, Rnode<K, V>> links = new HashMap<>(4);
+
+        public int nodeLevel() {
+            return 1 + Optional.ofNullable(parent).map(p -> p.nodeLevel()).orElse(0);
+        }
     }
 
     private Rnode<K, V> root;
 
+    /**
+     *
+     * @param rootKey
+     * @param rootVal
+     * @param rel whether first argument is a child of second argument
+     */
     public RelationMap(K rootKey, V rootVal, Lambda.L2SR<K, Boolean> rel) {
         this.relation = rel;
         root = new Rnode<>(rootKey, rootVal);
@@ -70,7 +84,7 @@ public class RelationMap<K, V> implements Map<K, V> {
     @Override
     public boolean containsKey(Object key) {
         Optional<Rnode<K, V>> maybe = Optional.ofNullable(map.get(key));
-        return maybe.isPresent() && maybe.get().isPresent;
+        return maybe.isPresent();
     }
 
     @Override
@@ -94,46 +108,44 @@ public class RelationMap<K, V> implements Map<K, V> {
             Rnode<K, V> next = filled.getFirst();
             return CallOrResult.returnCall(() -> traverse(next, to));
         } else {
-            //no more satisfiable relations
-            while (!from.isPresent) {
-                from = from.parent;
-            }
             return CallOrResult.returnValue(from);
 
         }
     }
 
-    private void assertRootRelation(K key) {
-        if (!relation.apply(key, root.key)) {
-            throw new IllegalArgumentException("Not satisfied root relation: " + key + " > " + root.key);
+    private void assertRootRelation(K key, Rnode<K, V> r) {
+        if (!relation.apply(key, r.key)) {
+            throw new IllegalArgumentException("Not satisfied root relation: " + key + " > " + r.key);
         }
     }
 
     @Override
     public V put(K key, V value) {
-        Rnode<K, V> node = map.computeIfAbsent(key, k -> new Rnode<>());
+        return put(key, value, map, root);
+    }
+
+    private V put(K key, V value, HashMap<K, Rnode<K, V>> m, Rnode<K, V> r) {
+        Rnode<K, V> node = m.computeIfAbsent(key, k -> new Rnode<>());
         V oldV = node.val;
 
         node.val = value;
         node.key = key;
-        node.isPresent = true;
 
-        if (node != root && node.parent == null) {
+        if (node != r && node.parent == null) {
 
             //new node, set the path from root
-            Rnode<K, V> traversed = traverseRoot(key);
+            Rnode<K, V> traversed = traverseRoot(key, r);
             traversed.links.put(key, node);
             node.parent = traversed;
         }
 
         return oldV;
-
     }
 
-    private Rnode<K, V> traverseRoot(K key) {
-        assertRootRelation(key);
+    private Rnode<K, V> traverseRoot(K key, Rnode<K, V> r) {
+        assertRootRelation(key, r);
         try {
-            Optional<Rnode<K, V>> iterative = CallOrResult.iterative(0, traverse(root, key));
+            Optional<Rnode<K, V>> iterative = CallOrResult.iterative(0, traverse(r, key));
             return iterative.get();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -144,32 +156,82 @@ public class RelationMap<K, V> implements Map<K, V> {
         if (containsKey(key)) {
             return get(key);
         } else {
-            return traverseRoot(key).val;
+            return traverseRoot(key, root).val;
         }
     }
 
     @Override
     public V remove(Object key) {
+        return remove(key, map, root.key);
+    }
 
-        Rnode<K, V> removeNode = map.get(key);
+    private V remove(Object key, HashMap<K, Rnode<K, V>> m, K rootKey) {
+        if (Objects.equals(rootKey, key)) {
+            throw new IllegalArgumentException("Shouldn't remove root");
+        }
+        Rnode<K, V> removeNode = m.remove(key);
         if (removeNode == null) {
             return null;
         }
         V toReturn = removeNode.val;
-        if (!removeNode.links.isEmpty() || removeNode.parent != null) { // remapping all children to parent node
-            removeNode.isPresent = false;
-            removeNode.val = null;
-        }
+        removeNode.parent.links.remove(removeNode.key);
+        
+        F.iterate(removeNode.links.values(), (i, c) -> {
+            c.parent = removeNode.parent;
+            removeNode.parent.links.put(c.key, c);
+        });
+        removeNode.val = null;
         return toReturn;
+    }
+
+    public void remap() {
+        this.remap(relation, root.key, root.val, new ArrayDeque<>());
+    }
+
+    /**
+     * Remap entries, Expensive operation, use only if necessary
+     *
+     * @param relation
+     * @param rootKey
+     * @param rootVal
+     * @param newValues Collection of values to insert
+     */
+    public void remap(Lambda.L2SR<K, Boolean> relation, K rootKey, V rootVal, Collection<Tuple<K, V>> newValues) {
+        Rnode<K, V> newRoot = new Rnode<>(rootKey, rootVal);
+        HashMap<K, IntegerValue> satisfiedRelationMap = new HashMap<>();
+        HashMap<K, Rnode<K, V>> newMap = new HashMap<>();
+        ArrayList<Tuple<K, V>> nodes = new ArrayList<>();
+        newMap.put(newRoot.key, newRoot);
+        F.iterate(this.getPresentValues(), (i, n) -> {
+            if (n != root) {
+                nodes.add(Tuples.create(n.key, n.val));
+            }
+        });
+        nodes.addAll(newValues);
+
+        F.iterate(nodes, (i, n) -> {
+            F.iterate(nodes, (j, m) -> {
+                if (relation.apply(m.g1, n.g1)) {
+                    satisfiedRelationMap.computeIfAbsent(n.g1, k -> new IntegerValue(0)).incrementAndGet();
+                }
+            });
+        });
+        ExtComparator<Tuple<K, V>> ofValue = ExtComparator.ofValue(n -> satisfiedRelationMap.getOrDefault(n.g1, new IntegerValue(0)).get());
+        Collections.sort(nodes, ofValue.reversed());
+        F.iterate(nodes, (i, n) -> {
+            this.put(n.g1, n.g2, newMap, newRoot);
+        });
+
+        this.root = newRoot;
+        this.map = newMap;
 
     }
 
-    public V cull(K key) {
-        Rnode<K, V> removeNode = map.get(key);
-        if (removeNode == root) {
+    private V cull(K key, K rootKey, HashMap<K, Rnode<K, V>> map) {
+        if (Objects.equals(key, rootKey)) {
             throw new IllegalArgumentException("Shouldn't remove root");
         }
-        removeNode = map.remove(key);
+        Rnode<K, V> removeNode = map.remove(key);
         if (removeNode == null) {
             return null;
         }
@@ -180,6 +242,10 @@ public class RelationMap<K, V> implements Map<K, V> {
         });
 
         return removed;
+    }
+
+    public V cull(K key) {
+        return cull(key, root.key, map);
     }
 
     @Override
@@ -197,21 +263,21 @@ public class RelationMap<K, V> implements Map<K, V> {
     }
 
     private Stream<Rnode<K, V>> getPresentValues() {
-        return map.values().stream().filter(m -> m.isPresent);
+        return map.values().stream();
     }
 
     @Override
-    public Set<K> keySet() {
+    public HashSet<K> keySet() {
         return F.fillCollection(getPresentValues().map(m -> m.key), new HashSet<>());
     }
 
     @Override
-    public Collection<V> values() {
+    public ArrayList<V> values() {
         return F.fillCollection(getPresentValues().map(m -> m.val), new ArrayList<>());
     }
 
     @Override
-    public Set<Entry<K, V>> entrySet() {
+    public HashSet<Entry<K, V>> entrySet() {
         return F.fillCollection(getPresentValues().map(e -> MapEntries.byKey(this, e.key)), new HashSet<>());
     }
 
