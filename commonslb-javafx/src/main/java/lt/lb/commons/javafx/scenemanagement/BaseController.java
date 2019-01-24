@@ -10,8 +10,6 @@ import javafx.fxml.Initializable;
  */
 public interface BaseController extends Initializable {
     
-    public final Frame FRAME = null;
-
     @Override
     public default void initialize(URL url, ResourceBundle rb) {
     }

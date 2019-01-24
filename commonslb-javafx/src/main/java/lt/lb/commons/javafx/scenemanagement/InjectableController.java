@@ -11,6 +11,5 @@ import java.util.ResourceBundle;
 public interface InjectableController extends BaseController{
     
     public void inject(Frame frame, URL url, ResourceBundle rb);
-    
 
 }

@@ -48,9 +48,6 @@ public class MultiStageManager {
             throw new FrameException("Frame:" + ID + "Allready exists");
         }
         final String finalID = ID;
-        F.unsafeRun(()->{
-            
-        });
         Callable<Frame> call = () -> {
             FXMLLoader loader = new FXMLLoader(resource);
             loader.getResources();

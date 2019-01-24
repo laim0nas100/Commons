@@ -18,10 +18,10 @@ public class Frame {
     }
 
     ChangeListener listenerX, listenerY;
-    private Stage stage;
-    private BaseController controller;
-    private String frameType;
-    private String ID;
+    private final Stage stage;
+    private final BaseController controller;
+    private final String frameType;
+    private final String ID;
 
     public Frame(Stage stage, BaseController controller, String frameType, String ID) {
         this.stage = stage;
@@ -34,20 +34,12 @@ public class Frame {
         return (T) this.controller;
     }
 
-    public void setController(BaseController controller) {
-        this.controller = controller;
-    }
-
     public Stage getStage() {
         return this.stage;
     }
 
     public Scene getScene() {
         return this.stage.getScene();
-    }
-
-    public void setStage(Stage stage) {
-        this.stage = stage;
     }
 
     public String getTitle() {
