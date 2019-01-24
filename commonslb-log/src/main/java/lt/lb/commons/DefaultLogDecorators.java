@@ -37,8 +37,6 @@ public class DefaultLogDecorators {
                     for (Object s : objs) {
                         sb.appendLine(String.valueOf(s));
                     }
-                }
-                if (sb.length() > 0) {
                     sb.removeFromEnd(LineStringBuilder.LINE_END.length());
                 }
                 return sb.toString();
