@@ -2,7 +2,6 @@ package lt.lb.commons.threads;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
-import lt.lb.commons.Lambda;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.sync.WaitTime;
 

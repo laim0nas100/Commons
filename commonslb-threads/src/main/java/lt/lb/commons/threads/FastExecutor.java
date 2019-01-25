@@ -16,7 +16,7 @@ import lt.lb.commons.F;
  *
  * @author laim0nas100
  */
-public class FastExecutor implements Executor, Closeable {
+public class FastExecutor implements CloseableExecutor {
 
     protected Collection<Runnable> tasks = new ConcurrentLinkedDeque<>();
     protected ThreadGroup tg = new ThreadGroup("FastExecutor");

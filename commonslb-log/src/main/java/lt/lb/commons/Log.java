@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 import lt.lb.commons.containers.StringValue;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.parsing.StringOp;
+import lt.lb.commons.threads.CloseableExecutor;
 import lt.lb.commons.threads.FastWaitingExecutor;
 import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.sync.WaitTime;
@@ -23,7 +24,7 @@ import lt.lb.commons.threads.sync.WaitTime;
  * @author laim0nas100
  */
 public class Log {
-
+    
     private static Log mainLog = new Log();
 
     public static Log main() {
@@ -74,7 +75,7 @@ public class Log {
      */
     public Lambda.L1R<Iterator, Supplier<String>> printIterDecorator = DefaultLogDecorators.printIterDecorator();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    protected FastWaitingExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
+    public CloseableExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
     public Log() {
