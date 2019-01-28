@@ -6,7 +6,7 @@ import lt.lb.commons.interfaces.Equator;
 
 /**
  *
- * Comparator with use friendly and clear methods to compare items
+ * Comparator with user-friendly and clear methods to compare items
  *
  * @author laim0nas100
  */
@@ -113,13 +113,13 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
 
     /**
      *
-     * @param <F> Base object
+     * @param <T> Base object
      * @param <V> particular value of F object. Should handle null comparisons
      * @param func mapping functions
      * @return
      */
-    public static <F, V extends Comparable> ExtComparator<F> ofValues(Function<? super F, ? extends V>... func) {
-        ExtComparator<F> cmp = NO_ORDER;
+    public static <T ,V extends Comparable> ExtComparator<T> ofValues(Function<? super T, ? extends V>... func) {
+        Comparator<T> cmp = NO_ORDER;
         if (func.length == 0) {
             return NO_ORDER;
         }
@@ -130,7 +130,7 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
             }
         }
 
-        return cmp;
+        return ExtComparator.of(cmp);
     }
 
     /**
@@ -140,7 +140,7 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
      * @return
      */
     public static <T> ExtComparator<T> ofComparators(Comparator<T>... func) {
-        ExtComparator<T> cmp = NO_ORDER;
+        Comparator<T> cmp = NO_ORDER;
         if (func.length == 0) {
             return NO_ORDER;
         }
@@ -151,49 +151,29 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
             }
         }
 
-        return cmp;
+        return ExtComparator.of(cmp);
     }
 
     /**
      *
-     * @param <F> Base object
+     * @param <T> Base object
      * @param <V> particular value of F object
      * @param func mapping function
      * @param cmp comparator to compare mapped value
      * @return
      */
-    public static <F, V> ExtComparator<F> ofValue(Function<? super F, ? extends V> func, Comparator<? super V> cmp) {
+    public static <T, V> ExtComparator<T> ofValue(Function<? super T, ? extends V> func, Comparator<? super V> cmp) {
         return ExtComparator.of((v1, v2) -> cmp.compare(func.apply(v1), func.apply(v2)));
-    }
-
-    @Override
-    public default ExtComparator<T> thenComparing(Comparator<? super T> other) {
-        return ExtComparator.of(Comparator.super.thenComparing(other));
-    }
-
-    @Override
-    public default ExtComparator<T> reversed() {
-        return ExtComparator.of(Comparator.super.reversed());
-    }
-
-    @Override
-    public default <U> ExtComparator<T> thenComparing(Function<? super T, ? extends U> keyExtractor, Comparator<? super U> keyComparator) {
-        return this.thenComparing(ExtComparator.ofValue(keyExtractor, keyComparator));
-    }
-
-    @Override
-    public default <U extends Comparable<? super U>> ExtComparator<T> thenComparing(Function<? super T, ? extends U> keyExtractor) {
-        return this.thenComparing(ExtComparator.ofValue(keyExtractor));
     }
 
     /**
      * Create ExtComparator using known Comparable class as basis of order.
      *
-     * @param <F> must implement compareTo with null's
+     * @param <T> must implement compareTo with null's
      * @return
      */
-    public static <F extends Comparable> ExtComparator<F> ofComparable() {
-        return (F o1, F o2) -> {
+    public static <T extends Comparable> ExtComparator<T> ofComparable() {
+        return (T o1, T o2) -> {
             if (o1 == null) {
                 if (o2 == null) {
                     return 0;
@@ -208,12 +188,12 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
     /**
      * Create ExtComparator using known Comparable class as basis of order.
      *
-     * @param <F> is not responsible if null is encountered
+     * @param <T> is not responsible if null is encountered
      * @param nullFirst null order policy
      * @return
      */
-    public static <F extends Comparable> ExtComparator<F> ofComparable(boolean nullFirst) {
-        return (F o1, F o2) -> {
+    public static <T extends Comparable> ExtComparator<T> ofComparable(boolean nullFirst) {
+        return (T o1, T o2) -> {
             if (o1 == null) {
                 if (o2 == null) {
                     return 0;
@@ -234,7 +214,7 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
      * @param obj
      * @return
      */
-    public default Comparable<T> asComparable(T obj) {
+    public default Comparable<? extends T> asComparable(T obj) {
         return (T o) -> this.compare(obj, o);
     }
 

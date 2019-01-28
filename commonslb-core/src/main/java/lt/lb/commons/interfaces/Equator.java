@@ -48,7 +48,7 @@ public interface Equator<T> {
     }
 
     /**
-     * Use the Object.equal
+     * Use the Objects.equal
      * @param <T>
      * @return 
      */
