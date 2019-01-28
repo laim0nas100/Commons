@@ -25,15 +25,6 @@ public class Bool {
         return new Bool(false);
     }
 
-    public static Bool AND(Boolean... b) {
-        for (Boolean s : b) {
-            if (!s) {
-                return new Bool(false);
-            }
-        }
-        return new Bool(true);
-    }
-
     public static Bool AND(boolean... b) {
         for (boolean s : b) {
             if (!s) {
@@ -41,15 +32,6 @@ public class Bool {
             }
         }
         return new Bool(true);
-    }
-
-    public static Bool OR(Boolean... b) {
-        for (Boolean s : b) {
-            if (!s) {
-                return new Bool(true);
-            }
-        }
-        return new Bool(false);
     }
 
     public static Bool OR(boolean... b) {
