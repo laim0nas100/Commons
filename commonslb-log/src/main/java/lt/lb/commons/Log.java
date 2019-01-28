@@ -11,6 +11,7 @@ import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import lt.lb.commons.containers.LazyValue;
 import lt.lb.commons.containers.StringValue;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
 import lt.lb.commons.parsing.StringOp;
@@ -49,7 +50,7 @@ public class Log {
     public Optional<Consumer<Supplier<String>>> override = Optional.empty();
 
     /**
-     * Overridable decorators decorators.
+     * Override-able decorators.
      */
     /**
      * Final string concatenation
@@ -74,6 +75,8 @@ public class Log {
      * Used in printIter
      */
     public Lambda.L1R<Iterator, Supplier<String>> printIterDecorator = DefaultLogDecorators.printIterDecorator();
+    
+    public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     public CloseableExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
@@ -224,24 +227,7 @@ public class Log {
         println(main(), objects);
     }
 
-    private static StackTraceElement getStackElement(Throwable th, int elem) throws Exception {
-        Object invoke = getThrowableMethod().invoke(th, elem);
-        return F.cast(invoke);
-    }
-
-    private static Class<Throwable> threadClass = Throwable.class;
-    private static Method thMethod;
-
-    private static Method getThrowableMethod() throws NoSuchMethodException {
-        if (thMethod != null) {
-            return thMethod;
-        }
-        Method declaredMethod = threadClass.getDeclaredMethod("getStackTraceElement", Integer.TYPE);
-        declaredMethod.setAccessible(true);
-        thMethod = declaredMethod;
-        return thMethod;
-
-    }
+    
 
     private static void processString(Log log, Supplier<String> string) {
         if (!log.override.isPresent()) {
@@ -251,10 +237,7 @@ public class Log {
             StringValue trace = new StringValue("");
             if (log.stackTrace) {
                 Throwable th = new Throwable();
-                F.unsafeRun(() -> {
-                    String toString = getStackElement(th, 3).toString();
-                    trace.set(StringOp.remove(toString, ".java"));
-                });
+                trace.set(log.stackTraceSupplier.apply(th).get());
             }
 
             if (log.async) {

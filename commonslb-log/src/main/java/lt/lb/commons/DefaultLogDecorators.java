@@ -1,9 +1,13 @@
 package lt.lb.commons;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.Supplier;
+import lt.lb.commons.containers.LazyValue;
+import lt.lb.commons.containers.Value;
 import lt.lb.commons.interfaces.ReadOnlyIterator;
+import lt.lb.commons.parsing.StringOp;
 
 /**
  *
@@ -91,5 +95,32 @@ public class DefaultLogDecorators {
             };
 
         };
+    }
+
+    public static Lambda.L1R<Throwable, Supplier<String>> stackTraceUnsafeSupplier() {
+        LazyValue<Method> thMethod = new LazyValue<>(() -> {
+            try {
+                Method declaredMethod = Throwable.class.getDeclaredMethod("getStackTraceElement", Integer.TYPE);
+                declaredMethod.setAccessible(true);
+                return declaredMethod;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return (th) -> {
+            return () -> {
+                Value<String> trace = new Value<>();
+                F.unsafeRun(() -> {
+                    trace.set(StringOp.remove(thMethod.get().invoke(th, 3).toString(), ".java"));
+                });
+                return null;
+            };
+        };
+
+    }
+
+    public static Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier() {
+        return (th) -> () -> th.getStackTrace()[3].toString().replace(".java", "");
     }
 }
