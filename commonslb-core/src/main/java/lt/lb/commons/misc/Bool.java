@@ -1,7 +1,5 @@
 package lt.lb.commons.misc;
 
-import java.util.Objects;
-
 /**
  *
  * Left-terminating boolean chaining in a Builder-like fashion. To avoid clunky
@@ -26,7 +24,7 @@ public class Bool {
     }
 
     public static Bool AND(boolean... bools) {
-        if(bools.length == 0){
+        if (bools.length == 0) {
             return Bool.FALSE();
         }
         for (boolean s : bools) {
@@ -49,7 +47,7 @@ public class Bool {
     }
 
     public static Bool OR(boolean... bools) {
-         if(bools.length == 0){
+        if (bools.length == 0) {
             return Bool.FALSE();
         }
         for (boolean s : bools) {
@@ -127,13 +125,15 @@ public class Bool {
     }
 
     public Bool equals(Bool b) {
-        return new Bool(Objects.equals(this.get(), b.get()));
+        return new Bool(this.get()== b.get());
     }
+
     public Bool notEquals(boolean b) {
-        return new Bool(!Objects.equals(this.get(), b));
+        return new Bool(this.get() != b);
     }
+
     public Bool notEquals(Bool b) {
-        return new Bool(!Objects.equals(this.get(), b.get()));
+        return new Bool(this.get() != b.get());
     }
 
     public Boolean isTrue() {
@@ -148,9 +148,4 @@ public class Bool {
         return val;
     }
 
-    
-    public static void ok(){
-        Bool.OR(true,false);
-        
-    }
 }
