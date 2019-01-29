@@ -2,8 +2,7 @@ package lt.lb.commons.misc;
 
 /**
  *
- * Left-terminating boolean chaining in a Builder-like fashion. To avoid clunky
- * parenthesis and exclamation marks.
+ * Left-terminating boolean chaining in a Builder-like fashion.
  *
  * @author laim0nas100
  */
@@ -95,9 +94,9 @@ public class Bool {
     }
 
     public Bool xor(boolean... b) {
-        Bool all = Bool.AND(b);
-        Bool any = Bool.OR(b);
-        return all.equals(any).not();
+        Bool notAll = Bool.AND(b).not();
+        Bool some = Bool.OR(b);
+        return notAll.and(some);
     }
 
     public Bool xor(Bool b) {
@@ -120,12 +119,21 @@ public class Bool {
         return new Bool(!(this.get() || b));
     }
 
-    public Bool equals(boolean b) {
-        return new Bool(this.get() == b);
+    public Bool nor(boolean... b) {
+        return Bool.OR(this.get(), b).not();
+    }
+
+    public Bool equals(boolean... bools) {
+        for (boolean b : bools) {
+            if (this.get() != b) {
+                return new Bool(false);
+            }
+        }
+        return new Bool(true);
     }
 
     public Bool equals(Bool b) {
-        return new Bool(this.get()== b.get());
+        return new Bool(this.get() == b.get());
     }
 
     public Bool notEquals(boolean b) {
