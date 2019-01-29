@@ -8,6 +8,7 @@ package lt.lb.commons;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  *
@@ -16,7 +17,7 @@ import java.util.function.Supplier;
 public class ArrayOp {
 
     public static <T> boolean any(Predicate<T> test, T... array) {
-        if(array.length == 0){
+        if (array.length == 0) {
             return true;
         }
         for (T t : array) {
@@ -206,6 +207,70 @@ public class ArrayOp {
         }
 
         return array;
+    }
+
+    public static Integer[] map(int... arr) {
+        Integer[] a = new Integer[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            a[i] = arr[i];
+        }
+        return a;
+    }
+
+    public static Long[] map(long... arr) {
+        Long[] a = new Long[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            a[i] = arr[i];
+        }
+        return a;
+    }
+
+    public static Short[] map(short... arr) {
+        Short[] a = new Short[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            a[i] = arr[i];
+        }
+        return a;
+    }
+
+    public static Byte[] map(byte... arr) {
+        Byte[] a = new Byte[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            a[i] = arr[i];
+        }
+        return a;
+    }
+
+    public static Double[] map(double... arr) {
+        Double[] a = new Double[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            a[i] = arr[i];
+        }
+        return a;
+    }
+
+    public static Float[] map(float... arr) {
+        Float[] a = new Float[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            a[i] = arr[i];
+        }
+        return a;
+    }
+
+    public static Boolean[] map(boolean... arr) {
+        Boolean[] a = new Boolean[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            a[i] = arr[i];
+        }
+        return a;
+    }
+
+    public static Character[] map(char... arr) {
+        Character[] a = new Character[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            a[i] = arr[i];
+        }
+        return a;
     }
 
 }
