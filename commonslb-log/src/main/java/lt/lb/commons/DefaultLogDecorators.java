@@ -85,7 +85,7 @@ public class DefaultLogDecorators {
             return () -> {
                 LineStringBuilder string = new LineStringBuilder();
                 ReadOnlyIterator iter = ReadOnlyIterator.of(col);
-                if (!iter.hasNext()) {
+                if (iter.hasNext()) {
                     for (Object s : iter) {
                         string.appendLine(s);
                     }
