@@ -11,6 +11,8 @@ import lt.lb.commons.containers.ObjectBuffer;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.reflect.DefaultFieldFactory;
 import lt.lb.commons.reflect.ReflectionPrint;
+import lt.lb.commons.reflect.pure.EField;
+import lt.lb.commons.reflect.pure.PureReflectNode;
 import lt.lb.commons.threads.UnsafeRunnable;
 import org.junit.Test;
 
@@ -178,6 +180,11 @@ public class ReflectTest {
     @Test
     public void ok() throws Exception {
 
+        Log m = Log.main();
+        m.stackTrace = false;
+        m.threadName = false;
+        m.timeStamp = false;
+        m.surroundString = false;
         CCls2Override c1 = new CCls2Override(0);
         c1.dubArray[0] = -1;
         c1.change(50f);
@@ -187,8 +194,30 @@ public class ReflectTest {
         rp.dump(c1);
 
         CCls2Override c2 = factory.reflectionClone(c1);
-        rp.dump("");
+//        rp.dump("");
         rp.dump(c2);
+        
+         PureReflectNode node = new PureReflectNode(new HashMap<>(),CCls2Override.class);
+        EField root = EField.fromCompositeRoot(node);
+        print("",root,3);
+        
+        
+    }
+    
+    public static void print(String append, EField f, int limit){
+        if(limit <= 0){
+            return;
+        }
+        Log.print(append,f.getName(),f.isComposite());
+        
+        for(EField child:f.getChildren()){
+            print(append+"*",child,limit -1);
+        }
+        EField shadow = f.getShadowed();
+        while(shadow!=null){
+            print(append+"-",shadow,limit);
+            shadow = shadow.getShadowed();
+        }
     }
 
     public static void main(String... strings) throws Exception {
