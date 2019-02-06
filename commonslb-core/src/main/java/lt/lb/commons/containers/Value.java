@@ -10,7 +10,7 @@ import lt.lb.commons.interfaces.ValueProxy;
  * Proxy class
  * @param <T> generic type
  */
-public class Value<T> implements ValueProxy<T>{
+public class Value<T> implements ValueProxy<T> {
 
     protected T value;
 
@@ -71,16 +71,26 @@ public class Value<T> implements ValueProxy<T>{
         set(func.get());
         return got;
     }
+
     /**
      * Method for making exceptions
+     *
      * @param opname operation name
      * @param val
-     * @return 
+     * @return
      */
     protected Supplier<RuntimeException> makeException(String opname, Object val) {
         return () -> {
             return new RuntimeException("Invalid operation (" + this.get() + " " + opname + " " + val + ")");
         };
+    }
+
+    public boolean isNotNull() {
+        return this.get() != null;
+    }
+
+    public boolean isEmpty() {
+        return this.get() == null;
     }
 
 }

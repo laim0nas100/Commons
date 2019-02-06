@@ -1,14 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons;
 
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  *
@@ -18,7 +12,7 @@ public class ArrayOp {
 
     public static <T> boolean any(Predicate<T> test, T... array) {
         if (array.length == 0) {
-            return true;
+            return false;
         }
         for (T t : array) {
             if (test.test(t)) {
@@ -26,14 +20,6 @@ public class ArrayOp {
             }
         }
         return false;
-    }
-
-    public static boolean and(Boolean... b) {
-        return all(c -> c, b);
-    }
-
-    public static boolean or(Boolean... b) {
-        return any(c -> c, b);
     }
 
     public static <T> boolean all(Predicate<T> test, T... array) {
@@ -90,7 +76,7 @@ public class ArrayOp {
 
     public static <T> T[] makeArray(Integer size, Class<T> clz) {
         if (clz.isPrimitive()) {
-            throw new IllegalArgumentException("Primitives, like " + clz.getName() + " are not supported, use makePrimitiveArray()");
+            throw new IllegalArgumentException("Primitives, like " + clz.getName() + " are not supported, use makePrimitiveArray");
         }
         return (T[]) java.lang.reflect.Array.newInstance(clz, size);
     }
@@ -99,7 +85,7 @@ public class ArrayOp {
         if (clz.isPrimitive()) {
             return java.lang.reflect.Array.newInstance(clz, size);
         } else {
-            throw new IllegalArgumentException(clz.getName() + " is not primitive, use makeArray()");
+            throw new IllegalArgumentException(clz.getName() + " is not primitive, use makeArray");
         }
     }
 

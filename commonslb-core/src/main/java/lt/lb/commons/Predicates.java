@@ -48,8 +48,8 @@ public class Predicates {
     public static <T> Predicate<T> isNotNull() {
         return (t) -> t != null;
     }
-    
-    public static <T,E> Predicate<T> ofMapping(Predicate<E> pred, Function<T,E> mapping){
+
+    public static <T, E> Predicate<T> ofMapping(Predicate<E> pred, Function<T, E> mapping) {
         return t -> pred.test(mapping.apply(t));
     }
 
