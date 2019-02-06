@@ -9,14 +9,14 @@ package lt.lb.commons.reflect;
  *
  * @author laim0nas100
  */
-public class FullFieldHolder<T> {
+public class FullFieldHolder {
 
-    FieldHolder<T> staticHolder;
-    FieldHolder<T> localHolder;
+    FieldHolder staticHolder;
+    FieldHolder localHolder;
 
-    public FullFieldHolder(Class<T> cls) {
-        staticHolder = new FieldHolder<>(cls, true);
-        localHolder = new FieldHolder<>(cls);
+    public FullFieldHolder(Class cls) {
+        staticHolder = new FieldHolder(cls, true);
+        localHolder = new FieldHolder(cls);
     }
 
     public FieldHolder getStatic() {
@@ -27,7 +27,7 @@ public class FullFieldHolder<T> {
         return localHolder;
     }
     
-    public Class<T> getFromClass(){
+    public Class getFromClass(){
         return localHolder.getFromClass();
     }
 

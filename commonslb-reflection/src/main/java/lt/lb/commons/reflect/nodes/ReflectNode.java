@@ -56,7 +56,7 @@ public class ReflectNode {
         if (!isNull() && clz.isInterface()) { //get true class
             realClass = ob.getClass();
         }
-        holder = new FullFieldHolder<>(realClass);
+        holder = new FullFieldHolder(realClass);
         if (references != null) {
             this.references = references;
         }
@@ -74,7 +74,6 @@ public class ReflectNode {
         try {
             populate();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
 
@@ -128,7 +127,6 @@ public class ReflectNode {
                     } else {
                         if (this.references.contains(value)) {
                             ReflectNode get = this.references.get(value);
-//                            Log.print("Found equal ref", f);
                             if (!get.repeated) {
                                 get.repeated = true;
                             }
@@ -191,7 +189,7 @@ public class ReflectNode {
     public static interface NodeVisitor extends Lambda.L2<Map<String, ReflectNode>, Map.Entry<String, ReflectNode>> {
     }
 
-    public static interface NodeGetter extends Function<ReflectNode, Map<String, ReflectNode>> {
+    public static interface NodeGetter extends Lambda.L1R<ReflectNode, Map<String, ReflectNode>> {
     }
 
     private static NodeVisitor putIfAbsentVisitor = (map, entry) -> {

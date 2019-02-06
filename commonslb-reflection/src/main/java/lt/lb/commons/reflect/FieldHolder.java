@@ -1,28 +1,22 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.reflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
+import lt.lb.commons.F;
 
 /**
  *
  * @author laim0nas100
  */
-public class FieldHolder<T> {
-    
-    public static class FieldMap extends HashMap<String, Field> {
-    
-}
+public class FieldHolder {
 
-    private Class<T> cls;
+    public static class FieldMap extends HashMap<String, Field> {
+
+    }
+
+    private Class cls;
 
     private boolean populated = false;
     private FieldMap publicFields = new FieldMap();
@@ -31,12 +25,12 @@ public class FieldHolder<T> {
     private FieldMap privateFields = new FieldMap();
     private boolean scanStatic = false;
 
-    public FieldHolder(Class<T> clz, boolean scanStatic) {
+    public FieldHolder(Class clz, boolean scanStatic) {
         this.cls = clz;
         this.scanStatic = scanStatic;
     }
 
-    public FieldHolder(Class<T> clz) {
+    public FieldHolder(Class clz) {
         this(clz, false);
     }
 
@@ -96,12 +90,11 @@ public class FieldHolder<T> {
 
     public FieldMap getFieldsWith(Predicate<Field> pred) {
         FieldMap fields = new FieldMap();
-        Set<Map.Entry<String, Field>> entrySet = this.getFields().entrySet();
-        for (Map.Entry<String, Field> entry : entrySet) {
-            if (pred.test(entry.getValue())) {
-                fields.put(entry.getKey(), entry.getValue());
+        F.iterate(this.getFields(), (name, field) -> {
+            if (pred.test(field)) {
+                fields.put(name, field);
             }
-        }
+        });
         return fields;
 
     }
@@ -111,15 +104,7 @@ public class FieldHolder<T> {
     }
 
     public static Predicate<Field> createPredicateFilter(Class... classes) {
-        return (Field f) -> {
-            Class type = f.getType();
-            for (Class cls : classes) {
-                if (cls.equals(type)) {
-                    return true;
-                }
-            }
-            return false;
-        };
+        return (Field f) -> F.find(classes, (i, cl) -> f.getType().equals(cl)).isPresent();
     }
 
 }

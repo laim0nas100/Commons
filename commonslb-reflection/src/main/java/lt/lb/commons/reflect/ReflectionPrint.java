@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.reflect;
 
 import lt.lb.commons.reflect.nodes.ReflectNode;
@@ -25,6 +20,7 @@ public class ReflectionPrint {
 
     private FieldFactory fac = new DefaultFieldFactory();
     private ILineAppender log;
+    private String indentAppend = " ";
 
     private Map<Class, Function<?, String>> customPrint = new HashMap<>();
 
@@ -70,44 +66,55 @@ public class ReflectionPrint {
     }
 
     public String dump(Object ob) {
+        
         return keepPrinting(fac.newReflectNode(ob));
     }
 
     private String keepPrinting(ReflectNode node) {
         LineStringBuilder sb = new LineStringBuilder();
-
-        keepPrinting(node, "", this.log, new ReferenceCounter<>());
+        StringBuilderActions.ILineAppender ap = new StringBuilderActions.ILineAppender(){
+            @Override
+            public ILineAppender appendLine(Object... objs) {
+                sb.appendLine(objs);
+                log.appendLine(objs);
+                return this;
+            }
+        };
+        
+        ap.appendLine("<root>");
+        keepPrinting(node, "", ap, new ReferenceCounter<>());
+        ap.appendLine("</root>");
         return sb.toString();
     }
 
     private void keepPrinting(ReflectNode node, String indent, StringBuilderActions.ILineAppender sb, ReferenceCounter<Boolean> refCounter) {
         if (node.isNull()) {
-            sb.appendLine(indent, node.getName(), " is null");
+            sb.appendLine(indent + node.getName() + " is null");
             return;
         }
 
         Map<String, ReflectNode> allValues = node.getAllValues();
 
         if (allValues.isEmpty()) {
-            sb.appendLine(indent, node.getName(), " <v> </v>");
+            sb.appendLine(indent + node.getName() + " <v> </v>");
         } else {
-            sb.appendLine(indent, node.getName(), " <v>");
+            sb.appendLine(indent + node.getName() + " <v>");
 
             F.iterate(node.getAllValuesKeys(), (i, key) -> {
                 ReflectNode value = allValues.get(key);
-                sb.appendLine(indent, "  ", formatValue(value));
+                sb.appendLine(indent + indentAppend + formatValue(value));
             });
 
-            sb.appendLine(indent, node.getName(), " </v>");
+            sb.appendLine(indent + node.getName() + " </v>");
         }
 
         Map<String, ReflectNode> allChildren = node.getAllChildren();
 
         if (allChildren.isEmpty()) {
-            sb.appendLine(indent, node.getName(), " <c> </c>");
+            sb.appendLine(indent + node.getName() + " <c> </c>");
         } else {
-            sb.appendLine(indent, node.getName(), " <c>");
-            F.find(node.getAllChildrenKeys(), (i, key) -> {
+            sb.appendLine(indent + node.getName() + " <c>");
+            F.find(node.getAllChildrenKeys(), (i, key) -> { // using return to break early
 
                 ReflectNode childNode = allChildren.get(key);
 
@@ -127,12 +134,11 @@ public class ReflectionPrint {
 
                     keepOnPrinting = false;
                 } else if (childNode instanceof FinalReflectNode) {
-                    sb.appendLine(indent, "  ", formatValue(childNode));
+                    sb.appendLine(indent + indentAppend + formatValue(childNode));
                     return false;
                 }
-//
-                
-                if(keepOnPrinting){
+
+                if (keepOnPrinting) {
                     if (this.customPrint.containsKey(childNode.getRealClass())) {
                         sb.appendLine(this.formatValue(childNode, this.customPrint.get(childNode.getRealClass())));
                         return false;
@@ -144,10 +150,7 @@ public class ReflectionPrint {
                 }
                 sb.appendLine(indent + childNode.getName() + suff);
                 if (keepOnPrinting) {
-
-                    
-
-                    keepPrinting(childNode, indent + "  ", sb, refCounter);
+                    keepPrinting(childNode, indent + indentAppend, sb, refCounter);
                 }
                 return false;
             });

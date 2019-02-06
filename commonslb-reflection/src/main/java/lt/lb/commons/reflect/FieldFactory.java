@@ -14,13 +14,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.F;
-import sun.misc.Unsafe;
 
 /**
  *
@@ -37,6 +37,7 @@ public abstract class FieldFactory {
     private static final HashSet<Class> JVM_IMMUTABLE_SET = new HashSet<>(Arrays.asList(JVM_IMMUTABLE_TYPES));
     public static final Predicate<Class> isJVMImmutable = (Class cls) -> {
 //        return cls.isPrimitive() || JVM_IMMUTABLE_SET.contains(cls);
+
         return cls.isPrimitive() || ArrayOp.any(Predicate.isEqual(cls), JVM_IMMUTABLE_TYPES);
     };
 
@@ -310,13 +311,16 @@ public abstract class FieldFactory {
 
         boolean isAbstract = Modifier.isAbstract(cls.getModifiers());
         if (isAbstract) {
-            throw new IllegalArgumentException("Cant initialize abstract class " + cls.getName());
+            throw new IllegalArgumentException("Can't initialize an abstract class " + cls.getName());
         }
         if (cls.isInterface()) {
-            throw new IllegalArgumentException("Cant initialize interface " + cls.getName() + " pass implementation class");
+            throw new IllegalArgumentException("Can't initialize an interface " + cls.getName() + " pass implementation class");
         }
         if (cls.isEnum()) {
-            throw new IllegalArgumentException("Cant initialize enum " + cls.getName());
+            throw new IllegalArgumentException("Can't initialize an enum " + cls.getName());
+        }
+        if (cls.isArray()) {
+            throw new IllegalArgumentException("Can't initialize an array " + cls.getName() +" consider using Array::newInstance");
         }
         Object newInstance = null;
 
@@ -331,8 +335,7 @@ public abstract class FieldFactory {
         // sort by lower parameter constructor first
         Arrays.sort(declaredConstructors, (o1, o2) -> o1.getParameterCount() - o2.getParameterCount());
 
-        for (int i = 0; i < declaredConstructors.length; i++) {
-            Constructor<?> cons = declaredConstructors[i];
+        for (Constructor<?> cons : declaredConstructors) {
             cons.setAccessible(true);
 
             int argCount = cons.getParameterCount();
@@ -356,11 +359,11 @@ public abstract class FieldFactory {
                 if (newInstance != null) {
 //                    log.appendLine("We good");
                     if (this.cacheConstructors) {
-                        this.cacheOfClassConstructors.put(cls, (IClassConstructor) () -> {
+                        this.cacheOfClassConstructors.put(cls, () -> {
                             try {
                                 return cons.newInstance(constArray);
                             } catch (Exception e) {
-                                throw new RuntimeException(cons.toString() + " has failed now, but was good before??1!");
+                                throw new RuntimeException(cons.toString() + " has failed now, but was good before?. Should not happen");
                             }
                         });
                     }
@@ -371,25 +374,17 @@ public abstract class FieldFactory {
             }
         }
 
-        try {
+        if (this.unsafeAllocator != null) {
             // THE USAFE
 //            log.appendLine("Try with unsafe");
-            newInstance = getUnsafe().allocateInstance(cls);
+            newInstance = this.unsafeAllocator.apply(cls);
             if (this.cacheConstructors) {
-                this.cacheOfClassConstructors.put(cls,
-                        (IClassConstructor) () -> {
-                            try {
-                                return getUnsafe().allocateInstance(cls);
-                            } catch (Exception e) {
-                                throw new RuntimeException("Unsafe has failed now, but was good before??1!");
-                            }
-                        });
+                this.cacheOfClassConstructors.put(cls, () -> this.unsafeAllocator.apply(cls));
             }
-
             return (T) newInstance;
-        } catch (InstantiationException ex) {
         }
-        throw new IllegalStateException("Failed to instantiate class " + cls.getName() + " consider adding ClassConstructor");
+
+        throw new IllegalStateException("Failed to instantiate class " + cls.getName() + " consider adding IClassConstructor");
     }
 
     public boolean isInitializable(Class cls) {
@@ -411,8 +406,6 @@ public abstract class FieldFactory {
 
     private IFieldResolver getResolverByField(Class fieldType, Field f, boolean defer) {
 //        log.appendLine("Get resolver by field", fieldType, f);
-
-        
 
         Supplier<IFieldResolver> frSupp = () -> {
 
@@ -454,13 +447,13 @@ public abstract class FieldFactory {
 
             return fr;
         };
-        
+
         //TODO maybe cache primitive resolvers, with [class + fieldName]?
         if (this.useFieldCache && !defer) {
             return this.cacheOfFields.get(f, k -> frSupp.get());
         }
         return frSupp.get();
-                
+
     }
 
     private IFieldResolver recursiveResolverCached(final Class startingClass) {
@@ -487,6 +480,7 @@ public abstract class FieldFactory {
     protected Map<Class, IClassConstructor> predefinedClassConstructors = new HashMap<>();
     protected Set<Class> immutableTypes = new HashSet<>();
 
+    protected Function<Class, ?> unsafeAllocator = UnsafeProvider.getUnsafeAllocator();
     protected Cache<Field, IFieldResolver> cacheOfFields = Caffeine.newBuilder().build();
     protected Cache<Class, FieldHolder> cacheOfFieldHolders = Caffeine.newBuilder().build();
     protected Cache<Class, IFieldResolver> cacheOfFieldResolvers = Caffeine.newBuilder().build();
@@ -496,22 +490,6 @@ public abstract class FieldFactory {
     public boolean useCache = true;
     public boolean useFieldCache = true;
     public boolean cacheConstructors = true;
-
-    private static Unsafe THE_UNSAFE = null;
-
-    public static Unsafe getUnsafe() {
-        try {
-            if (THE_UNSAFE == null) {
-                Constructor<Unsafe> declaredConstructor = Unsafe.class.getDeclaredConstructor();
-                declaredConstructor.setAccessible(true);
-                THE_UNSAFE = declaredConstructor.newInstance();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return THE_UNSAFE;
-
-    }
 
     public <T> T reflectionClone(T source) throws Exception {
         Class<T> cls = (Class<T>) source.getClass();
