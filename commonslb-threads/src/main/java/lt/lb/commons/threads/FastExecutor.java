@@ -1,10 +1,8 @@
 package lt.lb.commons.threads;
 
-import java.io.Closeable;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
