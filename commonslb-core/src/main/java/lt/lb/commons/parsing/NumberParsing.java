@@ -8,7 +8,7 @@ import java.util.Optional;
  */
 public class NumberParsing {
 
-    public Optional<Long> parseLong(boolean unsigned, int radix, String str) {
+    public static Optional<Long> parseLong(boolean unsigned, int radix, String str) {
         try {
             if (unsigned) {
                 return Optional.of(Long.parseUnsignedLong(str, radix));
@@ -20,11 +20,11 @@ public class NumberParsing {
         }
     }
 
-    public Optional<Long> parseLong(String str) {
+    public static Optional<Long> parseLong(String str) {
         return parseLong(false, 10, str);
     }
 
-    public Optional<Integer> parseInt(boolean unsigned, int radix, String str) {
+    public static Optional<Integer> parseInt(boolean unsigned, int radix, String str) {
         try {
             if (unsigned) {
                 return Optional.of(Integer.parseInt(str, radix));
@@ -36,11 +36,11 @@ public class NumberParsing {
         }
     }
 
-    public Optional<Integer> parseInt(String str) {
+    public static Optional<Integer> parseInt(String str) {
         return parseInt(false, 10, str);
     }
 
-    public Optional<Double> parseDouble(String str) {
+    public static Optional<Double> parseDouble(String str) {
         try {
             return Optional.of(Double.parseDouble(str));
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public class NumberParsing {
         }
     }
 
-    public Optional<Float> parseFloat(String str) {
+    public static Optional<Float> parseFloat(String str) {
         try {
             return Optional.of(Float.parseFloat(str));
         } catch (Exception e) {
