@@ -1,5 +1,6 @@
 package lt.lb.commons;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -119,6 +120,13 @@ public class SafeOpt<T> {
             }
             return SafeOpt.empty();
         }
+    }
+
+    public T get() {
+        if(isPresent()){
+            return val;
+        }
+        throw new NoSuchElementException("No value present");
     }
 
     public T orElse(T other) {
