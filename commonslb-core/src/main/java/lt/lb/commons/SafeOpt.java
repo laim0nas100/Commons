@@ -105,6 +105,22 @@ public class SafeOpt<T> {
         }
     }
 
+    public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
+        Objects.requireNonNull(mapper);
+        if (!isPresent()) {
+            return SafeOpt.empty();
+        } else {
+            try {
+                SafeOpt<U> apply = SafeOpt.ofOptional(mapper.apply(val));
+                if (apply != null) {
+                    return apply;
+                }
+            } catch (Throwable t) {
+            }
+            return SafeOpt.empty();
+        }
+    }
+
     public T orElse(T other) {
         return val != null ? val : other;
     }
