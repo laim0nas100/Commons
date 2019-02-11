@@ -10,13 +10,10 @@ import java.util.function.Supplier;
  */
 public class LazyValue<T> extends Value<T> {
 
-    private boolean loaded = false;
-    private Supplier<T> supply;
+    protected long loaded = Long.MAX_VALUE;
+    protected Supplier<Boolean> loader = () -> System.nanoTime() >= loaded;
+    protected Supplier<T> supply;
 
-    public static <T> LazyValue<T> of(Supplier<T> sup){
-        return new LazyValue<>(sup);
-    }
-    
     public LazyValue(Supplier<T> supply) {
         this.supply = supply;
     }
@@ -27,16 +24,20 @@ public class LazyValue<T> extends Value<T> {
 
     @Override
     public void set(T val) {
-        loaded = true;
-        super.set(val); 
+        loaded = System.nanoTime();
+        super.set(val);
     }
 
     @Override
     public T get() {
-        if (!loaded) {
+        if (!loader.get()) {
             this.set(supply.get());
         }
-        return super.get(); 
+        return super.get();
     }
     
+    public void invalidate(){
+        loaded = Long.MAX_VALUE;
+    }
+
 }
