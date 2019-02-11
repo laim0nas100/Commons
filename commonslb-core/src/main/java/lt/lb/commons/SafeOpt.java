@@ -16,6 +16,21 @@ import java.util.function.Supplier;
  */
 public class SafeOpt<T> {
 
+    @FunctionalInterface
+    public interface UnsafeFunction<P, R> extends Function<P, R> {
+
+        public R applyUnsafe(P t) throws Exception;
+
+        @Override
+        public default R apply(P t) {
+            try {
+                return applyUnsafe(t);
+            } catch (Throwable e) {
+                return null;
+            }
+        }
+    }
+
     private final T val;
 
     private static final SafeOpt<?> empty = new SafeOpt<>();
@@ -90,6 +105,15 @@ public class SafeOpt<T> {
         }
     }
 
+    public <U> SafeOpt<U> map(UnsafeFunction<? super T, ? extends U> mapper) {
+        Objects.requireNonNull(mapper);
+        if (!isPresent()) {
+            return empty();
+        } else {
+            return SafeOpt.ofNullable(mapper.apply(val));
+        }
+    }
+
     public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent()) {
@@ -123,7 +147,7 @@ public class SafeOpt<T> {
     }
 
     public T get() {
-        if(isPresent()){
+        if (isPresent()) {
             return val;
         }
         throw new NoSuchElementException("No value present");
