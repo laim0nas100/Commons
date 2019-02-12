@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.LazyValue;
 import lt.lb.commons.containers.StringValue;
-import lt.lb.commons.interfaces.ReadOnlyIterator;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.threads.CloseableExecutor;
 import lt.lb.commons.threads.FastWaitingExecutor;
