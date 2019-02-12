@@ -9,9 +9,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import lt.lb.commons.containers.BooleanValue;
 import lt.lb.commons.containers.IntegerValue;
-import lt.lb.commons.containers.NumberValue;
 import lt.lb.commons.containers.StringValue;
-import lt.lb.commons.interfaces.ReadOnlyIterator;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
  *
@@ -257,6 +256,11 @@ public class CommentParser {
             @Override
             public Integer getCurrentIndex() {
                 return i.get();
+            }
+
+            @Override
+            public void close() {
+                lines.close();
             }
         };
         return iter;

@@ -10,10 +10,10 @@ import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Equator.HashEquator;
-import lt.lb.commons.interfaces.Iter;
-import lt.lb.commons.interfaces.Iter.IterMap;
-import lt.lb.commons.interfaces.Iter.IterMapNoStop;
-import lt.lb.commons.interfaces.ReadOnlyIterator;
+import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.Iter.IterMap;
+import lt.lb.commons.iteration.Iter.IterMapNoStop;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.threads.Promise;
 import lt.lb.commons.threads.UnsafeRunnable;
 
@@ -357,9 +357,9 @@ public class F {
         ListIterator<T> iterator = list.listIterator(from);
         while (iterator.hasPrevious()) {
             T next = iterator.previous();
-                if (iter.visit(from, next)) {
-                    return Optional.of(new Tuple<>(from, next));
-                }
+            if (iter.visit(from, next)) {
+                return Optional.of(new Tuple<>(from, next));
+            }
             from--;
         }
         return Optional.empty();
@@ -406,7 +406,7 @@ public class F {
         }
         return Optional.empty();
     }
-    
+
     public static <T> Optional<Tuple<Integer, T>> find(List<T> list, Iter<T> iter) {
         return find(list, 0, iter);
     }
@@ -414,7 +414,7 @@ public class F {
     public static <T> Optional<Tuple<Integer, T>> find(Collection<T> list, Integer from, Iter<T> iter) {
         return find(ReadOnlyIterator.of(list), from, iter);
     }
-    
+
     public static <T> Optional<Tuple<Integer, T>> find(Collection<T> list, Iter<T> iter) {
         return find(list, 0, iter);
     }
