@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public interface ExFolder<T extends FileAttributeView> extends ExPath<T> {
 

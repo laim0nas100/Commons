@@ -1,5 +1,6 @@
 package lt.lb.commons.io.ffs.windowsffs;
 
+import lt.lb.commons.io.ffs.basicffs.BasicFFS;
 import java.nio.file.Files;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.DosFileAttributes;

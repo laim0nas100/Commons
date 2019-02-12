@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
-import lt.lb.commons.interfaces.ReadOnlyIterator;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.parsing.CommentParser;
 
 /**
@@ -52,14 +52,14 @@ public class FileReader {
     public static void writeToFile(String URL, Collection<String> list) throws FileNotFoundException, UnsupportedEncodingException {
         writeToFile(URL, ReadOnlyIterator.of(list));
     }
-    
-    public static void writeToFile(String URL,ReadOnlyIterator<String> lines) throws FileNotFoundException, UnsupportedEncodingException {
-        try (PrintWriter out = new PrintWriter(URL, "UTF-8")) {
-            for (String line : lines) {
+
+    public static void writeToFile(String URL, ReadOnlyIterator<String> lines) throws FileNotFoundException, UnsupportedEncodingException {
+        try (PrintWriter out = new PrintWriter(URL, "UTF-8");
+                ReadOnlyIterator<String> ln = lines) {
+            for (String line : ln) {
                 out.println(line);
             }
         }
     }
-    
-    
+
 }

@@ -6,6 +6,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.attribute.FileAttributeView;
 import java.util.Date;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  *
@@ -38,4 +39,8 @@ public interface FFS<T extends FileAttributeView> {
     public ExFolder<T> getVirtualRoot();
 
     public String getSeparator();
+    
+    public Stream<ExPath<T>> getDirectoryStream(ExPath<T> path);
+    
+    public ExPath<T> buildPath(String str);
 }
