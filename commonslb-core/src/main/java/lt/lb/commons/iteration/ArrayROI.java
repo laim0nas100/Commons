@@ -19,7 +19,7 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
 
     @Override
     public T previous() {
-        T val = array[index--];
+        T val = array[--index];
         return setCurrent(val);
     }
 
@@ -30,7 +30,7 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
 
     @Override
     public T next() {
-        T val = array[index++];
+        T val = array[++index];
         return setCurrent(val);
     }
 
