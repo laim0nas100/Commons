@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lt.lb.commons.threads;
+package lt.lb.commons.javafx;
 
+import lt.lb.commons.javafx.DynamicTaskExecutor;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.Callable;

@@ -1,4 +1,4 @@
-package lt.lb.commons.containers;
+package lt.lb.commons.javafx;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +8,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import lt.lb.commons.containers.Value;
 
 import lt.lb.commons.interfaces.ValueProxy;
 

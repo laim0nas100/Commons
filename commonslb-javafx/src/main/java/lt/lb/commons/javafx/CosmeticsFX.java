@@ -11,8 +11,6 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.*;
-import lt.lb.commons.threads.ExtTask;
-import lt.lb.commons.threads.TimeoutTask;
 import lt.lb.commons.threads.sync.UninterruptibleReadWriteLock;
 
 /**

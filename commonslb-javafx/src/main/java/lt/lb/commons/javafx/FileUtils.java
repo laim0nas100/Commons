@@ -1,4 +1,4 @@
-package lt.lb.commons.io;
+package lt.lb.commons.javafx;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;
@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import lt.lb.commons.threads.ExtTask;
 
 /**
  *
