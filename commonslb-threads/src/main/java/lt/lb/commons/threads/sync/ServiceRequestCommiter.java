@@ -17,8 +17,9 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
     protected long requestThreshold;
     protected AtomicReference<Future<T>> lastCommitTask = new AtomicReference<>(Futures.empty());
 
-    public ServiceRequestCommiter(ScheduledExecutorService service, WaitTime time, Callable<T> run, Executor exe) {
+    public ServiceRequestCommiter(ScheduledExecutorService service, WaitTime time, Callable<T> run, long requestThreshold, Executor exe) {
         super(service, time, run, exe);
+        this.requestThreshold = requestThreshold;
     }
 
     @Override
