@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lt.lb.commons.threads;
+package lt.lb.commons.javafx;
 
 import java.util.HashMap;
 import java.util.concurrent.Callable;

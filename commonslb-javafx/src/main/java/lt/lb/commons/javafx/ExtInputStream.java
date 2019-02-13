@@ -1,4 +1,4 @@
-package lt.lb.commons.io;
+package lt.lb.commons.javafx;
 
 import java.io.IOException;
 import java.io.InputStream;

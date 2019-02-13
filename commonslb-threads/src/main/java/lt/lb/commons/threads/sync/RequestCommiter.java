@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads.sync;
 
 import java.util.concurrent.Callable;
@@ -15,9 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.F;
 
 /**
- *
+ * Use ServiceRequestCommiter
  * @author laim0nas100
  */
+@Deprecated
 public class RequestCommiter<T> {
 
     protected final AtomicInteger pendingRequests = new AtomicInteger(0);

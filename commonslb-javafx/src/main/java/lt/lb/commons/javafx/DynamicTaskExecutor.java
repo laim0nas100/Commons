@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package lt.lb.commons.threads;
+package lt.lb.commons.javafx;
 
+import lt.lb.commons.javafx.ExtTask;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
+import lt.lb.commons.threads.TaskProvider;
 
 /**
  *
