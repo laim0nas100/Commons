@@ -1,6 +1,5 @@
 package refletiontests;
 
-
 import com.rits.cloning.Cloner;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +74,7 @@ public class ReflectTest {
 
     static class CCls2Override extends CClsOverride {
 
+        public Runnable r; 
         public Float protFloat = null;
         public Integer[] intArray = new Integer[]{1, 2, 3};
         public double[] dubArray = new double[]{9, 8, 7};
@@ -188,34 +188,38 @@ public class ReflectTest {
         CCls2Override c1 = new CCls2Override(0);
         c1.dubArray[0] = -1;
         c1.change(50f);
+        c1.next = c1;
+        c1.r = () -> Log.print("WE RUN NOW");
 
         DefaultFieldFactory factory = new DefaultFieldFactory();
         Log.main().async = false;
         rp.dump(c1);
 
         CCls2Override c2 = factory.reflectionClone(c1);
-//        rp.dump("");
+
+        Log.println(ArrayOp.replicate(5, ""));
+
         rp.dump(c2);
         
-         PureReflectNode node = new PureReflectNode(new HashMap<>(),CCls2Override.class);
-        EField root = EField.fromCompositeRoot(node);
-        print("",root,3);
-        
-        
+        c2.r.run();
+
+//         PureReflectNode node = new PureReflectNode(new HashMap<>(),CCls2Override.class);
+//        EField root = EField.fromCompositeRoot(node);
+//        print("",root,3);
     }
-    
-    public static void print(String append, EField f, int limit){
-        if(limit <= 0){
+
+    public static void print(String append, EField f, int limit) {
+        if (limit <= 0) {
             return;
         }
-        Log.print(append,f.getName(),f.isComposite());
-        
-        for(EField child:f.getChildren()){
-            print(append+"*",child,limit -1);
+        Log.print(append, f.getName(), f.isComposite());
+
+        for (EField child : f.getChildren()) {
+            print(append + "*", child, limit - 1);
         }
         EField shadow = f.getShadowed();
-        while(shadow!=null){
-            print(append+"-",shadow,limit);
+        while (shadow != null) {
+            print(append + "-", shadow, limit);
             shadow = shadow.getShadowed();
         }
     }
@@ -322,14 +326,13 @@ public class ReflectTest {
         Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
         Log.print(b.executeBench(times, "Factory", ArrayOp.replicate(threads, useFactory)));
 
-        
         Log.print("BREAK BOISS 2");
         System.gc();
         Log.print("BREAK OVER BOISS");
-        
-Log.print(b.executeBench(times, "Factory", ArrayOp.replicate(threads, useFactory)));
+
+        Log.print(b.executeBench(times, "Factory", ArrayOp.replicate(threads, useFactory)));
         Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
-        
+
 //        for (int i = 0; i < 100000; i++) {
 //            clone = cloner.deepClone(clone);
 //            buffer = cloner.deepClone(buffer);

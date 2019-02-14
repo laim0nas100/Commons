@@ -1,7 +1,6 @@
 package lt.lb.commons.javafx;
 
 import java.util.*;
-import javafx.application.Platform;
 import javafx.beans.binding.*;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -216,7 +215,7 @@ public class CosmeticsFX {
                 protected Object call() throws Exception {
                     try {
                         do {
-                            Platform.runLater(run);
+                            FX.submit(run);
                             Thread.sleep(500);
                         } while (!this.canceled.get());
                     } catch (InterruptedException e) {

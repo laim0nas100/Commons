@@ -25,11 +25,11 @@ public class NestedTaskSubmitionExecutorLayer implements Executor {
     @Override
     public void execute(Runnable command) {
         if (inside.get()) {
-            F.checkedRun(command::run);
+            F.checkedRun(command);
         } else {
             exe.execute(() -> {
                 inside.set(true);
-                F.checkedRun(command::run);
+                F.checkedRun(command);
                 inside.set(false);
             });
         }
