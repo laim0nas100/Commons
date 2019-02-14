@@ -6,7 +6,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-import lt.lb.commons.threads.Futures;
 
 /**
  *
@@ -15,7 +14,7 @@ import lt.lb.commons.threads.Futures;
 public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
 
     protected long requestThreshold;
-    protected AtomicReference<Future<T>> lastCommitTask = new AtomicReference<>(Futures.empty());
+    protected AtomicReference<TimeAwareFutureTask<T>> lastCommitTask = new AtomicReference<>(new TimeAwareFutureTask<>());
 
     public ServiceRequestCommiter(ScheduledExecutorService service, WaitTime time, Callable<T> run, long requestThreshold, Executor exe) {
         super(service, time, run, exe);
@@ -29,17 +28,11 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
         }
     }
 
-    @Override
-    public void update() {
-        super.update();
-    }
-
     public void addRequest() {
         update();
         if (requests.get() >= requestThreshold) {
             commit();
         }
-
     }
 
     public void commit(boolean wait) throws InterruptedException, ExecutionException {
@@ -51,12 +44,23 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
     }
 
     public Future<T> commit() {
+        long now = System.nanoTime();
         if (requests.get() <= 0) {
+            requests.set(0);
             return lastCommitTask.get();
         }
         requests.set(0);
-        Future<T> newFuture = executeNow();
-        lastCommitTask.set(newFuture);
+        TimeAwareFutureTask<T> lastTask = lastCommitTask.get();
+
+        if (lastTask.isDone() && lastTask.finishedAtNanos() > now) {
+            return lastTask;
+
+        }
+        if (lastTask.startAtNanos() > now) {
+            return lastTask;
+        }
+        TimeAwareFutureTask executeNow = executeNow();
+        lastCommitTask.set(executeNow);
         return lastCommitTask.get();
     }
 }

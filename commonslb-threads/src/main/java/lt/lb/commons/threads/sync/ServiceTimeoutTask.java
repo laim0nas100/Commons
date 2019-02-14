@@ -70,9 +70,9 @@ public class ServiceTimeoutTask<V> {
 
     }
 
-    protected Future<V> executeNow() {
-        FutureTask<V> of = Futures.of(call);
-        exe.execute(of);
-        return of;
+    protected TimeAwareFutureTask<V> executeNow() {
+        TimeAwareFutureTask<V> task = new TimeAwareFutureTask<>(call);
+        exe.execute(task);
+        return task;
     }
 }
