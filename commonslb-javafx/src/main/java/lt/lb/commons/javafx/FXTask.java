@@ -46,7 +46,7 @@ public abstract class FXTask extends Task {
 
     public void runOnPlatform() {
 //        new Thread( ()->{
-        Platform.runLater(this);
+        FX.submit(this);
 //        }).start();
 
     }
