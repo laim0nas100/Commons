@@ -22,7 +22,7 @@ public class WekaDefaultParsers {
         public String typeInfo();
     }
 
-    public static WekaTransformer defaultBoolean = new WekaTransformer() {
+    public static WekaTransformer<Boolean> defaultBoolean = new WekaTransformer() {
         @Override
         public String asString(Object obj) {
             Boolean b = F.cast(obj);
@@ -30,7 +30,7 @@ public class WekaDefaultParsers {
         }
 
         @Override
-        public Object asObject(String str) {
+        public Boolean asObject(String str) {
             return Boolean.parseBoolean(str);
         }
 
@@ -40,7 +40,7 @@ public class WekaDefaultParsers {
         }
     };
 
-    public static WekaTransformer defaultDouble = new WekaTransformer() {
+    public static WekaTransformer<Double> defaultDouble = new WekaTransformer() {
         @Override
         public String asString(Object obj) {
             Number n = F.cast(obj);
@@ -48,7 +48,7 @@ public class WekaDefaultParsers {
         }
 
         @Override
-        public Object asObject(String str) {
+        public Double asObject(String str) {
             return Double.parseDouble(str);
         }
 
@@ -58,14 +58,14 @@ public class WekaDefaultParsers {
         }
     };
 
-    public static WekaTransformer defaultString = new WekaTransformer() {
+    public static WekaTransformer<String> defaultString = new WekaTransformer() {
         @Override
         public String asString(Object obj) {
             return obj.toString();
         }
 
         @Override
-        public Object asObject(String str) {
+        public String asObject(String str) {
             return str;
         }
 
@@ -75,7 +75,7 @@ public class WekaDefaultParsers {
         }
     };
 
-    public static WekaTransformer defaultDate(String dateFormat) {
+    public static WekaTransformer<Date> defaultDate(String dateFormat) {
 
         return new WekaTransformer() {
             SimpleDateFormat format = new SimpleDateFormat(dateFormat);
@@ -86,7 +86,7 @@ public class WekaDefaultParsers {
             }
 
             @Override
-            public Object asObject(String str) {
+            public Date asObject(String str) {
                 Value<Date> ob= new Value<>();
                 F.unsafeRun(()->{
                     ob.set(format.parse(str));
@@ -101,7 +101,7 @@ public class WekaDefaultParsers {
         };
     }
 
-    public static WekaTransformer defaultEnum(Class<Enum> enumType) {
+    public static <T extends Enum> WekaTransformer<T> defaultEnum(Class<T> enumType) {
 
         return new WekaTransformer() {
             @Override
@@ -109,9 +109,9 @@ public class WekaDefaultParsers {
                 Enum e = F.cast(obj);
                 return e.name();
             }
-
+            
             @Override
-            public Object asObject(String str) {
+            public Enum asObject(String str) {
                 return Enum.valueOf(enumType, str);
             }
 
@@ -119,14 +119,21 @@ public class WekaDefaultParsers {
             public String typeInfo() {
 
                 EnumSet allOf = EnumSet.allOf(enumType);
-                LineStringBuilder sb = new LineStringBuilder();
+                StringBuilder sb = new StringBuilder();
 
+                boolean first = true;
+                sb.append("{");
                 for (Object en : allOf) {
                     Enum e = F.cast(en);
-                    sb.append(",").append(e.name());
+                    if(first){
+                        first = false;
+                        sb.append(e.name());
+                    }else{
+                        sb.append(",").append(e.name());
+                    }
+                    
                 }
-                sb.removeFromStart(1);
-                sb.prepend("{").append("}");
+                sb.append("}");
                 return sb.toString();
             }
         };

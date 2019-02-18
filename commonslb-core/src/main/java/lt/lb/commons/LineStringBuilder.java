@@ -1,25 +1,33 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons;
 
 import lt.lb.commons.interfaces.StringBuilderActions.ILineStringBuilder;
 
 /**
  *
+ * String builder that supports adding lines. Default line ending is \n
+ *
  * @author laim0nas100
  */
-public class LineStringBuilder implements CharSequence, ILineStringBuilder {
+public class LineStringBuilder implements java.io.Serializable, Comparable<LineStringBuilder>, CharSequence, ILineStringBuilder, Appendable {
 
-    private StringBuilder sb = new StringBuilder();
-    public static final String LINE_END = "\n";
+    private final StringBuilder sb;
+    public final String lineEnding;
+    public static final String UNIX_LINE_END = "\n";
+    public static final String DOS_LINE_END = "\r\n";
+
+    public LineStringBuilder(String lineEnding) {
+        this.lineEnding = lineEnding;
+        this.sb = new StringBuilder();
+    }
+
+    public LineStringBuilder() {
+        this(UNIX_LINE_END);
+    }
 
     @Override
     public LineStringBuilder appendLine(Object... objects) {
         this.append(objects);
-        sb.append(LINE_END);
+        sb.append(lineEnding);
         return this;
     }
 
@@ -31,6 +39,7 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
         return this;
     }
 
+    @Override
     public LineStringBuilder append(CharSequence s, int start, int end) {
         sb.append(s, start, end);
         return this;
@@ -50,7 +59,7 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 
     @Override
     public LineStringBuilder insertLine(int offset, Object... objects) {
-        StringBuilder temp = createBuilderOf(objects).append(LINE_END);
+        StringBuilder temp = createBuilderOf(objects).append(lineEnding);
         sb.insert(offset, temp.toString());
         return this;
     }
@@ -64,7 +73,7 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
 
     @Override
     public LineStringBuilder prependLine(Object... objects) {
-        StringBuilder temp = createBuilderOf(objects).append(LINE_END);
+        StringBuilder temp = createBuilderOf(objects).append(lineEnding);
         sb.insert(0, temp.toString());
         return this;
     }
@@ -106,7 +115,7 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
     }
 
     public LineStringBuilder replace(String str) {
-        return this.replace(0, this.length(), str);
+        return this.replace(0, length(), str);
     }
 
     public LineStringBuilder setCharAt(int index, Character... chars) {
@@ -147,8 +156,8 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
     }
 
     public String clear() {
-        String value = this.toString();
-        this.delete(0, this.length());
+        String value = toString();
+        delete(0, length());
         return value;
     }
 
@@ -166,6 +175,10 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
         sb.trimToSize();
     }
 
+    /**
+     *
+     * @return backing StringBuilder object
+     */
     public StringBuilder getStringBuilder() {
         return sb;
     }
@@ -184,13 +197,30 @@ public class LineStringBuilder implements CharSequence, ILineStringBuilder {
     }
 
     public LineStringBuilder removeFromStart(int length) {
-        return this.delete(0, length);
+        return delete(0, length);
     }
 
     public LineStringBuilder removeFromEnd(int length) {
         int lastChar = this.length();
         int firstChar = lastChar - length;
-        return this.delete(firstChar, lastChar);
+        return delete(firstChar, lastChar);
+    }
+
+    @Override
+    public Appendable append(CharSequence arg0) {
+        sb.append(arg0);
+        return this;
+    }
+
+    @Override
+    public LineStringBuilder append(char arg0) {
+        sb.append(arg0);
+        return this;
+    }
+
+    @Override
+    public int compareTo(LineStringBuilder arg0) {
+        return this.sb.compareTo(arg0.sb);
     }
 
 }
