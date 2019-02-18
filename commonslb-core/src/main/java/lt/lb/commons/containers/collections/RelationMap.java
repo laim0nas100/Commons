@@ -17,6 +17,7 @@ import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -148,7 +149,7 @@ public class RelationMap<K, V> implements Map<K, V> {
             Optional<Rnode<K, V>> iterative = CallOrResult.iterative(0, traverse(r, key));
             return iterative.get();
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new NestedException(ex);
         }
     }
 

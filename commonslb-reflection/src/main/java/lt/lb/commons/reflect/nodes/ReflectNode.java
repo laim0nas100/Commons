@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import lt.lb.commons.Lambda;
+import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.reflect.FieldFactory;
 import lt.lb.commons.reflect.FieldHolder;
 import lt.lb.commons.reflect.FieldHolder.FieldMap;
@@ -74,7 +75,7 @@ public class ReflectNode {
         try {
             populate();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new NestedException(e);
         }
 
         // populate nested children

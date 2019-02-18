@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -26,30 +27,37 @@ public class SafeOpt<T> {
             try {
                 return applyUnsafe(t);
             } catch (Throwable e) {
-                return null;
+                throw new NestedException(e);
             }
         }
     }
 
     private final T val;
 
+    private final Throwable threw;
+
     private static final SafeOpt<?> empty = new SafeOpt<>();
 
     private SafeOpt() {
-        val = null;
+        this(null, null);
     }
 
-    private SafeOpt(T value) {
+    private SafeOpt(T value, Throwable throwable) {
         val = value;
+        threw = throwable;
     }
 
     public static <T> SafeOpt<T> of(T val) {
         Objects.requireNonNull(val);
-        return new SafeOpt(val);
+        return new SafeOpt(val, null);
     }
 
     public static <T> SafeOpt<T> empty() {
         return (SafeOpt<T>) empty;
+    }
+
+    private static <T> SafeOpt<T> empty(Throwable error) {
+        return new SafeOpt<>(null, error);
     }
 
     public static <T> SafeOpt<T> ofNullable(T val) {
@@ -84,40 +92,35 @@ public class SafeOpt<T> {
     }
 
     public SafeOpt<T> filter(Predicate<? super T> predicate) {
-        Objects.requireNonNull(predicate);
+        Objects.requireNonNull(predicate, "Null predicate");
         if (!isPresent()) {
-            return this;
+            return SafeOpt.empty(this.threw);
         } else {
             return predicate.test(val) ? this : empty();
         }
     }
 
     public <U> SafeOpt<U> map(Function<? super T, ? extends U> mapper) {
-        Objects.requireNonNull(mapper);
+        Objects.requireNonNull(mapper, "Null map function");
         if (!isPresent()) {
-            return empty();
+            return SafeOpt.empty(this.threw);
         } else {
             try {
                 return SafeOpt.ofNullable(mapper.apply(val));
             } catch (Throwable t) {
+                return SafeOpt.empty(t);
             }
-            return SafeOpt.empty();
         }
     }
 
     public <U> SafeOpt<U> map(UnsafeFunction<? super T, ? extends U> mapper) {
-        Objects.requireNonNull(mapper);
-        if (!isPresent()) {
-            return empty();
-        } else {
-            return SafeOpt.ofNullable(mapper.apply(val));
-        }
+        return map((Function<T, U>) mapper);
     }
 
     public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent()) {
-            return SafeOpt.empty();
+            return SafeOpt.empty(this.threw);
         } else {
             try {
                 SafeOpt<U> apply = mapper.apply(val);
@@ -125,6 +128,7 @@ public class SafeOpt<T> {
                     return apply;
                 }
             } catch (Throwable t) {
+                return SafeOpt.empty(t);
             }
             return SafeOpt.empty();
         }
@@ -133,7 +137,7 @@ public class SafeOpt<T> {
     public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent()) {
-            return SafeOpt.empty();
+            return SafeOpt.empty(this.threw);
         } else {
             try {
                 SafeOpt<U> apply = SafeOpt.ofOptional(mapper.apply(val));
@@ -141,8 +145,9 @@ public class SafeOpt<T> {
                     return apply;
                 }
             } catch (Throwable t) {
+                return SafeOpt.empty(t);
             }
-            return SafeOpt.empty();
+            return SafeOpt.empty(this.threw);
         }
     }
 
@@ -193,6 +198,10 @@ public class SafeOpt<T> {
         return val != null
                 ? String.format("SafeOpt[%s]", val)
                 : "SafeOpt.empty";
+    }
+
+    public Optional<Throwable> getError() {
+        return Optional.ofNullable(threw);
     }
 
 }

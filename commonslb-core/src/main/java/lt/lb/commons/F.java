@@ -14,6 +14,7 @@ import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.Iter.IterMap;
 import lt.lb.commons.iteration.Iter.IterMapNoStop;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.threads.Promise;
 import lt.lb.commons.threads.UnsafeRunnable;
 
@@ -23,11 +24,11 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
-    public static void unsafeRun(UnsafeRunnable r) throws RuntimeException {
+    public static void unsafeRun(UnsafeRunnable r) throws NestedException {
         try {
             r.unsafeRun();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new NestedException(e);
         }
     }
 

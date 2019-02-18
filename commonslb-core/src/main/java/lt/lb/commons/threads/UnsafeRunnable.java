@@ -6,6 +6,7 @@
 package lt.lb.commons.threads;
 
 import java.util.concurrent.Callable;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -27,7 +28,7 @@ public interface UnsafeRunnable extends Runnable {
         try {
             this.unsafeRun();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new NestedException(e);
         }
     }
 

@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import lt.lb.commons.containers.LazyValue;
 import lt.lb.commons.containers.Value;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.parsing.StringOp;
 
 /**
@@ -41,7 +42,7 @@ public class DefaultLogDecorators {
                     for (Object s : objs) {
                         sb.appendLine(String.valueOf(s));
                     }
-                    sb.removeFromEnd(LineStringBuilder.LINE_END.length());
+                    sb.removeFromEnd(sb.lineEnding.length());
                 }
                 return sb.toString();
             };
@@ -104,7 +105,7 @@ public class DefaultLogDecorators {
                 declaredMethod.setAccessible(true);
                 return declaredMethod;
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new NestedException(e);
             }
         });
 

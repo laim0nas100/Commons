@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lt.lb.commons.ArrayOp;
+import lt.lb.commons.F;
 import lt.lb.commons.Log;
+import lt.lb.commons.SafeOpt;
 import org.junit.Test;
 
 /*
@@ -51,7 +53,12 @@ public class ArrayTest {
 
         Log.print(ArrayOp.replicate(5, Integer.class, () -> 1));
         Log.println(ArrayOp.replicate(3, 1d, 2, 3L));
+        List listu = new ArrayList();
+        
+        SafeOpt<Object> map = SafeOpt.of(listu).map(m -> m.get(0));
 
+        
+        Log.print(map.getError().get().getMessage());
         Log.await(1, TimeUnit.HOURS);
     }
 }

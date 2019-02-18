@@ -13,6 +13,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.containers.Value;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -57,7 +58,7 @@ public class AutoUpdateValue<T> extends Value<T> {
             try {
                 return update.get();
             } catch (InterruptedException | ExecutionException ex) {
-                throw new RuntimeException(ex);
+                throw new NestedException(ex);
             }
         }
         long now = System.nanoTime();
