@@ -8,7 +8,7 @@ import lt.lb.commons.interfaces.StringBuilderActions.ILineStringBuilder;
  *
  * @author laim0nas100
  */
-public class LineStringBuilder implements java.io.Serializable, Comparable<LineStringBuilder>, CharSequence, ILineStringBuilder, Appendable {
+public class LineStringBuilder implements java.io.Serializable, CharSequence, ILineStringBuilder, Appendable {
 
     private final StringBuilder sb;
     public final String lineEnding;
@@ -216,11 +216,6 @@ public class LineStringBuilder implements java.io.Serializable, Comparable<LineS
     public LineStringBuilder append(char arg0) {
         sb.append(arg0);
         return this;
-    }
-
-    @Override
-    public int compareTo(LineStringBuilder arg0) {
-        return this.sb.compareTo(arg0.sb);
     }
 
 }
