@@ -1,6 +1,5 @@
 package lt.lb.commons.javafx;
 
-import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 

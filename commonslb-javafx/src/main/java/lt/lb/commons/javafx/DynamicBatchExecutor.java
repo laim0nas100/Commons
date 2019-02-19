@@ -5,7 +5,6 @@
  */
 package lt.lb.commons.javafx;
 
-import lt.lb.commons.javafx.DynamicTaskExecutor;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.concurrent.Callable;

@@ -5,7 +5,6 @@
  */
 package lt.lb.commons.javafx;
 
-import lt.lb.commons.javafx.TaskRunner;
 import java.util.concurrent.RunnableFuture;
 import lt.lb.commons.threads.TaskProvider;
 

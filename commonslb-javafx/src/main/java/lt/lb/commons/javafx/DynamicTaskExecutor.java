@@ -5,7 +5,6 @@
  */
 package lt.lb.commons.javafx;
 
-import lt.lb.commons.javafx.ExtTask;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
