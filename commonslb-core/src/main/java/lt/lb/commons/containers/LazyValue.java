@@ -10,8 +10,10 @@ import java.util.function.Supplier;
  */
 public class LazyValue<T> extends Value<T> {
 
-    protected long loaded = Long.MAX_VALUE;
-    protected Supplier<Boolean> loader = () -> System.nanoTime() >= loaded;
+    
+    
+    protected Long loaded = null;
+    protected Supplier<Boolean> loader = () -> loaded != null && System.nanoTime() - loaded >= 0;
     protected Supplier<T> supply;
 
     public LazyValue(Supplier<T> supply) {
@@ -37,7 +39,7 @@ public class LazyValue<T> extends Value<T> {
     }
     
     public void invalidate(){
-        loaded = Long.MAX_VALUE;
+        loaded = null;
     }
 
 }

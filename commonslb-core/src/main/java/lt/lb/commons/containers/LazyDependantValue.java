@@ -19,7 +19,8 @@ public class LazyDependantValue<T> extends LazyValue<T> {
 
     public <U, L extends LazyValue<U>> L createDependantChild(L child) {
         LazyDependantValue<T> me = this;
-        child.loader = () -> me.loader.get() && me.loaded <= child.loaded;
+        Supplier<Boolean> oldLoader = child.loader;
+        child.loader = () -> oldLoader.get() && (me.loaded != null && (me.loaded - child.loaded <= 0));
         Supplier<U> sup = child.supply;
         child.supply = () -> {
             me.get();
@@ -29,9 +30,9 @@ public class LazyDependantValue<T> extends LazyValue<T> {
     }
 
     public <U> LazyDependantValue<U> map(Function<? super T, ? extends U> mapper) {
-        LazyDependantValue<U> lazyDepVal = new LazyDependantValue<>(() -> mapper.apply(this.get()));
-        return this.createDependantChild(lazyDepVal);
+        LazyDependantValue<T> me = this;
+        LazyDependantValue<U> lazyDepVal = new LazyDependantValue<>(() -> mapper.apply(me.get()));
+        return createDependantChild(lazyDepVal);
     }
-    
 
 }
