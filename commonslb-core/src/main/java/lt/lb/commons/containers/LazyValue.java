@@ -1,6 +1,7 @@
 package lt.lb.commons.containers;
 
 import java.util.function.Supplier;
+import lt.lb.commons.Timer;
 
 /**
  * Value that loads after being called. Can manually set it.
@@ -9,11 +10,9 @@ import java.util.function.Supplier;
  * @param <T> type
  */
 public class LazyValue<T> extends Value<T> {
-
-    
     
     protected Long loaded = null;
-    protected Supplier<Boolean> loader = () -> loaded != null && System.nanoTime() - loaded >= 0;
+    protected Supplier<Boolean> loader = () -> loaded != null && loaded >= Timer.getNanoTime();
     protected Supplier<T> supply;
 
     public LazyValue(Supplier<T> supply) {
@@ -26,7 +25,7 @@ public class LazyValue<T> extends Value<T> {
 
     @Override
     public void set(T val) {
-        loaded = System.nanoTime();
+        loaded = Timer.getNanoTime();
         super.set(val);
     }
 

@@ -6,6 +6,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
+import lt.lb.commons.Timer;
 
 /**
  *
@@ -44,11 +45,12 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
     }
 
     public Future<T> commit() {
-        long now = System.nanoTime();
+
         if (requests.get() <= 0) {
             requests.set(0);
             return lastCommitTask.get();
         }
+        long now = Timer.getNanoTime();
         requests.set(0);
         TimeAwareFutureTask<T> lastTask = lastCommitTask.get();
 
@@ -56,7 +58,7 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
             return lastTask;
 
         }
-        if (lastTask.startAtNanos() > now) {
+        if (lastTask.startAtNanos() > Long.MIN_VALUE && lastTask.startAtNanos() > now) {
             return lastTask;
         }
         TimeAwareFutureTask executeNow = executeNow();

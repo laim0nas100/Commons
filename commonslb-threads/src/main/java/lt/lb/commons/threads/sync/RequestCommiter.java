@@ -8,6 +8,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.F;
+import lt.lb.commons.Timer;
 
 /**
  * Use ServiceRequestCommiter
@@ -23,7 +24,7 @@ public class RequestCommiter<T> {
 
     protected Callable<T> task;
     protected volatile FutureTask<T> lastCommitTask;
-    protected volatile long lastRequestAdd = System.nanoTime();
+    protected volatile long lastRequestAdd = Timer.getNanoTime();
     protected Executor commitExecutor;
 
     protected Runnable timeRun = () -> {
@@ -35,7 +36,7 @@ public class RequestCommiter<T> {
                 }
                 long lastRq = this.getLastRequestAdd();
                 
-                long now = System.nanoTime();
+                long now = Timer.getNanoTime();
                 
                 sleepTime = (now - lastRq)/10000000; // to milliseonds
                 if (sleepTime <= 0) {
@@ -56,7 +57,7 @@ public class RequestCommiter<T> {
 
     public void addRequest() {
         
-        lastRequestAdd = System.nanoTime();
+        lastRequestAdd = Timer.getNanoTime();
         update();
         if (pendingRequests.incrementAndGet() >= requestThreshhold) {
             commit();

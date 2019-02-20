@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons;
 
 /**
@@ -24,7 +19,7 @@ public class Timer {
     }
 
     public Timer() {
-        this(System.nanoTime());
+        this(getNanoTime());
     }
 
     public long stopNanos(long nowNanos) {
@@ -41,15 +36,15 @@ public class Timer {
     }
 
     public long stopNanos() {
-        return stopNanos(System.nanoTime());
+        return stopNanos(getNanoTime());
     }
 
     public long stopMillis() {
-        return stopNanos(System.nanoTime()) / m;
+        return stopNanos(getNanoTime()) / m;
     }
 
     public long stopSeconds() {
-        return stopNanos(System.nanoTime()) / b;
+        return stopNanos(getNanoTime()) / b;
     }
 
     public long lastStopNanos(long nanos) {
@@ -67,14 +62,21 @@ public class Timer {
     }
 
     public long lastStopNanos() {
-        return lastStopNanos(System.nanoTime());
+        return lastStopNanos(getNanoTime());
     }
 
     public long lastStopMillis() {
-        return lastStopNanos(System.nanoTime()) / m;
+        return lastStopNanos(getNanoTime()) / m;
     }
 
     public long lastStopSeconds() {
-        return lastStopNanos(System.nanoTime()) / b;
+        return lastStopNanos(getNanoTime()) / b;
     }
+
+    private static final long timeOffset = System.nanoTime() - Long.MIN_VALUE;
+
+    public static final long getNanoTime() {
+        return System.nanoTime() - timeOffset;
+    }
+
 }

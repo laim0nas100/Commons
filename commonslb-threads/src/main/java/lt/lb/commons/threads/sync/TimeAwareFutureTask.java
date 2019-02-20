@@ -4,10 +4,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
+import lt.lb.commons.Timer;
 
 /**
  *
- * @author laim0nas100 Time aware FutureTask using System.nanoTime for time
+ * @author laim0nas100 Time aware FutureTask using Timer.getNanoTime for time
  */
 public class TimeAwareFutureTask<T> extends FutureTask<T> {
     
@@ -28,16 +29,16 @@ public class TimeAwareFutureTask<T> extends FutureTask<T> {
     
     @Override
     public void run() {
-        startAt.set(System.nanoTime());
+        startAt.set(Timer.getNanoTime());
         super.run();
-        finishedAt.set(System.nanoTime());
+        finishedAt.set(Timer.getNanoTime());
     }
     
     @Override
     protected boolean runAndReset() {
-        startAt.set(System.nanoTime());
+        startAt.set(Timer.getNanoTime());
         boolean r = super.runAndReset();
-        finishedAt.set(System.nanoTime());
+        finishedAt.set(Timer.getNanoTime());
         return r;
     }
     
