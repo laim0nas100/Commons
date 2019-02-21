@@ -13,21 +13,31 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.mail.Folder;
+import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.email.EmailChannels;
 import lt.lb.commons.email.EmailChecker;
 import lt.lb.commons.email.props.POP3EmailProps;
 import lt.lb.commons.F;
+import lt.lb.commons.Predicates;
+import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.NumberValue;
+import lt.lb.commons.containers.Value;
 import lt.lb.commons.io.FileReader;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.FastExecutor;
+import lt.lb.commons.threads.FastWaitingExecutor;
+import lt.lb.commons.threads.TaskBatcher;
+import lt.lb.commons.wekaparsing.Comment;
 import lt.lb.commons.wekaparsing.WekaParser;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -69,7 +79,6 @@ public class JavaMailTest {
     String user = "";
     String host = "";
 
-    
     @Test
     public void ok() throws Exception {
 
@@ -124,7 +133,7 @@ public class JavaMailTest {
 
     public static void main(String[] args) throws Exception {
         JavaMailTest t = new JavaMailTest();
-        t.other();
+        t.wekaParseEmails();
     }
 
     public void other() {
@@ -188,42 +197,72 @@ public class JavaMailTest {
 //    }
     public static class EmailAttributes {
 
+        @Comment("Number of lines")
         public Integer lineCount;
 
+        @Comment("Maximum repeated word count")
         public Integer maxRepeatedWordCount;
+        @Comment("Maximum repeated capital word count")
         public Integer maxRepeatedCapitalWordCount;
 
+        @Comment("Capital characters count / char count")
         public Double capitalCharTotal;
+        
+        @Comment("Capital character word count / word count")
         public Double capitalRunTotal;
+
+        @Comment("Shortest capital word")
         public Integer minCapitalRun;
+        @Comment("Longest capital word")
         public Integer maxCapitalRun;
 
+        @Comment("Average word length")
         public Double averageWordLengh;
+        @Comment("Shortest word length")
         public Integer minWordLength;
+        @Comment("Longest word length")
         public Integer maxWordLength;
 
+        @Comment("Number count / word count")
         public Double numberCount;
 
+        @Comment("Alpha caracter count / character count")
         public Double alphaCount;
+        @Comment("Alpha caracter count / character count")
         public Double alphaNumCount;
+        @Comment("Alpha caracter count / character count")
         public Double alphaWordCount;
 
         //alpha sequences
+        @Comment("Alpha character sequence of length 1 / word count")
         public Double charSeq1;
+        @Comment("Alpha character sequence of length 2 / word count")
         public Double charSeq2;
+        @Comment("Alpha character sequence of length 3 / word count")
         public Double charSeq3;
+        @Comment("Alpha character sequence of length 4 / word count")
         public Double charSeq4;
+        @Comment("Alpha character sequence of length 5 / word count")
         public Double charSeq5;
+        @Comment("Alpha character sequence of length 6 / word count")
         public Double charSeq6;
+        @Comment("Alpha character sequence of length 7 / word count")
         public Double charSeq7;
+        @Comment("Alpha character sequence of length 8 / word count")
         public Double charSeq8;
+        @Comment("Alpha character sequence of length 9 / word count")
         public Double charSeq9;
 
+        @Comment("Whitespace characters count / character count")
         public Double whiteSpaceCount;
 
-        public Boolean spam;
-        
+        @Comment("Wether email is spam")
+        public EmailType spam;
 
+    }
+
+    public static enum EmailType {
+        SPAM, NOTSPAM;
     }
 
     public Integer countMatcher(Matcher m) {
@@ -243,130 +282,140 @@ public class JavaMailTest {
         return counter;
     }
 
-    
+    public EmailAttributes emailParser(Path file, boolean toMark) {
+        Value<EmailAttributes> val = new Value<>();
+        F.unsafeRun(() -> {
+            ArrayList<String> content = FileReader.readFromFile(file.toString());
+            EmailAttributes em = new EmailAttributes();
+            val.set(em);
+            em.spam = toMark ? EmailType.SPAM : EmailType.NOTSPAM;
+            String all = "";
+            for (String line : content) {
+                all += line + " ";
+            }
 
-    public Consumer<Path> emailParser(Collection<EmailAttributes> toAdd, boolean toMark) {
+            Integer cappitalCharTotal = 0;
+            HashMap<String, NumberValue<Integer>> map = new HashMap<>();
+            HashMap<String, NumberValue<Integer>> capMap = new HashMap<>();
+            String word = "";
+            String capitalWord = "";
+            for (Character ch : all.toCharArray()) {
 
-        return (file) -> {
-            F.unsafeRun(() -> {
-                ArrayList<String> content = FileReader.readFromFile(file.toString());
-                EmailAttributes em = new EmailAttributes();
-                toAdd.add(em);
-                em.spam = toMark;
-                String all = "";
-                for (String line : content) {
-                    all += line + " ";
-                }
-
-                Integer cappitalCharTotal = 0;
-                HashMap<String, NumberValue<Integer>> map = new HashMap<>();
-                HashMap<String, NumberValue<Integer>> capMap = new HashMap<>();
-                String word = "";
-                String capitalWord = "";
-                for (Character ch : all.toCharArray()) {
-
-                    if (Character.isAlphabetic(ch) || Character.isDigit(ch)) {
-                        word += ch;
-                        if (Character.isUpperCase(ch)) {
-                            capitalWord += ch;
-                        } else {
-                            if (!capitalWord.isEmpty()) {
-                                if (capMap.containsKey(capitalWord)) {
-                                    capMap.get(capitalWord).incrementAndGet();
-                                } else {
-                                    capMap.put(capitalWord, NumberValue.of(1));
-                                }
-                                capitalWord = "";
-                            }
-                        }
+                if (Character.isAlphabetic(ch) || Character.isDigit(ch)) {
+                    word += ch;
+                    if (Character.isUpperCase(ch)) {
+                        capitalWord += ch;
                     } else {
-                        if (word.isEmpty()) {
-                            //nothing
-                        } else {
-                            if (map.containsKey(word.toLowerCase())) {
-                                map.get(word.toLowerCase()).incrementAndGet();
+                        if (!capitalWord.isEmpty()) {
+                            if (capMap.containsKey(capitalWord)) {
+                                capMap.get(capitalWord).incrementAndGet();
                             } else {
-                                map.put(word.toLowerCase(), NumberValue.of(1));
+                                capMap.put(capitalWord, NumberValue.of(1));
                             }
-                            word = "";
+                            capitalWord = "";
                         }
                     }
+                } else {
+                    if (word.isEmpty()) {
+                        //nothing
+                    } else {
+                        if (map.containsKey(word.toLowerCase())) {
+                            map.get(word.toLowerCase()).incrementAndGet();
+                        } else {
+                            map.put(word.toLowerCase(), NumberValue.of(1));
+                        }
+                        word = "";
+                    }
                 }
+            }
 
-                NumberValue<Double> wordCount = NumberValue.of(0d);
-                NumberValue<Double> wordLengthTotal = NumberValue.of(0d);
-                F.iterate(map, (k, i) -> {
-                    wordCount.incrementAndGet(i.get());
-                    wordLengthTotal.incrementAndGet(k.length() * i.get());
-                });
-                ArrayList<String> distinctWords = new ArrayList<>();
-                distinctWords.addAll(map.keySet());
-
-                em.maxWordLength = distinctWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable().reversed()).findFirst().get();
-                em.minWordLength = distinctWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable()).findFirst().get();
-
-                Double charCount = countMatcher(Pattern.compile("\\p{ASCII}").matcher(all)).doubleValue();
-
-                em.alphaCount = countMatcher(Pattern.compile("\\p{Alpha}").matcher(all)) / charCount;
-                em.alphaWordCount = countMatcher(Pattern.compile("(\\p{Alpha}){2,}+").matcher(all)) / wordCount.get();
-                em.alphaNumCount = countMatcher("(\\p{Alnum})", all) / charCount;
-                em.numberCount = countMatcher("\\p{Digit}", all) / wordCount.get();
-                em.lineCount = content.size();
-
-                em.whiteSpaceCount = countMatcher("\\p{Space}", all).doubleValue() / charCount;
-                em.averageWordLengh = wordLengthTotal.get() / wordCount.get();
-
-                NumberValue<Integer> capitalChars = NumberValue.of(0);
-                NumberValue<Integer> capitalWords = NumberValue.of(0);
-                F.iterate(capMap, (w, count) -> {
-                    capitalChars.incrementAndGet(count.get() * w.length());
-                    capitalWords.incrementAndGet(count.get());
-                });
-
-                ArrayList<String> distinctCapitalWords = new ArrayList<>();
-                distinctCapitalWords.addAll(capMap.keySet());
-
-                em.maxCapitalRun = distinctCapitalWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable().reversed()).findFirst().get();
-                em.minCapitalRun = distinctCapitalWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable()).findFirst().get();
-
-                em.capitalRunTotal = (double) capitalChars.get() / wordCount.get();
-                em.capitalCharTotal = capitalChars.get() / charCount;
-
-                em.charSeq1 = countMatcher("\\p{Alpha}{1}", all) / wordCount.get();
-                em.charSeq2 = countMatcher("\\p{Alpha}{2}", all) / wordCount.get();
-                em.charSeq3 = countMatcher("\\p{Alpha}{3}", all) / wordCount.get();
-                em.charSeq4 = countMatcher("\\p{Alpha}{4}", all) / wordCount.get();
-                em.charSeq5 = countMatcher("\\p{Alpha}{5}", all) / wordCount.get();
-                em.charSeq6 = countMatcher("\\p{Alpha}{6}", all) / wordCount.get();
-                em.charSeq7 = countMatcher("\\p{Alpha}{7}", all) / wordCount.get();
-                em.charSeq8 = countMatcher("\\p{Alpha}{8}", all) / wordCount.get();
-                em.charSeq9 = countMatcher("\\p{Alpha}{9}", all) / wordCount.get();
-
-                em.maxRepeatedCapitalWordCount = distinctCapitalWords.stream().sorted(ExtComparator.ofValue(f -> capMap.get(f).get()).reversed()).findFirst().get().length();
-                em.maxRepeatedWordCount = distinctWords.stream().sorted(ExtComparator.ofValue(f -> map.get(f).get()).reversed()).findFirst().get().length();
-
+            NumberValue<Double> wordCount = NumberValue.of(0d);
+            NumberValue<Double> wordLengthTotal = NumberValue.of(0d);
+            F.iterate(map, (k, i) -> {
+                wordCount.incrementAndGet(i.get());
+                wordLengthTotal.incrementAndGet(k.length() * i.get());
             });
-        };
-    }
+            ArrayList<String> distinctWords = new ArrayList<>();
+            distinctWords.addAll(map.keySet());
 
-    
+            em.maxWordLength = distinctWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable().reversed()).findFirst().get();
+            em.minWordLength = distinctWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable()).findFirst().get();
+
+            Double charCount = countMatcher(Pattern.compile("\\p{ASCII}").matcher(all)).doubleValue();
+
+            em.alphaCount = countMatcher(Pattern.compile("\\p{Alpha}").matcher(all)) / charCount;
+            em.alphaWordCount = countMatcher(Pattern.compile("(\\p{Alpha}){2,}+").matcher(all)) / wordCount.get();
+            em.alphaNumCount = countMatcher("(\\p{Alnum})", all) / charCount;
+            em.numberCount = countMatcher("\\p{Digit}", all) / wordCount.get();
+            em.lineCount = content.size();
+
+            em.whiteSpaceCount = countMatcher("\\p{Space}", all).doubleValue() / charCount;
+            em.averageWordLengh = wordLengthTotal.get() / wordCount.get();
+
+            NumberValue<Integer> capitalChars = NumberValue.of(0);
+            NumberValue<Integer> capitalWords = NumberValue.of(0);
+            F.iterate(capMap, (w, count) -> {
+                capitalChars.incrementAndGet(count.get() * w.length());
+                capitalWords.incrementAndGet(count.get());
+            });
+
+            ArrayList<String> distinctCapitalWords = new ArrayList<>();
+            distinctCapitalWords.addAll(capMap.keySet());
+
+            em.maxCapitalRun = distinctCapitalWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable().reversed()).findFirst().get();
+            em.minCapitalRun = distinctCapitalWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable()).findFirst().get();
+
+            em.capitalRunTotal = (double) capitalChars.get() / wordCount.get();
+            em.capitalCharTotal = capitalChars.get() / charCount;
+
+            em.charSeq1 = countMatcher("\\p{Alpha}{1}", all) / wordCount.get();
+            em.charSeq2 = countMatcher("\\p{Alpha}{2}", all) / wordCount.get();
+            em.charSeq3 = countMatcher("\\p{Alpha}{3}", all) / wordCount.get();
+            em.charSeq4 = countMatcher("\\p{Alpha}{4}", all) / wordCount.get();
+            em.charSeq5 = countMatcher("\\p{Alpha}{5}", all) / wordCount.get();
+            em.charSeq6 = countMatcher("\\p{Alpha}{6}", all) / wordCount.get();
+            em.charSeq7 = countMatcher("\\p{Alpha}{7}", all) / wordCount.get();
+            em.charSeq8 = countMatcher("\\p{Alpha}{8}", all) / wordCount.get();
+            em.charSeq9 = countMatcher("\\p{Alpha}{9}", all) / wordCount.get();
+
+            em.maxRepeatedCapitalWordCount = distinctCapitalWords.stream().sorted(ExtComparator.ofValue(f -> capMap.get(f).get()).reversed()).findFirst().get().length();
+            em.maxRepeatedWordCount = distinctWords.stream().sorted(ExtComparator.ofValue(f -> map.get(f).get()).reversed()).findFirst().get().length();
+
+        });
+
+        return val.get();
+    }
 
     public void wekaParseEmails() throws Exception {
         DirectoryStream<Path> goodStream = Files.newDirectoryStream(Paths.get("E:\\University\\DM\\pratybos\\03\\enron1\\ham"));
         DirectoryStream<Path> spamStream = Files.newDirectoryStream(Paths.get("E:\\University\\DM\\pratybos\\03\\enron1\\spam"));
-        ArrayList<EmailAttributes> emailsGood = new ArrayList<>();
-        ArrayList<EmailAttributes> emailsSpam = new ArrayList<>();
+        ConcurrentLinkedDeque<EmailAttributes> deque = new ConcurrentLinkedDeque<>();
 
-        goodStream.forEach(emailParser(emailsGood, false));
-        spamStream.forEach(emailParser(emailsSpam, true));
-        
-        
-        ArrayList<EmailAttributes> merged = new ArrayList<>();
-        merged.addAll(emailsGood);
-        merged.addAll(emailsSpam);
-        
-        FileReader.writeToFile("spamFile2.arff", new WekaParser(EmailAttributes.class, "spam").wekaReadyLines("EmailRelation", merged));
-       
+        TaskBatcher batcher = new TaskBatcher(new FastWaitingExecutor(4));
+
+        IntegerValue i1 = new IntegerValue(0);
+        spamStream.forEach(es -> {
+            final int i = i1.getAndIncrement();
+            batcher.execute(() -> {
+                EmailAttributes emailParser = emailParser(es, true);
+                deque.add(emailParser);
+            });
+
+        });
+        goodStream.forEach(es -> {
+            final int i = i1.getAndIncrement();
+            batcher.execute(() -> {
+                EmailAttributes emailParser = emailParser(es, false);
+                deque.add(emailParser);
+            });
+
+        });
+
+        batcher.awaitFailOnFirst();
+
+        FileReader.writeToFile("spamFile3.arff", new WekaParser(EmailAttributes.class,
+                "spam").wekaReadyLines("EmailRelation", deque));
+
         Log.await(1, TimeUnit.HOURS);
 
     }
