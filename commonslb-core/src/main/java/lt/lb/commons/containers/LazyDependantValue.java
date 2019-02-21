@@ -20,7 +20,7 @@ public class LazyDependantValue<T> extends LazyValue<T> {
     public <U, L extends LazyValue<U>> L createDependantChild(L child) {
         LazyDependantValue<T> me = this;
         Supplier<Boolean> oldLoader = child.loader;
-        child.loader = () -> oldLoader.get() && (me.loaded != null && (me.loaded - child.loaded <= 0));
+        child.loader = () -> oldLoader.get() && (me.loaded != null && (me.loaded <= child.loaded));
         Supplier<U> sup = child.supply;
         child.supply = () -> {
             me.get();

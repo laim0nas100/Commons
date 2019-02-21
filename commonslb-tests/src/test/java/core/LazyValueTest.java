@@ -19,6 +19,7 @@ public class LazyValueTest {
         str.put("2", "two");
         Log.print("hi");
         LazyDependantValue<Map<String, String>> map = new LazyDependantValue<>(() -> {
+            Log.print("Init map");
             return str;
         });
         LazyDependantValue<String> map1 = map.map(s -> s.get("1"));
@@ -27,7 +28,7 @@ public class LazyValueTest {
         
         str.replace("1", "ONE");
         Log.print(map1.get(), map2.get());
-        map.invalidate();
+        map1.invalidate();
         Log.print(map1.get(), map2.get());
 
         Log.close();

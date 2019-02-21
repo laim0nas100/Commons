@@ -12,7 +12,7 @@ import lt.lb.commons.Timer;
 public class LazyValue<T> extends Value<T> {
     
     protected Long loaded = null;
-    protected Supplier<Boolean> loader = () -> loaded != null && loaded >= Timer.getNanoTime();
+    protected Supplier<Boolean> loader = () -> loaded != null && loaded <= Timer.getNanoTime();
     protected Supplier<T> supply;
 
     public LazyValue(Supplier<T> supply) {
