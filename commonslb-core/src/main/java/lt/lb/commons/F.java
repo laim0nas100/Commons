@@ -163,9 +163,29 @@ public class F {
         return len1 - len2;
     }
 
+    /**
+     * 
+     * @param <T> object type
+     * @param col collection to modify
+     * @param pred predicate to satisfy
+     * @return ArrayList of removed items
+     */
     public static <T> ArrayList filterInPlace(Collection<T> col, Predicate<T> pred) {
-        Iterator<T> iterator = col.iterator();
         ArrayList<T> removed = new ArrayList<>();
+        filterInPlace(col, pred, removed);
+        return removed;
+    }
+    
+    /**
+     * 
+     * @param <T> object type
+     * @param <C> collection type
+     * @param col collection to modify
+     * @param pred predicate to satisfy
+     * @param removed collection to collect removed items
+     */
+    public static <T,C extends Collection<T>> void filterInPlace(C col, Predicate<T> pred, C removed){
+        Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
             if (!pred.test(next)) {
@@ -173,7 +193,6 @@ public class F {
                 removed.add(next);
             }
         }
-        return removed;
     }
 
     /**
