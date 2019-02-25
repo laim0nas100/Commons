@@ -86,13 +86,13 @@ public class ProxyListenerBuilder implements Cloneable{
         return clone;
     }
 
-    public ProxyListenerBuilder addNameInvocationHandler(Method me, InvocationHandler... hand) {
+    public ProxyListenerBuilder addNameInvocationHandler(String name, InvocationHandler... hand) {
         if (hand.length == 0) {
             return this;
         }
         ProxyListenerBuilder clone = this.clone();
         for (InvocationHandler handler : hand) {
-            clone.stringHandlers.computeIfAbsent(me.getName(), k -> new LinkedList<>()).add(handler);
+            clone.stringHandlers.computeIfAbsent(name, k -> new LinkedList<>()).add(handler);
         }
         return clone;
     }
