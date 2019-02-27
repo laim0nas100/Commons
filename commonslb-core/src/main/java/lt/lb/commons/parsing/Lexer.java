@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import lt.lb.commons.F;
+import lt.lb.commons.interfaces.Equator;
 
 /**
  *
@@ -49,13 +50,14 @@ public class Lexer {
             keyStringEnd,
             keyStringEscape;
     protected SelfSortingMap<String, String> keywords;
-    protected int linePos, charPos = 0;
-    protected ArrayList<String> lines;
+    protected int linePos, charPos;
+    protected String[] lines;
     public boolean skipWhitespace;
+    //Override for case insensitive keywords
+    public Equator<String> equator = StringOp::equals;
 
     public Lexer(Collection<String> allLines) {
-        this.keywords = new SelfSortingMap<>(cmp,new HashMap<>());
-        this.lines = new ArrayList<>();
+        this.keywords = new SelfSortingMap<>(cmp, new HashMap<>());
         this.resetLines(allLines);
     }
 
@@ -81,8 +83,8 @@ public class Lexer {
     }
 
     protected Integer currentLineLen() {
-        if (this.lines.size() > linePos) {
-            return this.lines.get(linePos).length();
+        if (this.lines.length > linePos) {
+            return this.lines[linePos].length();
         } else {
             return null;
         }
@@ -91,7 +93,7 @@ public class Lexer {
     protected Character getByPos(Integer[] pos) {
         Character ch = null;
         try {
-            ch = this.lines.get(pos[0]).charAt(pos[1]);
+            ch = this.lines[pos[0]].charAt(pos[1]);
         } catch (Exception e) {
         }
         return ch;
@@ -107,8 +109,8 @@ public class Lexer {
         while (pos[1] >= this.currentLineLen()) {
             pos[1] -= this.currentLineLen();
             pos[0] += 1;
-            if (pos[0] >= this.lines.size()) {
-                pos[0] = this.lines.size();
+            if (pos[0] >= this.lines.length) {
+                pos[0] = this.lines.length;
                 break;
             }
         }
@@ -117,7 +119,7 @@ public class Lexer {
 
     protected Character peek(Integer peek) {
         Integer[] rangeCheck = this.rangeCheck(peek);
-        if (rangeCheck[0] != this.lines.size()) {
+        if (rangeCheck[0] != this.lines.length) {
             return this.getByPos(rangeCheck);
         }
         return null;
@@ -152,14 +154,14 @@ public class Lexer {
 
     public final void resetLines(Collection<String> allLines) {
         reset();
-        this.lines.clear();
-        F.iterate(allLines, (i,s)->{
-            if(s.endsWith("\n")){
-                lines.add(s);
-            }else{
-                lines.add(s+"\n");
+        lines = new String[allLines.size()];
+        F.iterate(allLines, (i, s) -> {
+            if (s.endsWith("\n")) {
+                lines[i] = s;
+            } else {
+                lines[i] = s + "\n";
             }
-            
+
         });
     }
 
@@ -222,7 +224,7 @@ public class Lexer {
                 break;
             }
         }
-        return readSymbols.equals(explicit);
+        return equator.equals(explicit, readSymbols);
     }
 
     protected String getTokenID(String key) {
