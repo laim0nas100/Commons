@@ -100,17 +100,15 @@ public class WekaParser<T> {
         ArrayList<String> str = new ArrayList<>(arr.size());
         int maxFieldLength = arr.stream().map(f -> f.getName().length()).max(ExtComparator.ofComparable()).orElse(30) + 3;
         int maxTypeLength = arr.stream().map(f -> f.getType()).map(f -> ensureWekaPrinter(f).typeInfo().length()).max(ExtComparator.ofComparable()).orElse(30) + 3;
+        final String format = "@ATTRIBUTE %-" + maxFieldLength + "s %-" + maxTypeLength + "s %s";
         F.iterate(arr, (i, field) -> {
             Optional<String> map = F.find(field.getAnnotations(), (j, a) -> {
                 return a instanceof Comment;
             }).map(m -> {
                 Comment com = F.cast(m.g2);
                 return com.value();
-            }).map(m -> "  %" + m);
-
-            String format = String.format("@ATTRIBUE %-" + maxFieldLength + "s %-" + maxTypeLength + "s", field.getName(), ensureWekaPrinter(field.getType()).typeInfo() + map.orElse(""));
-            str.add(format);
-//            str.add("@ATTRIBUTE " + field.getName() + " " + ensureWekaPrinter(field.getType()).typeInfo() + map.orElse(""));
+            }).map(m -> " % " + m);
+            str.add(String.format(format, field.getName(), ensureWekaPrinter(field.getType()).typeInfo(), map.orElse("")));
         });
         return str;
     }
@@ -142,17 +140,6 @@ public class WekaParser<T> {
         return newInstance;
     }
 
-    /**
-     * tries to split the line by ',' and parse a object from specified
-     * attributes.
-     *
-     * @param line
-     * @return
-     * @throws Exception
-     */
-    public T objectFromLine(String line) throws Exception {
-        return this.objectFromAttributes(Arrays.asList(line.split(",")));
-    }
 
     /**
      *
@@ -192,9 +179,11 @@ public class WekaParser<T> {
      */
     public ArrayList<String> wekaReadyLines(String relationName, Collection<T> col) throws Exception {
         ArrayList<String> wekaReadyAttributes = this.wekaReadyAttributes();
-        ArrayList<String> wekaReady = new ArrayList<>(5 + wekaReadyAttributes.size() + col.size()); // ensure size
-
+        ArrayList<String> wekaReady = new ArrayList<>();
+//        wekaReady.addAll(this.wekaReadyComments());
+//        wekaReady.add("");
         wekaReady.add("@Relation " + relationName);
+
         wekaReady.add("");
         wekaReady.addAll(wekaReadyAttributes);
         wekaReady.add("");
@@ -205,3 +194,6 @@ public class WekaParser<T> {
 
     }
 }
+
+
+

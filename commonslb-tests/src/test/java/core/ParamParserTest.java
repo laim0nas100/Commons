@@ -27,6 +27,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  *
@@ -169,7 +170,7 @@ public class ParamParserTest {
 
     }
 
-//    @Test
+    @Test
     public void ok() throws Exception {
         Log.main().async = false;
         Log.main().display = true;
@@ -296,3 +297,4 @@ public class ParamParserTest {
     }
 
 }
+

@@ -37,6 +37,7 @@ import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.FastExecutor;
 import lt.lb.commons.threads.FastWaitingExecutor;
 import lt.lb.commons.threads.TaskBatcher;
+import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.commons.wekaparsing.Comment;
 import lt.lb.commons.wekaparsing.WekaParser;
 import org.junit.After;
@@ -228,9 +229,9 @@ public class JavaMailTest {
 
         @Comment("Alpha caracter count / character count")
         public Double alphaCount;
-        @Comment("Alpha caracter count / character count")
+        @Comment("Alpha-numeric caracter count / character count")
         public Double alphaNumCount;
-        @Comment("Alpha caracter count / character count")
+        @Comment("Alpha word count / word count")
         public Double alphaWordCount;
 
         //alpha sequences
@@ -387,15 +388,13 @@ public class JavaMailTest {
     }
 
     public void wekaParseEmails() throws Exception {
-        DirectoryStream<Path> goodStream = Files.newDirectoryStream(Paths.get("E:\\University\\DM\\pratybos\\03\\enron1\\ham"));
-        DirectoryStream<Path> spamStream = Files.newDirectoryStream(Paths.get("E:\\University\\DM\\pratybos\\03\\enron1\\spam"));
+        DirectoryStream<Path> goodStream = Files.newDirectoryStream(Paths.get("C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\enron1\\ham"));
+        DirectoryStream<Path> spamStream = Files.newDirectoryStream(Paths.get("C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\enron1\\spam"));
         ConcurrentLinkedDeque<EmailAttributes> deque = new ConcurrentLinkedDeque<>();
 
-        TaskBatcher batcher = new TaskBatcher(new FastWaitingExecutor(4));
+        TaskBatcher batcher = new TaskBatcher(new FastWaitingExecutor(8,WaitTime.ofSeconds(2)));
 
-        IntegerValue i1 = new IntegerValue(0);
         spamStream.forEach(es -> {
-            final int i = i1.getAndIncrement();
             batcher.execute(() -> {
                 EmailAttributes emailParser = emailParser(es, true);
                 deque.add(emailParser);
@@ -403,7 +402,6 @@ public class JavaMailTest {
 
         });
         goodStream.forEach(es -> {
-            final int i = i1.getAndIncrement();
             batcher.execute(() -> {
                 EmailAttributes emailParser = emailParser(es, false);
                 deque.add(emailParser);
@@ -420,3 +418,8 @@ public class JavaMailTest {
 
     }
 }
+
+
+
+
+
