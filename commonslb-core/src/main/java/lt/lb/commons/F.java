@@ -1,6 +1,7 @@
 package lt.lb.commons;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -24,6 +25,12 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
+    /**
+     * Run with wrapping checked exception
+     *
+     * @param r
+     * @throws NestedException
+     */
     public static void unsafeRun(UnsafeRunnable r) throws NestedException {
         try {
             r.unsafeRun();
@@ -32,6 +39,28 @@ public class F {
         }
     }
 
+    /**
+     * Run with wrapping checked exception
+     *
+     * @param <T>
+     * @param call
+     * @return
+     * @throws NestedException
+     */
+    public static <T> T unsafeRun(Callable<T> call) throws NestedException {
+        try {
+            return call.call();
+        } catch (Exception e) {
+            throw new NestedException(e);
+        }
+    }
+
+    /**
+     * Run with wrapping checked exception
+     *
+     * @param cons
+     * @param run
+     */
     public static void unsafeRunWithHandler(Consumer<Throwable> cons, UnsafeRunnable run) {
         try {
             run.unsafeRun();
@@ -164,7 +193,7 @@ public class F {
     }
 
     /**
-     * 
+     *
      * @param <T> object type
      * @param col collection to modify
      * @param pred predicate to satisfy
@@ -175,16 +204,16 @@ public class F {
         filterInPlace(col, pred, removed);
         return removed;
     }
-    
+
     /**
-     * 
+     *
      * @param <T> object type
      * @param <C> collection type
      * @param col collection to modify
      * @param pred predicate to satisfy
      * @param removed collection to collect removed items
      */
-    public static <T,C extends Collection<T>> void filterInPlace(C col, Predicate<T> pred, C removed){
+    public static <T, C extends Collection<T>> void filterInPlace(C col, Predicate<T> pred, C removed) {
         Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
@@ -517,3 +546,4 @@ public class F {
     }
 
 }
+
