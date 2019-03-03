@@ -40,14 +40,14 @@ public class F {
     }
 
     /**
-     * Run with wrapping checked exception
+     * Call with wrapping checked exception
      *
      * @param <T>
      * @param call
      * @return
      * @throws NestedException
      */
-    public static <T> T unsafeRun(Callable<T> call) throws NestedException {
+    public static <T> T unsafeCall(Callable<T> call) throws NestedException {
         try {
             return call.call();
         } catch (Exception e) {
@@ -120,12 +120,27 @@ public class F {
         Class obClass = ob.getClass();
         return instanceOf(obClass, cls);
     }
+    
+    public static boolean instanceOfAll(Object ob, Class... cls) {
+        if (ob == null) {
+            return false;
+        }
+        Class obClass = ob.getClass();
+        return instanceOfAll(obClass, cls);
+    }
 
     public static boolean instanceOf(Class obClass, Class... cls) {
         if (obClass == null) {
             return false;
         }
         return ArrayOp.any(c -> c.isAssignableFrom(obClass), cls);
+    }
+    
+    public static boolean instanceOfAll(Class obClass, Class... cls) {
+        if (obClass == null) {
+            return false;
+        }
+        return ArrayOp.all(c -> c.isAssignableFrom(obClass), cls);
     }
 
     public static <T> void merge(List<T> l1, List<T> l2, List<T> addTo, Comparator<T> cmp) {
@@ -546,4 +561,7 @@ public class F {
     }
 
 }
+
+
+
 
