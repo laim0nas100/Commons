@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import lt.lb.commons.ArrayOp;
 
 /**
@@ -97,16 +96,13 @@ public class ProxyListenerBuilder implements Cloneable{
         return clone;
     }
 
-    public <T> T ofObject(T obj) {
-        return (T) Proxy.newProxyInstance(cLoader, ArrayOp.asArray(obj.getClass()), this.getObjectInvocationHandler(obj));
-    }
 
-    public <T> T ofSupply(Supplier<T> supp) {
-        return ofObject(supp.get());
-    }
-
-    public <T> T ofInterfaces(T obj, Class... interfaces) {
+    public <T> T ofInterfaces(T obj, Class<? super T>... interfaces) {
         return (T) Proxy.newProxyInstance(cLoader, ArrayOp.asArray(interfaces), this.getObjectInvocationHandler(obj));
     }
 
 }
+
+
+
+
