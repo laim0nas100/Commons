@@ -25,7 +25,7 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
 
     @Override
     public boolean hasNext() {
-        return 1 + index < array.length - 1;
+        return 1 + index < array.length;
     }
 
     @Override
@@ -35,3 +35,4 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
     }
 
 }
+
