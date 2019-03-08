@@ -35,4 +35,3 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
     }
 
 }
-

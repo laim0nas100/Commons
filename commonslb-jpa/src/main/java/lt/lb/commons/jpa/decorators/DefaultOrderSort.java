@@ -23,13 +23,10 @@ import javax.persistence.criteria.Selection;
  */
 public class DefaultOrderSort implements OrderSort {
 
-    
-    
-    public static OrderSortBuilder builder(){
+    public static OrderSortBuilder builder() {
 
-        
         DefaultOrderSort sort = new DefaultOrderSort();
-        
+
         return new OrderSortBuilder() {
             @Override
             public OrderSortBuilder setAscending(boolean asc) {
@@ -39,26 +36,26 @@ public class DefaultOrderSort implements OrderSort {
 
             @Override
             public OrderSortBuilder setNullable(boolean nullable) {
-               sort.nullable = nullable;
-            return this;
+                sort.nullable = nullable;
+                return this;
             }
 
             @Override
             public OrderSortBuilder setNullFirst(boolean nullFirst) {
                 sort.nullFirst = nullFirst;
-            return this;
+                return this;
             }
 
             @Override
             public OrderSortBuilder setQueueOrder(int order) {
                 sort.queueOrder = order;
-            return this;
+                return this;
             }
 
             @Override
             public OrderSortBuilder setPath(Path path) {
                 sort.path = path;
-            return this;
+                return this;
             }
 
             @Override

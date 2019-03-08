@@ -13,11 +13,11 @@ import lt.lb.commons.jpa.decorators.IQueryDecorator;
  * @author laim0nas100
  * @param <T> entity type
  * @param <PrimeKeyT> entity primary key
- * 
+ *
  */
-public interface JPACommander<T,PrimeKeyT> {
-    
-    public static <T,PrimeKey> JPACommander<T,PrimeKey> of(final Class<T> cls,JPACommands commands){
+public interface JPACommander<T, PrimeKeyT> {
+
+    public static <T, PrimeKey> JPACommander<T, PrimeKey> of(final Class<T> cls, JPACommands commands) {
         return new JPACommander<T, PrimeKey>() {
             @Override
             public List<T> search(int start, int pageSize, IQueryDecorator<T>... predicates) {
@@ -55,7 +55,7 @@ public interface JPACommander<T,PrimeKeyT> {
             }
         };
     }
-    
+
     public List<T> search(int start, int pageSize, IQueryDecorator<T>... predicates);
 
     public List<T> search(IQueryDecorator<T>... predicates);
@@ -69,7 +69,5 @@ public interface JPACommander<T,PrimeKeyT> {
     public void remove(PrimeKeyT primaryKey);
 
     public void merge(T obj);
-    
-    
-    
+
 }
