@@ -1,5 +1,8 @@
 package lt.lb.commons.iteration;
 
+import lt.lb.commons.iteration.impl.ArrayROI;
+import lt.lb.commons.iteration.impl.StreamROI;
+import lt.lb.commons.iteration.impl.IteratorROI;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -75,6 +78,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
                 return method.invoke(stream, args);
             }
         });
+        
 
     }
 

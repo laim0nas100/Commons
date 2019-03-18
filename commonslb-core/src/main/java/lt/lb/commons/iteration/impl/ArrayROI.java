@@ -1,4 +1,6 @@
-package lt.lb.commons.iteration;
+package lt.lb.commons.iteration.impl;
+
+import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 
 /**
  *

@@ -1,4 +1,4 @@
-package lt.lb.commons.iteration;
+package lt.lb.commons.iteration.impl;
 
 import java.util.Iterator;
 

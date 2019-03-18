@@ -2,7 +2,7 @@
  * Here comes the text of your license
  * Each line should be prefixed with  * 
  */
-package lt.lb.commons.iteration;
+package lt.lb.commons.iteration.impl;
 
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
