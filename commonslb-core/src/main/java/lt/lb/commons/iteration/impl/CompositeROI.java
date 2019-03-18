@@ -1,5 +1,7 @@
 package lt.lb.commons.iteration.impl;
 
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
@@ -18,14 +20,17 @@ public class CompositeROI<T> extends BaseROI<T> {
     @Override
     public boolean hasNext() {
         ensureNewest();
-        return currentIterator.hasNext();
+        return currentIterator != null && currentIterator.hasNext();
 
     }
 
     @Override
     public T next() {
+        if(!hasNext()){
+            throw new NoSuchElementException("No next value");
+        }
         this.index++;
-        ensureNewest();
+        
         return setCurrent(currentIterator.next());
     }
 
@@ -42,6 +47,3 @@ public class CompositeROI<T> extends BaseROI<T> {
     }
 
 }
-
-
-
