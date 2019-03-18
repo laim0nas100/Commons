@@ -56,19 +56,16 @@ public abstract class TreeVisitorImpl {
     }
 
     public static <T> Optional<T> BFS(TreeVisitor<T> visitor, T root) {
-        LinkedList<T> newRoots = new LinkedList<>();
-        newRoots.add(root);
-        while (!newRoots.isEmpty()) {
-            LinkedList<T> nextIteration = new LinkedList<>();
-            for (T newRoot : newRoots) {
+        ReadOnlyIterator<T> composite = ReadOnlyIterator.of(root);
+        while (composite.hasNext()) {
+            LinkedList<ReadOnlyIterator<T>> nextIteration = new LinkedList<>();
+            for (T newRoot : composite) {
                 if (visitor.find(newRoot)) {
                     return Optional.ofNullable(newRoot);
                 }
-                nextIteration.addAll(ReadOnlyIterator.toLinkedList(visitor.getChildrenIterator(newRoot)));
-
+                nextIteration.add(visitor.getChildrenIterator(newRoot));
             }
-            newRoots.clear();
-            newRoots = nextIteration;
+            composite = ReadOnlyIterator.composite(nextIteration);
         }
         return Optional.empty();
 
