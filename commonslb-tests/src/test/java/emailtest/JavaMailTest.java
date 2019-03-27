@@ -18,8 +18,10 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.mail.Folder;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
@@ -273,6 +275,14 @@ public class JavaMailTest {
         }
         return counter;
     }
+    
+    public Long countWordsOfLength(Stream<String> stream, int length){
+        return countWords(stream, s -> s.length() == length);
+    }
+    
+    public Long countWords(Stream<String> coll, Predicate<String> str){
+        return coll.filter(str).count();
+    }
 
     public Integer countMatcher(String regex, String text) {
         Matcher m = Pattern.compile(regex).matcher(text);
@@ -292,12 +302,12 @@ public class JavaMailTest {
             em.spam = toMark ? EmailType.SPAM : EmailType.NOTSPAM;
             String all = "";
             for (String line : content) {
-                all += line + " ";
+                all += line + "\n";
             }
 
             Integer cappitalCharTotal = 0;
-            HashMap<String, NumberValue<Integer>> map = new HashMap<>();
-            HashMap<String, NumberValue<Integer>> capMap = new HashMap<>();
+            HashMap<String, IntegerValue> map = new HashMap<>();
+            HashMap<String, IntegerValue> capMap = new HashMap<>();
             String word = "";
             String capitalWord = "";
             for (Character ch : all.toCharArray()) {
@@ -311,7 +321,7 @@ public class JavaMailTest {
                             if (capMap.containsKey(capitalWord)) {
                                 capMap.get(capitalWord).incrementAndGet();
                             } else {
-                                capMap.put(capitalWord, NumberValue.of(1));
+                                capMap.put(capitalWord, new IntegerValue(1));
                             }
                             capitalWord = "";
                         }
@@ -323,7 +333,7 @@ public class JavaMailTest {
                         if (map.containsKey(word.toLowerCase())) {
                             map.get(word.toLowerCase()).incrementAndGet();
                         } else {
-                            map.put(word.toLowerCase(), NumberValue.of(1));
+                            map.put(word.toLowerCase(), new IntegerValue(1));
                         }
                         word = "";
                     }
@@ -336,6 +346,16 @@ public class JavaMailTest {
                 wordCount.incrementAndGet(i.get());
                 wordLengthTotal.incrementAndGet(k.length() * i.get());
             });
+            NumberValue<Integer> capitalChars = NumberValue.of(0);
+            NumberValue<Integer> capitalWords = NumberValue.of(0);
+            F.iterate(capMap, (w, count) -> {
+                capitalChars.incrementAndGet(count.get() * w.length());
+                capitalWords.incrementAndGet(count.get());
+            });
+            
+            wordCount.incrementAndGet(capitalChars.get());
+            wordLengthTotal.incrementAndGet(capitalChars.get());
+            
             ArrayList<String> distinctWords = new ArrayList<>();
             distinctWords.addAll(map.keySet());
 
@@ -353,12 +373,7 @@ public class JavaMailTest {
             em.whiteSpaceCount = countMatcher("\\p{Space}", all).doubleValue() / charCount;
             em.averageWordLengh = wordLengthTotal.get() / wordCount.get();
 
-            NumberValue<Integer> capitalChars = NumberValue.of(0);
-            NumberValue<Integer> capitalWords = NumberValue.of(0);
-            F.iterate(capMap, (w, count) -> {
-                capitalChars.incrementAndGet(count.get() * w.length());
-                capitalWords.incrementAndGet(count.get());
-            });
+            
 
             ArrayList<String> distinctCapitalWords = new ArrayList<>();
             distinctCapitalWords.addAll(capMap.keySet());
@@ -368,16 +383,17 @@ public class JavaMailTest {
 
             em.capitalRunTotal = (double) capitalChars.get() / wordCount.get();
             em.capitalCharTotal = capitalChars.get() / charCount;
-
-            em.charSeq1 = countMatcher("\\p{Alpha}{1}", all) / wordCount.get();
-            em.charSeq2 = countMatcher("\\p{Alpha}{2}", all) / wordCount.get();
-            em.charSeq3 = countMatcher("\\p{Alpha}{3}", all) / wordCount.get();
-            em.charSeq4 = countMatcher("\\p{Alpha}{4}", all) / wordCount.get();
-            em.charSeq5 = countMatcher("\\p{Alpha}{5}", all) / wordCount.get();
-            em.charSeq6 = countMatcher("\\p{Alpha}{6}", all) / wordCount.get();
-            em.charSeq7 = countMatcher("\\p{Alpha}{7}", all) / wordCount.get();
-            em.charSeq8 = countMatcher("\\p{Alpha}{8}", all) / wordCount.get();
-            em.charSeq9 = countMatcher("\\p{Alpha}{9}", all) / wordCount.get();
+          
+            
+            em.charSeq1 = countWordsOfLength(map.keySet().stream(),1) / wordCount.get();
+            em.charSeq2 = countWordsOfLength(map.keySet().stream(),2) / wordCount.get();
+            em.charSeq3 = countWordsOfLength(map.keySet().stream(),3) / wordCount.get();
+            em.charSeq4 = countWordsOfLength(map.keySet().stream(),4) / wordCount.get();
+            em.charSeq5 = countWordsOfLength(map.keySet().stream(),5) / wordCount.get();
+            em.charSeq6 = countWordsOfLength(map.keySet().stream(),6) / wordCount.get();
+            em.charSeq7 = countWordsOfLength(map.keySet().stream(),7) / wordCount.get();
+            em.charSeq8 = countWordsOfLength(map.keySet().stream(),8) / wordCount.get();
+            em.charSeq9 = countWordsOfLength(map.keySet().stream(),9) / wordCount.get();
 
             em.maxRepeatedCapitalWordCount = distinctCapitalWords.stream().sorted(ExtComparator.ofValue(f -> capMap.get(f).get()).reversed()).findFirst().get().length();
             em.maxRepeatedWordCount = distinctWords.stream().sorted(ExtComparator.ofValue(f -> map.get(f).get()).reversed()).findFirst().get().length();
@@ -388,8 +404,8 @@ public class JavaMailTest {
     }
 
     public void wekaParseEmails() throws Exception {
-        DirectoryStream<Path> goodStream = Files.newDirectoryStream(Paths.get("C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\enron1\\ham"));
-        DirectoryStream<Path> spamStream = Files.newDirectoryStream(Paths.get("C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\enron1\\spam"));
+        DirectoryStream<Path> goodStream = Files.newDirectoryStream(Paths.get("E:\\University\\MIF_Master_Informatics_Semester1\\Data Analysis\\cp\\pratybos\\03\\enron1\\ham"));
+        DirectoryStream<Path> spamStream = Files.newDirectoryStream(Paths.get("E:\\University\\MIF_Master_Informatics_Semester1\\Data Analysis\\cp\\pratybos\\03\\enron1\\spam"));
         ConcurrentLinkedDeque<EmailAttributes> deque = new ConcurrentLinkedDeque<>();
 
         TaskBatcher batcher = new TaskBatcher(new FastWaitingExecutor(8,WaitTime.ofSeconds(2)));
