@@ -28,7 +28,7 @@ public interface UnsafeRunnable extends Runnable {
         try {
             this.unsafeRun();
         } catch (Exception e) {
-            throw new NestedException(e);
+            throw NestedException.of(e);
         }
     }
 

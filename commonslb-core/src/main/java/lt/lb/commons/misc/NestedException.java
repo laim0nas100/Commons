@@ -2,6 +2,7 @@ package lt.lb.commons.misc;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import lt.lb.commons.F;
 
 /**
  *
@@ -10,6 +11,14 @@ import java.io.PrintWriter;
 public class NestedException extends RuntimeException {
 
     protected Throwable error;
+    
+    public static NestedException of(Throwable t){
+        if(t instanceof NestedException){
+            return F.cast(t);
+        }else{
+            return new NestedException(t);
+        }
+    }
 
     public NestedException(Throwable e) {
         super("Nested exception, to get real exception, call getCause");

@@ -105,7 +105,7 @@ public class DefaultLogDecorators {
                 declaredMethod.setAccessible(true);
                 return declaredMethod;
             } catch (Exception e) {
-                throw new NestedException(e);
+                throw NestedException.of(e);
             }
         });
 

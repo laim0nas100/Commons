@@ -59,7 +59,7 @@ public class AutoUpdateValue<T> extends Value<T> {
             try {
                 return update.get();
             } catch (InterruptedException | ExecutionException ex) {
-                throw new NestedException(ex);
+                throw NestedException.of(ex);
             }
         }
         long now = Timer.getNanoTime();

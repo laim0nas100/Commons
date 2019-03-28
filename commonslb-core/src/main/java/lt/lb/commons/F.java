@@ -35,7 +35,7 @@ public class F {
         try {
             r.unsafeRun();
         } catch (Exception e) {
-            throw new NestedException(e);
+            throw NestedException.of(e);
         }
     }
 
@@ -51,7 +51,7 @@ public class F {
         try {
             return call.call();
         } catch (Exception e) {
-            throw new NestedException(e);
+            throw NestedException.of(e);
         }
     }
 

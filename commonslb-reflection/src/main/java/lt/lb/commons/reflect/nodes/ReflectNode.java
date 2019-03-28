@@ -75,7 +75,7 @@ public class ReflectNode {
         try {
             populate();
         } catch (Exception e) {
-            throw new NestedException(e);
+            throw NestedException.of(e);
         }
 
         // populate nested children

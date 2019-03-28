@@ -27,7 +27,7 @@ public class SafeOpt<T> {
             try {
                 return applyUnsafe(t);
             } catch (Throwable e) {
-                throw new NestedException(e);
+                throw NestedException.of(e);
             }
         }
     }

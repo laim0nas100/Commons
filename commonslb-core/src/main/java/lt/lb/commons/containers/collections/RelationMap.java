@@ -149,7 +149,7 @@ public class RelationMap<K, V> implements Map<K, V> {
             Optional<Rnode<K, V>> iterative = CallOrResult.iterative(0, traverse(r, key));
             return iterative.get();
         } catch (Exception ex) {
-            throw new NestedException(ex);
+            throw NestedException.of(ex);
         }
     }
 
