@@ -1,18 +1,18 @@
 package lt.lb.commons.containers.collections;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 import lt.lb.commons.CallOrResult;
 import lt.lb.commons.F;
-import lt.lb.commons.Lambda;
 import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
@@ -57,14 +57,14 @@ public class RelationMap<K, V> implements Map<K, V> {
      * @param rootVal
      * @param rel whether first argument is a child of second argument
      */
-    public RelationMap(K rootKey, V rootVal, Lambda.L2SR<K, Boolean> rel) {
+    public RelationMap(K rootKey, V rootVal, BiFunction<K, K, Boolean> rel) {
         this.relation = rel;
         root = new Rnode<>(rootKey, rootVal);
         map.put(rootKey, root);
 
     }
 
-    private Lambda.L2SR<K, Boolean> relation;
+    private BiFunction<K, K, Boolean> relation;
     private HashMap<K, Rnode<K, V>> map = new HashMap<>();
 
     @Override
@@ -98,12 +98,23 @@ public class RelationMap<K, V> implements Map<K, V> {
         return Optional.ofNullable(map.get(key)).map(m -> m.val).orElse(null);
     }
 
+    public K getRootKey() {
+        return root.key;
+    }
+
+    public V getRootValue() {
+        return root.val;
+    }
+
     // to avoid recursion
     private CallOrResult<Rnode<K, V>> traverse(Rnode<K, V> from, K to) {
-        ArrayDeque<Rnode<K, V>> filled = F.fillCollection(from.links.values().stream().filter(n -> relation.apply(to, n.key)), new ArrayDeque<>());
+        LinkedList<Rnode<K, V>> filled = F.fillCollection(from.links.values().stream().filter(n -> relation.apply(to, n.key)), new LinkedList<>());
 
         if (filled.size() > 1) {
-            throw new IllegalArgumentException("Multiple relations satisfied with key:" + to + " Terminating to prevent undefined behaviour.");
+            StringBuilder b = new StringBuilder();
+            ArrayList<K> violations = F.fillCollection(filled.stream().map(m -> m.key), new ArrayList<>());
+            b.append("Multiple relations satisfied with [").append(from.key).append("] > ").append(violations);
+            throw new IllegalArgumentException(b.toString() + " Terminating to prevent undefined behaviour.");
         }
         if (filled.size() == 1) {
             Rnode<K, V> next = filled.getFirst();
@@ -114,9 +125,9 @@ public class RelationMap<K, V> implements Map<K, V> {
         }
     }
 
-    private void assertRootRelation(K key, Rnode<K, V> r) {
+    private void assertRelation(K key, Rnode<K, V> r) {
         if (!relation.apply(key, r.key)) {
-            throw new IllegalArgumentException("Not satisfied root relation: " + key + " > " + r.key);
+            throw new IllegalArgumentException("Not satisfied relation: " + r.key + " > " + key);
         }
     }
 
@@ -135,7 +146,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         if (node != r && node.parent == null) {
 
             //new node, set the path from root
-            Rnode<K, V> traversed = traverseRoot(key, r);
+            Rnode<K, V> traversed = traverseBegin(key, r);
             traversed.links.put(key, node);
             node.parent = traversed;
         }
@@ -143,8 +154,8 @@ public class RelationMap<K, V> implements Map<K, V> {
         return oldV;
     }
 
-    private Rnode<K, V> traverseRoot(K key, Rnode<K, V> r) {
-        assertRootRelation(key, r);
+    private Rnode<K, V> traverseBegin(K key, Rnode<K, V> r) {
+        assertRelation(key, r);
         try {
             Optional<Rnode<K, V>> iterative = CallOrResult.iterative(0, traverse(r, key));
             return iterative.get();
@@ -157,7 +168,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         if (containsKey(key)) {
             return get(key);
         } else {
-            return traverseRoot(key, root).val;
+            return traverseBegin(key, root).val;
         }
     }
 
@@ -166,7 +177,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         return remove(key, map, root.key);
     }
 
-    private V remove(Object key, HashMap<K, Rnode<K, V>> m, K rootKey) {
+    private V remove(Object key, Map<K, Rnode<K, V>> m, K rootKey) {
         if (Objects.equals(rootKey, key)) {
             throw new IllegalArgumentException("Shouldn't remove root");
         }
@@ -176,7 +187,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         }
         V toReturn = removeNode.val;
         removeNode.parent.links.remove(removeNode.key);
-        
+
         F.iterate(removeNode.links.values(), (i, c) -> {
             c.parent = removeNode.parent;
             removeNode.parent.links.put(c.key, c);
@@ -186,7 +197,7 @@ public class RelationMap<K, V> implements Map<K, V> {
     }
 
     public void remap() {
-        this.remap(relation, root.key, root.val, new ArrayDeque<>());
+        this.remap(relation, root.key, root.val, new ArrayList<>());
     }
 
     /**
@@ -197,7 +208,7 @@ public class RelationMap<K, V> implements Map<K, V> {
      * @param rootVal
      * @param newValues Collection of values to insert
      */
-    public void remap(Lambda.L2SR<K, Boolean> relation, K rootKey, V rootVal, Collection<Tuple<K, V>> newValues) {
+    public void remap(BiFunction<K, K, Boolean> relation, K rootKey, V rootVal, Collection<Tuple<K, V>> newValues) {
         Rnode<K, V> newRoot = new Rnode<>(rootKey, rootVal);
         HashMap<K, IntegerValue> satisfiedRelationMap = new HashMap<>();
         HashMap<K, Rnode<K, V>> newMap = new HashMap<>();
@@ -228,7 +239,7 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     }
 
-    private V cull(K key, K rootKey, HashMap<K, Rnode<K, V>> map) {
+    private V cull(K key, K rootKey, Map<K, Rnode<K, V>> map) {
         if (Objects.equals(key, rootKey)) {
             throw new IllegalArgumentException("Shouldn't remove root");
         }
@@ -280,6 +291,65 @@ public class RelationMap<K, V> implements Map<K, V> {
     @Override
     public HashSet<Entry<K, V>> entrySet() {
         return F.fillCollection(getPresentValues().map(e -> MapEntries.byKey(this, e.key)), new HashSet<>());
+    }
+
+    /**
+     * Create relation map on a type system basis using
+     * {@code Class.isAssignable}
+     *
+     * @param <T>
+     * @param rootClass
+     * @param root
+     * @return
+     */
+    public static <T> RelationMap<Class, T> newTypeMap(Class rootClass, T root) {
+        return new RelationMap<>(rootClass, root, (k1, k2) -> F.instanceOf(k1, k2));
+    }
+
+    /**
+     * Create relation map on a type system basis using
+     * {@code Class.isAssignable} with {@code Object.class} as root node
+     *
+     * @param <T>
+     * @param root
+     * @return
+     */
+    public static <T> RelationMap<Class, T> newTypeMapRootObject(T root) {
+        return newTypeMap(Object.class, root);
+    }
+
+    /**
+     * Create relation map on a type system basis using
+     * {@code Class.isAssignable} with special {@code Any.class} instead of {@code Object.class} as root node,
+     * which supports even primitive types. Can't use {@code Object.class} as key.
+     *
+     * @param <T>
+     * @param root
+     * @return
+     */
+    public static <T> RelationMap<Class, T> newTypeMapRootAny(T root) {
+        return new RelationMap<>(Any.class, root, (k1, k2) -> Any.instanceOf(k1, k2));
+    }
+
+    private static final class Any {
+
+        private static final boolean instanceOf(Class child, Class parent) {
+            if (child == null || parent == null) {
+                throw new NullPointerException("One of the arguments is null");
+            }
+            if (Objects.equals(child, parent)) {
+                return true;
+            }
+            if (child.equals(Any.class)) { // root class in child, but not in parent
+                return false;
+            }
+            if (parent.equals(Any.class)) { // root class in parent, allowed to anything
+                return true;
+            }
+
+            return F.instanceOf(child, parent);
+
+        }
     }
 
 }

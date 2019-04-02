@@ -35,12 +35,14 @@ public class RelationTest {
 
     @Test
     public void testMe() throws Exception {
-        RelationMap<Class, Runnable> m = new RelationMap<>(Object.class, () -> Log.print("Object!!"), (k1, k2) -> F.instanceOf(k1, k2));
+//        RelationMap<Class, Runnable> m = new RelationMap<>(Object.class, () -> Log.print("Object!!"), (k1, k2) -> F.instanceOf(k1, k2));
+        RelationMap<Class, Runnable> m = RelationMap.newTypeMapRootAny(() -> Log.print("Any!!"));
 
-        add(m,A.class);
-        add(m,B.class);
-        add(m,C.class);
-        add(m,D.class);
+        add(m, A.class);
+        add(m, B.class);
+        add(m, C.class);
+        add(m, D.class);
+//        add(m, Object.class);
 
         Log.print(m.keySet());
         m.getBestFit(A.class).run();
@@ -77,6 +79,12 @@ public class RelationTest {
         m.getBestFit(B.class).run();
         m.getBestFit(C.class).run();
         m.getBestFit(D.class).run();
+        m.getBestFit(Integer.TYPE).run();
+        m.getBestFit(Integer.class).run();
+        m.getBestFit(int[].class).run();
+        
+        Log.print(Integer.TYPE.getSuperclass());
+        Log.print(Void.class.getSuperclass());
         Log.await(1, TimeUnit.HOURS);
 
     }
@@ -98,14 +106,12 @@ public class RelationTest {
     }
 
     public void testMultipleInheritance() throws Exception {
-        
+
         RelationMap<Class, Runnable> m = new RelationMap<>(Object.class, () -> Log.print("Object!!"), (k1, k2) -> F.instanceOf(k1, k2));
-        add(m,Printable.class);
-        add(m,Writeable.class);
+        add(m, Printable.class);
+        add(m, Writeable.class);
         m.remove(Printable.class);
-        add(m,PrintableWriteable.class);
-        
-        
+        add(m, PrintableWriteable.class);
 
     }
 }
