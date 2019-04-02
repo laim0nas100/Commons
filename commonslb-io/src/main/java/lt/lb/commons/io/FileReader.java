@@ -21,31 +21,24 @@ public class FileReader {
     public static ArrayList<String> readFromFile(String URL) throws UnsupportedEncodingException, FileNotFoundException, IOException {
         ArrayList<String> list = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
-            reader.lines().forEach((String line) -> {
-                list.add(line);
-            });
+            list = readFrom(reader);
         }
         return list;
     }
 
-    public static ArrayList<String> readFromFile(String URL, String lineComment, String commentStart, String commentEnd) throws FileNotFoundException, IOException {
+    public static ArrayList<String> readFrom(BufferedReader in) {
         ArrayList<String> list = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
-            reader.lines().forEach((String ln) -> {
-                list.add(ln);
-            });
-        }
+        in.lines().forEachOrdered(list::add);
+        return list;
+    }
 
+    public static ArrayList<String> readFromFile(String URL, String lineComment, String commentStart, String commentEnd) throws FileNotFoundException, IOException {
+        ArrayList<String> list = readFromFile(URL);
         return CommentParser.parseAllComments(list, lineComment, commentStart, commentEnd);
     }
 
     public static ArrayList<String> readFromFile(String URL, String lineComment) throws FileNotFoundException, IOException {
-        ArrayList<String> list = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
-            reader.lines().forEach((String ln) -> {
-                list.add(ln);
-            });
-        }
+        ArrayList<String> list = readFromFile(URL);
         return CommentParser.parseLineComments(list, lineComment);
     }
 
@@ -56,9 +49,19 @@ public class FileReader {
     public static void writeToFile(String URL, ReadOnlyIterator<String> lines) throws FileNotFoundException, UnsupportedEncodingException {
         try (PrintWriter out = new PrintWriter(URL, "UTF-8");
                 ReadOnlyIterator<String> ln = lines) {
-            for (String line : ln) {
-                out.println(line);
-            }
+            writeTo(out, ln);
+        }
+    }
+
+    public static void writeTo(PrintWriter writer, Collection<String> lines) {
+        for (String line : lines) {
+            writer.println(line);
+        }
+    }
+
+    public static void writeTo(PrintWriter writer, ReadOnlyIterator<String> lines) {
+        for (String line : lines) {
+            writer.println(line);
         }
     }
 
