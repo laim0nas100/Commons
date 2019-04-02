@@ -23,7 +23,7 @@ import lt.lb.commons.misc.NestedException;
  *
  * Map representing relation, that structures nodes into a tree, so they can
  * fallback on their parent if need arises. Relation is similar to Java single
- * inheritance model.
+ * inheritance model. Tree depends on insertion order.
  *
  * @author laim0nas100
  */
@@ -107,36 +107,36 @@ public class RelationMap<K, V> implements Map<K, V> {
     }
 
     // to avoid recursion
-    private CallOrResult<Rnode<K, V>> traverse(Rnode<K, V> from, K to) {
-        LinkedList<Rnode<K, V>> filled = F.fillCollection(from.links.values().stream().filter(n -> relation.apply(to, n.key)), new LinkedList<>());
+    private static <K, V> CallOrResult<Rnode<K, V>> traverse(Rnode<K, V> from, K to, BiFunction<K, K, Boolean> rel) {
+        LinkedList<Rnode<K, V>> filled = F.fillCollection(from.links.values().stream().filter(n -> rel.apply(to, n.key)), new LinkedList<>());
 
         if (filled.size() > 1) {
             StringBuilder b = new StringBuilder();
-            ArrayList<K> violations = F.fillCollection(filled.stream().map(m -> m.key), new ArrayList<>());
+            ArrayList<String> violations = F.fillCollection(filled.stream().map(m -> m.nodeLevel() + " :" + m.key), new ArrayList<>());
             b.append("Multiple relations satisfied with [").append(from.key).append("] > ").append(violations);
             throw new IllegalArgumentException(b.toString() + " Terminating to prevent undefined behaviour.");
         }
         if (filled.size() == 1) {
             Rnode<K, V> next = filled.getFirst();
-            return CallOrResult.returnCall(() -> traverse(next, to));
+            return CallOrResult.returnCall(() -> traverse(next, to, rel));
         } else {
             return CallOrResult.returnValue(from);
 
         }
     }
 
-    private void assertRelation(K key, Rnode<K, V> r) {
-        if (!relation.apply(key, r.key)) {
+    private static <K, V> void assertRelation(K key, Rnode<K, V> r, BiFunction<K, K, Boolean> rel) {
+        if (!rel.apply(key, r.key)) {
             throw new IllegalArgumentException("Not satisfied relation: " + r.key + " > " + key);
         }
     }
 
     @Override
     public V put(K key, V value) {
-        return put(key, value, map, root);
+        return put(key, value, map, root, relation);
     }
 
-    private V put(K key, V value, HashMap<K, Rnode<K, V>> m, Rnode<K, V> r) {
+    private static <K, V> V put(K key, V value, HashMap<K, Rnode<K, V>> m, Rnode<K, V> r, BiFunction<K, K, Boolean> rel) {
         Rnode<K, V> node = m.computeIfAbsent(key, k -> new Rnode<>());
         V oldV = node.val;
 
@@ -146,7 +146,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         if (node != r && node.parent == null) {
 
             //new node, set the path from root
-            Rnode<K, V> traversed = traverseBegin(key, r);
+            Rnode<K, V> traversed = traverseBegin(key, r, rel);
             traversed.links.put(key, node);
             node.parent = traversed;
         }
@@ -154,10 +154,10 @@ public class RelationMap<K, V> implements Map<K, V> {
         return oldV;
     }
 
-    private Rnode<K, V> traverseBegin(K key, Rnode<K, V> r) {
-        assertRelation(key, r);
+    private static <K, V> Rnode<K, V> traverseBegin(K key, Rnode<K, V> r, BiFunction<K, K, Boolean> rel) {
+        assertRelation(key, r, rel);
         try {
-            Optional<Rnode<K, V>> iterative = CallOrResult.iterative(0, traverse(r, key));
+            Optional<Rnode<K, V>> iterative = CallOrResult.iterative(0, traverse(r, key, rel));
             return iterative.get();
         } catch (Exception ex) {
             throw NestedException.of(ex);
@@ -168,7 +168,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         if (containsKey(key)) {
             return get(key);
         } else {
-            return traverseBegin(key, root).val;
+            return traverseBegin(key, root, relation).val;
         }
     }
 
@@ -197,7 +197,11 @@ public class RelationMap<K, V> implements Map<K, V> {
     }
 
     public void remap() {
-        this.remap(relation, root.key, root.val, new ArrayList<>());
+        this.remap(new ArrayList<>());
+    }
+
+    public void remap(Collection<Tuple<K, V>> newValues) {
+        this.remap(relation, root.key, root.val, newValues);
     }
 
     /**
@@ -231,7 +235,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         ExtComparator<Tuple<K, V>> ofValue = ExtComparator.ofValue(n -> satisfiedRelationMap.getOrDefault(n.g1, new IntegerValue(0)).get());
         Collections.sort(nodes, ofValue.reversed());
         F.iterate(nodes, (i, n) -> {
-            this.put(n.g1, n.g2, newMap, newRoot);
+            put(n.g1, n.g2, newMap, newRoot, relation);
         });
 
         this.root = newRoot;
@@ -239,7 +243,7 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     }
 
-    private V cull(K key, K rootKey, Map<K, Rnode<K, V>> map) {
+    private static <K, V> V cull(K key, K rootKey, Map<K, Rnode<K, V>> map) {
         if (Objects.equals(key, rootKey)) {
             throw new IllegalArgumentException("Shouldn't remove root");
         }
@@ -250,7 +254,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         V removed = removeNode.val;
         removeNode.parent.links.remove(key);
         F.iterate(new ArrayList<>(removeNode.links.keySet()), (i, k) -> {
-            cull(k);
+            cull(k, rootKey, map);
         });
 
         return removed;
@@ -320,8 +324,9 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     /**
      * Create relation map on a type system basis using
-     * {@code Class.isAssignable} with special {@code Any.class} instead of {@code Object.class} as root node,
-     * which supports even primitive types. Can't use {@code Object.class} as key.
+     * {@code Class.isAssignable} with special {@code Any.class} instead of
+     * {@code Object.class} as root node, which supports even primitive types.
+     * You can insert {@code Object.class} right after.
      *
      * @param <T>
      * @param root
