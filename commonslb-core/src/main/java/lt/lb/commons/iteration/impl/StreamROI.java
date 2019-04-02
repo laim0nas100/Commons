@@ -1,14 +1,10 @@
-/*
- * Here comes the text of your license
- * Each line should be prefixed with  * 
- */
 package lt.lb.commons.iteration.impl;
 
-import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  *
@@ -18,9 +14,10 @@ public class StreamROI<T> extends BaseROI<T>{
 
     protected Spliterator<T> spliterator;
     protected Stream<T> stream;
-    protected LinkedList<T> queue = new LinkedList<>();
+    protected Tuple<Boolean,T> nextItem = new Tuple<>(false, null); // <Is Present, Next item>
     protected Consumer<T> cons = (item) -> {
-        queue.addLast(item);
+        nextItem.setG2(item);
+        nextItem.setG1(true);
     };
 
     public StreamROI(Stream<T> stream) {
@@ -30,20 +27,21 @@ public class StreamROI<T> extends BaseROI<T>{
 
     @Override
     public boolean hasNext() {
-        if (queue.isEmpty()) {
+        if (!nextItem.g1) {
             spliterator.tryAdvance(cons);
         }
-        return !queue.isEmpty();
+        return nextItem.g1;
     }
 
     @Override
     public T next() {
-        if (queue.isEmpty()) {
+        if (!nextItem.g1) { // item not present, try to get
             if (!spliterator.tryAdvance(cons)) {
                 throw new NoSuchElementException();
             }
         }
-        T next = queue.pollFirst();
+        T next = nextItem.g2;
+        nextItem.setG1(false);
         index++;
         return setCurrent(next);
     }

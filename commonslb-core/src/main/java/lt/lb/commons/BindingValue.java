@@ -21,9 +21,9 @@ public class BindingValue<T> extends Value<T> {
     private static final AtomicLong ID_GEN = new AtomicLong(0);
     protected Map<Long, Consumer<T>> consumers;
     protected Set<BiConsumer<T, T>> listeners;
-    protected final Long id = ID_GEN.getAndIncrement();
+    protected final Long id = nextId();
 
-    private boolean inside;
+    private volatile boolean inside = false;
 
     public BindingValue(T val) {
         super(val);
@@ -51,22 +51,21 @@ public class BindingValue<T> extends Value<T> {
 
     @Override
     public void set(T v) {
-        this.propogateWith(v);
+        this.propogateWith(this.get(),v);
         super.set(v);
     }
 
-    protected void propogateWith(T val) {
-        if (inside) {
+    protected void propogateWith(T oldVal, T newVal) {
+        if (inside) { // dont loop
             return;
         }
         inside = true;
-        T oldVal = this.get();
         Optional<Throwable> checkedRun = F.checkedRun(() -> {
             for (BiConsumer<T, T> listener : listeners) {
-                listener.accept(oldVal, val);
+                listener.accept(oldVal, newVal);
             }
             for (Consumer<? super T> cons : consumers.values()) {
-                cons.accept(val);
+                cons.accept(newVal);
             }
         });
         inside = false;
@@ -100,15 +99,23 @@ public class BindingValue<T> extends Value<T> {
     public Optional<BiConsumer<T, T>> addListener(Consumer<T> listener) {
         return this.addListener((ov, nv) -> listener.accept(nv));
     }
+    
+    public boolean removeListener(BiConsumer<T,T> listener){
+        return this.listeners.remove(listener);
+    }
 
     public static <T> void bindBidirectional(BindingValue<T> val1, BindingValue<T> val2) {
         val1.bindPropogate(val2);
         val2.bindPropogate(val1);
     }
 
-    public static <T> void undindBidirectional(BindingValue<T> val1, BindingValue<T> val2) {
+    public static <T> void unbindBidirectional(BindingValue<T> val1, BindingValue<T> val2) {
         val1.unbind(val2.id);
         val2.unbind(val1.id);
+    }
+    
+    public static Long nextId(){
+        return ID_GEN.getAndIncrement();
     }
 
 }

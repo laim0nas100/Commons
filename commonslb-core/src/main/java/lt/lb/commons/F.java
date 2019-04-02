@@ -26,7 +26,7 @@ import lt.lb.commons.threads.UnsafeRunnable;
 public class F {
 
     /**
-     * Run with wrapping checked exception
+     * Run with wrapping exception
      *
      * @param r
      * @throws NestedException
@@ -34,13 +34,13 @@ public class F {
     public static void unsafeRun(UnsafeRunnable r) throws NestedException {
         try {
             r.unsafeRun();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw NestedException.of(e);
         }
     }
 
     /**
-     * Call with wrapping checked exception
+     * Call with wrapping exception
      *
      * @param <T>
      * @param call
@@ -50,13 +50,13 @@ public class F {
     public static <T> T unsafeCall(Callable<T> call) throws NestedException {
         try {
             return call.call();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw NestedException.of(e);
         }
     }
 
     /**
-     * Run with wrapping checked exception
+     * Run with wrapping exception inside handler
      *
      * @param cons
      * @param run
@@ -67,6 +67,23 @@ public class F {
         } catch (Throwable e) {
             cons.accept(e);
         }
+    }
+
+    /**
+     * Call with wrapping exception inside handler
+     *
+     * @param <T>
+     * @param cons
+     * @param call
+     * @return result or {@code null} if exception was thrown
+     */
+    public static <T> T unsafeCallWithHandler(Consumer<Throwable> cons, Callable<T> call) {
+        try {
+            return call.call();
+        } catch (Throwable e) {
+            cons.accept(e);
+        }
+        return null;
     }
 
     /**
@@ -100,7 +117,7 @@ public class F {
     }
 
     /**
-     * Static cast function. This operation is quite major, so this makes is
+     * Static cast function. Cast operation is quite significant, so this makes is
      * searchable.
      *
      * @param <T>
@@ -120,7 +137,7 @@ public class F {
         Class obClass = ob.getClass();
         return instanceOf(obClass, cls);
     }
-    
+
     public static boolean instanceOfAll(Object ob, Class... cls) {
         if (ob == null) {
             return false;
@@ -135,7 +152,7 @@ public class F {
         }
         return ArrayOp.any(c -> c.isAssignableFrom(obClass), cls);
     }
-    
+
     public static boolean instanceOfAll(Class obClass, Class... cls) {
         if (obClass == null) {
             return false;
@@ -190,21 +207,6 @@ public class F {
 
     public static void swap(List arr, int i, int j) {
         arr.set(i, arr.set(j, arr.get(i)));
-    }
-
-    public static double sigmoid(final double x) {
-        return 2.0 / (1.0 + Math.exp(-4.9 * x)) - 1.0;
-//        return 1.0 / (1.0 + Math.exp(-x));
-    }
-
-    public static int StringNumCompare(String s1, String s2) {
-        int len1 = s1.length();
-        int len2 = s2.length();
-
-        if (len1 == len2) {
-            return s1.compareTo(s2);
-        }
-        return len1 - len2;
     }
 
     /**
@@ -561,7 +563,3 @@ public class F {
     }
 
 }
-
-
-
-
