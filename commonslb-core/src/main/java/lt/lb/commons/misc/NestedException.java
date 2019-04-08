@@ -27,7 +27,7 @@ public class NestedException extends RuntimeException {
 
     /**
      * Does nothing.
-     * @return cause
+     * @return this
      */
     @Override
     public Throwable fillInStackTrace() {

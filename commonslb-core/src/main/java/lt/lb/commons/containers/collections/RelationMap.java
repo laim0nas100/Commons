@@ -47,6 +47,10 @@ public class RelationMap<K, V> implements Map<K, V> {
         public int nodeLevel() {
             return 1 + Optional.ofNullable(parent).map(p -> p.nodeLevel()).orElse(0);
         }
+        
+        public Tuple<K,V> asTuple(){
+            return Tuples.create(key, val);
+        }
     }
 
     private Rnode<K, V> root;
@@ -165,10 +169,14 @@ public class RelationMap<K, V> implements Map<K, V> {
     }
 
     public V getBestFit(K key) {
+        return this.getBestFitTuple(key).getG2();
+    }
+    
+    public Tuple<K,V> getBestFitTuple(K key){
         if (containsKey(key)) {
-            return get(key);
+            return Tuples.create(key, get(key));
         } else {
-            return traverseBegin(key, root, relation).val;
+            return traverseBegin(key, root, relation).asTuple();
         }
     }
 

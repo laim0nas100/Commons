@@ -3,12 +3,13 @@ package lt.lb.commons;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
  * @author laim0nas100
  */
-public class ArrayOp {
+public class ArrayOp extends ArrayUtils{
 
     public static <T> boolean any(Predicate<T> test, T... array) {
         if (array.length == 0) {
@@ -23,7 +24,7 @@ public class ArrayOp {
     }
 
     public static <T> boolean all(Predicate<T> test, T... array) {
-        return !any(test.negate(), array);
+        return (array.length > 0 && !any(test.negate(), array));
     }
 
     public static <T> void arrayCopy(T[] src, int srcPos, T[] dest, int destPos, int length) {
@@ -90,7 +91,22 @@ public class ArrayOp {
     }
 
     public static <T> T[] newArray(List<T> list, Class<T> clz) {
-        return list.toArray(makeArray(list.size(), clz));
+        T[] array = makeArray(list.size(), clz);
+        return list.toArray(array);
+    }
+
+    public static <T> T[] newArray(Iterator<T> it, int size, Class<T> clz) {
+        T[] array = makeArray(size, clz);
+        F.iterate(it, (i, item) -> {
+            array[i] = item;
+        });
+        return array;
+    }
+
+    public static <T> T[] newArrayFill(Iterator<T> it, Class<T> clz) {
+        LinkedList<T> list = new LinkedList<>();
+        it.forEachRemaining(list::add);
+        return newArray(list, clz);
     }
 
     public static Object[] newArray(List list) {
@@ -195,7 +211,7 @@ public class ArrayOp {
         return array;
     }
 
-    public static Integer[] map(int... arr) {
+    public static Integer[] mapInt(int... arr) {
         Integer[] a = new Integer[arr.length];
         for (int i = 0; i < arr.length; i++) {
             a[i] = arr[i];
@@ -203,7 +219,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static Long[] map(long... arr) {
+    public static Long[] mapLong(long... arr) {
         Long[] a = new Long[arr.length];
         for (int i = 0; i < arr.length; i++) {
             a[i] = arr[i];
@@ -211,7 +227,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static Short[] map(short... arr) {
+    public static Short[] mapsShort(short... arr) {
         Short[] a = new Short[arr.length];
         for (int i = 0; i < arr.length; i++) {
             a[i] = arr[i];
@@ -219,7 +235,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static Byte[] map(byte... arr) {
+    public static Byte[] mapByte(byte... arr) {
         Byte[] a = new Byte[arr.length];
         for (int i = 0; i < arr.length; i++) {
             a[i] = arr[i];
@@ -227,7 +243,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static Double[] map(double... arr) {
+    public static Double[] mapDouble(double... arr) {
         Double[] a = new Double[arr.length];
         for (int i = 0; i < arr.length; i++) {
             a[i] = arr[i];
@@ -235,7 +251,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static Float[] map(float... arr) {
+    public static Float[] mapFloat(float... arr) {
         Float[] a = new Float[arr.length];
         for (int i = 0; i < arr.length; i++) {
             a[i] = arr[i];
@@ -243,7 +259,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static Boolean[] map(boolean... arr) {
+    public static Boolean[] mapBoolean(boolean... arr) {
         Boolean[] a = new Boolean[arr.length];
         for (int i = 0; i < arr.length; i++) {
             a[i] = arr[i];
@@ -251,7 +267,7 @@ public class ArrayOp {
         return a;
     }
 
-    public static Character[] map(char... arr) {
+    public static Character[] mapChar(char... arr) {
         Character[] a = new Character[arr.length];
         for (int i = 0; i < arr.length; i++) {
             a[i] = arr[i];

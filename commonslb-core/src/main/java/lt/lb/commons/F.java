@@ -117,8 +117,8 @@ public class F {
     }
 
     /**
-     * Static cast function. Cast operation is quite significant, so this makes is
-     * searchable.
+     * Static cast function. Cast operation is quite significant, so this makes
+     * is searchable.
      *
      * @param <T>
      * @param <E>
@@ -501,6 +501,14 @@ public class F {
         return find(iterator, 0, iter);
     }
 
+    public static <T> Optional<Tuple<Integer, T>> find(Iterator<T> iterator, Iter<T> iter) {
+        return find(ReadOnlyIterator.of(iterator), 0, iter);
+    }
+
+    public static <T> Optional<Tuple<Integer, T>> find(Iterator<T> iterator, Integer from, Iter<T> iter) {
+        return find(ReadOnlyIterator.of(iterator), from, iter);
+    }
+
     public static <T> Optional<Tuple<Integer, T>> find(T[] array, Iter<T> iter) {
         return find(array, 0, iter);
     }
@@ -522,44 +530,52 @@ public class F {
         return find(ReadOnlyIterator.of(stream), from, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(List<T> list, Iter.IterNoStop<T> iter) {
-        return find(list, 0, iter);
+    public static <T> void iterate(List<T> list, Iter.IterNoStop<T> iter) {
+        find(list, 0, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(List<T> list, Integer from, Iter.IterNoStop<T> iter) {
-        return find(list, from, iter);
+    public static <T> void iterate(List<T> list, Integer from, Iter.IterNoStop<T> iter) {
+        find(list, from, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Iter.IterNoStop<T> iter) {
-        return find(array, 0, iter);
+    public static <T> void iterate(T[] array, Iter.IterNoStop<T> iter) {
+        find(array, 0, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(T[] array, Integer from, Iter.IterNoStop<T> iter) {
-        return find(array, from, iter);
+    public static <T> void iterate(T[] array, Integer from, Iter.IterNoStop<T> iter) {
+        find(array, from, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Iter.IterNoStop<T> iter) {
-        return find(list, 0, iter);
+    public static <T> void iterate(Iterator<T> iterator, Iter.IterNoStop<T> iter) {
+        find(ReadOnlyIterator.of(iterator), 0, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
-        return find(list, from, iter);
+    public static <T> void iterate(Iterator<T> iterator, Integer from, Iter.IterNoStop<T> iter) {
+        find(ReadOnlyIterator.of(iterator), from, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(ReadOnlyIterator<T> iterator, Integer from, Iter.IterNoStop<T> iter) {
-        return find(iterator, from, iter);
+    public static <T> void iterate(Collection<T> list, Iter.IterNoStop<T> iter) {
+        find(list, 0, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(ReadOnlyIterator<T> iterator, Iter.IterNoStop<T> iter) {
-        return find(iterator, 0, iter);
+    public static <T> void iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
+        find(list, from, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(Stream<T> stream, Integer from, Iter.IterNoStop<T> iter) {
-        return find(stream, from, iter);
+    public static <T> void iterate(ReadOnlyIterator<T> iterator, Integer from, Iter.IterNoStop<T> iter) {
+        find(iterator, from, iter);
     }
 
-    public static <T> Optional<Tuple<Integer, T>> iterate(Stream<T> stream, Iter.IterNoStop<T> iter) {
-        return find(stream, 0, iter);
+    public static <T> void iterate(ReadOnlyIterator<T> iterator, Iter.IterNoStop<T> iter) {
+        find(iterator, 0, iter);
+    }
+
+    public static <T> void iterate(Stream<T> stream, Integer from, Iter.IterNoStop<T> iter) {
+        find(stream, from, iter);
+    }
+
+    public static <T> void iterate(Stream<T> stream, Iter.IterNoStop<T> iter) {
+        find(stream, 0, iter);
     }
 
 }
