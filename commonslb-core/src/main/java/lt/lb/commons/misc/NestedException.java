@@ -63,7 +63,7 @@ public class NestedException extends RuntimeException {
 
     @Override
     public String toString() {
-        return "Nested Execpetion of " + getCause().toString();
+        return "Nested Exception of " + getCause().toString();
     }
 
     @Override

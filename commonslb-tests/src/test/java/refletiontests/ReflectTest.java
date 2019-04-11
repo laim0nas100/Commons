@@ -9,6 +9,7 @@ import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.ObjectBuffer;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.reflect.DefaultFieldFactory;
+import lt.lb.commons.reflect.FieldChain;
 import lt.lb.commons.reflect.ReflectionPrint;
 import lt.lb.commons.reflect.pure.EField;
 import lt.lb.commons.reflect.pure.PureReflectNode;
@@ -202,7 +203,12 @@ public class ReflectTest {
         rp.dump(c2);
         
         c2.r.run();
-
+        
+      
+        FieldChain.ObjectFieldChain ofChain = FieldChain.ObjectFieldChain.ofChain("next","next","en");
+        Log.print(ofChain.doGet(c2));
+        ofChain.doSet(c2, DemoEnum.three);
+        Log.print(ofChain.doGet(c2));
 //         PureReflectNode node = new PureReflectNode(new HashMap<>(),CCls2Override.class);
 //        EField root = EField.fromCompositeRoot(node);
 //        print("",root,3);
@@ -225,7 +231,10 @@ public class ReflectTest {
     }
 
     public static void main(String... strings) throws Exception {
-        new ReflectTest().bench();
+//        new ReflectTest().bench();
+
+
+        
     }
 
     public void bench() throws Exception {
