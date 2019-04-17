@@ -207,7 +207,7 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
     }
 
     @Override
-    public Appendable append(CharSequence arg0) {
+    public LineStringBuilder append(CharSequence arg0) {
         sb.append(arg0);
         return this;
     }
@@ -217,5 +217,5 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         sb.append(arg0);
         return this;
     }
-
+    
 }
