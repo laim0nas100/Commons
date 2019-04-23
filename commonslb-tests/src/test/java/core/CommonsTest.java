@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
 import lt.lb.commons.io.FileReader;
@@ -97,11 +98,11 @@ public class CommonsTest {
 //        Log.print("Removed after filter",filterParallel);
         Log.print("Left after filter", collection);
         Predicate<Integer> pred = Predicates.filterDistinct(Equator.primitiveHashEquator());
-        List<Integer> filterDistinct = F.fillCollection(collection.stream().filter(pred), new ArrayList<>());
+        List<Integer> filterDistinct = collection.stream().filter(pred).collect(Collectors.toList());
 
         Log.print("Removed filter distinct", filterDistinct);
         Log.print("Left", collection);
-        F.checkedRun(()->{
+        F.checkedRun(() -> {
             Log.await(1, TimeUnit.HOURS);
         });
 
@@ -118,32 +119,31 @@ public class CommonsTest {
         F.unsafeRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "/*", "*/");
-            
+
             Log.printLines(readFromFile);
             Log.print("########");
         });
-        
+
         F.unsafeRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = FileReader.readFromFile(url);
 //            Log.printLines(readFromFile);
             ReadOnlyIterator<String> parseAllComments = CommentParser.parseAllComments(ReadOnlyIterator.of(readFromFile), "#", "/*", "*/");
             ArrayList<String> parsed = new ArrayList<>();
-            for(String s:parseAllComments){
+            for (String s : parseAllComments) {
 //                Log.print(s);
                 parsed.add(s);
             }
             Log.print("########");
             Log.printLines(parsed);
         });
-        
+
         F.unsafeRun(() -> {
             String url = desktop + "myFile2.txt";
             ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "**", "**");
 //            Log.printLines(readFromFile);
             Log.await(1, TimeUnit.HOURS);
         });
-        
 
     }
 
@@ -274,20 +274,19 @@ public class CommonsTest {
             }
         };
         gen.next(new Value<>(0));
-        
+
         ArrayList<Value<Integer>> vals = new ArrayList<>(100);
         for (int i = 0; i < 100; i++) {
             vals.add(gen.next());
         }
-        
+
         ExtComparator<Value<Integer>> of = ExtComparator.of((Value<Integer> o1, Value<Integer> o2) -> Integer.compare(o1.get(), o2.get()));
-        
-        
+
         Collections.sort(vals, of);
         Log.printLines(vals);
-        F.unsafeRun(()->{
+        F.unsafeRun(() -> {
             Log.await(1, TimeUnit.HOURS);
         });
-        
+
     }
 }

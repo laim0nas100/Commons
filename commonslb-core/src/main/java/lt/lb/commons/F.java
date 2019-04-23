@@ -25,6 +25,18 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
+    
+    /**
+     * Convenience wrapped null check
+     * @param <T>
+     * @param object
+     * @param nullCase
+     * @return 
+     */
+    public static <T> T nullWrap(T object, T nullCase){
+        return object == null ? nullCase : object;
+    }
+    
     /**
      * Run with wrapping exception
      *
@@ -383,20 +395,6 @@ public class F {
         HashSet<T> set = new HashSet<>(c1);
         set.retainAll(c2);
         return set;
-    }
-
-    /**
-     * Fill Collection of given stream
-     *
-     * @param <T>
-     * @param <E>
-     * @param stream
-     * @param col
-     * @return
-     */
-    public static <T extends Collection<E>, E> T fillCollection(Stream<E> stream, T col) {
-        stream.forEachOrdered(col::add);
-        return col;
     }
 
     public static <K, V> Optional<Tuple<K, V>> find(Map<K, V> map, IterMap<K, V> iter) {

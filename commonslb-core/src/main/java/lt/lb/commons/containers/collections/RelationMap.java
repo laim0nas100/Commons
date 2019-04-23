@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.CallOrResult;
 import lt.lb.commons.F;
@@ -112,11 +113,11 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     // to avoid recursion
     private static <K, V> CallOrResult<Rnode<K, V>> traverse(Rnode<K, V> from, K to, BiFunction<K, K, Boolean> rel) {
-        LinkedList<Rnode<K, V>> filled = F.fillCollection(from.links.values().stream().filter(n -> rel.apply(to, n.key)), new LinkedList<>());
+        LinkedList<Rnode<K, V>> filled = from.links.values().stream().filter(n -> rel.apply(to, n.key)).collect(Collectors.toCollection(LinkedList::new));
 
         if (filled.size() > 1) {
             StringBuilder b = new StringBuilder();
-            ArrayList<String> violations = F.fillCollection(filled.stream().map(m -> m.nodeLevel() + " :" + m.key), new ArrayList<>());
+            ArrayList<String> violations = filled.stream().map(m -> m.nodeLevel() + " :" + m.key).collect(Collectors.toCollection(ArrayList::new));
             b.append("Multiple relations satisfied with [").append(from.key).append("] > ").append(violations);
             throw new IllegalArgumentException(b.toString() + " Terminating to prevent undefined behaviour.");
         }
@@ -292,17 +293,17 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     @Override
     public HashSet<K> keySet() {
-        return F.fillCollection(getPresentValues().map(m -> m.key), new HashSet<>());
+        return getPresentValues().map(m -> m.key).collect(Collectors.toCollection(HashSet::new));
     }
 
     @Override
     public ArrayList<V> values() {
-        return F.fillCollection(getPresentValues().map(m -> m.val), new ArrayList<>());
+        return getPresentValues().map(m -> m.val).collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override
     public HashSet<Entry<K, V>> entrySet() {
-        return F.fillCollection(getPresentValues().map(e -> MapEntries.byKey(this, e.key)), new HashSet<>());
+        return getPresentValues().map(e -> MapEntries.byKey(this, e.key)).collect(Collectors.toCollection(HashSet::new));
     }
 
     /**
