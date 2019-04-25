@@ -11,7 +11,7 @@ import org.junit.Test;
  * @author Laimonas Beniušis
  */
 public class LazyValueTest {
-
+    
     @Test
     public void test() {
         HashMap<String, String> str = new HashMap<>();
@@ -22,16 +22,23 @@ public class LazyValueTest {
             Log.print("Init map");
             return str;
         });
-        LazyDependantValue<String> map1 = map.map(s -> s.get("1"));
-        LazyDependantValue<String> map2 = map.map(s -> s.get("2"));
-        Log.print(map1.get(), map2.get());
+        LazyDependantValue<String> map1 = map.map(s -> {
+            Log.print("Init map1");
+            return s.get("1");
+        });
+        LazyDependantValue<String> map2 = map1.map(s -> {
+            Log.print("Init map2");
+            return s + "__";
+        });
+        Log.print(map2.get());
         
         str.replace("1", "ONE");
-        Log.print(map1.get(), map2.get());
-        map1.invalidate();
-        Log.print(map1.get(), map2.get());
-
+        Log.print(map2.get());
+        map.invalidate();
+        Log.print("After invalidate");
+        Log.print( map2.get());
+        
         Log.close();
     }
-
+    
 }
