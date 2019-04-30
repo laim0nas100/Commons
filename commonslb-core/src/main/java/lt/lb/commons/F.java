@@ -1,5 +1,6 @@
 package lt.lb.commons;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -27,7 +28,8 @@ public class F {
 
     
     /**
-     * Convenience wrapped null check
+     * Convenience wrapped null check instead of ? operator 
+     * avoid duplication of object when using ? operator
      * @param <T>
      * @param object
      * @param nullCase
@@ -35,6 +37,18 @@ public class F {
      */
     public static <T> T nullWrap(T object, T nullCase){
         return object == null ? nullCase : object;
+    }
+    /**
+     * Convenience wrapped if check instead of ? operator
+     * avoid duplication of trueCase when using ? operator
+     * @param <T>
+     * @param trueCase
+     * @param falseCase
+     * @param pred
+     * @return 
+     */
+    public static <T> T ifWrap(T trueCase, T falseCase, Predicate<T> pred){
+        return pred.test(trueCase) ? trueCase : falseCase;
     }
     
     /**
@@ -45,6 +59,10 @@ public class F {
      */
     public static void unsafeRun(UnsafeRunnable r) throws NestedException {
         try {
+            LocalDate date = LocalDate.of(1995,07 , 25);
+            LocalDate defDate = LocalDate.now();
+            Integer ifWrap = F.ifWrap(date.getDayOfYear(), defDate.getDayOfYear(), i -> i > 0);
+            Integer ifWrap2 = date.getDayOfYear() > 0 ? date.getDayOfYear() : defDate.getDayOfYear();
             r.unsafeRun();
         } catch (Throwable e) {
             throw NestedException.of(e);
