@@ -5,11 +5,13 @@
  */
 package lt.lb.commons;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
  * @author laim0nas100
+ * time based UUID generator. Only for reload-able purposes, not for storing outside of memory.
  */
 public class UUIDgenerator {
 
@@ -18,7 +20,7 @@ public class UUIDgenerator {
 
     public static String nextUUID(String classID) {
 
-        long time = System.currentTimeMillis();
+        long time = Timer.getNanoTimePlus();
         long valTo = 0L;
         if (lastTime.compareAndSet(time, time)) {
             valTo = val.incrementAndGet();
@@ -32,6 +34,13 @@ public class UUIDgenerator {
 
     public static String nextUUID() {
         return nextUUID("");
+    }
+    
+    
+    private static ConcurrentHashMap<String,AtomicLong> generators = new ConcurrentHashMap<>();
+    public static String counterUUID(String classID){
+        classID = F.nullWrap(classID, "");
+        return classID + "_" + generators.computeIfAbsent(classID, id -> new AtomicLong(0)).getAndIncrement();
     }
 
 }

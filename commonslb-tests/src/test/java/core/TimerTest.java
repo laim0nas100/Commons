@@ -23,7 +23,7 @@ public class TimerTest {
         F.unsafeRun(() -> {
             while (times.decrementAndGet() > 0) {
                 for (int i = 0; i < 10; i++) {
-                    Log.print(System.nanoTime(), Timer.getNanoTime(), Long.MIN_VALUE);
+                    Log.print(System.nanoTime(), Timer.getNanoTimePlus(), Timer.getNanoTime(), Timer.getNanoTime() - Timer.getNanoTimePlus(), Long.MIN_VALUE);
                 }
                 Log.print();
                 Thread.sleep(5000);

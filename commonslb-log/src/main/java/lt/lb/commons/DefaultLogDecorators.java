@@ -65,14 +65,16 @@ public class DefaultLogDecorators {
         };
     }
 
-    public static Lambda.L1R<Collection, Supplier<String>> printLinesDecorator() {
-        return (Collection col) -> {
+    public static Lambda.L1R<Iterable, Supplier<String>> printLinesDecorator() {
+        return (Iterable col) -> {
             return () -> {
                 LineStringBuilder string = new LineStringBuilder();
-                if (!col.isEmpty()) {
-                    for (Object s : col) {
-                        string.appendLine(s);
-                    }
+                boolean empty = true;
+                for (Object s : col) {
+                    empty = false;
+                    string.appendLine(s);
+                }
+                if (!empty) {
                     string.prependLine();
                 }
                 return string.toString();

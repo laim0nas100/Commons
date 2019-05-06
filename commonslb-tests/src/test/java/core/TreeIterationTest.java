@@ -42,7 +42,7 @@ public class TreeIterationTest {
         ReadOnlyIterator<Integer> of2 = ReadOnlyIterator.composite();
         ReadOnlyIterator<Integer> comp = ReadOnlyIterator.composite(of2,of1);
         
-        Log.printLines(comp);
+        Log.printLines(comp.iterator());
         
         Log.print("ok");
 

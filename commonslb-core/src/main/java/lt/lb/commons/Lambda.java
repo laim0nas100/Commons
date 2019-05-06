@@ -289,6 +289,11 @@ public class Lambda {
         public default void apply() {
             run();
         }
+
+        public static L0 empty() {
+            return () -> {
+            };
+        }
     }
 
     /**
@@ -298,6 +303,10 @@ public class Lambda {
 
         public default R apply() {
             return get();
+        }
+
+        public static <R> L0R<R> empty() {
+            return () -> null;
         }
     }
 
@@ -309,6 +318,11 @@ public class Lambda {
         public default void apply(P1 p1) {
             accept(p1);
         }
+
+        public static <P1> L1<P1> empty() {
+            return (p1) -> {
+            };
+        }
     }
 
     /**
@@ -318,6 +332,10 @@ public class Lambda {
 
         @Override
         public R apply(P1 p1);
+
+        public static <P1, R> L1R<P1, R> empty() {
+            return (p1) -> null;
+        }
     }
 
     /**
@@ -328,6 +346,12 @@ public class Lambda {
         public default void apply(P1 p1, P2 p2) {
             accept(p1, p2);
         }
+
+        public static <P1, P2> L2<P1, P2> empty() {
+            return (p1, p2) -> {
+            };
+        }
+
     }
 
     /**
@@ -337,6 +361,10 @@ public class Lambda {
 
         @Override
         public R apply(P1 p1, P2 p2);
+
+        public static <P1, P2, R> L2R<P1, P2, R> empty() {
+            return (p1, p2) -> null;
+        }
     }
 
     /**
@@ -345,6 +373,11 @@ public class Lambda {
     public interface L3<P1, P2, P3> {
 
         public void apply(P1 p1, P2 p2, P3 p3);
+
+        public static <P1, P2, P3> L3<P1, P2, P3> empty() {
+            return (p1, p2, p3) -> {
+            };
+        }
     }
 
     /**
@@ -353,6 +386,10 @@ public class Lambda {
     public interface L3R<P1, P2, P3, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3);
+
+        public static <P1, P2, P3, R> L3R<P1, P2, P3, R> empty() {
+            return (p1, p2, p3) -> null;
+        }
     }
 
     /**
@@ -361,6 +398,11 @@ public class Lambda {
     public interface L4<P1, P2, P3, P4> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4);
+
+        public static <P1, P2, P3, P4> L4<P1, P2, P3, P4> empty() {
+            return (p1, p2, p3, p4) -> {
+            };
+        }
     }
 
     /**
@@ -369,6 +411,10 @@ public class Lambda {
     public interface L4R<P1, P2, P3, P4, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4);
+
+        public static <P1, P2, P3, P4, R> L4R<P1, P2, P3, P4, R> empty() {
+            return (p1, p2, p3, p4) -> null;
+        }
     }
 
     /**
@@ -377,6 +423,11 @@ public class Lambda {
     public interface L5<P1, P2, P3, P4, P5> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
+
+        public static <P1, P2, P3, P4, P5> L5<P1, P2, P3, P4, P5> empty() {
+            return (p1, p2, p3, p4, p5) -> {
+            };
+        }
     }
 
     /**
@@ -385,6 +436,10 @@ public class Lambda {
     public interface L5R<P1, P2, P3, P4, P5, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
+
+        public static <P1, P2, P3, P4, P5, R> L5R<P1, P2, P3, P4, P5, R> empty() {
+            return (p1, p2, p3, p4, p5) -> null;
+        }
     }
 
     /**
@@ -393,6 +448,11 @@ public class Lambda {
     public interface L6<P1, P2, P3, P4, P5, P6> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
+        
+        public static <P1, P2, P3, P4, P5, P6> L6<P1, P2, P3, P4, P5, P6> empty() {
+            return (p1, p2, p3, p4, p5, p6) -> {
+            };
+        }
     }
 
     /**
@@ -401,6 +461,10 @@ public class Lambda {
     public interface L6R<P1, P2, P3, P4, P5, P6, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
+
+        public static <P1, P2, P3, P4, P5, P6, R> L6R<P1, P2, P3, P4, P5, P6, R> empty() {
+            return (p1, p2, p3, p4, p5, p6) -> null;
+        }
     }
 
     /**
@@ -409,6 +473,11 @@ public class Lambda {
     public interface L7<P1, P2, P3, P4, P5, P6, P7> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7);
+        
+        public static <P1, P2, P3, P4, P5, P6, P7> L7<P1, P2, P3, P4, P5, P6, P7> empty() {
+            return (p1, p2, p3, p4, p5, p6, p7) -> {
+            };
+        }
     }
 
     /**
@@ -417,6 +486,10 @@ public class Lambda {
     public interface L7R<P1, P2, P3, P4, P5, P6, P7, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7);
+
+        public static <P1, P2, P3, P4, P5, P6, P7, R> L7R<P1, P2, P3, P4, P5, P6, P7, R> empty() {
+            return (p1, p2, p3, p4, p5, p6, p7) -> null;
+        }
     }
 
     /**
@@ -425,6 +498,12 @@ public class Lambda {
     public interface L8<P1, P2, P3, P4, P5, P6, P7, P8> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8);
+        
+        public static <P1, P2, P3, P4, P5, P6, P7, P8> L8<P1, P2, P3, P4, P5, P6, P7, P8> empty() {
+            return (p1, p2, p3, p4, p5, p6, p7, p8) -> {
+            };
+        }
+
     }
 
     /**
@@ -433,6 +512,10 @@ public class Lambda {
     public interface L8R<P1, P2, P3, P4, P5, P6, P7, P8, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8);
+
+        public static <P1, P2, P3, P4, P5, P6, P7, P8, R> L8R<P1, P2, P3, P4, P5, P6, P7, P8, R> empty() {
+            return (p1, p2, p3, p4, p5, p6, p7, p8) -> null;
+        }
     }
 
     /**
@@ -441,6 +524,11 @@ public class Lambda {
     public interface L9<P1, P2, P3, P4, P5, P6, P7, P8, P9> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9);
+        
+        public static <P1, P2, P3, P4, P5, P6, P7, P8, P9> L9<P1, P2, P3, P4, P5, P6, P7, P8, P9> empty() {
+            return (p1, p2, p3, p4, p5, p6, p7, p8, p9) -> {
+            };
+        }
     }
 
     /**
@@ -449,10 +537,15 @@ public class Lambda {
     public interface L9R<P1, P2, P3, P4, P5, P6, P7, P8, P9, R> {
 
         public R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9);
+
+        public static <P1, P2, P3, P4, P5, P6, P7, P8, P9, R> L9R<P1, P2, P3, P4, P5, P6, P7, P8, P9, R> empty() {
+            return (p1, p2, p3, p4, p5, p6, p7, p8, p9) -> null;
+        }
     }
 
     /**
      * Lambda with 2 parameters of same type and no result
+     *
      * @param <T> parameter type
      */
     public interface L2S<T> extends L2<T, T> {
@@ -460,6 +553,7 @@ public class Lambda {
 
     /**
      * Lambda with 3 parameters of same type and no result
+     *
      * @param <T> parameter type
      */
     public interface L3S<T> extends L3<T, T, T> {
@@ -467,6 +561,7 @@ public class Lambda {
 
     /**
      * Lambda with 4 parameters of same type and no result
+     *
      * @param <T> parameter type
      */
     public interface L4S<T> extends L4<T, T, T, T> {
@@ -474,6 +569,7 @@ public class Lambda {
 
     /**
      * Lambda with 5 parameters of same type and no result
+     *
      * @param <T> parameter type
      */
     public interface L5S<T> extends L5<T, T, T, T, T> {
@@ -481,6 +577,7 @@ public class Lambda {
 
     /**
      * Lambda with 6 parameters of same type and no result
+     *
      * @param <T> parameter type
      */
     public interface L6S<T> extends L6<T, T, T, T, T, T> {
@@ -488,6 +585,7 @@ public class Lambda {
 
     /**
      * Lambda with 7 parameters of same type and no result
+     *
      * @param <T> parameter type
      */
     public interface L7S<T> extends L7<T, T, T, T, T, T, T> {
@@ -495,6 +593,7 @@ public class Lambda {
 
     /**
      * Lambda with 8 parameters of same type and no result
+     *
      * @param <T> parameter type
      */
     public interface L8S<T> extends L8<T, T, T, T, T, T, T, T> {
@@ -502,6 +601,7 @@ public class Lambda {
 
     /**
      * Lambda with 9 parameters of same type and no result
+     *
      * @param <T> parameter type
      */
     public interface L9S<T> extends L9<T, T, T, T, T, T, T, T, T> {

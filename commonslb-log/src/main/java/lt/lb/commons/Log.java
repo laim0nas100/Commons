@@ -3,7 +3,6 @@ package lt.lb.commons;
 import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Properties;
@@ -66,7 +65,7 @@ public class Log {
     /**
      * Used in printLines Collection objects
      */
-    public Lambda.L1R<Collection, Supplier<String>> printLinesDecorator = DefaultLogDecorators.printLinesDecorator();
+    public Lambda.L1R<Iterable, Supplier<String>> printLinesDecorator = DefaultLogDecorators.printLinesDecorator();
     /**
      * Used in printIter
      */
@@ -178,11 +177,11 @@ public class Log {
 
     }
 
-    public static void printLines(Collection col) {
+    public static void printLines(Iterable col) {
         printLines(main(), col);
     }
 
-    public static void printLines(Log log, Collection col) {
+    public static void printLines(Log log, Iterable col) {
         if (log.disable || log.closed) {
             return;
         }
