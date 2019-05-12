@@ -2,7 +2,6 @@ package lt.lb.commons.misc;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import lt.lb.commons.F;
 
 /**
  *
@@ -12,9 +11,23 @@ public class NestedException extends RuntimeException {
 
     protected Throwable error;
     
+    
+    /**
+     * Throws NestedException of given throwable
+     * @param t 
+     */
+    public static void nestedThrow(Throwable t){
+        throw NestedException.of(t);
+    }
+    
+    /**
+     * 
+     * @param t
+     * @return Wrapped exception, unless provided Throwable already is NestedException
+     */
     public static NestedException of(Throwable t){
         if(t instanceof NestedException){
-            return F.cast(t);
+            return (NestedException)t;
         }else{
             return new NestedException(t);
         }
