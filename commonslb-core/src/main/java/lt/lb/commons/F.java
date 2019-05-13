@@ -59,10 +59,6 @@ public class F {
      */
     public static void unsafeRun(UnsafeRunnable r) throws NestedException {
         try {
-            LocalDate date = LocalDate.of(1995,07 , 25);
-            LocalDate defDate = LocalDate.now();
-            Integer ifWrap = F.ifWrap(date.getDayOfYear(), defDate.getDayOfYear(), i -> i > 0);
-            Integer ifWrap2 = date.getDayOfYear() > 0 ? date.getDayOfYear() : defDate.getDayOfYear();
             r.unsafeRun();
         } catch (Throwable e) {
             throw NestedException.of(e);
