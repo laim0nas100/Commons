@@ -96,4 +96,14 @@ public class CallOrResult<T> {
 
         return next.res;
     }
+
+    /**
+     * Execute all chain. Hide exceptions, get result.
+     * @param <T>
+     * @param next
+     * @return 
+     */
+    public static <T> T iterative(CallOrResult<T> next) {
+        return F.unsafeCall(() -> CallOrResult.iterative(-1, next).get());
+    }
 }
