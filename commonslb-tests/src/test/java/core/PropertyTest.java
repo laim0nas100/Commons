@@ -13,7 +13,7 @@ import org.junit.Test;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class PropertyTest {
     

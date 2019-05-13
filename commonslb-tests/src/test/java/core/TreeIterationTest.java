@@ -23,7 +23,7 @@ import org.junit.Test;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class TreeIterationTest {
 
@@ -37,10 +37,10 @@ public class TreeIterationTest {
         numberVisitor.addCondition(isEven);
         
         
-        ReadOnlyBidirectionalIterator<Integer> of = ReadOnlyIterator.of(ArrayOp.asArray(1,2,3,4,5,6,7,8,9));
-        ReadOnlyBidirectionalIterator<Integer> of1 = ReadOnlyIterator.of(ArrayOp.asArray(-1,1,2,3,4,5,6,7,8,9));
+        ReadOnlyBidirectionalIterator<Integer> of = ReadOnlyIterator.of(1,2,3,4,5,6,7,8,9);
+        ReadOnlyBidirectionalIterator<Integer> of1 = ReadOnlyIterator.of(-1,1,2,3,4,5,6,7,8,9);
         ReadOnlyIterator<Integer> of2 = ReadOnlyIterator.composite();
-        ReadOnlyIterator<Integer> comp = ReadOnlyIterator.composite(of2,of1);
+        ReadOnlyIterator<Integer> comp = ReadOnlyIterator.composite(of2,of1,of);
         
         Log.printLines(comp.iterator());
         

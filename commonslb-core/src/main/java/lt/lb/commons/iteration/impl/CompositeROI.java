@@ -1,7 +1,6 @@
 package lt.lb.commons.iteration.impl;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**

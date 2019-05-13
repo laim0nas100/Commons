@@ -14,6 +14,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.Lambda;
 import lt.lb.commons.Log;
 import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -26,8 +27,6 @@ public class StackOverflowTest {
         public RecursionChain next;
 
     }
-
-    
 
     public static class RecursionBuilder {
 
@@ -75,7 +74,37 @@ public class StackOverflowTest {
             }
         }
 
-  
+        public static BigInteger ackermann(BigInteger m, BigInteger n) {
+            if (m.equals(BigInteger.ZERO)) {
+                return n.add(BigInteger.ONE);
+            }
+            ExtComparator<BigInteger> cmp = ExtComparator.ofComparable();
+            if (cmp.greaterThan(m, BigInteger.ZERO) && cmp.equals(n, BigInteger.ZERO)) {
+                return ackermann(m.subtract(BigInteger.ONE), BigInteger.ONE);
+            }
+
+            if (cmp.greaterThan(m, BigInteger.ZERO) && cmp.greaterThan(n, BigInteger.ZERO)) {
+                return ackermann(m.subtract(BigInteger.ONE), ackermann(m, n.subtract(BigInteger.ONE)));
+            }
+            throw new IllegalStateException();
+
+        }
+
+        public static CallOrResult<BigInteger> ackermannCall(BigInteger m, BigInteger n) {
+            if (m.equals(BigInteger.ZERO)) {
+                return CallOrResult.returnValue(n.add(BigInteger.ONE));
+            }
+            ExtComparator<BigInteger> cmp = ExtComparator.ofComparable();
+            if (cmp.greaterThan(m, BigInteger.ZERO) && cmp.equals(n, BigInteger.ZERO)) {
+                return CallOrResult.returnCall(() -> ackermannCall(m.subtract(BigInteger.ONE), BigInteger.ONE));
+            }
+
+            if (cmp.greaterThan(m, BigInteger.ZERO) && cmp.greaterThan(n, BigInteger.ZERO)) {
+                return CallOrResult.returnCall(() -> ackermannCall(m.subtract(BigInteger.ONE), CallOrResult.iterative(ackermannCall(m, n.subtract(BigInteger.ONE)))));
+            }
+            throw new IllegalStateException();
+
+        }
     }
 
     public static void main(String... args) throws Exception {
@@ -83,8 +112,15 @@ public class StackOverflowTest {
 //        RecursionBuilder.iterative(okCall);
         BigInteger big = BigInteger.valueOf(100000000);
         Log.print(CallOrResult.iterative(50000, RecursionBuilder.fibbCall(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(999))).get());
+        BigInteger m = BigInteger.valueOf(3);
+        BigInteger n = BigInteger.valueOf(12);
+//        Log.print(RecursionBuilder.ackermann(m, n));
+        Log.print(CallOrResult.iterative(RecursionBuilder.ackermannCall(m, n)));
+//        Log.print(RecursionBuilder.ackermann(m, n));
+//        Log.print(CallOrResult.iterative(RecursionBuilder.ackermannCall(m, n)));
 //        Log.print(RecursionBuilder.fibb(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(999)));
         Log.print("End");
+        Log.close();
 //        RecursionBuilder.okCall(0, 8000);
     }
 }
