@@ -5,6 +5,8 @@
  */
 package lt.lb.commons.threads.sync;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
@@ -24,6 +26,15 @@ public class WaitTime {
     public WaitTime(long time, TimeUnit unit) {
         this.time = time;
         this.unit = unit;
+    }
+
+    public WaitTime(Duration dur) {
+        this(dur.toNanos(), TimeUnit.NANOSECONDS);
+    }
+
+    public Duration toDuration() {
+        long nanos = WaitTime.convert(this, TimeUnit.NANOSECONDS).time;
+        return Duration.of(nanos, ChronoUnit.NANOS);
     }
 
     public static WaitTime ofNanos(long time) {
@@ -89,8 +100,8 @@ public class WaitTime {
         return new WaitTime(sum, unit);
 
     }
-    
-    public static WaitTime subtract(WaitTime a, WaitTime b){
+
+    public static WaitTime subtract(WaitTime a, WaitTime b) {
         int aOrder = unitOrder(a.unit);
         int bOrder = unitOrder(b.unit);
         ExtComparator<Integer> cmp = ExtComparator.ofComparable();
