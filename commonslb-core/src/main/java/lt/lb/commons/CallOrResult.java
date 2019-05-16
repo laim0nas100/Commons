@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
  *
  * @author laim0nas100
  */
+@Deprecated(since = "Use Caller")
 public class CallOrResult<T> {
 
     /**
@@ -99,9 +100,10 @@ public class CallOrResult<T> {
 
     /**
      * Execute all chain. Hide exceptions, get result.
+     *
      * @param <T>
      * @param next
-     * @return 
+     * @return
      */
     public static <T> T iterative(CallOrResult<T> next) {
         return F.unsafeCall(() -> CallOrResult.iterative(-1, next).get());

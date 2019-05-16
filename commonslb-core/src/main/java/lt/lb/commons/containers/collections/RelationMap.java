@@ -12,13 +12,12 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.CallOrResult;
+import lt.lb.commons.Caller;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.misc.ExtComparator;
-import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -48,8 +47,8 @@ public class RelationMap<K, V> implements Map<K, V> {
         public int nodeLevel() {
             return 1 + Optional.ofNullable(parent).map(p -> p.nodeLevel()).orElse(0);
         }
-        
-        public Tuple<K,V> asTuple(){
+
+        public Tuple<K, V> asTuple() {
             return Tuples.create(key, val);
         }
     }
@@ -112,7 +111,7 @@ public class RelationMap<K, V> implements Map<K, V> {
     }
 
     // to avoid recursion
-    private static <K, V> CallOrResult<Rnode<K, V>> traverse(Rnode<K, V> from, K to, BiFunction<K, K, Boolean> rel) {
+    private static <K, V> Caller<Rnode<K, V>> traverse(Rnode<K, V> from, K to, BiFunction<K, K, Boolean> rel) {
         LinkedList<Rnode<K, V>> filled = from.links.values().stream().filter(n -> rel.apply(to, n.key)).collect(Collectors.toCollection(LinkedList::new));
 
         if (filled.size() > 1) {
@@ -123,9 +122,9 @@ public class RelationMap<K, V> implements Map<K, V> {
         }
         if (filled.size() == 1) {
             Rnode<K, V> next = filled.getFirst();
-            return CallOrResult.returnCall(() -> traverse(next, to, rel));
+            return new Caller<>(args -> traverse(next, to, rel));
         } else {
-            return CallOrResult.returnValue(from);
+            return new Caller<>(from);
 
         }
     }
@@ -161,19 +160,14 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     private static <K, V> Rnode<K, V> traverseBegin(K key, Rnode<K, V> r, BiFunction<K, K, Boolean> rel) {
         assertRelation(key, r, rel);
-        try {
-            Optional<Rnode<K, V>> iterative = CallOrResult.iterative(0, traverse(r, key, rel));
-            return iterative.get();
-        } catch (Exception ex) {
-            throw NestedException.of(ex);
-        }
+        return traverse(r, key, rel).resolve();
     }
 
     public V getBestFit(K key) {
         return this.getBestFitTuple(key).getG2();
     }
-    
-    public Tuple<K,V> getBestFitTuple(K key){
+
+    public Tuple<K, V> getBestFitTuple(K key) {
         if (containsKey(key)) {
             return Tuples.create(key, get(key));
         } else {

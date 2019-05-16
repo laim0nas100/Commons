@@ -4,10 +4,13 @@
  */
 package lt.lb.commons.iteration.impl;
 
+import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.Optional;
 import lt.lb.commons.CallOrResult;
+import lt.lb.commons.Caller;
 import lt.lb.commons.F;
+import lt.lb.commons.containers.Value;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
 
@@ -16,6 +19,7 @@ import lt.lb.commons.iteration.TreeVisitor;
  * @author Laimonas Beniušis
  */
 public abstract class TreeVisitorImpl {
+
     public static <T> Optional<T> DFS(TreeVisitor<T> visitor, T root) {
         if (visitor.find(root)) {
             return Optional.ofNullable(root);
@@ -33,24 +37,34 @@ public abstract class TreeVisitorImpl {
     }
 
     public static <T> Optional<T> DFSIterative(TreeVisitor<T> visitor, T root) {
-        return F.unsafeCall(() -> CallOrResult.iterative(0, dfsInner(visitor, root)).get());
+        return Caller.resolve(dfsInner(visitor,root));
     }
 
-    private static <T> CallOrResult<Optional<T>> dfsInner(TreeVisitor<T> visitor, T root) {
+    private static <T> Caller<Optional<T>> dfsInner(TreeVisitor<T> visitor, T root) {
         if (visitor.find(root)) {
-            return CallOrResult.returnValue(Optional.ofNullable(root));
+            return new Caller<>(Optional.ofNullable(root));
         } else {
-            return CallOrResult.returnCall(() -> {
-                for (T child : visitor.getChildrenIterator(root)) {
-                    Optional<T> dfs = CallOrResult.iterative(0, dfsInner(visitor, child)).flatMap(m -> m);
-                    if (dfs.isPresent()) {
-                        return CallOrResult.returnValue(dfs);
-                    }
 
+            Caller<Optional<T>> call = null;
+            int i = 0;
+            for(T c:visitor.getChildrenIterator(root)){
+                if (i == 0) {
+                    call = new Caller<>(args -> dfsInner(visitor, c));
+                } else {
+                    Caller<Optional<T>> get = call;
+                    call = new Caller<>(args -> {
+                        Optional<T> result = args.get(0);
+                        if (result.isPresent()) {
+                            return new Caller<>(result);
+                        } else {
+                            return dfsInner(visitor, c);
+                        }
+                    }, get);
                 }
-                return CallOrResult.returnValue(Optional.empty());
-            });
-
+                i++;
+            }
+            return new Caller<>(Optional.empty());
+            
         }
 
     }
