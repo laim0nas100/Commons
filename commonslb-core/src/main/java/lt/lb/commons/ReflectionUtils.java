@@ -19,12 +19,50 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  *
  * @author laim0nas100
  */
 public class ReflectionUtils {
+    
+    private static class StackException extends Error{
+        public long stack;
+        public StackException(Throwable th, long stack){
+            super(th);
+            this.stack = stack;
+        }
+    }
+    
+    private static long getMaximumStackDepth(long l, Predicate<Long> test) {
+        try {
+            if (l == Long.MAX_VALUE) {
+                return Long.MAX_VALUE;
+            } else {
+                long maximumStackDepth = getMaximumStackDepth(l + 1, test);
+                if(test.test(maximumStackDepth)){
+                    return maximumStackDepth;
+                }else{
+                    return -1;
+                }
+            }
+
+        } catch (StackOverflowError error) {
+            throw new StackException(error,l);
+        }
+    }
+
+    public static long getMaximumStackDepth() {
+        try {
+            return getMaximumStackDepth(0, t -> t <= 0);
+
+        } catch (StackException error) {
+            return error.stack;
+        }
+    }
+    
+    
 
     public static Map<Class, DumpProp> map = getMap();
 

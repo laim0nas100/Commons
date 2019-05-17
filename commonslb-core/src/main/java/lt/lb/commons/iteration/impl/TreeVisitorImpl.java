@@ -8,6 +8,7 @@ import lt.lb.commons.Caller.CallerBuilder;
 import lt.lb.commons.F;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -16,6 +17,7 @@ import lt.lb.commons.iteration.TreeVisitor;
 public abstract class TreeVisitorImpl {
 
     public static <T> Optional<T> DFS(TreeVisitor<T> visitor, T root) {
+        try{
         if (visitor.find(root)) {
             return Optional.ofNullable(root);
         } else {
@@ -28,6 +30,11 @@ public abstract class TreeVisitorImpl {
             }
             return Optional.empty();
         }
+        }catch(StackOverflowError error){
+            int len = error.getStackTrace().length;
+            throw NestedException.of(new StackOverflowError("Overflow at length:"+len));
+        }
+        
 
     }
 

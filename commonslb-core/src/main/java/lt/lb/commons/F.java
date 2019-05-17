@@ -1,6 +1,5 @@
 package lt.lb.commons;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -26,32 +25,33 @@ import lt.lb.commons.threads.UnsafeRunnable;
  */
 public class F {
 
-    
     /**
-     * Convenience wrapped null check instead of ? operator 
-     * avoid duplication of object when using ? operator.
-     * If java 9, use Object.requireNotNullElse
+     * Convenience wrapped null check instead of ? operator avoid duplication of
+     * object when using ? operator. If java 9 is available, use Object.requireNotNullElse
+     *
      * @param <T>
      * @param object
      * @param nullCase
-     * @return 
+     * @return
      */
-    public static <T> T nullWrap(T object, T nullCase){
+    public static <T> T nullWrap(T object, T nullCase) {
         return object == null ? Objects.requireNonNull(nullCase, "nullCase is null") : object;
     }
+
     /**
-     * Convenience wrapped if check instead of ? operator
-     * avoid duplication of trueCase when using ? operator
+     * Convenience wrapped if check instead of ? operator avoid duplication of
+     * trueCase when using ? operator
+     *
      * @param <T>
      * @param trueCase
      * @param falseCase
      * @param pred
-     * @return 
+     * @return
      */
-    public static <T> T ifWrap(T trueCase, T falseCase, Predicate<T> pred){
+    public static <T> T ifWrap(T trueCase, T falseCase, Predicate<T> pred) {
         return pred.test(trueCase) ? trueCase : falseCase;
     }
-    
+
     /**
      * Run with wrapping exception
      *
