@@ -29,14 +29,15 @@ public class F {
     
     /**
      * Convenience wrapped null check instead of ? operator 
-     * avoid duplication of object when using ? operator
+     * avoid duplication of object when using ? operator.
+     * If java 9, use Object.requireNotNullElse
      * @param <T>
      * @param object
      * @param nullCase
      * @return 
      */
     public static <T> T nullWrap(T object, T nullCase){
-        return object == null ? nullCase : object;
+        return object == null ? Objects.requireNonNull(nullCase, "nullCase is null") : object;
     }
     /**
      * Convenience wrapped if check instead of ? operator
