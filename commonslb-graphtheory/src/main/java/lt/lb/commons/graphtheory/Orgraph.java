@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
+import lt.lb.commons.LineStringBuilder;
 
 /**
  *
@@ -133,19 +134,19 @@ public class Orgraph {
     }
 
     public String toStringLinks() {
-        String str = "";
+        LineStringBuilder sb = new LineStringBuilder();
         for (GLink link : links.values()) {
-            str += link.toString() + "\n";
+            sb.appendLine(link);
         }
-        return str;
+        return sb.toString();
     }
 
     public String toStringNodes() {
-        String str = "";
+        LineStringBuilder sb = new LineStringBuilder();
         for (GNode n : nodes.values()) {
-            str += n.toString() + "\n";
+            sb.appendLine(n);
         }
-        return str;
+        return sb.toString();
     }
 
     public GLink newLink(long nodeFrom, long nodeTo, double weight) {
@@ -230,9 +231,9 @@ public class Orgraph {
     }
 
     public List<GLink> doesNotHaveAPair() {
-        LinkedList<GLink> links = new LinkedList<>();
-        links.addAll(this.links.values());
-        return F.filterInPlace(links, l -> {
+        LinkedList<GLink> localLinks = new LinkedList<>();
+        localLinks.addAll(this.links.values());
+        return F.filterInPlace(localLinks, l -> {
             return this.linkExists(l.nodeTo, l.nodeFrom);
         });
     }
