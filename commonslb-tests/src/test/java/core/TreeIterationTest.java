@@ -7,17 +7,24 @@ package core;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.graphtheory.GNode;
+import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.iteration.impl.CompositeROI;
 import org.junit.Test;
 
@@ -32,10 +39,6 @@ public class TreeIterationTest {
         Log.println("Init log");
         Log.main().async = false;
         
-        Visitor<Number> numberVisitor = new Visitor<>();
-        Predicate<Number> isEven = i -> i.intValue() % 2 == 0;
-        numberVisitor.addCondition(isEven);
-        
         
         ReadOnlyBidirectionalIterator<Integer> of = ReadOnlyIterator.of(1,2,3,4,5,6,7,8,9);
         ReadOnlyBidirectionalIterator<Integer> of1 = ReadOnlyIterator.of(-1,1,2,3,4,5,6,7,8,9);
@@ -49,52 +52,48 @@ public class TreeIterationTest {
         F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
 
     }
-
-    static class Visitor<T> {
-
-        protected Collection<Tuple<Predicate<? super T>, Consumer<? super T>>> actions = new LinkedList<>();
-        
-        protected Collection<Predicate<? super T>> conditions = new LinkedList<>(); 
-
-        public Visitor() {
-        }
-
-        public void visit(T item) {
-            
-            for(Predicate<? super T> condition:conditions){
-                if(!condition.test(item)){
-                    return;
-                }
+    
+    @Test
+    public void graphIteration(){
+        Orgraph g = new Orgraph();
+        g.linkNodes(0, 1, 0);
+        g.linkNodes(0, 2, 0);
+        g.linkNodes(0, 3, 0);
+        g.linkNodes(1, 4, 0);
+        g.linkNodes(1, 5, 0);
+        g.linkNodes(2, 6, 0);
+        g.linkNodes(3, 7, 0);
+        Log.println("",g.toStringNodes());
+        Log.println("",g.toStringLinks());
+        TreeVisitor<GNode> it;
+        it = new TreeVisitor<GNode>() {
+            @Override
+            public Boolean find(GNode item) {
+                Log.print("Visiting:",item.toString());
+                return item.ID == 3;
             }
-            
-            for (Tuple<Predicate<? super T>, Consumer<? super T>> tuple : actions) {
-                if (tuple.g1.test(item)) {
-                    tuple.g2.accept(item);
-                }
+
+            @Override
+            public ReadOnlyIterator<GNode> getChildrenIterator(GNode item) {
+                Stream<GNode> collect = g.resolveLinkedTo(item, i->true)
+                        .stream()
+                        .map(link -> link.nodeFrom == item.ID ? g.getNode(link.nodeTo): g.getNode(link.nodeFrom))
+                        .map(m->m.get());
+                return ReadOnlyIterator.of(collect);
             }
-        }
-
-        public Visitor<T> addAction(Consumer<? super T> cons) {
-            return this.addAction(c -> true, cons);
-        }
-
-        public Visitor<T> addAction(Predicate<? super T> condition, Consumer<? super T> cons) {
-            actions.add(Tuples.create(condition, cons));
-            return this;
-        }
+        };
         
-        public Visitor<T> addCondition(Predicate<? super T> condition) {
-            this.conditions.add(condition);
-            return this;
-        }
+        Log.print("BFS");
+        it.BFS(g.getNode(0).get());
         
+        Log.print("DFS rec");
+        it.DFS(g.getNode(0).get());
         
-    }
-
-    public static class TreeVisitor<T> extends Visitor<T>{
-
-        Function<T, ReadOnlyIterator<T>> childrenGetter;
-
+        Log.print("DFS it");
+        it.DFSIterative(g.getNode(0).get());
+        
+        F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
+        
     }
 }
 
