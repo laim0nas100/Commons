@@ -1,14 +1,12 @@
 package lt.lb.commons.iteration.impl;
 
 import java.util.LinkedList;
-import java.util.Objects;
 import java.util.Optional;
 import lt.lb.commons.Caller;
 import lt.lb.commons.Caller.CallerBuilder;
 import lt.lb.commons.F;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
-import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -17,7 +15,6 @@ import lt.lb.commons.misc.NestedException;
 public abstract class TreeVisitorImpl {
 
     public static <T> Optional<T> DFS(TreeVisitor<T> visitor, T root) {
-        try{
         if (visitor.find(root)) {
             return Optional.ofNullable(root);
         } else {
@@ -26,16 +23,9 @@ public abstract class TreeVisitorImpl {
                 if (dfs.isPresent()) {
                     return dfs;
                 }
-
             }
             return Optional.empty();
         }
-        }catch(StackOverflowError error){
-            int len = error.getStackTrace().length;
-            throw NestedException.of(new StackOverflowError("Overflow at length:"+len));
-        }
-        
-
     }
 
     public static <T> Optional<T> DFSIterative(TreeVisitor<T> visitor, T root) {
