@@ -1,13 +1,13 @@
 package lt.lb.commons;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 
 /**
@@ -21,6 +21,64 @@ public class Caller<T> {
     private T value;
     private Function<List<T>, Caller<T>> call;
     private List<Caller<T>> dependants = new ArrayList<>();
+
+    public static class CallerBuilder<T> {
+
+        private List<Caller<T>> dependants = new ArrayList<>();
+
+        public static <T> Caller<T> ofResult(T result) {
+            return new Caller<>(result);
+        }
+
+        public static <T> Caller<T> ofFunction(Function<List<T>, Caller<T>> call) {
+            return new Caller<>(call);
+        }
+
+        public static <T> Caller<T> ofSupplier(Supplier<Caller<T>> call) {
+            return new Caller<>(args -> call.get());
+        }
+
+        public static <T> Caller<T> ofSupplierResult(Supplier<T> call) {
+            return new Caller<>(args -> ofResult(call.get()));
+        }
+
+        public static <T> Caller<T> ofResultCall(Function<List<T>, T> call) {
+            return new Caller<>(args -> ofResult(call.apply(args)));
+        }
+
+        public CallerBuilder<T> withDependency(Caller<T> dep) {
+            this.dependants.add(dep);
+            return this;
+        }
+
+        public CallerBuilder<T> withDependencyCall(Function<List<T>, Caller<T>> call) {
+            return this.withDependency(ofFunction(call));
+        }
+
+        public CallerBuilder<T> withDependencyResult(Function<List<T>, T> call) {
+            return this.withDependency(ofResultCall(call));
+        }
+
+        public CallerBuilder<T> withDependencySupp(Supplier<Caller<T>> call) {
+            return this.withDependency(ofSupplier(call));
+        }
+
+        public CallerBuilder<T> withDependencySuppResult(Supplier<T> call) {
+            return this.withDependency(ofSupplierResult(call));
+        }
+        
+        public CallerBuilder<T> withDependencyResult(T res){
+            return this.withDependency(ofResult(res));
+        }
+
+        public Caller<T> toResultCall(Function<List<T>, T> call) {
+            return new Caller<>(args -> ofResult(call.apply(args)), this.dependants);
+        }
+
+        public Caller<T> toCall(Function<List<T>, Caller<T>> call) {
+            return new Caller<>(call, this.dependants);
+        }
+    }
 
     /**
      * Just with result
@@ -48,19 +106,8 @@ public class Caller<T> {
      * @param nextCall
      * @param dependency
      */
-    public Caller(Function<List<T>, Caller<T>> nextCall, Caller<T> dependency) {
+    public Caller(Function<List<T>, Caller<T>> nextCall, Caller<T>... dependency) {
         this(nextCall, Arrays.asList(dependency));
-    }
-
-    /**
-     * With recursive tail call, which has dependencies
-     *
-     * @param nextCall
-     * @param dependency
-     * @param rest
-     */
-    public Caller(Function<List<T>, Caller<T>> nextCall, Caller<T> dependency, Caller<T>... rest) {
-        this(new Tuple<>(nextCall, Stream.concat(Stream.of(dependency), Stream.of(rest)).collect(Collectors.toList())));
     }
 
     /**
@@ -78,73 +125,80 @@ public class Caller<T> {
         this.call = info.g1;
         this.dependants = info.g2;
     }
-    
-    public T resolve(){
+
+    public T resolve() {
         return Caller.resolve(this);
     }
 
+
+    private static class StackFrame<T> {
+
+        private Caller<T> call;
+        private List<T> args;
+        private Integer index;
+
+        public StackFrame(Caller<T> call) {
+            this.args = new LinkedList<>();
+            this.call = call;
+            this.index = 0;
+        }
+        
+        public void clearWith(Caller<T> call){
+            this.args.clear();
+            this.call = call;
+            this.index = 0;
+        }
+    }
+
     public static <T> T resolve(Caller<T> caller) {
-        LinkedList<Caller<T>> stack = new LinkedList<>();
-        LinkedList<List<T>> stackArgs = new LinkedList<>();
-        LinkedList<IntegerValue> stackIndex = new LinkedList<>();
+
+        ArrayDeque<StackFrame<T>> stack = new ArrayDeque<>();
+        ArrayList<T> empty = new ArrayList<>(0);
 
         while (true) {
             if (stack.isEmpty()) {
                 if (caller.hasValue) {
                     return caller.value;
                 } else if (caller.hasCall) {
+
                     if (caller.dependants.isEmpty()) {
-                        caller = caller.call.apply(new ArrayList<>());
+                        caller = caller.call.apply(empty);
                     } else {
-                        stack.addLast(caller);
-                        stackArgs.addLast(new ArrayList<>());
-                        stackIndex.addLast(new IntegerValue(0));
+                        stack.addLast(new StackFrame(caller));
                     }
                 } else {
                     throw new IllegalStateException("No value or call");
                 }
             } else { // in stack
-                caller = stack.getLast();
-                List<T> args = stackArgs.getLast();
-                IntegerValue index = stackIndex.getLast();
-                if (caller.dependants.size() <= args.size()) { //demolish stack, because got all dependecies
-                    stack.pollLast();
-                    stackIndex.pollLast();
-                    stackArgs.pollLast();
-
-                    caller = caller.call.apply(args); // last call with dependants
+                StackFrame<T> frame = stack.getLast();
+                caller = frame.call;
+                if (caller.dependants.size() <= frame.args.size()) { //demolish stack, because got all dependecies
+                    caller = caller.call.apply(frame.args); // last call with dependants
                     if (caller.hasCall) {
-                        stack.addLast(caller);
-                        stackArgs.addLast(new ArrayList<>());
-                        stackIndex.addLast(new IntegerValue(0));
+                        stack.getLast().clearWith(caller);
                     } else if (caller.hasValue) {
+                        stack.pollLast();
                         if (stack.isEmpty()) {
                             return caller.value;
                         } else {
-                            stackArgs.getLast().add(caller.value);
+                            stack.getLast().args.add(caller.value);
                         }
+                    } else {
+                        throw new IllegalStateException("No value or call");
                     }
                 } else { // not demolish stack
                     if (caller.hasValue) {
-                        args.add(caller.value);
+                        frame.args.add(caller.value);
                     } else if (caller.hasCall) {
                         if (caller.dependants.isEmpty()) { // just call, assume we have expanded stack before
-                            stack.pollLast();
-                            stackIndex.pollLast();
-                            stackArgs.pollLast();
-                            caller = caller.call.apply(new ArrayList<>()); // we have to shrink stack
-                            stack.addLast(caller);
-                            stackArgs.addLast(new ArrayList<>());
-                            stackIndex.addLast(new IntegerValue(0));
+                            frame.clearWith(caller.call.apply(empty)); // replace current frame, because of simple tail recursion
                         } else { // dep not empty
-                            Caller<T> get = caller.dependants.get(index.getAndIncrement());
+                            Caller<T> get = caller.dependants.get(frame.index);
+                            frame.index++;
                             if (get.hasValue) {
-                                args.add(get.value);
+                                frame.args.add(get.value);
                             } else if (get.hasCall) {
-
-                                stack.addLast(get);
-                                stackArgs.addLast(new ArrayList<>());
-                                stackIndex.addLast(new IntegerValue(0));
+                                stack.addLast(new StackFrame<>(get));
                             } else {
                                 throw new IllegalStateException("No value or call");
                             }
@@ -152,7 +206,6 @@ public class Caller<T> {
                     }
                 }
             }
-
         }
     }
 }

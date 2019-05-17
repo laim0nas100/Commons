@@ -173,16 +173,18 @@ public class CallerTest<T> {
                 StackFrame<T> frame = stack.getLast();
                 caller = frame.call;
                 if (caller.dependants.size() <= frame.args.size()) { //demolish stack, because got all dependecies
-                    stack.pollLast();
                     caller = caller.call.apply(frame.args); // last call with dependants
                     if (caller.hasCall) {
-                        stack.addLast(new StackFrame<>(caller));
+                        stack.getLast().clearWith(caller);
                     } else if (caller.hasValue) {
+                        stack.pollLast();
                         if (stack.isEmpty()) {
                             return caller.value;
                         } else {
                             stack.getLast().args.add(caller.value);
                         }
+                    } else{
+                        throw new IllegalStateException("No value or call");
                     }
                 } else { // not demolish stack
                     if (caller.hasValue) {
