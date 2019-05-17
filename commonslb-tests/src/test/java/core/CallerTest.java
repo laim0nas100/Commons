@@ -3,15 +3,11 @@ package core;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lt.lb.commons.Log;
-import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 
 /**
@@ -28,36 +24,60 @@ public class CallerTest<T> {
 
     public static class CallerBuilder<T> {
 
-        private boolean hasValue;
-        private boolean hasCall;
-        private T value;
-        private Function<List<T>, CallerTest<T>> call;
         private List<CallerTest<T>> dependants = new ArrayList<>();
 
         public static <T> CallerTest<T> ofResult(T result) {
-            return new CallerTest(result);
+            return new CallerTest<>(result);
         }
 
-        public static <T> CallerTest<T> of(Function<List<T>, CallerTest<T>> call) {
-            return new CallerTest(call);
+        public static <T> CallerTest<T> ofFunction(Function<List<T>, CallerTest<T>> call) {
+            return new CallerTest<>(call);
         }
 
-        public static <T> CallerTest<T> of(Supplier<CallerTest<T>> call) {
-            return new CallerTest(args -> call.get());
+        public static <T> CallerTest<T> ofSupplier(Supplier<CallerTest<T>> call) {
+            return new CallerTest<>(args -> call.get());
         }
 
-        public CallerBuilder<T> ofCall(Function<List<T>, CallerTest<T>> call) {
-            CallerBuilder<T> b = new CallerBuilder();
-            b.call = call;
-            b.hasCall = true;
-            return b;
+        public static <T> CallerTest<T> ofSupplierResult(Supplier<T> call) {
+            return new CallerTest<>(args -> ofResult(call.get()));
         }
-        
-        public CallerBuilder<T> withDependency(CallerTest<T> dep){
+
+        public static <T> CallerTest<T> ofResultCall(Function<List<T>, T> call) {
+            return new CallerTest<>(args -> ofResult(call.apply(args)));
+        }
+
+        public CallerBuilder<T> withDependency(CallerTest<T> dep) {
             this.dependants.add(dep);
             return this;
         }
 
+        public CallerBuilder<T> withDependencyCall(Function<List<T>, CallerTest<T>> call) {
+            return this.withDependency(ofFunction(call));
+        }
+
+        public CallerBuilder<T> withDependencyResult(Function<List<T>, T> call) {
+            return this.withDependency(ofResultCall(call));
+        }
+
+        public CallerBuilder<T> withDependencySupp(Supplier<CallerTest<T>> call) {
+            return this.withDependency(ofSupplier(call));
+        }
+
+        public CallerBuilder<T> withDependencySuppResult(Supplier<T> call) {
+            return this.withDependency(ofSupplierResult(call));
+        }
+        
+        public CallerBuilder<T> withDependencyResult(T res){
+            return this.withDependency(ofResult(res));
+        }
+
+        public CallerTest<T> toResultCall(Function<List<T>, T> call) {
+            return new CallerTest<>(args -> ofResult(call.apply(args)), this.dependants);
+        }
+
+        public CallerTest<T> toCall(Function<List<T>, CallerTest<T>> call) {
+            return new CallerTest<>(call, this.dependants);
+        }
     }
 
     /**
@@ -86,19 +106,8 @@ public class CallerTest<T> {
      * @param nextCall
      * @param dependency
      */
-    public CallerTest(Function<List<T>, CallerTest<T>> nextCall, CallerTest<T> dependency) {
+    public CallerTest(Function<List<T>, CallerTest<T>> nextCall, CallerTest<T>... dependency) {
         this(nextCall, Arrays.asList(dependency));
-    }
-
-    /**
-     * With recursive tail call, which has dependencies
-     *
-     * @param nextCall
-     * @param dependency
-     * @param rest
-     */
-    public CallerTest(Function<List<T>, CallerTest<T>> nextCall, CallerTest<T> dependency, CallerTest<T>... rest) {
-        this(new Tuple<>(nextCall, Stream.concat(Stream.of(dependency), Stream.of(rest)).collect(Collectors.toList())));
     }
 
     /**
@@ -121,31 +130,32 @@ public class CallerTest<T> {
         return CallerTest.resolve(this);
     }
 
-    public static <T> T resolve(CallerTest<T> caller) {
-        return resolve(caller, false);
-    }
-    
-    private static class StackFrame<T>{
-        CallerTest<T> call;
-        List<T> args;
-        Integer index;
-        
-        public StackFrame(CallerTest<T> call){
+
+    private static class StackFrame<T> {
+
+        private CallerTest<T> call;
+        private List<T> args;
+        private Integer index;
+
+        public StackFrame(CallerTest<T> call) {
             this.args = new LinkedList<>();
+            this.call = call;
+            this.index = 0;
+        }
+        
+        public void clearWith(CallerTest<T> call){
+            this.args.clear();
             this.call = call;
             this.index = 0;
         }
     }
 
-    public static <T> T resolve(CallerTest<T> caller, boolean memoized) {
-        
+    public static <T> T resolve(CallerTest<T> caller) {
+
         ArrayDeque<StackFrame<T>> stack = new ArrayDeque<>();
         ArrayList<T> empty = new ArrayList<>(0);
 
-        long nest = 0;
         while (true) {
-//            nest++;
-//            Log.print(nest,stack.size(),stackArgs,stackIndex);
             if (stack.isEmpty()) {
                 if (caller.hasValue) {
                     return caller.value;
@@ -164,7 +174,6 @@ public class CallerTest<T> {
                 caller = frame.call;
                 if (caller.dependants.size() <= frame.args.size()) { //demolish stack, because got all dependecies
                     stack.pollLast();
-
                     caller = caller.call.apply(frame.args); // last call with dependants
                     if (caller.hasCall) {
                         stack.addLast(new StackFrame<>(caller));
@@ -180,16 +189,13 @@ public class CallerTest<T> {
                         frame.args.add(caller.value);
                     } else if (caller.hasCall) {
                         if (caller.dependants.isEmpty()) { // just call, assume we have expanded stack before
-                            stack.pollLast();
-                            caller = caller.call.apply(empty); // we have to shrink stack
-                            stack.addLast(new StackFrame<>(caller));
+                            frame.clearWith(caller.call.apply(empty)); // replace current frame, because of simple tail recursion
                         } else { // dep not empty
                             CallerTest<T> get = caller.dependants.get(frame.index);
                             frame.index++;
                             if (get.hasValue) {
                                 frame.args.add(get.value);
                             } else if (get.hasCall) {
-
                                 stack.addLast(new StackFrame<>(get));
                             } else {
                                 throw new IllegalStateException("No value or call");
@@ -198,7 +204,6 @@ public class CallerTest<T> {
                     }
                 }
             }
-
         }
     }
 }

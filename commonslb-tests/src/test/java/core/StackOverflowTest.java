@@ -5,7 +5,10 @@
  */
 package core;
 
+import core.CallerTest.CallerBuilder;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Callable;
 import lt.lb.commons.CallOrResult;
 import lt.lb.commons.Log;
@@ -68,17 +71,28 @@ public class StackOverflowTest {
             }
             return fibb2(seq - 1).add(fibb2(seq - 2));
         }
+
+        public static HashMap<Long,CallerTest<BigInteger>> mem = new HashMap<>();
         
-        public static CallerTest<BigInteger> fibb2Caller(long seq){
+        public static CallerTest<BigInteger> fibb2Caller(long seq) {
             if (seq == 0) {
-                return new CallerTest<>(BigInteger.ZERO);
+                return CallerBuilder.ofResult(BigInteger.ZERO);
             }
             if (seq == 1) {
-                return new CallerTest<>(BigInteger.ONE);
+                return CallerBuilder.ofResult(BigInteger.ONE);
             }
-            CallerTest<BigInteger> dep1 = new CallerTest<>(args->fibb2Caller(seq-1));
-            CallerTest<BigInteger> dep2 = new CallerTest<>(args->fibb2Caller(seq-2));
-            return new CallerTest<>((args) -> new CallerTest<>(args.get(0).add(args.get(1))),dep1,dep2);
+            
+            if(mem.containsKey(seq)){
+                return mem.get(seq);
+            }
+            CallerTest<BigInteger> toResultCall = new CallerBuilder<BigInteger>()
+                    .withDependencyCall(a -> fibb2Caller(seq - 1))
+                    .withDependencyCall(a -> fibb2Caller(seq - 2))
+                    .toResultCall(args -> args.get(0).add(args.get(1)));
+            
+            mem.put(seq, toResultCall);
+            return toResultCall;
+                    
         }
 
         public static CallOrResult<BigInteger> fibbCall(BigInteger f1, BigInteger f2, BigInteger limit) {
@@ -176,9 +190,14 @@ public class StackOverflowTest {
         BigInteger n = BigInteger.valueOf(8);
 //        Log.print(RecursionBuilder.ackermann(m, n));
 //        Log.print(CallOrResult.iterative(RecursionBuilder.ackermannCall(m, n)));
-        Log.print(RecursionBuilder.fibb2(40));
-        Log.print(RecursionBuilder.fibb2Caller(40).resolve());
-
+        
+int exp = 20;
+        Log.print(RecursionBuilder.fibb(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(exp)));
+        Log.print(RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(exp)).resolve());
+        
+        Log.print(RecursionBuilder.fibb2(35));
+        Log.print(RecursionBuilder.fibb2Caller(35).resolve());
+        Log.print(RecursionBuilder.fibb2Caller(35).resolve());
 
         Log.print("############");
 //        CallerTest<BigInteger> fibbCaller = RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(999));
