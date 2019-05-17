@@ -5,10 +5,11 @@ import java.util.concurrent.Callable;
 
 /**
  * Recursion eliminating framework.
+ * Deprecated, use Caller
  *
  * @author laim0nas100
  */
-@Deprecated(since = "Use Caller")
+@Deprecated
 public class CallOrResult<T> {
 
     /**
