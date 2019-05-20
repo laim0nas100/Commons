@@ -89,6 +89,14 @@ public class NestedException extends RuntimeException {
     public synchronized Throwable getCause() {
         return error;
     }
+    
+    public Throwable unwrapReal(){
+        Throwable t = this;
+        while(t.getCause() instanceof NestedException){
+            t = t.getCause();
+        }
+        return t;
+    }
 
     @Override
     public String getLocalizedMessage() {

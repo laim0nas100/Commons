@@ -1,5 +1,6 @@
 package lt.lb.commons.io.ffs.basicffs;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
@@ -19,7 +20,6 @@ import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.IntegerValue;
 import lt.lb.commons.containers.Value;
-import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.io.ffs.ExFolder;
 import lt.lb.commons.io.ffs.ExPath;
@@ -152,13 +152,13 @@ public abstract class BasicFFS<T extends BasicFileAttributeView> implements FFS<
     }
 
     @Override
-    public Stream<ExPath<T>> getDirectoryStream(ExPath<T> path) {
+    public Stream<ExPath<T>> getDirectoryStream(ExPath<T> path) throws IOException {
         return toPath(path)
                 .map(m -> Files.newDirectoryStream(m))
                 .map(m -> fromDirStream(m))
-                .map(m -> ReadOnlyIterator.toStream(m))
+                .map(m -> m.toStream())
                 .map(stream -> stream.map(i -> build(getParentSupplier(i), i)))
-                .orElse(Stream.of());
+                .throwIfErrorOrGet(IOException.class);
 
     }
 

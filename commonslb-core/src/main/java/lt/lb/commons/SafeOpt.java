@@ -174,6 +174,16 @@ public class SafeOpt<T> {
         }
     }
 
+    public <X extends Throwable> T throwIfErrorOrGet(Class<X> type) throws X {
+        if (threw != null) {
+            Throwable t = NestedException.of(threw).unwrapReal();
+            if (F.instanceOf(t, type)) {
+                throw (X) t;
+            }
+        }
+        return get();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

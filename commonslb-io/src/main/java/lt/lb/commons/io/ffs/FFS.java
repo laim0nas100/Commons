@@ -1,5 +1,6 @@
 package lt.lb.commons.io.ffs;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.OpenOption;
@@ -40,7 +41,7 @@ public interface FFS<T extends FileAttributeView> {
 
     public String getSeparator();
     
-    public Stream<ExPath<T>> getDirectoryStream(ExPath<T> path);
+    public Stream<ExPath<T>> getDirectoryStream(ExPath<T> path) throws IOException;
     
     public ExPath<T> buildPath(String str);
 }
