@@ -4,6 +4,7 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import lt.lb.commons.F;
 import lt.lb.commons.io.ffs.ExFolder;
 import lt.lb.commons.io.ffs.ExPath;
 import lt.lb.commons.io.ffs.FFS;
@@ -20,7 +21,7 @@ public class BasicExFolder<T extends BasicFileAttributeView> extends BasicExPath
 
     @Override
     public Stream<ExPath<T>> getChildren() {
-        return getFS().getDirectoryStream(this);
+        return F.unsafeCall(() -> getFS().getDirectoryStream(this));
     }
 
 }

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers.tuples;
 
 import java.util.function.Supplier;
@@ -28,8 +23,8 @@ public class Pair<Type> extends Tuple<Type, Type> {
             return g1 == null ? g2 : g1;
         }
     }
-    
-    public Pair reverse(){
-        return new Pair<>(this.g2,this.g1);
+
+    public Pair<Type> reverse() {
+        return new Pair<>(this.g2, this.g1);
     }
 }
