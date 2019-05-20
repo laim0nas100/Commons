@@ -3,16 +3,14 @@ package lt.lb.commons.iteration;
 import lt.lb.commons.iteration.impl.ArrayROI;
 import lt.lb.commons.iteration.impl.StreamROI;
 import lt.lb.commons.iteration.impl.IteratorROI;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import lt.lb.commons.iteration.impl.CompositeROI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import lt.lb.commons.ArrayOp;
-import lt.lb.commons.iteration.impl.CompositeROI;
+import lt.lb.commons.containers.collections.ForwardingStream;
 
 /**
  *
@@ -49,45 +47,43 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     /**
      * Puts remaining elements to ArrayList.
      *
-     * @param <T>
-     * @param iter
      * @return
      */
-    public static <T> ArrayList<T> toArrayList(ReadOnlyIterator<T> iter) {
+    public default ArrayList<T> toArrayList() {
         ArrayList<T> list = new ArrayList();
-        for (T item : iter) {
+        for (T item : this) {
             list.add(item);
         }
         return list;
     }
     
-    public static <T> LinkedList<T> toLinkedList(ReadOnlyIterator<T> iter) {
+    public default LinkedList<T> toLinkedList() {
         LinkedList<T> list = new LinkedList();
-        for (T item : iter) {
+        for (T item : this) {
             list.add(item);
         }
         return list;
     }
-
+     
     /**
      * Creates a Stream of remaining elements.
      *
-     * @param <T>
-     * @param iter
      * @return
      */
-    public static <T> Stream<T> toStream(ReadOnlyIterator<T> iter) {
+    public default Stream<T> toStream() {
+        ReadOnlyIterator<T> iter = this;
         Stream<T> stream = StreamSupport.stream(iter.spliterator(), false);
-        
-        return (Stream<T>) Proxy.newProxyInstance(Stream.class.getClassLoader(), ArrayOp.asArray(Stream.class), (Object proxy, Method method, Object[] args) -> {
-            if (method.getName().equals("close")) {
+        return new ForwardingStream<T>(){
+            @Override
+            public void close() {
                 iter.close();
-                return null;
-            } else {
-                return method.invoke(stream, args);
             }
-        });
-        
+
+            @Override
+            protected Stream<T> delegate() {
+                return stream;
+            }
+        };
     }
     
     @Override
@@ -112,6 +108,5 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     @Override
     default void close() {
     }
-;
 }
 

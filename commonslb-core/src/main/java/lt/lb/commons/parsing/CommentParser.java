@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.parsing;
 
 import java.util.ArrayList;
@@ -14,7 +9,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class CommentParser {
 
@@ -31,7 +26,7 @@ public class CommentParser {
      * @return ArrayList or parsedLines
      */
     public static ArrayList<String> parseAllComments(Collection<String> lines, String lineComment, String commentStart, String commentEnd) {
-        return ReadOnlyIterator.toArrayList(parseAllComments(ReadOnlyIterator.of(lines), lineComment, commentStart, commentEnd));
+        return parseAllComments(ReadOnlyIterator.of(lines), lineComment, commentStart, commentEnd).toArrayList();
     }
 
     /**
