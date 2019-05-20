@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads;
 
 import java.util.concurrent.Callable;
@@ -27,10 +22,10 @@ public interface UnsafeRunnable extends Runnable {
 
         try {
             this.unsafeRun();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw NestedException.of(e);
         }
     }
 
-    public void unsafeRun() throws Exception;
+    public void unsafeRun() throws Throwable;
 }

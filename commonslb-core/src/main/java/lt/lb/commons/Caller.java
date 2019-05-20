@@ -74,9 +74,17 @@ public class Caller<T> {
         public Caller<T> toResultCall(Function<List<T>, T> call) {
             return new Caller<>(args -> ofResult(call.apply(args)), this.dependants);
         }
+        
+        public Caller<T> toResultCall(Supplier<T> call) {
+            return new Caller<>(args -> ofResult(call.get()), this.dependants);
+        }
 
         public Caller<T> toCall(Function<List<T>, Caller<T>> call) {
             return new Caller<>(call, this.dependants);
+        }
+        
+        public Caller<T> toCall(Supplier<Caller<T>> call){
+            return new Caller<>(args -> call.get(), this.dependants);
         }
     }
 

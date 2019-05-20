@@ -20,7 +20,7 @@ public class SafeOpt<T> {
     @FunctionalInterface
     public interface UnsafeFunction<P, R> extends Function<P, R> {
 
-        public R applyUnsafe(P t) throws Exception;
+        public R applyUnsafe(P t) throws Throwable;
 
         @Override
         public default R apply(P t) {

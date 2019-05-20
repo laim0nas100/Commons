@@ -3,7 +3,6 @@ package lt.lb.commons.reflect;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.Optional;
-import java.util.function.Supplier;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Tuple;
@@ -24,14 +23,7 @@ public class FieldChain {
         F.unsafeRun(() -> {
             Tuple<FieldChain, Object> last = getLast(ob);
             FieldChain fc = last.g1;
-            boolean access = fc.current.isAccessible();
-            if (!access) {
-                fc.current.setAccessible(true);
-            }
-            fc.current.set(last.g2, value);
-            if (!access) {
-                fc.current.setAccessible(false);
-            }
+            Refl.fieldAccessableSet(fc.current, last.g2, value);
         });
     }
 
@@ -39,15 +31,7 @@ public class FieldChain {
         return F.unsafeCall(() -> {
             Tuple<FieldChain, Object> last = getLast(ob);
             FieldChain fc = last.g1;
-            boolean access = fc.current.isAccessible();
-            if (!access) {
-                fc.current.setAccessible(true);
-            }
-            Object result = fc.current.get(last.g2);
-            if (!access) {
-                fc.current.setAccessible(false);
-            }
-            return result;
+            return Refl.fieldAccessableGet(fc.current, last.g2);
         });
     }
 
@@ -56,14 +40,7 @@ public class FieldChain {
             FieldChain chain = this;
             Object currObject = ob;
             while (chain.next != null) {
-                boolean wasAccessable = chain.current.isAccessible();
-                if (!wasAccessable) {
-                    chain.current.setAccessible(true);
-                }
-                currObject = chain.current.get(currObject);
-                if (!wasAccessable) {
-                    chain.current.setAccessible(false);
-                }
+                currObject = Refl.fieldAccessableGet(chain.current, currObject);
                 chain = chain.next;
             }
             return new Tuple<>(chain, currObject);
@@ -173,14 +150,7 @@ public class FieldChain {
                         throw new NullPointerException(chain.fieldName + " cant be accessed because parent object is null");
                     }
                     Field currentField = chain.getCurrent(currObject); // init on demand
-                    boolean wasAccessable = currentField.isAccessible();
-                    if (!wasAccessable) {
-                        currentField.setAccessible(true);
-                    }
-                    currObject = currentField.get(currObject);
-                    if (!wasAccessable) {
-                        currentField.setAccessible(false);
-                    }
+                    currObject = Refl.fieldAccessableGet(currentField, currObject);
                     chain = chain.next;
                 }
                 return Tuples.create(chain, currObject);
@@ -195,14 +165,7 @@ public class FieldChain {
                 Object resolvedObject = last.g2;
 
                 Field currentField = fc.getCurrent(resolvedObject); // init on demand
-                boolean wasAccessable = currentField.isAccessible();
-                if (!wasAccessable) {
-                    currentField.setAccessible(true);
-                }
-                currentField.set(resolvedObject, value);
-                if (!wasAccessable) {
-                    currentField.setAccessible(false);
-                }
+                Refl.fieldAccessableSet(currentField, resolvedObject, value);
             });
         }
 
@@ -214,15 +177,7 @@ public class FieldChain {
                 Object resolvedObject = last.g2;
 
                 Field currentField = fc.getCurrent(resolvedObject); // init on demand
-                boolean wasAccessable = currentField.isAccessible();
-                if (!wasAccessable) {
-                    currentField.setAccessible(true);
-                }
-                Object result = currentField.get(resolvedObject);
-                if (!wasAccessable) {
-                    currentField.setAccessible(false);
-                }
-                return result;
+                return Refl.fieldAccessableGet(currentField, resolvedObject);
             });
         }
 

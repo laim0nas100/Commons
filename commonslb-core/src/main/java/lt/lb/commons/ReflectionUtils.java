@@ -194,6 +194,22 @@ public class ReflectionUtils {
     }
 
     private static String format(Object ob) {
+        if(ob instanceof Long){
+            return ob+"L";
+        }
+        if(ob instanceof Float){
+            return ob+"F";
+        }
+        if(ob instanceof Double){
+            return ob+"D";
+        }
+        if(ob instanceof Short){
+            return ob+"S";
+        }
+        if(ob instanceof Byte){
+            return ob+"B";
+        }
+        
         return ob + "";
     }
 

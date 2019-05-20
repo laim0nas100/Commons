@@ -18,6 +18,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.threads.Promise;
 import lt.lb.commons.threads.UnsafeRunnable;
+import lt.lb.commons.threads.UnsafeSupplier;
 
 /**
  *
@@ -74,9 +75,9 @@ public class F {
      * @return
      * @throws NestedException
      */
-    public static <T> T unsafeCall(Callable<T> call) throws NestedException {
+    public static <T> T unsafeCall(UnsafeSupplier<T> call) throws NestedException {
         try {
-            return call.call();
+            return call.unsafeGet();
         } catch (Throwable e) {
             throw NestedException.of(e);
         }
@@ -92,7 +93,7 @@ public class F {
         try {
             run.unsafeRun();
         } catch (Throwable e) {
-            cons.accept(e);
+            cons.accept(NestedException.of(e).unwrapReal());
         }
     }
 
@@ -104,11 +105,11 @@ public class F {
      * @param call
      * @return result or {@code null} if exception was thrown
      */
-    public static <T> T unsafeCallWithHandler(Consumer<Throwable> cons, Callable<T> call) {
+    public static <T> T unsafeCallWithHandler(Consumer<Throwable> cons, UnsafeSupplier<T> call) {
         try {
-            return call.call();
+            return call.unsafeGet();
         } catch (Throwable e) {
-            cons.accept(e);
+            cons.accept(NestedException.of(e).unwrapReal());
         }
         return null;
     }
