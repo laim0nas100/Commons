@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.F;
-import lt.lb.commons.Lambda;
+import lt.lb.commons.func.Lambda;
 import lt.lb.commons.Log;
 import lt.lb.commons.misc.rng.FastRandom;
 import lt.lb.commons.misc.rng.RandomDistribution;

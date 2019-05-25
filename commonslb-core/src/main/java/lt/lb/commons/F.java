@@ -17,8 +17,8 @@ import lt.lb.commons.iteration.Iter.IterMapNoStop;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.threads.Promise;
-import lt.lb.commons.threads.UnsafeRunnable;
-import lt.lb.commons.threads.UnsafeSupplier;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UnsafeSupplier;
 
 /**
  *

@@ -1,10 +1,11 @@
-package lt.lb.commons;
+package lt.lb.commons.func;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import lt.lb.commons.F;
 import lt.lb.commons.containers.Value;
 
 /**
@@ -14,7 +15,7 @@ import lt.lb.commons.containers.Value;
  *
  * @author laim0nas100
  */
-public class Lambda {
+public abstract class Lambda {
 
     public static L0 of(L0... l) {
         return () -> {

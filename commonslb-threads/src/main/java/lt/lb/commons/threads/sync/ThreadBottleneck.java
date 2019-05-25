@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import lt.lb.commons.F;
-import lt.lb.commons.threads.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 
 /**
  *

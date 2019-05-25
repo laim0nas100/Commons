@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.benchmarking;
 
 import java.util.LinkedList;
@@ -11,7 +6,7 @@ import java.util.concurrent.*;
 import lt.lb.commons.F;
 import lt.lb.commons.Timer;
 import lt.lb.commons.threads.Promise;
-import lt.lb.commons.threads.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 
 /**
  *

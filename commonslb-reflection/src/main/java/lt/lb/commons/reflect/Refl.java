@@ -3,9 +3,11 @@ package lt.lb.commons.reflect;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import lt.lb.commons.func.unchecked.UnsafeFunction;
 
 /**
  *
@@ -13,78 +15,85 @@ import java.util.stream.Stream;
  */
 public class Refl {
 
-    public static List<Field> getFieldsOf(Class cls, Predicate<Field> f) {
-        Class node = cls;
-        LinkedList<Field> list = new LinkedList<>();
+    public static void doClassSuperIteration(Class node, Consumer<Class> cons) {
         while (node != null) {
-            Stream.of(node.getDeclaredFields()).filter(f).forEach(list::add);
+            cons.accept(node);
             node = node.getSuperclass();
         }
+    }
+    
+    public static LinkedList<Field> getFieldsOf(Class cls, Predicate<Field> f) {
+        LinkedList<Field> list = new LinkedList<>();
+        doClassSuperIteration(cls, n -> Stream.of(n.getDeclaredFields())
+                .filter(f)
+                .forEach(list::add)
+        );
         return list;
     }
 
-    public static <T> Object fieldAccessableGet(Field field, Object object) throws Throwable {
+    public static LinkedList<Method> getMethodsOf(Class cls, Predicate<Method> f) {
+        LinkedList<Method> list = new LinkedList<>();
+        doClassSuperIteration(cls, n -> Stream.of(n.getDeclaredMethods())
+                .filter(f)
+                .forEach(list::add)
+        );
+        return list;
+    }
+
+    public static <T> T fieldAccessableDo(Field field, UnsafeFunction<Field, T> function) throws Throwable {
         boolean inAccessible = !field.isAccessible();
         if (inAccessible) {
             field.setAccessible(true);
         }
-        Object val = null;
+        T val = null;
         Throwable thr = null;
         try {
-            val = field.get(object);
+            val = function.applyUnsafe(field);
         } catch (Throwable th) {
             thr = th;
         }
         if (inAccessible) {
             field.setAccessible(false);
         }
-
         if (thr != null) {
             throw thr;
         }
         return val;
     }
 
-    public static <T> void fieldAccessableSet(Field field, Object object, Object value) throws Throwable {
-        boolean inAccessible = !field.isAccessible();
-        if (inAccessible) {
-            field.setAccessible(true);
-        }
-        Throwable thr = null;
-        try {
-            field.set(object, value);
-        } catch (Throwable th) {
-            thr = th;
-        }
-        if (inAccessible) {
-            field.setAccessible(false);
-        }
-
-        if (thr != null) {
-            throw thr;
-        }
+    public static Object fieldAccessableGet(Field field, Object object) throws Throwable {
+        return Refl.fieldAccessableDo(field, f -> f.get(object));
     }
-    
-    public static Object invokeAccessable(Method method, Object target, Object[] args) throws Throwable{
+
+    public static void fieldAccessableSet(Field field, Object object, Object value) throws Throwable {
+        Refl.fieldAccessableDo(field, f -> {
+            f.set(object, value);
+            return null;
+        });
+    }
+
+    public static <T> T methodAccessableDo(Method method, UnsafeFunction<Method, T> func) throws Throwable {
         boolean inAccessible = !method.isAccessible();
         if (inAccessible) {
             method.setAccessible(true);
         }
         Throwable thr = null;
-        Object result = null;
+        T result = null;
         try {
-            result = method.invoke(target, args);
+            result = func.applyUnsafe(method);
         } catch (Throwable th) {
             thr = th;
         }
         if (inAccessible) {
             method.setAccessible(false);
         }
-
         if (thr != null) {
             throw thr;
         }
         return result;
-        
+    }
+
+    public static Object invokeAccessable(Method method, Object target, Object[] args) throws Throwable {
+        return Refl.methodAccessableDo(method, m -> m.invoke(target, args));
     }
 }

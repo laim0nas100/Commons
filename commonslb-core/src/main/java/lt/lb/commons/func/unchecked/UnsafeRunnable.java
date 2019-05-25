@@ -1,4 +1,4 @@
-package lt.lb.commons.threads;
+package lt.lb.commons.func.unchecked;
 
 import java.util.concurrent.Callable;
 import lt.lb.commons.misc.NestedException;
@@ -7,6 +7,7 @@ import lt.lb.commons.misc.NestedException;
  *
  * @author laim0nas100
  */
+@FunctionalInterface
 public interface UnsafeRunnable extends Runnable {
 
     public static UnsafeRunnable from(Callable call) {

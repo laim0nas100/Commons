@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.misc.NestedException;
 
 /**
@@ -16,21 +17,6 @@ import lt.lb.commons.misc.NestedException;
  * Optional equivalent, but with exception ignoring mapping
  */
 public class SafeOpt<T> {
-
-    @FunctionalInterface
-    public interface UnsafeFunction<P, R> extends Function<P, R> {
-
-        public R applyUnsafe(P t) throws Throwable;
-
-        @Override
-        public default R apply(P t) {
-            try {
-                return applyUnsafe(t);
-            } catch (Throwable e) {
-                throw NestedException.of(e);
-            }
-        }
-    }
 
     private final T val;
 

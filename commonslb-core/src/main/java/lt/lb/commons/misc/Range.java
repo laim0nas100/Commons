@@ -1,7 +1,7 @@
 package lt.lb.commons.misc;
 
 import java.util.Comparator;
-import lt.lb.commons.Lambda;
+import lt.lb.commons.func.Lambda;
 
 /**
  *

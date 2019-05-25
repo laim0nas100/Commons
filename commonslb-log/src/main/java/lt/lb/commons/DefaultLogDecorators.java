@@ -1,11 +1,11 @@
 package lt.lb.commons;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.LazyValue;
 import lt.lb.commons.containers.Value;
+import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.parsing.StringOp;

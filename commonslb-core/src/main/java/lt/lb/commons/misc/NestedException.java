@@ -10,26 +10,35 @@ import java.io.PrintWriter;
 public class NestedException extends RuntimeException {
 
     protected Throwable error;
-    
-    
+
     /**
      * Throws NestedException of given throwable
-     * @param t 
+     *
+     * @param t
      */
-    public static void nestedThrow(Throwable t){
+    public static void nestedThrow(Throwable t) {
         throw NestedException.of(t);
     }
-    
+
     /**
-     * 
+     *
      * @param t
-     * @return Wrapped exception, unless provided Throwable already is NestedException
+     * @return Wrapped exception, unless provided Throwable already is
+     * NestedException
      */
-    public static NestedException of(Throwable t){
-        if(t instanceof NestedException){
-            return (NestedException)t;
-        }else{
+    public static NestedException of(Throwable t) {
+        if (t instanceof NestedException) {
+            return (NestedException) t;
+        } else {
             return new NestedException(t);
+        }
+    }
+
+    public static Throwable unwrap(Throwable t) {
+        if (t instanceof NestedException) {
+            return ((NestedException) t).unwrapReal();
+        } else {
+            return t;
         }
     }
 
@@ -40,6 +49,7 @@ public class NestedException extends RuntimeException {
 
     /**
      * Does nothing.
+     *
      * @return this
      */
     @Override
@@ -89,12 +99,12 @@ public class NestedException extends RuntimeException {
     public synchronized Throwable getCause() {
         return error;
     }
-    
-    public Throwable unwrapReal(){
+
+    public Throwable unwrapReal() {
         Throwable t = this;
-        while(t.getCause() instanceof NestedException){
+        do {
             t = t.getCause();
-        }
+        } while (t instanceof NestedException);
         return t;
     }
 

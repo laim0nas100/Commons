@@ -5,7 +5,7 @@
  */
 package lt.lb.commons.interfaces;
 
-import lt.lb.commons.Lambda;
+import lt.lb.commons.func.Lambda;
 
 /**
  *

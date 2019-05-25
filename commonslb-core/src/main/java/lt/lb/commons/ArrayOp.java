@@ -131,12 +131,14 @@ public class ArrayOp extends ArrayUtils{
     }
 
     public static <T> T[] removeByIndex(T[] one, Integer... two) {
-        ArrayList<T> list = new ArrayList<>(one.length);
-        HashSet<Integer> set = new HashSet<>();
-        set.addAll(Arrays.asList(two));
+        ArrayList<T> list = new ArrayList<>(one.length - two.length);
+        boolean[] remove = new boolean[one.length];
+        for(Integer i:two){
+            remove[i] = true;
+        }
         int i = 0;
         for (T t : one) {
-            if (!set.contains(i)) {
+            if(!remove[i]){
                 list.add(t);
             }
             i++;

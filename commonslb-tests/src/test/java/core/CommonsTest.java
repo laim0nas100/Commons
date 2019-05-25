@@ -22,10 +22,15 @@ import lt.lb.commons.io.FileReader;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.Predicates;
+import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.Value;
+import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.Memoized;
 import lt.lb.commons.parsing.CommentParser;
+import org.apache.commons.lang3.concurrent.Computable;
+import org.apache.commons.lang3.concurrent.Memoizer;
 import org.junit.*;
 
 /**
@@ -90,7 +95,7 @@ public class CommonsTest {
         Thread.sleep(500);
     }
 
-    @Test
+//    @Test
     public void testFilterDistinct() {
         Collection<Integer> collection = new LinkedList<>(Arrays.asList(1, 1, 2, 3, 4, 5, 6, 6, 7, 8, 9, 10));
 
@@ -288,5 +293,38 @@ public class CommonsTest {
             Log.await(1, TimeUnit.HOURS);
         });
 
+    }
+    
+    
+    @Test
+    public void memoizerTest(){
+        Lambda.L1R<Long, BigInteger> of = Lambda.of(StackOverflowTest.RecursionBuilder::fibb2);
+        
+        Memoized memoized = new Memoized();
+        Lambda.L1R<Long, BigInteger> memoize = memoized.memoize(of);
+        
+        
+        Log.print("RUN");
+        Runnable r1 = () ->{
+            for(Integer i = 10; i < 35; i++){
+                of.apply(i.longValue());
+            }
+        };
+        
+        Runnable r2 = () ->{
+            for(Integer i = 10; i < 35; i++){
+                memoize.apply(i.longValue());
+            }
+        };
+        
+        Benchmark b = new Benchmark();
+        b.executeBench(10, "DEF", r1).print(Log::print);
+        b.executeBench(10, "MEM", r2).print(Log::print);
+        b.executeBench(10, "DEF", r1).print(Log::print);
+        b.executeBench(10, "MEM", r2).print(Log::print);
+        
+        Log.print("END RUN");
+        
+        
     }
 }

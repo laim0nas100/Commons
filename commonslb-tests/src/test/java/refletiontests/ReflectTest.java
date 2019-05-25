@@ -13,7 +13,7 @@ import lt.lb.commons.reflect.FieldChain;
 import lt.lb.commons.reflect.ReflectionPrint;
 import lt.lb.commons.reflect.pure.EField;
 import lt.lb.commons.reflect.pure.PureReflectNode;
-import lt.lb.commons.threads.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import org.junit.Test;
 
 /*

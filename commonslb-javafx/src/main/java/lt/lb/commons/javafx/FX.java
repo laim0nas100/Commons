@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import javafx.application.Platform;
 import lt.lb.commons.containers.Value;
 import lt.lb.commons.F;
-import lt.lb.commons.threads.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 
 /**
  *

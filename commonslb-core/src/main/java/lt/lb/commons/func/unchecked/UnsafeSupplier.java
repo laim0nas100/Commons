@@ -1,4 +1,4 @@
-package lt.lb.commons.threads;
+package lt.lb.commons.func.unchecked;
 
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -8,6 +8,7 @@ import lt.lb.commons.misc.NestedException;
  *
  * @author laim0nas100
  */
+@FunctionalInterface
 public interface UnsafeSupplier<T> extends Supplier<T>, Callable<T> {
 
     @Override

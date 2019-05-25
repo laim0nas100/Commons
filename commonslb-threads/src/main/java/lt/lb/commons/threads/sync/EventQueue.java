@@ -1,6 +1,5 @@
 package lt.lb.commons.threads.sync;
 
-import lt.lb.commons.threads.sync.BoundedNestedTaskExecutorLayer;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -11,7 +10,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
-import lt.lb.commons.threads.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 
 /**
  *

@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import lt.lb.commons.Lambda;
+import lt.lb.commons.func.Lambda;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.reflect.FieldFactory;
 import lt.lb.commons.reflect.FieldHolder;
