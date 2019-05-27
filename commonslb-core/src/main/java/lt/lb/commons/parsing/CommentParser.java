@@ -89,7 +89,7 @@ public class CommentParser {
 
                         } else {
 
-                            if (scanLine && 0 >= StringOp.indexOf(str, lineComment)) {
+                            if (scanLine && 0 <= StringOp.indexOf(str, lineComment)) {
                                 int indexOf = StringOp.indexOf(str, lineComment);
                                 str = str.substring(0, indexOf); // save everything before line comment start
                                 if (str.isEmpty()) {  // the comment was at the begining. Line cleared.
