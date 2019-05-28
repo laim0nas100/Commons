@@ -4,9 +4,11 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import lt.lb.commons.iteration.ReadOnlyIterator;
@@ -19,27 +21,30 @@ import lt.lb.commons.parsing.CommentParser;
 public class FileReader {
 
     public static ArrayList<String> readFromFile(String URL) throws UnsupportedEncodingException, FileNotFoundException, IOException {
+        return readFrom(new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8")));
+    }
+
+    public static ArrayList<String> readFrom(BufferedReader in) throws IOException {
         ArrayList<String> list = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(URL), "UTF-8"))) {
-            list = readFrom(reader);
-        }
+        in.lines().forEachOrdered(list::add);
+        in.close();
         return list;
     }
 
-    public static ArrayList<String> readFrom(BufferedReader in) {
-        ArrayList<String> list = new ArrayList<>();
-        in.lines().forEachOrdered(list::add);
-        return list;
+    public static ArrayList<String> readFrom(InputStream in) throws IOException {
+        return readFrom(new BufferedReader(new InputStreamReader(in, "UTF-8")));
+    }
+
+    public static ArrayList<String> readFrom(URL in) throws IOException {
+        return readFrom(in.openStream());
     }
 
     public static ArrayList<String> readFromFile(String URL, String lineComment, String commentStart, String commentEnd) throws FileNotFoundException, IOException {
-        ArrayList<String> list = readFromFile(URL);
-        return CommentParser.parseAllComments(list, lineComment, commentStart, commentEnd);
+        return CommentParser.parseAllComments(readFromFile(URL), lineComment, commentStart, commentEnd);
     }
 
     public static ArrayList<String> readFromFile(String URL, String lineComment) throws FileNotFoundException, IOException {
-        ArrayList<String> list = readFromFile(URL);
-        return CommentParser.parseLineComments(list, lineComment);
+        return CommentParser.parseLineComments(readFromFile(URL), lineComment);
     }
 
     public static void writeToFile(String URL, Collection<String> list) throws FileNotFoundException, UnsupportedEncodingException {

@@ -133,6 +133,7 @@ public class CommentParser {
                                         int indexOf = StringOp.indexOf(str, commentStart);
                                         str = str.substring(0, indexOf);
                                         inComment.setTrue();
+                                        toAdd = !str.isEmpty();
                                         break;
                                     }
                                 } else {//regular line. Just add.

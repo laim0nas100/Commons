@@ -9,7 +9,7 @@ import org.apache.commons.lang3.ArrayUtils;
  *
  * @author laim0nas100
  */
-public class ArrayOp extends ArrayUtils{
+public class ArrayOp extends ArrayUtils {
 
     public static <T> boolean any(Predicate<T> test, T... array) {
         if (array.length == 0) {
@@ -132,17 +132,15 @@ public class ArrayOp extends ArrayUtils{
 
     public static <T> T[] removeByIndex(T[] one, Integer... two) {
         ArrayList<T> list = new ArrayList<>(one.length - two.length);
-        boolean[] remove = new boolean[one.length];
-        for(Integer i:two){
-            remove[i] = true;
+        HashSet<Integer> set = new HashSet<>(two.length);
+        for (Integer i : two) {
+            set.add(i);
         }
-        int i = 0;
-        for (T t : one) {
-            if(!remove[i]){
+        F.iterate(one, (i, t) -> {
+            if (!set.contains(i)) {
                 list.add(t);
             }
-            i++;
-        }
+        });
 
         Class<T> componentType = (Class<T>) one.getClass().getComponentType();
         return newArray(list, componentType);
