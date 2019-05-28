@@ -22,6 +22,8 @@ public class SafeOpt<T> {
 
     private final Throwable threw;
 
+    private static final SafeOpt<?> ready = new SafeOpt<>(new Object(), null);
+
     private static final SafeOpt<?> empty = new SafeOpt<>();
 
     private SafeOpt() {
@@ -36,6 +38,10 @@ public class SafeOpt<T> {
     public static <T> SafeOpt<T> of(T val) {
         Objects.requireNonNull(val);
         return new SafeOpt(val, null);
+    }
+
+    public static <T> SafeOpt<T> of(Supplier<T> sup) {
+        return ready.map(m -> sup.get());
     }
 
     public static <T> SafeOpt<T> empty() {
@@ -162,7 +168,7 @@ public class SafeOpt<T> {
 
     public <X extends Throwable> T throwIfErrorOrGet(Class<X> type) throws X {
         if (threw != null) {
-            Throwable t = NestedException.of(threw).unwrapReal();
+            Throwable t = NestedException.unwrap(threw);
             if (F.instanceOf(t, type)) {
                 throw (X) t;
             }
