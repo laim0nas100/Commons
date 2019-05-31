@@ -1,4 +1,4 @@
-package lt.lb.commons.containers;
+package lt.lb.commons.containers.collections;
 
 import java.util.Collection;
 import java.util.HashMap;

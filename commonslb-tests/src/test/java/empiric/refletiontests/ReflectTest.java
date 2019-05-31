@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.ObjectBuffer;
+import lt.lb.commons.containers.collections.ObjectBuffer;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.reflect.DefaultFieldFactory;
 import lt.lb.commons.reflect.FieldChain;

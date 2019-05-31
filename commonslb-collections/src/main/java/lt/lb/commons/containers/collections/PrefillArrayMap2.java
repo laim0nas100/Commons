@@ -1,11 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers.collections;
 
 import java.util.*;
+import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Tuple;
 
@@ -23,7 +19,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
 
     private Tuple<Boolean, T> nullObject = new Tuple<>(false, null);
 
-    private Object[] data = new Object[]{nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject, nullObject};
+    private Object[] data = ArrayOp.replicate(10, nullObject);
 
     public PrefillArrayMap2(int preferedSize) {
         this.prefSize = preferedSize;
