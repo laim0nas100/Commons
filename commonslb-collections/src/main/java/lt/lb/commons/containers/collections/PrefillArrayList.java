@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.SkippingListIterator;
+import lt.lb.commons.containers.collections.ListIterators.SkippingListIterator;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 

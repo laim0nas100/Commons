@@ -8,7 +8,7 @@ package lt.lb.commons.containers.collections;
 import java.util.Map.Entry;
 import java.util.*;
 import java.util.function.Predicate;
-import lt.lb.commons.containers.SkippingListIterator;
+import lt.lb.commons.containers.collections.ListIterators.SkippingListIterator;
 
 /**
  *
