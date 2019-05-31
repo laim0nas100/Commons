@@ -16,7 +16,9 @@
     <name>CommonsLB</name>
     <modules>
         <module>commonslb-core</module>
+        <module>commonslb-collections</module>
         <module>commonslb-log</module>
+        <module>commonslb-lexing</module>
         <module>commonslb-refmodel</module>
         <module>commonslb-javafx</module>
         <module>commonslb-threads</module>
@@ -34,6 +36,16 @@
             <dependency>
                 <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-core</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-collections</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-lexing</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>

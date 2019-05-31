@@ -1,7 +1,6 @@
 package lt.lb.commons;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -93,7 +92,7 @@ public class F {
         try {
             run.unsafeRun();
         } catch (Throwable e) {
-            cons.accept(NestedException.of(e).unwrapReal());
+            cons.accept(NestedException.unwrap(e));
         }
     }
 
@@ -109,7 +108,7 @@ public class F {
         try {
             return call.unsafeGet();
         } catch (Throwable e) {
-            cons.accept(NestedException.of(e).unwrapReal());
+            cons.accept(NestedException.unwrap(e));
         }
         return null;
     }
@@ -295,10 +294,8 @@ public class F {
             }).collect(deque).execute(exe);
         });
 
-        Promise waiter = new Promise().waitFor(deque).execute(exe);
-
         F.unsafeRun(() -> {
-            waiter.get();
+            new Promise().waitFor(deque).execute(exe).get();
         });
         if (size > satisfiedCount.get()) {
             return removeByConditionIndex(col, satisfied);

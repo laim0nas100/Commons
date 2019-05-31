@@ -1,4 +1,4 @@
-package lt.lb.commons.containers.collections;
+package lt.lb.commons.containers;
 
 import java.util.Comparator;
 import java.util.Iterator;

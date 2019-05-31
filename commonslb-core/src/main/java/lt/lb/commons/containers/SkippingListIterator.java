@@ -1,6 +1,7 @@
 package lt.lb.commons.containers;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -23,9 +24,8 @@ public final class SkippingListIterator<T> implements ListIterator<T> {
                 next();
             }
         }
-
     }
-
+    
     public SkippingListIterator(int i, List<T> list) {
         this(i, (T t) -> false, list);
     }

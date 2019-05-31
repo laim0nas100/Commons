@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.Predicates;
-import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.misc.Range;
 

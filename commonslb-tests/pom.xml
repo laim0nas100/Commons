@@ -61,6 +61,19 @@
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-collections</artifactId>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
+        
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-lexing</artifactId>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-graphtheory</artifactId>
             <version>local-jar</version>
             <scope>test</scope>

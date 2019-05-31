@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import lt.lb.commons.containers.collections.ForwardingStream;
+import lt.lb.commons.containers.ForwardingStream;
 
 /**
  *

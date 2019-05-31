@@ -1,13 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers.collections;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import lt.lb.commons.F;
 import lt.lb.commons.containers.SkippingListIterator;
+import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.containers.tuples.Tuples;
 
 /**
  *
@@ -16,26 +15,26 @@ import lt.lb.commons.containers.SkippingListIterator;
  */
 public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess {
 
-    private ArrayList<T> list = new ArrayList<>();
+    private ArrayList<Tuple<Boolean, T>> list = new ArrayList<>();
 
-    private Predicate<T> nullCheck;
-    private T nullValue;
-
-    public PrefillArrayList(Predicate<T> nullCheck, T fillValue) {
-        this.nullCheck = nullCheck;
-        this.nullValue = fillValue;
-    }
+    private T fillValue;
+    private Predicate<Tuple<Boolean, T>> isEmpty = m -> !m.g1;
 
     public PrefillArrayList(T fillValue) {
-        this((T t) -> Objects.equals(t, fillValue), fillValue);
+        this.fillValue = fillValue;
     }
 
     public PrefillArrayList() {
-        this((T t) -> t == null, null);
+        this(null);
     }
 
     public boolean isNull(int index) {
-        return this.nullCheck.test(this.get(index));
+        return this.getTuple(index).getG1();
+    }
+
+    private Tuple<Boolean, T> getTuple(int index) {
+        this.preFill(index);
+        return list.get(index);
     }
 
     /**
@@ -59,18 +58,19 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public Object[] toArray() {
-        return list.toArray();
+        return list.stream().map(m -> m.getG2()).toArray();
     }
 
     /**
      * @inheritDoc
      */
     @Override
-    public <T> T[] toArray(T[] a) {
+    public <E> E[] toArray(E[] a) {
         int size = this.size();
-        T[] copyOf = Arrays.copyOf(a, size);
+        E[] copyOf = Arrays.copyOf(a, size);
         for (int i = 0; i < size; i++) {
-            copyOf[i] = (T) this.get(i);
+            Tuple<Boolean, T> get = list.get(i);
+            copyOf[i] = F.cast(get.getG2());
         }
         return copyOf;
     }
@@ -80,7 +80,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public boolean add(T e) {
-        return list.add(e);
+        return list.add(Tuples.create(true, e));
     }
 
     /**
@@ -114,7 +114,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        return this.list.addAll(c);
+        return this.list.addAll(c.stream().map(m -> Tuples.create(true, m)).collect(Collectors.toList()));
     }
 
     /**
@@ -143,7 +143,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
 
     public void preFill(int toIndex) {
         while (this.size() <= toIndex) {
-            this.add(nullValue);
+            list.add(Tuples.create(false, fillValue));
         }
     }
 
@@ -152,7 +152,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public Iterator<T> iterator() {
-        return new SkippingListIterator(0, this.nullCheck, this);
+        return this.listIterator();
     }
 
     /**
@@ -168,7 +168,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public boolean addAll(int i, Collection<? extends T> clctn) {
-        return this.list.addAll(i, clctn);
+        return this.list.addAll(i, clctn.stream().map(m -> Tuples.create(true, m)).collect(Collectors.toList()));
     }
 
     /**
@@ -176,8 +176,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public T get(int i) {
-        this.preFill(i);
-        return list.get(i);
+        return this.getTuple(i).getG2();
     }
 
     /**
@@ -186,7 +185,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
     @Override
     public T set(int i, T e) {
         this.preFill(i);
-        return list.set(i, e);
+        return list.set(i, Tuples.create(true, e)).getG2();
     }
 
     public T put(int i, T e) {
@@ -199,7 +198,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
     @Override
     public void add(int i, T e) {
         this.preFill(i - 1);
-        list.add(i, e);
+        list.add(i, Tuples.create(true, e));
     }
 
     /**
@@ -207,7 +206,25 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public T remove(int i) {
-        return list.remove(i);
+        Tuple<Boolean, T> tuple = this.getTuple(i);
+        return this.list.remove(i).getG2();
+    }
+
+    public T delete(int i) {
+        Tuple<Boolean, T> tuple = this.getTuple(i);
+        tuple.setG1(false);
+        T g2 = tuple.getG2();
+        tuple.setG2(this.fillValue);
+        return g2;
+    }
+
+    public boolean delete(Object ob) {
+        int indexOf = indexOf(ob);
+        if (indexOf >= 0) {
+            delete(indexOf);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -215,14 +232,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public int indexOf(Object o) {
-        ListIterator<T> it = this.listIterator();
-        while (it.hasNext()) {
-            T next = it.next();
-            if (Objects.equals(next, o)) {
-                return it.previousIndex();
-            }
-        }
-        return -1;
+        return F.find(list, (i, ob) -> ob.g1 && Objects.equals(o, ob.g2)).map(m -> m.g1).orElse(-1);
     }
 
     /**
@@ -230,15 +240,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public int lastIndexOf(Object o) {
-        ListIterator<T> it = this.listIterator();
-        int lastIndex = -1;
-        while (it.hasNext()) {
-            T next = it.next();
-            if (Objects.equals(next, o)) {
-                lastIndex = it.previousIndex();
-            }
-        }
-        return lastIndex;
+        return F.findBackwards(list, (i, ob) -> ob.g1 && Objects.equals(o, ob.g2)).map(m -> m.g1).orElse(-1);
     }
 
     /**
@@ -246,7 +248,8 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public ListIterator<T> listIterator() {
-        return new SkippingListIterator(0, this.nullCheck, this);
+        SkippingListIterator<Tuple<Boolean, T>> skippingListIterator = new SkippingListIterator(0, isEmpty, list);
+        return ListIterators.map(skippingListIterator, m -> m.g2, m -> Tuples.create(true, m));
     }
 
     /**
@@ -254,7 +257,8 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public ListIterator<T> listIterator(int i) {
-        return new SkippingListIterator(i, this.nullCheck, this);
+        SkippingListIterator<Tuple<Boolean, T>> skippingListIterator = new SkippingListIterator(i, isEmpty, list);
+        return ListIterators.map(skippingListIterator, m -> m.g2, m -> Tuples.create(true, m));
     }
 
     /**
@@ -262,7 +266,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public List<T> subList(int i, int i1) {
-        List<T> subList = new PrefillArrayList<>(this.nullCheck, this.nullValue);
+        List<T> subList = new PrefillArrayList<>(this.fillValue);
         for (int j = 0; i < i1; i++, j++) {
             subList.set(j, this.get(i));
         }
@@ -274,7 +278,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public String toString() {
-        return list.toString();
+        return list.stream().map(m -> m.g2).collect(Collectors.toList()).toString();
     }
 
 }
