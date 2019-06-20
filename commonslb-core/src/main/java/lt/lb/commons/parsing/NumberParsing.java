@@ -1,6 +1,7 @@
 package lt.lb.commons.parsing;
 
 import java.util.Optional;
+import lt.lb.commons.SafeOpt;
 
 /**
  *
@@ -9,15 +10,13 @@ import java.util.Optional;
 public class NumberParsing {
 
     public static Optional<Long> parseLong(boolean unsigned, int radix, String str) {
-        try {
-            if (unsigned) {
-                return Optional.of(Long.parseUnsignedLong(str, radix));
-            } else {
-                return Optional.of(Long.parseLong(str, radix));
+        return SafeOpt.ofNullable(str).map(s ->{
+            if(unsigned){
+                return Long.parseUnsignedLong(s, radix);
+            }else{
+                return Long.parseLong(s);
             }
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        }).asOptional();
     }
 
     public static Optional<Long> parseLong(String str) {
@@ -25,15 +24,13 @@ public class NumberParsing {
     }
 
     public static Optional<Integer> parseInt(boolean unsigned, int radix, String str) {
-        try {
+        return SafeOpt.ofNullable(str).map(s ->{
             if (unsigned) {
-                return Optional.of(Integer.parseInt(str, radix));
+                return Integer.parseUnsignedInt(str, radix);
             } else {
-                return Optional.of(Integer.parseUnsignedInt(str, radix));
+                return Integer.parseInt(str, radix);
             }
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        }).asOptional();
     }
 
     public static Optional<Integer> parseInt(String str) {
@@ -41,19 +38,11 @@ public class NumberParsing {
     }
 
     public static Optional<Double> parseDouble(String str) {
-        try {
-            return Optional.of(Double.parseDouble(str));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        return SafeOpt.ofNullable(str).map(s -> Double.parseDouble(s)).asOptional();
     }
 
     public static Optional<Float> parseFloat(String str) {
-        try {
-            return Optional.of(Float.parseFloat(str));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        return SafeOpt.ofNullable(str).map(s -> Float.parseFloat(s)).asOptional();
     }
 
 }
