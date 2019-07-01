@@ -4,13 +4,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import lt.lb.commons.func.unchecked.UnsafeFunction;
 
 /**
- *
+ * Reflection methods
  * @author laim0nas100
  */
 public class Refl {

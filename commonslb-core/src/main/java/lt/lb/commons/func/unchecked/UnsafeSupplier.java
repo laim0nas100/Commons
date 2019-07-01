@@ -16,12 +16,11 @@ public interface UnsafeSupplier<T> extends Supplier<T>, Callable<T> {
         try {
             return this.unsafeGet();
         } catch (Throwable e) {
-            NestedException of = NestedException.of(e);
-            Throwable real = of.unwrapReal();
+            Throwable real = NestedException.unwrap(e);
             if(real instanceof Exception){
                 throw (Exception)e;
             }
-            throw of;
+            throw NestedException.of(e);
         }
     }
 

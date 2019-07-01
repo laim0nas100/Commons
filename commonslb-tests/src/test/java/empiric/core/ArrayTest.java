@@ -59,6 +59,10 @@ public class ArrayTest {
 
         
         Log.print(map.getError().get().getMessage());
+        
+        
+        Log.print("Šakės".equalsIgnoreCase("šakĖs"));
+        
         Log.await(1, TimeUnit.HOURS);
     }
 }

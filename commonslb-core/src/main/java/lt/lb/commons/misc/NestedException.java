@@ -34,6 +34,11 @@ public class NestedException extends RuntimeException {
         }
     }
 
+    /**
+     *
+     * @param t
+     * @return real exception, if given NestedException.
+     */
     public static Throwable unwrap(Throwable t) {
         if (t instanceof NestedException) {
             return ((NestedException) t).unwrapReal();
@@ -42,7 +47,7 @@ public class NestedException extends RuntimeException {
         }
     }
 
-    public NestedException(Throwable e) {
+    private NestedException(Throwable e) {
         super("Nested exception, to get real exception, call getCause");
         error = e;
     }
@@ -92,7 +97,7 @@ public class NestedException extends RuntimeException {
     @Override
     public synchronized Throwable initCause(Throwable cause) {
         error = cause;
-        return cause;
+        return this;
     }
 
     @Override

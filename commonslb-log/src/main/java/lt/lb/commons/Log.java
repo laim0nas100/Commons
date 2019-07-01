@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.StringValue;
 import lt.lb.commons.func.Lambda;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.threads.CloseableExecutor;
 import lt.lb.commons.threads.FastWaitingExecutor;
 import lt.lb.commons.threads.Futures;
@@ -21,7 +22,7 @@ import lt.lb.commons.threads.sync.WaitTime;
  * @author laim0nas100
  */
 public class Log {
-    
+
     private static Log mainLog = new Log();
 
     public static Log main() {
@@ -71,7 +72,7 @@ public class Log {
      * Used in printIter
      */
     public Lambda.L1R<Iterator, Supplier<String>> printIterDecorator = DefaultLogDecorators.printIterDecorator();
-    
+
     public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     public CloseableExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
@@ -200,6 +201,29 @@ public class Log {
         printLines(main(), iter);
     }
 
+    public static void printLines(Log log, ReadOnlyIterator iter) {
+        if (log.disable || log.closed) {
+            return;
+        }
+        processString(log, log.printIterDecorator.apply(iter));
+    }
+
+    public static void printLines(ReadOnlyIterator iter) {
+        printLines(main(), iter);
+    }
+
+    public static void print(Log log, Supplier<String> sup) {
+        if (log.disable || log.closed) {
+            return;
+        }
+        processString(log, sup);
+
+    }
+
+    public static void print(Supplier<String> sup) {
+        print(Log.main(), sup);
+    }
+
     public static <T> void print(Log log, T... objects) {
         if (log.disable || log.closed) {
             return;
@@ -222,8 +246,6 @@ public class Log {
     public static <T> void println(T... objects) {
         println(main(), objects);
     }
-
-    
 
     private static void processString(Log log, Supplier<String> string) {
         if (!log.override.isPresent()) {
@@ -285,6 +307,5 @@ public class Log {
     public static PrintStream getPrintStream(Log log) {
         return log.printStream;
     }
-
 
 }

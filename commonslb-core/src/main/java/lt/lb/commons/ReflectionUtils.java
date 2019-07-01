@@ -8,6 +8,7 @@ package lt.lb.commons;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -278,6 +279,9 @@ public class ReflectionUtils {
         while (!cls.equals(Object.class) && !map.containsKey(cls)) {
 
             for (Field f : cls.getDeclaredFields()) {
+                if(Modifier.isStatic(f.getModifiers())){
+                    continue;
+                }
                 declaredFields.add(f);
             }
             cls = cls.getSuperclass();
