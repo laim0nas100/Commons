@@ -5,7 +5,7 @@ import lt.lb.commons.F;
 
 /**
  *
- * @author laim0nas100 Initialize as a simple map
+ * @author laim0nas100 a map with a priority queue to keep order
  * @param <K> key
  * @param <V> value
  *
@@ -92,8 +92,9 @@ public class SelfSortingMap<K, V> implements Map<K, V> {
 
     @Override
     public V remove(Object key) {
-        boolean remove = list.remove(key);
-        return map.remove(key);
+        V remove1 = map.remove(key);
+        list.remove(remove1);
+        return remove1;
     }
 
     @Override

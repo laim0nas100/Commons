@@ -60,7 +60,7 @@ public class Lexer {
             keyStringEnd,
             keyStringEscape;
 
-    protected String lineComment, commentStart, commentEnd;
+    protected String commentLine, commentStart, commentEnd;
     protected SelfSortingMap<String, String> keywords;
     protected SelfSortingMap<String, String> keywordsBreaking;
     protected int linePos, charPos;
@@ -160,16 +160,13 @@ public class Lexer {
     }
 
     public boolean hasLineComment() {
-        return StringOp.isNoneBlank(lineComment);
+        return StringOp.isNoneBlank(commentLine);
     }
 
     public boolean hasMultilineComment() {
         return StringOp.isNoneBlank(commentStart, commentEnd);
     }
-    
-    public void lineComment(){
-        
-    }
+
 
     /**
      * Prepare for string parsing. Does not support nesting.
@@ -186,6 +183,12 @@ public class Lexer {
         this.keyStringEnd = strEnd;
         this.keyStringEscape = strEsc;
 
+    }
+
+    public void prepareForComments(String commLine, String commStart, String commEnd) {
+        commentLine = commLine;
+        commentStart = commStart;
+        commentEnd = commEnd;
     }
 
     /**
@@ -339,8 +342,33 @@ public class Lexer {
                     return Optional.of(this.string());
                 }
             }
-            
-            
+            if (this.hasLineComment()) {
+                if (this.tryToMatch(this.commentLine)) {
+                    if (buffer.length() > 0) {
+                        return Optional.of(this.literal(buffer.toString(), pos));
+                    } else {
+                        this.linePos++; // just skip line
+                        this.charPos = 0;
+                    }
+                    continue;
+                }
+            }
+
+            if (this.hasMultilineComment()) {
+                if (this.tryToMatch(this.commentStart)) {
+                    if (buffer.length() > 0) {
+                        return Optional.of(this.literal(buffer.toString(), pos));
+                    } else {
+                        this.advanceByTokenKey(this.commentStart);
+                        while (!this.tryToMatch(commentEnd)) {
+                            this.advance(1);
+                        }
+                        this.advanceByTokenKey(this.commentEnd);
+                    }
+                    continue;
+                }
+            }
+
             if (buffer.length() > 0) {
                 token = this.breakingKeyword();
                 if (token.isPresent()) { // break up current iteral

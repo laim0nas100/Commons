@@ -178,10 +178,10 @@ public class ParamParserTest {
         Collection<String> readFromFile = FileReader.readFromFile(url, "//", "/*", "*/");
 
         Log.printLines(readFromFile);
-        LexerWithStrings lex = new LexerWithStrings("");
-        lex.addKeyword("=", "{", "}", "[", "]", ",", ".", "${");
+        LexerWithStrings lex = new LexerWithStrings();
+        lex.addKeywordBreaking("=", "{", "}", "[", "]", ",", ".", "${");
         lex.resetLines(readFromFile);
-        lex.skipWhitespace = true;
+        lex.setSkipWhitespace(true);
         for (Token token : lex.getRemainingTokens()) {
             Log.print(token);
         }
