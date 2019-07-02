@@ -7,11 +7,12 @@ package lt.lb.commons.parsing;
 
 import lt.lb.commons.containers.collections.SelfSortingMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Optional;
 import lt.lb.commons.F;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.interfaces.Equator;
 
 /**
@@ -20,9 +21,18 @@ import lt.lb.commons.interfaces.Equator;
  */
 public class Lexer {
 
-    public enum TokenType {
-        LITERAL("LITERAL"),
-        STRING("STRING");
+    /**
+     * Set wether to skip whitespace or include it inside literals.
+     *
+     * @param skipWhitespace
+     */
+    public void setSkipWhitespace(boolean skipWhitespace) {
+        this.skipWhitespace = skipWhitespace;
+    }
+
+    private enum TokenType {
+        LITERAL("LIT"),
+        STRING("STR");
         public String type;
 
         TokenType(String n) {
@@ -49,35 +59,47 @@ public class Lexer {
     protected String keyStringBegin,
             keyStringEnd,
             keyStringEscape;
+
+    protected String lineComment, commentStart, commentEnd;
     protected SelfSortingMap<String, String> keywords;
+    protected SelfSortingMap<String, String> keywordsBreaking;
     protected int linePos, charPos;
     protected String[] lines;
-    public boolean skipWhitespace;
+    protected boolean skipWhitespace;
     //Override for case insensitive keywords
     public Equator<String> equator = StringOp::equals;
 
-    public Lexer(Collection<String> allLines) {
+    public Lexer() {
         this.keywords = new SelfSortingMap<>(cmp, new HashMap<>());
-        this.resetLines(allLines);
+        this.keywordsBreaking = new SelfSortingMap<>(cmp, new HashMap<>());
     }
 
-    public Lexer(String line) {
-        this(Arrays.asList(line));
-    }
-
+    /**
+     * Keywords can be a part of literals. If for example: 'printing' has
+     * keyword 'int' inside it, but it will not be recognized as such.
+     *
+     * @param keywords
+     */
     public void addKeyword(String... keywords) {
         for (String tok : keywords) {
             this.keywords.put(tok, tok);
         }
     }
 
-    public void addToken(Collection<String> tokens) {
-        tokens.forEach(tok -> {
-            this.addKeyword(tok);
-        });
+    /**
+     * Keywords that can't be a part of literals (unless inside in a string).
+     * Such keywords will break apart any literals, that has a keyword inside
+     * it.
+     *
+     * @param keywords
+     */
+    public void addKeywordBreaking(String... keywords) {
+        for (String tok : keywords) {
+            this.keywordsBreaking.put(tok, tok);
+        }
     }
 
-    protected Character getCurrentChar() {
+    protected SafeOpt<Character> getCurrentChar() {
         Integer[] pos = new Integer[]{this.linePos, this.charPos};
         return this.getByPos(pos);
     }
@@ -90,13 +112,8 @@ public class Lexer {
         }
     }
 
-    protected Character getByPos(Integer[] pos) {
-        Character ch = null;
-        try {
-            ch = this.lines[pos[0]].charAt(pos[1]);
-        } catch (Exception e) {
-        }
-        return ch;
+    protected SafeOpt<Character> getByPos(Integer[] pos) {
+        return SafeOpt.of(() -> lines[pos[0]].charAt(pos[1]));
     }
 
     protected Integer[] rangeCheck(Integer shift) {
@@ -117,15 +134,15 @@ public class Lexer {
         return pos;
     }
 
-    protected Character peek(Integer peek) {
+    protected SafeOpt<Character> peek(Integer peek) {
         Integer[] rangeCheck = this.rangeCheck(peek);
         if (rangeCheck[0] != this.lines.length) {
             return this.getByPos(rangeCheck);
         }
-        return null;
+        return SafeOpt.empty();
     }
 
-    protected Character advance(Integer am) {
+    protected SafeOpt<Character> advance(Integer am) {
         Integer[] pos;
         pos = this.rangeCheck(am);
         this.linePos = pos[0];
@@ -133,10 +150,34 @@ public class Lexer {
         return this.getByPos(pos);
     }
 
+    /**
+     * Check if String parsing (begin,end,escape) is defined
+     *
+     * @return
+     */
     public boolean hasStrings() {
-        return !(this.keyStringBegin == null || this.keyStringEnd == null || this.keyStringEscape == null);
+        return StringOp.isNoneBlank(keyStringBegin, keyStringEnd, keyStringEscape);
     }
 
+    public boolean hasLineComment() {
+        return StringOp.isNoneBlank(lineComment);
+    }
+
+    public boolean hasMultilineComment() {
+        return StringOp.isNoneBlank(commentStart, commentEnd);
+    }
+    
+    public void lineComment(){
+        
+    }
+
+    /**
+     * Prepare for string parsing. Does not support nesting.
+     *
+     * @param strBeg keyword to begin string
+     * @param strEnd keyword to end string
+     * @param strEsc keyword to escape within string
+     */
     public void prepareForStrings(String strBeg, String strEnd, String strEsc) {
         this.keywords.put(strBeg, strBeg);
         this.keywords.put(strEnd, strEnd);
@@ -147,11 +188,19 @@ public class Lexer {
 
     }
 
+    /**
+     * Sets char and line position to 0
+     */
     public void reset() {
         this.charPos = 0;
         this.linePos = 0;
     }
 
+    /**
+     * Prepares to lex lines all over
+     *
+     * @param allLines
+     */
     public final void resetLines(Collection<String> allLines) {
         reset();
         lines = new String[allLines.size()];
@@ -167,14 +216,15 @@ public class Lexer {
 
     protected void skipWhitespace() {
         while (true) {
-            Character c = this.getCurrentChar();
-            if (c == null) {
-                return;
-            } else {
+            SafeOpt<Character> cOpt = this.getCurrentChar();
+            if (cOpt.isPresent()) {
+                Character c = cOpt.get();
                 if (!Character.isWhitespace(c)) {
                     return;
                 }
                 this.advance(1);
+            } else {
+                return;
             }
         }
 
@@ -183,20 +233,29 @@ public class Lexer {
     protected Token string() throws StringNotTerminatedException, NoSuchLexemeException {
         String result = "";
         while (true) {
-            Character ch = this.getCurrentChar();
-            if (ch == null) {
+            SafeOpt<Character> currentChar = this.getCurrentChar();
+            if (!currentChar.isPresent()) {
                 throw new StringNotTerminatedException();
             } else if (this.tryToMatch(this.keyStringEscape)) {
                 this.advanceByTokenKey(this.keyStringEscape);
-                result += this.getCurrentChar();
-                this.advance(1);
+                SafeOpt<Character> currentChar1 = this.getCurrentChar();
+                if (currentChar.isPresent()) {
+                    result += currentChar1.get();
+                    this.advance(1);
+                } else {
+                    throw new StringNotTerminatedException();
+                }
+
             }
             if (this.tryToMatch(this.keyStringEnd)) {
                 this.advanceByTokenKey(this.keyStringEnd);
                 break;
             }
-
-            result += this.getCurrentChar();
+            currentChar = this.getCurrentChar();
+            if (!currentChar.isPresent()) {
+                throw new StringNotTerminatedException();
+            }
+            result += currentChar.get();
             this.advance(1);
 
         }
@@ -204,22 +263,22 @@ public class Lexer {
 
     }
 
-    protected Token keyword() {
-        for (String token : this.keywords.getOrderedList()) {
+    protected SafeOpt<Token> breakingKeyword() {
+        for (String token : this.keywordsBreaking.getOrderedList()) {
             if (this.tryToMatch(token)) {
-                return new Token(token, new Integer[]{this.linePos, this.charPos});
+                return SafeOpt.of(new Token(token, new Integer[]{this.linePos, this.charPos}));
             }
         }
-        return null;
+        return SafeOpt.empty();
     }
 
     protected boolean tryToMatch(String explicit) {
         int lenToPeek = explicit.length();
         String readSymbols = "";
         for (int i = 0; i < lenToPeek; i++) {
-            Character ch = this.peek(i);
-            if (ch != null) {
-                readSymbols += ch;
+            SafeOpt<Character> ch = this.peek(i);
+            if (ch.isPresent()) {
+                readSymbols += ch.get();
             } else {
                 break;
             }
@@ -232,40 +291,44 @@ public class Lexer {
     }
 
     protected void advanceByTokenKey(String key) {
-        int len = this.keywords.get(key).length();
-        this.advance(len);
+        this.advance(key.length());
     }
 
     protected Token literal(String value, Integer[] pos) {
+        for (String token : this.keywords.getOrderedList()) {
+            if (equator.equals(value, token)) {
+                return new Token(token, new Integer[]{this.linePos, this.charPos});
+            }
+        }
         return new Literal(TokenType.LITERAL.type, pos, value);
     }
 
-    protected Token getNextTokenImpl() {
-        return null;
+    protected SafeOpt<Token> getNextTokenImpl() {
+        return SafeOpt.empty();
     }
 
-    public Token getNextToken() throws NoSuchLexemeException, StringNotTerminatedException {
+    public Optional<Token> getNextToken() throws NoSuchLexemeException, StringNotTerminatedException {
         StringBuilder buffer = new StringBuilder();
-        Token token = getNextTokenImpl();
-        if (token != null) {
-            return token;
+        SafeOpt<Token> token = getNextTokenImpl();
+        if (token.isPresent()) {
+            return token.asOptional();
         }
         Integer[] pos = new Integer[]{this.linePos, this.charPos};
 
         while (true) {
+            SafeOpt<Character> currentChar = this.getCurrentChar();
 
-            Character ch = this.getCurrentChar();
-            if (ch == null) {
+            if (!currentChar.isPresent()) {
                 if (buffer.length() > 0) {
-                    return this.literal(buffer.toString(), pos);
+                    return Optional.of(this.literal(buffer.toString(), pos));
                 }
                 break;
             }
             if (this.skipWhitespace) {
-                if (Character.isWhitespace(ch)) {
+                if (Character.isWhitespace(currentChar.get())) {
                     this.advance(1);
                     if (buffer.length() > 0) {
-                        return this.literal(buffer.toString(), pos);
+                        return Optional.of(this.literal(buffer.toString(), pos));
                     }
                     continue;
                 }
@@ -273,35 +336,47 @@ public class Lexer {
             if (this.hasStrings()) {
                 if (this.tryToMatch(this.keyStringBegin)) {
                     this.advanceByTokenKey(this.keyStringBegin);
-                    return this.string();
+                    return Optional.of(this.string());
                 }
             }
-            token = this.keyword();
-            if (token != null) {
-                if (buffer.length() > 0) {
-                    return this.literal(buffer.toString(), pos);
+            
+            
+            if (buffer.length() > 0) {
+                token = this.breakingKeyword();
+                if (token.isPresent()) { // break up current iteral
+                    return Optional.of(this.literal(buffer.toString(), pos));
                 } else {
-                    this.advanceByTokenKey(token.id);
-                    return token;
+                    buffer.append(currentChar.get());
+                    this.advance(1);
                 }
-
             } else {
-                buffer.append(ch);
-                this.advance(1);
+                token = this.breakingKeyword();
+                if (token.isPresent()) {
+                    Token t = token.get();
+                    this.advanceByTokenKey(t.id);
+                    return Optional.of(t);
+
+                } else {
+                    buffer.append(currentChar.get());
+                    this.advance(1);
+
+                }
             }
 
         }
-        return token;
+        return token.asOptional();
     }
 
     public ArrayList<Token> getRemainingTokens() throws NoSuchLexemeException, StringNotTerminatedException {
         ArrayList<Token> remains = new ArrayList<>();
         while (true) {
-            Token nextToken = this.getNextToken();
-            if (nextToken == null) {
+            Optional<Token> nextToken = this.getNextToken();
+            if (nextToken.isPresent()) {
+                remains.add(nextToken.get());
+            } else {
                 break;
             }
-            remains.add(nextToken);
+
         }
         return remains;
     }
