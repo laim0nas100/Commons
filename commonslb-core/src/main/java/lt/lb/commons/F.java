@@ -1,11 +1,14 @@
 package lt.lb.commons;
 
+import java.io.Closeable;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import lt.lb.commons.containers.Value;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
@@ -27,7 +30,8 @@ public class F {
 
     /**
      * Convenience wrapped null check instead of ? operator avoid duplication of
-     * object when using ? operator. If java 9 is available, use Object.requireNotNullElse
+     * object when using ? operator. If java 9 is available, use
+     * Object.requireNotNullElse
      *
      * @param <T>
      * @param object
@@ -50,6 +54,29 @@ public class F {
      */
     public static <T> T ifWrap(T trueCase, T falseCase, Predicate<T> pred) {
         return pred.test(trueCase) ? trueCase : falseCase;
+    }
+
+    /**
+     *
+     * Apply function on closeable and then close it. Ignore exceptions both
+     * times. Return null if error occurred during mapper function execution.
+     *
+     * @param <T>
+     * @param <U>
+     * @param closeable
+     * @param mapper
+     * @return
+     */
+    public static <T extends Closeable, U> U safeClose(T closeable, Function<? super T, ? extends U> mapper) {
+        Value<U> val = new Value<>();
+        F.checkedRun(() -> {
+            val.set(mapper.apply(closeable));
+        });
+        F.checkedRun(() -> {
+            closeable.close();
+        });
+        return val.get();
+
     }
 
     /**
