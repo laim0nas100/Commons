@@ -8,7 +8,7 @@ import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class RunnableDecorators {
 

@@ -20,7 +20,7 @@ import org.junit.Test;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class TimeOutTest {
 
@@ -28,8 +28,6 @@ public class TimeOutTest {
 
         ExecutorService exe = Executors.newScheduledThreadPool(1);
         
-        Integer safeClose = F.safeClose(new ByteArrayInputStream(new byte[0]), str-> str.read());
-
         UnsafeRunnable longTask = () -> {
             Log.print("Sleep init");
             Thread.sleep(4000);
