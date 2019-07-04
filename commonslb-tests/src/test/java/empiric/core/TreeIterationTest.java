@@ -93,11 +93,19 @@ public class TreeIterationTest {
 
         Log.print("DFS it");
         it.DFSIterative(g.getNode(0).get());
+        
+        Log.print("Post order");
+        it.PosOrder(g.getNode(0).get());
+        
+        Log.print("Post order iter");
+        it.PosOrder(g.getNode(0).get());
 
         Orgraph tree = this.generateTree(50000, 6);
         Log.print("TREE");
 //        Log.print(tree.toStringNodes());
         it = treeVisitor(tree,999);
+        Log.print("Found BFS?:",it.BFS(tree.getNode(0).get()));
+        Log.print("Found Post it?:",it.PosOrderIterative(tree.getNode(0).get()));
         Log.print("Found DFS it?:",it.DFSIterative(tree.getNode(0).get()));
         Log.print("Found DFS ?:",it.DFS(tree.getNode(0).get()));
 

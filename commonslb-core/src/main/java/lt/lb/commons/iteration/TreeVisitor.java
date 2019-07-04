@@ -10,19 +10,58 @@ import lt.lb.commons.iteration.impl.TreeVisitorImpl;
  */
 public interface TreeVisitor<T> extends Visitor<T> {
 
+    /**
+     * How to traverse deeper.
+     * @param item
+     * @return 
+     */
     public ReadOnlyIterator<T> getChildrenIterator(T item);
 
+    /**
+     * Depth-first search iterative. Same as preorder traversal.
+     * @param root
+     * @return 
+     */
     public default Optional<T> DFSIterative(T root) {
         return TreeVisitorImpl.DFSIterative(this, root);
     }
 
+    /**
+     * Depth-first search recursive. Same as preorder traversal.
+     * @param root
+     * @return 
+     */
     public default Optional<T> DFS(T root) {
         return TreeVisitorImpl.DFS(this, root);
     }
 
+    /**
+     * Breath-first search.
+     * @param root
+     * @return 
+     */
     public default Optional<T> BFS(T root) {
         return TreeVisitorImpl.BFS(this, root);
     }
+    
+    /**
+     * PosOrder search (Children first). Recursive.
+     * @param root
+     * @return 
+     */
+    public default Optional<T> PosOrder(T root){
+        return TreeVisitorImpl.PostOrder(this, root);
+    }
+    
+    /**
+     * PosOrder search (Children first). Iterative.
+     * @param root
+     * @return 
+     */
+    public default Optional<T> PosOrderIterative(T root){
+        return TreeVisitorImpl.PostOrderIterative(this, root);
+    }
+
 
     public static <T> TreeVisitor<T> of(Visitor<T> visit, Function<? super T, ReadOnlyIterator<T>> childrenGetter) {
         return new TreeVisitor<T>() {

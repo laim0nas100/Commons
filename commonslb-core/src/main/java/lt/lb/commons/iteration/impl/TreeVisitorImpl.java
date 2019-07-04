@@ -80,4 +80,71 @@ public abstract class TreeVisitorImpl {
         return Optional.empty();
 
     }
+
+    public static <T> Optional<T> PostOrder(TreeVisitor<T> visitor, T root) {
+
+        for (T child : visitor.getChildrenIterator(root)) {
+            Optional<T> dfs = PostOrder(visitor, child);
+            if (dfs.isPresent()) {
+                return dfs;
+            }
+        }
+        if (visitor.find(root)) {
+            return Optional.ofNullable(root);
+        }
+        return Optional.empty();
+    }
+
+    public static <T> Optional<T> PostOrderIterative(TreeVisitor<T> visitor, T root) {
+        return PostOrderInner(visitor, root).resolve();
+    }
+
+    private static <T> Caller<Optional<T>> PostOrderInner(TreeVisitor<T> visitor, T root) {
+
+        Caller<Optional<T>> call = null;
+        int i = 0;
+        for (T c : visitor.getChildrenIterator(root)) { // have to iterate all children to create call chain
+            if (i == 0) { //first
+
+                call = new Caller<>(args -> {
+                    return PostOrderInner(visitor, c);
+                });
+            } else {
+                call = new CallerBuilder<Optional<T>>()
+                        .withDependency(call)
+                        .toCall(args -> {
+                            Optional<T> result = args.get(0);
+                            if (result.isPresent()) {
+                                return new Caller<>(result);
+                            } else {
+                                return PostOrderInner(visitor, c);
+                            }
+                        });
+            }
+            i++;
+        }
+
+        Caller<Optional<T>> delayedRootCall = CallerBuilder.ofSupplier(() -> {
+            if (visitor.find(root)) {
+                return CallerBuilder.ofResult(Optional.ofNullable(root));
+            } else {
+                return CallerBuilder.ofResult(Optional.empty());
+            }
+        });
+        if (call == null) {
+            return delayedRootCall;
+        } else {
+            return new CallerBuilder<Optional<T>>()
+                    .withDependency(call)
+                    .toCall(args -> {
+                        Optional<T> result = args.get(0);
+                        if (result.isPresent()) {
+                            return new Caller<>(result);
+                        } else {
+                            return delayedRootCall;
+                        }
+                    });
+        }
+    }
+
 }
