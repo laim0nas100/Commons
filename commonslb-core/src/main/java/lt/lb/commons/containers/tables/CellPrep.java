@@ -12,7 +12,7 @@ import java.util.function.Function;
 public class CellPrep<T> {
     
 
-    private static final AtomicLong idInc = new AtomicLong(Long.MIN_VALUE);
+    private static final AtomicLong idInc = new AtomicLong(0);
     
     public final long id = idInc.getAndIncrement();
     Optional<T> content;

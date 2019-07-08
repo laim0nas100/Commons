@@ -50,14 +50,31 @@ public class CellTable<T> {
         }
     }
 
-    public static class CellFormatIndexCollectorRectangle<T> {
+    private static abstract class CellFormatIndexCollect<T> {
+
+        protected CellTable<T> table;
+        protected Optional<CellFormatBuilder<T>> previous;
+
+        protected CellFormatIndexCollect(Optional<CellFormatBuilder<T>> previous, CellTable<T> table) {
+            this.table = table;
+            this.previous = previous;
+        }
+
+        protected CellFormatBuilder<T> appendOrNew(List<CellPrep<T>> cells) {
+            return previous.map(m -> {
+                m.cells.addAll(cells);
+                return m;
+            }).orElseGet(() -> new CellFormatBuilder<>(table, cells));
+        }
+    }
+
+    public static class CellFormatIndexCollectorRectangle<T> extends CellFormatIndexCollect<T> {
 
         private Integer startRow;
         private Integer startCol;
-        private CellTable<T> table;
 
-        private CellFormatIndexCollectorRectangle(CellTable table, Integer row, Integer col) {
-            this.table = table;
+        private CellFormatIndexCollectorRectangle(Optional<CellFormatBuilder<T>> previous, CellTable table, Integer row, Integer col) {
+            super(previous, table);
             this.startRow = row;
             this.startCol = col;
         }
@@ -72,18 +89,17 @@ public class CellTable<T> {
                     cells.add(cell);
                 });
             }
-            return new CellFormatBuilder<>(cells);
+            return appendOrNew(cells);
         }
 
     }
 
-    public static class CellFormatIndexCollectorStart<T> {
+    public static class CellFormatIndexCollectorStart<T> extends CellFormatIndexCollect<T> {
 
         private final Integer index;
-        private final CellTable<T> table;
 
-        private CellFormatIndexCollectorStart(CellTable table, Integer startIndex) {
-            this.table = table;
+        private CellFormatIndexCollectorStart(Optional<CellFormatBuilder<T>> previous, CellTable table, Integer startIndex) {
+            super(previous, table);
             this.index = startIndex;
         }
 
@@ -94,7 +110,7 @@ public class CellTable<T> {
          * @return
          */
         public CellFormatBuilder<T> andColumn(Integer end) {
-            return new CellFormatBuilder<>(Arrays.asList(getCellAt(table, index, end)));
+            return appendOrNew(Arrays.asList(getCellAt(table, index, end)));
         }
 
         /**
@@ -111,7 +127,7 @@ public class CellTable<T> {
                 Row<T> row = getRow(table, i);
                 cells.addAll(row.cells);
             }
-            return new CellFormatBuilder<>(cells);
+            return appendOrNew(cells);
         }
 
         /**
@@ -129,17 +145,15 @@ public class CellTable<T> {
                     cells.add(cell);
                 });
             }
-            return new CellFormatBuilder<>(cells);
+            return appendOrNew(cells);
         }
 
     }
 
-    public static class CellFormatIndexCollector<T> {
+    public static class CellFormatIndexCollector<T> extends CellFormatIndexCollect<T> {
 
-        private CellTable<T> table;
-
-        private CellFormatIndexCollector(CellTable<T> table) {
-            this.table = table;
+        private CellFormatIndexCollector(Optional<CellFormatBuilder<T>> previous, CellTable<T> table) {
+            super(previous, table);
         }
 
         public CellFormatBuilder<T> withFullTable() {
@@ -147,7 +161,7 @@ public class CellTable<T> {
             for (Row<T> row : table.rows) {
                 cells.addAll(row.cells);
             }
-            return new CellFormatBuilder(cells);
+            return this.appendOrNew(cells);
         }
 
         /**
@@ -166,7 +180,7 @@ public class CellTable<T> {
                 Row<T> row = getRow(table, ri);
                 cells.addAll(row.cells);
             }
-            return new CellFormatBuilder(cells);
+            return this.appendOrNew(cells);
         }
 
         /**
@@ -189,7 +203,7 @@ public class CellTable<T> {
                     cells.add(row.cells.get(ci));
                 }
             }
-            return new CellFormatBuilder(cells);
+            return this.appendOrNew(cells);
         }
 
         /**
@@ -199,15 +213,16 @@ public class CellTable<T> {
          * @return
          */
         public CellFormatIndexCollectorStart<T> withIndex(Integer index) {
-            return new CellFormatIndexCollectorStart<>(table, index);
+            return new CellFormatIndexCollectorStart<T>(previous, table, index);
         }
 
         public CellFormatBuilder<T> withRowAndCol(Integer ri, Integer ci) {
+
             return withIndex(ri).andColumn(ci);
         }
 
         public CellFormatIndexCollectorRectangle<T> withRectangleStartingAt(Integer leftTopRow, Integer leftTopColumn) {
-            return new CellFormatIndexCollectorRectangle<>(table, leftTopRow, leftTopColumn);
+            return new CellFormatIndexCollectorRectangle<T>(previous, table, leftTopRow, leftTopColumn);
         }
 
     }
@@ -348,7 +363,11 @@ public class CellTable<T> {
      * @return
      */
     public CellFormatIndexCollector<T> selectCells() {
-        return new CellFormatIndexCollector(this);
+        return selectCells(Optional.empty());
+    }
+
+    CellFormatIndexCollector<T> selectCells(Optional<CellFormatBuilder<T>> prevBuilder) {
+        return new CellFormatIndexCollector<>(prevBuilder, this);
     }
 
     /**

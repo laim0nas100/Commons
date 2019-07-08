@@ -5,9 +5,13 @@
  */
 package empiric.core.tables.test;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import lt.lb.commons.containers.tables.CellFormatBuilder;
 import lt.lb.commons.containers.tables.CellTable;
 import lt.lb.commons.F;
+import lt.lb.commons.func.Lambda;
 import org.junit.Test;
 
 /**
@@ -24,17 +28,28 @@ public class DocTableTest {
         table.addRow("A", "B", "C");
         table.mergeHorizontal(0, 2, 1);
 
-        CellFormatBuilder<String> toRightBottomCornerAt = table.selectCells()
+        Map<Long, List<Consumer>> formatterMap = table.selectCells()
                 .withRectangleStartingAt(0, 1)
-                .toRightBottomCornerAt(1, 1);
-        toRightBottomCornerAt.forEachCell(c -> {
-            System.out.println(c);
-            c.mapContent(s -> "[" + s + "]");
-        });
-        
-        table.selectCells().withIndex(0).andColumn(0).forEachCell(c ->{
-            
-        });
+                .toRightBottomCornerAt(1, 1)
+                .forEachCell(c -> {
+                    System.out.println(c);
+                    c.mapContent(s -> "[" + s + "]");
+                })
+                .addFormat(Lambda.L1.empty())
+                .addToSelection()
+                .withColumns(0,1)
+                .forEachCell(c ->{
+                    System.out.println(c);
+                    c.mapContent(s -> "[" + s + "]");
+                })
+                .addToSelection()
+                .withRowAndCol(1, 2)
+                .forEachCell(c ->{
+                    System.out.println(c);
+                    c.mapContent(s -> "[" + s + "]");
+                }).getFormatterMap();
+        System.out.println("Map:"+formatterMap);
+
         table.renderRows((ri, cells) -> {
 
             F.iterate(cells, (i, c) -> {
