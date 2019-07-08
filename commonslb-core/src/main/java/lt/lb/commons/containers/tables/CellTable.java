@@ -155,6 +155,36 @@ public class CellTable<T> {
             return appendOrNew(cells);
         }
 
+        /**
+         * Collect columns in previously defined row
+         *
+         * @param cols
+         * @return
+         */
+        public CellFormatBuilder<T> includingColumnsInRow(Integer... cols) {
+            Row<T> row = table.rows.get(index);
+            LinkedList<CellPrep<T>> cells = new LinkedList<>();
+            for (Integer c : cols) {
+                cells.add(row.cells.get(c));
+            }
+            return appendOrNew(cells);
+        }
+
+        /**
+         * Collect rows in previously defined column
+         *
+         * @param rows
+         * @return
+         */
+        public CellFormatBuilder<T> includingRowsInColumn(Integer... rows) {
+            LinkedList<CellPrep<T>> cells = new LinkedList<>();
+            for (Integer ri : rows) {
+                cells.add(getCellAt(table, ri, index));
+
+            }
+            return appendOrNew(cells);
+        }
+
     }
 
     public static class CellFormatIndexCollector<T> extends CellFormatIndexCollect<T> {
@@ -225,6 +255,7 @@ public class CellTable<T> {
 
         /**
          * Select concrete cell
+         *
          * @param ri row index
          * @param ci column index
          * @return
