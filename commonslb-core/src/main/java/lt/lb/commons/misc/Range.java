@@ -29,7 +29,7 @@ public class Range<T> extends MinMax<T> {
     }
 
     /**
-     * inside [min,max]
+     * inside (min,max)
      * @param val
      * @return 
      */
@@ -38,7 +38,7 @@ public class Range<T> extends MinMax<T> {
     }
 
     /**
-     * inside (min,max)
+     * inside [min,max]
      * @param val
      * @return 
      */
