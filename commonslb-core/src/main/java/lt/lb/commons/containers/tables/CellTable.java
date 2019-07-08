@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.IntRange;
@@ -382,9 +383,9 @@ public class CellTable<T> {
      *
      * @param renderer
      */
-    public void renderRows(CellRowRenderer<T> renderer) {
+    public void renderRows(BiConsumer<Integer, List<CellPrep<T>>> renderer) {
 
-        this.renderRows(new HashMap<>(), renderer);
+        this.renderRows(new HashMap<>(), (map, ri, cells) -> renderer.accept(ri, cells));
     }
 
 }
