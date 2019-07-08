@@ -404,6 +404,11 @@ public class CellTable<T> {
             if (cell.horizontalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing horizonal merge at " + formatVector(row, i) + " clean existing merge first");
             }
+            if (i == from) {
+                cell.horizontalMerge = TableCellMerge.FIRST;
+            } else {
+                cell.horizontalMerge = TableCellMerge.PREVIOUS;
+            }
         }
         return this;
     }
