@@ -18,7 +18,7 @@ import org.junit.Test;
  */
 public class IteratorTest {
 
-//    @Test
+    @Test
     public void test() throws Exception {
         Integer[] arr = ArrayOp.asArray(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
         List<Integer> asList = Arrays.asList(arr);
@@ -32,6 +32,9 @@ public class IteratorTest {
 
         };
 
+        Log.print("as List from 10");
+        F.iterate(asList, 10,14,it);
+
         F.iterate(asList, it);
 
         F.iterate(ReadOnlyIterator.of(asList), it);
@@ -42,8 +45,7 @@ public class IteratorTest {
 
         F.iterate(ReadOnlyIterator.of(arr), it);
 
-        Log.print(() -> ReflectionUtils.reflectionString(Log.main(), 2));
-
+//        Log.print(() -> ReflectionUtils.reflectionString(Log.main(), 2));
         Log.await(1, TimeUnit.HOURS);
     }
 
