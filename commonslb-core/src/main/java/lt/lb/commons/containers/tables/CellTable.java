@@ -330,10 +330,6 @@ public class CellTable<T> {
      */
     public CellTable mergeHorizontal(int from, int to, int row) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
-        int diff = to - from;
-        if (diff <= 1) {
-            throw new IllegalArgumentException("Merge range should be at least 2, now is " + diff);
-        }
 
         Row<T> r = rows.get(row);
 
