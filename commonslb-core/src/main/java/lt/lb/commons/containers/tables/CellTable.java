@@ -79,6 +79,13 @@ public class CellTable<T> {
             this.startCol = col;
         }
 
+        /**
+         * Finish selection rectangle
+         *
+         * @param lastRow
+         * @param lastCol
+         * @return
+         */
         public CellFormatBuilder<T> toRightBottomCornerAt(Integer lastRow, Integer lastCol) {
             IntRange.of(startRow, lastRow).assertRangeIsValid();
             IntRange.of(startCol, lastCol).assertRangeIsValid();
@@ -216,11 +223,24 @@ public class CellTable<T> {
             return new CellFormatIndexCollectorStart<T>(previous, table, index);
         }
 
+        /**
+         * Select concrete cell
+         * @param ri row index
+         * @param ci column index
+         * @return
+         */
         public CellFormatBuilder<T> withRowAndCol(Integer ri, Integer ci) {
 
             return withIndex(ri).andColumn(ci);
         }
 
+        /**
+         * Start selection rectangle.
+         *
+         * @param leftTopRow
+         * @param leftTopColumn
+         * @return
+         */
         public CellFormatIndexCollectorRectangle<T> withRectangleStartingAt(Integer leftTopRow, Integer leftTopColumn) {
             return new CellFormatIndexCollectorRectangle<T>(previous, table, leftTopRow, leftTopColumn);
         }

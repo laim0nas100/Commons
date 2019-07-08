@@ -15,9 +15,9 @@ public class CellPrep<T> {
     private static final AtomicLong idInc = new AtomicLong(0);
     
     public final long id = idInc.getAndIncrement();
-    Optional<T> content;
-    TableCellMerge verticalMerge = TableCellMerge.NONE;
-    TableCellMerge horizontalMerge = TableCellMerge.NONE;
+    protected Optional<T> content;
+    protected TableCellMerge verticalMerge = TableCellMerge.NONE;
+    protected TableCellMerge horizontalMerge = TableCellMerge.NONE;
 
     public CellPrep(T content) {
         this.content = Optional.ofNullable(content);

@@ -79,13 +79,17 @@ public class CellFormatBuilder<T> {
     }
 
     /**
-     * append selection
+     * Append selection
      * @return 
      */
     public CellFormatIndexCollector<T> addToSelection() {
         return table.selectCells(Optional.of(this));
     }
 
+    /**
+     * Return all collected fomatters
+     * @return 
+     */
     public Map<Long, List<Consumer>> getFormatterMap() {
         return this.formatters;
     }
