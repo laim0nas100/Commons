@@ -61,6 +61,17 @@ public class CellFormatBuilder<T> {
     }
 
     /**
+     * Cleans format in only currently selected cells.
+     *
+     * @return
+     */
+    public CellFormatBuilder<T> cleanSelectedFormat() {
+        return forEachCell(cell -> {
+            formatters.remove(cell.id);
+        });
+    }
+
+    /**
      * Reset horizontal merge property to NONE
      *
      * @return
@@ -80,15 +91,37 @@ public class CellFormatBuilder<T> {
 
     /**
      * Append selection
-     * @return 
+     *
+     * @return
      */
     public CellFormatIndexCollector<T> addToSelection() {
         return table.selectCells(Optional.of(this));
     }
 
     /**
-     * Return all collected fomatters
-     * @return 
+     * Deselect currently selected cells
+     *
+     * @return
+     */
+    public CellFormatBuilder<T> cleanSelection() {
+        this.cells.clear();
+        return this;
+    }
+
+    /**
+     * Cleans current selection and starts new. All defined formatters are
+     * preserved.
+     *
+     * @return
+     */
+    public CellFormatIndexCollector<T> withCleanSelection() {
+        return this.cleanSelection().addToSelection();
+    }
+
+    /**
+     * Return all collected formatters
+     *
+     * @return
      */
     public Map<Long, List<Consumer>> getFormatterMap() {
         return this.formatters;
