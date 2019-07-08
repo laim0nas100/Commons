@@ -1,11 +1,8 @@
 package lt.lb.commons.containers.tables;
 
 import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -21,7 +18,6 @@ public class CellPrep<T> {
     Optional<T> content;
     TableCellMerge verticalMerge = TableCellMerge.NONE;
     TableCellMerge horizontalMerge = TableCellMerge.NONE;
-    List<Consumer<CellPrep<T>>> formatters = new LinkedList<>();
 
     public CellPrep(T content) {
         this.content = Optional.ofNullable(content);
@@ -55,14 +51,6 @@ public class CellPrep<T> {
      */
     public void setContent(T content) {
         this.content = Optional.ofNullable(content);
-    }
-
-    /**
-     * Get all formatters defined for this cell.
-     * @return 
-     */
-    public List<Consumer<CellPrep<T>>> getFormatters() {
-        return formatters;
     }
 
     public TableCellMerge getHorizontalMerge() {

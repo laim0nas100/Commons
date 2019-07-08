@@ -2,10 +2,12 @@ package lt.lb.commons.containers.tables;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.IntRange;
 
@@ -15,6 +17,12 @@ import lt.lb.commons.misc.IntRange;
  * @author laim0nas100
  */
 public class CellTable<T> {
+
+    @FunctionalInterface
+    public static interface CellRowRenderer<T> {
+
+        public void render(Map<Long, List<Consumer>> formatters, Integer rowIndex, List<CellPrep<T>> cells);
+    }
 
     public enum TableCellMerge {
         NONE, FIRST, PREVIOUS;
@@ -356,16 +364,27 @@ public class CellTable<T> {
     }
 
     /**
-     * Stream all rows to the consumer.
+     * Stream all rows to the renderer.
      *
-     * @param rowConsumer
+     * @param formatters
+     * @param renderer
      */
-    public void renderRows(BiConsumer<Integer, List<CellPrep<T>>> rowConsumer) {
+    public void renderRows(Map<Long, List<Consumer>> formatters, CellRowRenderer<T> renderer) {
         int ri = 0;
         for (Row<T> row : rows) {
-            rowConsumer.accept(ri, row.cells);
+            renderer.render(formatters, ri, row.cells);
             ri++;
         }
+    }
+
+    /**
+     * Render without any implementation-dependant formatting map.
+     *
+     * @param renderer
+     */
+    public void renderRows(CellRowRenderer<T> renderer) {
+
+        this.renderRows(new HashMap<>(), renderer);
     }
 
 }

@@ -1,7 +1,10 @@
 package lt.lb.commons.containers.tables;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -14,6 +17,7 @@ public class CellFormatBuilder<T> {
         cells = prep;
     }
     protected List<CellPrep<T>> cells;
+    protected Map<Long, List<Consumer>> formatters = new HashMap<>();
 
     /**
      * Define formatting action
@@ -21,17 +25,18 @@ public class CellFormatBuilder<T> {
      * @param cons
      * @return
      */
-    public CellFormatBuilder addFormat(Consumer<CellPrep<T>> cons) {
+    public CellFormatBuilder addFormat(Consumer cons) {
         for (CellPrep cell : cells) {
-            cell.formatters.add(cons);
+            formatters.computeIfAbsent(cell.id, id -> new LinkedList<>()).add(cons);
         }
         return this;
     }
 
     /**
      * Do with each selected cell
+     *
      * @param cons
-     * @return 
+     * @return
      */
     public CellFormatBuilder forEachCell(Consumer<CellPrep<T>> cons) {
         cells.forEach(cons);
@@ -44,9 +49,7 @@ public class CellFormatBuilder<T> {
      * @return
      */
     public CellFormatBuilder cleanFormat() {
-        for (CellPrep cell : cells) {
-            cell.formatters.clear();
-        }
+        formatters.clear();
         return this;
     }
 
@@ -66,5 +69,9 @@ public class CellFormatBuilder<T> {
      */
     public CellFormatBuilder cleanVerticalMerge() {
         return this.forEachCell(c -> c.verticalMerge = TableCellMerge.NONE);
+    }
+
+    public Map<Long, List<Consumer>> getFormatterMap() {
+        return this.formatters;
     }
 }
