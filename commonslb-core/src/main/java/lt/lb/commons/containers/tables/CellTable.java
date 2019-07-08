@@ -301,8 +301,8 @@ public class CellTable<T> {
      * @param to ending index (Last)
      * @param column column index
      */
-    public void mergeVertical(int from, int to, int column) {
-        IntRange.of(from, to).assertRangeSizeAtLeast(2);
+    public CellTable mergeVertical(int from, int to, int column) {
+        IntRange.of(from, to).assertRangeSizeAtLeast(1);
         F.iterate(rows, from, to, (i, row) -> {
             CellPrep<T> cell = row.cells.get(column);
             if (cell.verticalMerge != TableCellMerge.NONE) {
@@ -314,6 +314,7 @@ public class CellTable<T> {
                 cell.verticalMerge = TableCellMerge.PREVIOUS;
             }
         });
+        return this;
     }
 
     private static String formatVector(int x, int y) {
@@ -327,8 +328,8 @@ public class CellTable<T> {
      * @param to column end index (inclusive)
      * @param row row index
      */
-    public void mergeHorizontal(int from, int to, int row) {
-        IntRange.of(from, to).assertRangeSizeAtLeast(2);
+    public CellTable mergeHorizontal(int from, int to, int row) {
+        IntRange.of(from, to).assertRangeSizeAtLeast(1);
         int diff = to - from;
         if (diff <= 1) {
             throw new IllegalArgumentException("Merge range should be at least 2, now is " + diff);
@@ -342,6 +343,7 @@ public class CellTable<T> {
                 throw new IllegalArgumentException("Overwriting existing horizonal merge at " + formatVector(row, i) + " clean existing merge first");
             }
         }
+        return this;
     }
 
     /**
