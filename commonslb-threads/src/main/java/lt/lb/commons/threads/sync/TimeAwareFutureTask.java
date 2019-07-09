@@ -12,8 +12,8 @@ import lt.lb.commons.Timer;
  */
 public class TimeAwareFutureTask<T> extends FutureTask<T> {
     
-    protected AtomicLong startAt = new AtomicLong(Long.MIN_VALUE);
-    protected AtomicLong finishedAt = new AtomicLong(Long.MIN_VALUE);
+    protected volatile AtomicLong startAt = new AtomicLong(Long.MIN_VALUE);
+    protected volatile AtomicLong finishedAt = new AtomicLong(Long.MIN_VALUE);
     
     public TimeAwareFutureTask(Callable<T> callable) {
         super(callable);

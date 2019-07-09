@@ -28,7 +28,7 @@ public class EventQueue {
     
     public static final String defaultTag = "DEFAULT";
     
-    private static class Event extends FutureTask<Void>{
+    private static class Event extends FutureTask<Void> {
         
         public String tag = "DEFAULT";
         
@@ -41,7 +41,11 @@ public class EventQueue {
             this(Executors.callable(run), tag);
         }
         
-        public void run(){
+        public Event(UnsafeRunnable run, String tag) {
+            this(UnsafeRunnable.toCallable(run), tag);
+        }
+        
+        public void run() {
             super.run();
         }
     }
@@ -101,12 +105,16 @@ public class EventQueue {
     }
     
     public void cancelAll(String... tags) {
+        this.cancelAll(false, tags);
+    }
+    
+    public void cancelAll(boolean interupt, String... tags) {
         Iterator<Event> it = events.iterator();
         Predicate<Event> containsAny = containsAny(tags);
         while (it.hasNext()) {
             Event next = it.next();
             if (containsAny.test(next)) {
-                next.cancel(false);
+                next.cancel(interupt);
                 it.remove();
             }
         }
@@ -114,7 +122,7 @@ public class EventQueue {
     
     public void shutdown() {
         shutdown = true;
-        events.forEach(ev ->{
+        events.forEach(ev -> {
             ev.cancel(false);
         });
         events.clear();

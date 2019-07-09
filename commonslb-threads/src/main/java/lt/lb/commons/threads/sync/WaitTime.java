@@ -7,6 +7,7 @@ package lt.lb.commons.threads.sync;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
@@ -24,6 +25,11 @@ public class WaitTime {
     public final TimeUnit unit;
 
     public WaitTime(long time, TimeUnit unit) {
+        Objects.requireNonNull(time);
+        Objects.requireNonNull(unit);
+        if(time < 0){
+            throw new IllegalArgumentException("Time should not be negative");
+        }
         this.time = time;
         this.unit = unit;
     }

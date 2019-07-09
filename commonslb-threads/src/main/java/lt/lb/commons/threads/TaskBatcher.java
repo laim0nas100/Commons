@@ -74,11 +74,9 @@ public class TaskBatcher implements Executor {
      * @return
      */
     public BatchRunSummary awaitFailOnFirst() {
-        Value<BatchRunSummary> v = new Value<>();
-        F.unsafeRun(() -> {  // 
-            v.set(await(false, WaitTime.ofDays(0), WaitTime.ofDays(0))); // should not throw InterruptedException
+        return F.checkedCallNoExceptions(() -> {
+            return await(true, WaitTime.ofDays(0), WaitTime.ofDays(0));// should not throw InterruptedException
         });
-        return v.get();
     }
 
     /**
@@ -87,11 +85,9 @@ public class TaskBatcher implements Executor {
      * @return
      */
     public BatchRunSummary awaitTolerateFails() {
-        Value<BatchRunSummary> v = new Value<>();
-        F.unsafeRun(() -> {  // 
-            v.set(await(true, WaitTime.ofDays(0), WaitTime.ofDays(0))); // should not throw InterruptedException
+        return F.checkedCallNoExceptions(() -> {
+            return await(false, WaitTime.ofDays(0), WaitTime.ofDays(0));// should not throw InterruptedException
         });
-        return v.get();
     }
 
     /**
@@ -101,7 +97,7 @@ public class TaskBatcher implements Executor {
      * @param pollWait how long to wait for new task to arrive. Set time to 0 or
      * less to disable;
      * @param executionWait how long to wait for current task to end. Set time
-     * to 0 or less to disable.
+     * to 0 to disable.
      * @return
      */
     public BatchRunSummary await(boolean failFast, WaitTime pollWait, WaitTime executionWait) {
@@ -115,20 +111,17 @@ public class TaskBatcher implements Executor {
                 boolean waitPoll = pollWait.time > 0;
                 boolean waitGet = executionWait.time > 0;
                 while (!deque.isEmpty()) {
-                    Value<Future> last = new Value<>(null);
-                    F.checkedRun(() -> {
-                        Future pollLast = waitPoll ? deque.pollLast(pollWait.time, pollWait.unit) : deque.pollLast();
-                        last.set(pollLast);
+                    Future last = F.checkedCallNoExceptions(()->{
+                        return waitPoll ? deque.pollLast(pollWait.time, pollWait.unit) : deque.pollLast();
                     });
 
                     boolean failed = false;
                     boolean timeEx = false;
                     Throwable err = null;
-                    if (last.get() != null) {
-                        Future fut = last.get();
+                    if (last != null) {
                         if (waitGet) {
                             Optional<Throwable> ex = F.checkedRun(() -> {
-                                fut.get(executionWait.time, executionWait.unit);
+                                last.get(executionWait.time, executionWait.unit);
                             });
                             if (ex.isPresent()) {
                                 Throwable get = ex.get();
@@ -140,7 +133,7 @@ public class TaskBatcher implements Executor {
                                 err = get;
                             }
                         } else {
-                            Optional<Throwable> checkedRun = F.checkedRun(fut::get);
+                            Optional<Throwable> checkedRun = F.checkedRun(last::get);
                             if (checkedRun.isPresent()) {
                                 failed = true;
                                 err = checkedRun.get();
@@ -167,13 +160,10 @@ public class TaskBatcher implements Executor {
             this.waitingTask = new FutureTask<>(call);
 
         }
-        Value<BatchRunSummary> val = new Value<>();
-        F.unsafeRun(() -> {
+        return F.unsafeCall(()->{
             waitingTask.run();
-            val.set(waitingTask.get());
-
+            return waitingTask.get();
         });
-        return val.get();
     }
 
 }

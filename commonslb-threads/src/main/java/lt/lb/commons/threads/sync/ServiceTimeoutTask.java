@@ -3,11 +3,8 @@ package lt.lb.commons.threads.sync;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
-import lt.lb.commons.threads.Futures;
 
 /**
  *
