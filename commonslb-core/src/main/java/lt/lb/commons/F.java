@@ -139,6 +139,21 @@ public class F {
         }
         return null;
     }
+    
+    /**
+     * Call with ignoring all exceptions. Returns null, if execution fails.
+     *
+     * @param <T>
+     * @param call
+     * @return result or {@code null} if exception was thrown
+     */
+    public static <T> T checkedCallNoExceptions(UnsafeSupplier<T> call) {
+        try {
+            return call.unsafeGet();
+        } catch (Throwable e) {
+        }
+        return null;
+    }
 
     /**
      * Run and catch any possible error
