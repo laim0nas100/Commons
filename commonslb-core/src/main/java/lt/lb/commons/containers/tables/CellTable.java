@@ -39,14 +39,18 @@ public class CellTable<T> {
         private Row() {
         }
 
-        private void modifyToSize(int size) {
+        private void modifyToSize(int size, T content) {
             while (cells.size() < size) {
-                cells.add(new CellPrep<>());
+                cells.add(new CellPrep<>(content));
             }
 
             while (cells.size() > size) {
                 cells.remove(cells.size() - 1);
             }
+        }
+
+        private void modifyToSize(int size) {
+            this.modifyToSize(size, null);
         }
     }
 
@@ -416,8 +420,8 @@ public class CellTable<T> {
     }
 
     /**
-     * Merge cell horizontally of the latest row.
-     * Typically follows addRow method.
+     * Merge cell horizontally of the latest row. Typically follows addRow
+     * method.
      *
      * @param from column start index
      * @param to column end index (inclusive)
@@ -425,6 +429,31 @@ public class CellTable<T> {
      */
     public CellTable merge(int from, int to) {
         return this.mergeHorizontal(from, to, rows.size() - 1);
+    }
+
+    /**
+     * Modify row with given content up to or down to given size.
+     *
+     * @param rowIndex
+     * @param desiredSize
+     * @param content
+     * @return
+     */
+    public CellTable modifySize(int rowIndex, int desiredSize, T content) {
+        Row<T> lastRow = rows.get(rowIndex);
+        lastRow.modifyToSize(desiredSize, content);
+        return this;
+    }
+
+    /**
+     * Modify last row with given content up to or down to given size.
+     *
+     * @param desiredSize
+     * @param content
+     * @return
+     */
+    public CellTable modifySize(int desiredSize, T content) {
+        return this.modifySize(rows.size() - 1, desiredSize, content);
     }
 
     /**
