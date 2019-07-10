@@ -455,6 +455,18 @@ public class CellTable<T> {
     public CellTable<T> modifySize(int desiredSize, T content) {
         return this.modifySize(rows.size() - 1, desiredSize, content);
     }
+    
+    /**
+     * Modify last row with null up to or down to given size.
+     *
+     * @param desiredSize
+     * @return
+     */
+    public CellTable<T> modifySize(int desiredSize) {
+        return this.modifySize(rows.size() - 1, desiredSize, null);
+    }
+    
+    
 
     /**
      * Cell selector
