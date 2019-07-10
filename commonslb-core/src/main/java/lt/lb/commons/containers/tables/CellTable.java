@@ -10,6 +10,11 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
+import lt.lb.commons.SafeOpt;
+import lt.lb.commons.containers.IntegerValue;
+import lt.lb.commons.containers.tuples.Pair;
+import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.misc.IntRange;
 
 /**
@@ -455,7 +460,7 @@ public class CellTable<T> {
     public CellTable<T> modifySize(int desiredSize, T content) {
         return this.modifySize(rows.size() - 1, desiredSize, content);
     }
-    
+
     /**
      * Modify last row with null up to or down to given size.
      *
@@ -465,8 +470,6 @@ public class CellTable<T> {
     public CellTable<T> modifySize(int desiredSize) {
         return this.modifySize(rows.size() - 1, desiredSize, null);
     }
-    
-    
 
     /**
      * Cell selector
@@ -514,6 +517,67 @@ public class CellTable<T> {
     public void renderRows(BiConsumer<Integer, List<CellPrep<T>>> renderer) {
 
         this.renderRows(new HashMap<>(), (map, ri, cells) -> renderer.accept(ri, cells));
+    }
+
+    /**
+     *
+     * @return amount of rows
+     */
+    public Integer getRowCount() {
+        return rows.size();
+    }
+
+    /**
+     *
+     * @return index of last row
+     */
+    public Integer getLastRowIndex() {
+        return getRowCount() - 1;
+    }
+
+    /**
+     * Find cell coordinates by id.
+     *
+     * @param id
+     * @return
+     */
+    public Optional<Pair<Integer>> findCellLocation(long id) {
+        return findCellById(id).map(m -> m.g1);
+    }
+
+    /**
+     * Find cell by id.
+     *
+     * @param id
+     * @return
+     */
+    public Optional<CellPrep<T>> findCell(long id) {
+        return findCellById(id).map(m -> m.g2);
+    }
+
+    /**
+     * Find cell by coordinates.
+     *
+     * @param ri
+     * @param ci
+     * @return
+     */
+    public Optional<CellPrep<T>> findCell(int ri, int ci) {
+        return SafeOpt.of(this).map(m -> getCellAt(m, ri, ci)).asOptional();
+    }
+
+    private Optional<Tuple<Pair<Integer>, CellPrep<T>>> findCellById(long id) {
+        IntegerValue ri = new IntegerValue(0);
+        for (Row<T> row : this.rows) {
+            Optional<Tuple<Pair<Integer>, CellPrep<T>>> map
+                    = F.find(row.cells, (ci, cell) -> cell.id == id)
+                            .map(m -> Tuples.create(new Pair<>(ri.get(), m.g1), m.g2));
+            if (map.isPresent()) {
+                return map;
+            }
+            ri.incrementAndGet();
+        }
+        return Optional.empty();
     }
 
 }
