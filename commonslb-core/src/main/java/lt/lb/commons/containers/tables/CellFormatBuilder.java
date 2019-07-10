@@ -114,7 +114,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public CellFormatIndexCollector<T> withCleanSelection() {
+    public CellFormatIndexCollector<T> cleanSelectionStart() {
         return this.cleanSelection().addToSelection();
     }
 
@@ -125,5 +125,16 @@ public class CellFormatBuilder<T> {
      */
     public Map<Long, List<Consumer>> getFormatterMap() {
         return this.formatters;
+    }
+
+    /**
+     * Ability to collect formatters mid-way.
+     * @param cons
+     * @return 
+     */
+    public CellFormatBuilder<T> withFormatterMap(Consumer<? super Map<Long, ? extends List<Consumer>>> cons) {
+        cons.accept(this.getFormatterMap());
+        return this;
+
     }
 }

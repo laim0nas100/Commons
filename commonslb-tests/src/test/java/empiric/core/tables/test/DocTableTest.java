@@ -43,6 +43,7 @@ public class DocTableTest {
                     c.mapContent(s -> "[" + s + "]");
                 })
                 .addToSelection()
+                
                 .withRowAndCol(1, 2)
                 .forEachCell(c ->{
                     System.out.println(c);

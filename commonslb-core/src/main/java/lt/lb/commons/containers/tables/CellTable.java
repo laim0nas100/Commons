@@ -309,7 +309,7 @@ public class CellTable<T> {
      * @param content array of content to add to cells.
      * @return
      */
-    public CellTable addRow(T... content) {
+    public CellTable<T> addRow(T... content) {
         Row<T> row = new Row<>();
         for (T c : content) {
             row.cells.add(new CellPrep<>(c));
@@ -327,7 +327,7 @@ public class CellTable<T> {
      * @param content
      * @return
      */
-    public CellTable setRowContent(Integer ri, T... content) {
+    public CellTable<T> setRowContent(Integer ri, T... content) {
         Row<T> row = getRow(this, ri);
         row.cells.forEach(c -> c.content = Optional.empty());
         row.modifyToSize(content.length);
@@ -344,7 +344,7 @@ public class CellTable<T> {
      * @param content
      * @return
      */
-    public CellTable setCellContent(Integer ri, Integer ci, T content) {
+    public CellTable<T> setCellContent(Integer ri, Integer ci, T content) {
         getCellAt(this, ri, ci).content = Optional.ofNullable(content);
         return this;
     }
@@ -355,7 +355,7 @@ public class CellTable<T> {
      * @param content new content to add
      * @return
      */
-    public CellTable appendRowContent(Integer ri, T... content) {
+    public CellTable<T> appendRowContent(Integer ri, T... content) {
         Row<T> row = getRow(this, ri);
         for (T c : content) {
             row.cells.add(new CellPrep<>(c));
@@ -372,7 +372,7 @@ public class CellTable<T> {
      * @param column column index
      * @return
      */
-    public CellTable mergeVertical(int from, int to, int column) {
+    public CellTable<T> mergeVertical(int from, int to, int column) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
         F.iterate(rows, from, to, (i, row) -> {
             CellPrep<T> cell = row.cells.get(column);
@@ -400,7 +400,7 @@ public class CellTable<T> {
      * @param row row index
      * @return
      */
-    public CellTable mergeHorizontal(int from, int to, int row) {
+    public CellTable<T> mergeHorizontal(int from, int to, int row) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
 
         Row<T> r = rows.get(row);
@@ -427,7 +427,7 @@ public class CellTable<T> {
      * @param to column end index (inclusive)
      * @return
      */
-    public CellTable merge(int from, int to) {
+    public CellTable<T> merge(int from, int to) {
         return this.mergeHorizontal(from, to, rows.size() - 1);
     }
 
@@ -439,7 +439,7 @@ public class CellTable<T> {
      * @param content
      * @return
      */
-    public CellTable modifySize(int rowIndex, int desiredSize, T content) {
+    public CellTable<T> modifySize(int rowIndex, int desiredSize, T content) {
         Row<T> lastRow = rows.get(rowIndex);
         lastRow.modifyToSize(desiredSize, content);
         return this;
@@ -452,7 +452,7 @@ public class CellTable<T> {
      * @param content
      * @return
      */
-    public CellTable modifySize(int desiredSize, T content) {
+    public CellTable<T> modifySize(int desiredSize, T content) {
         return this.modifySize(rows.size() - 1, desiredSize, content);
     }
 
@@ -475,7 +475,7 @@ public class CellTable<T> {
      * @param other
      * @return
      */
-    public CellTable appendTable(CellTable<T> other) {
+    public CellTable<T> appendTable(CellTable<T> other) {
         this.rows.addAll(other.rows);
         return this;
     }
