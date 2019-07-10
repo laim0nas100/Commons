@@ -139,7 +139,7 @@ public class F {
         }
         return null;
     }
-    
+
     /**
      * Call with ignoring all exceptions. Returns null, if execution fails.
      *
@@ -166,7 +166,7 @@ public class F {
             r.unsafeRun();
             return Optional.empty();
         } catch (Throwable t) {
-            return Optional.of(t);
+            return Optional.of(t).map(m -> NestedException.unwrap(m));
         }
     }
 
@@ -181,7 +181,7 @@ public class F {
             r.run();
             return Optional.empty();
         } catch (Throwable t) {
-            return Optional.of(t);
+            return Optional.of(t).map(m -> NestedException.unwrap(m));
         }
     }
 

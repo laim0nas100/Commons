@@ -5,9 +5,12 @@
  */
 package lt.lb.commons.threads;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lt.lb.commons.F;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -29,10 +32,12 @@ public class RepeatableTask implements Runnable {
     @Override
     public void run() {
         if (ready.compareAndSet(true, false)) {
-            try {
+            Optional<Throwable> checkedRun = F.checkedRun(() -> {
                 call.call();
-                ready.set(true);
-            } catch (Exception ex) {
+            });
+            ready.set(true);
+            if (checkedRun.isPresent()) {
+                throw NestedException.of(checkedRun.get());
             }
         }
     }

@@ -361,11 +361,12 @@ public class CellTable<T> {
     }
 
     /**
-     * Merge cells vertically. Cells must be defined beforehand.
+     * Merge cells vertically.Cells must be defined beforehand.
      *
      * @param from starting index (First)
      * @param to ending index (Last)
      * @param column column index
+     * @return
      */
     public CellTable mergeVertical(int from, int to, int column) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
@@ -393,6 +394,7 @@ public class CellTable<T> {
      * @param from column start index
      * @param to column end index (inclusive)
      * @param row row index
+     * @return
      */
     public CellTable mergeHorizontal(int from, int to, int row) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
@@ -411,6 +413,18 @@ public class CellTable<T> {
             }
         }
         return this;
+    }
+
+    /**
+     * Merge cell horizontally of the latest row.
+     * Typically follows addRow method.
+     *
+     * @param from column start index
+     * @param to column end index (inclusive)
+     * @return
+     */
+    public CellTable merge(int from, int to) {
+        return this.mergeHorizontal(from, to, rows.size() - 1);
     }
 
     /**
