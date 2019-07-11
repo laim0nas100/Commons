@@ -23,8 +23,8 @@ import lt.lb.commons.misc.NestedException;
  */
 public class AutoUpdateValue<T> extends Value<T> {
 
-    protected volatile AtomicLong called = new AtomicLong(-1);
-    protected volatile AtomicLong lastSetTime = new AtomicLong(-1);
+    protected volatile AtomicLong called = new AtomicLong(Long.MIN_VALUE);
+    protected volatile AtomicLong lastSetTime = new AtomicLong(Long.MIN_VALUE);
     protected volatile AtomicReference<FutureTask<T>> ref = new AtomicReference();
     protected Callable<T> cld;
     protected boolean forceUpdate;
