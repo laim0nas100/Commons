@@ -31,7 +31,7 @@ public class CellTable<T> {
     }
 
     public enum TableCellMerge {
-        NONE, FIRST, PREVIOUS;
+        NONE, FIRST, MIDDLE, LAST;
     }
 
     /**
@@ -259,7 +259,7 @@ public class CellTable<T> {
          * @return
          */
         public CellFormatIndexCollectorStart<T> withIndex(Integer index) {
-            return new CellFormatIndexCollectorStart<T>(previous, table, index);
+            return new CellFormatIndexCollectorStart<>(previous, table, index);
         }
 
         /**
@@ -282,7 +282,7 @@ public class CellTable<T> {
          * @return
          */
         public CellFormatIndexCollectorRectangle<T> withRectangleStartingAt(Integer leftTopRow, Integer leftTopColumn) {
-            return new CellFormatIndexCollectorRectangle<T>(previous, table, leftTopRow, leftTopColumn);
+            return new CellFormatIndexCollectorRectangle<>(previous, table, leftTopRow, leftTopColumn);
         }
 
     }
@@ -386,8 +386,10 @@ public class CellTable<T> {
             }
             if (i == from) {
                 cell.verticalMerge = TableCellMerge.FIRST;
+            } else if (i == to) {
+                cell.verticalMerge = TableCellMerge.LAST;
             } else {
-                cell.verticalMerge = TableCellMerge.PREVIOUS;
+                cell.verticalMerge = TableCellMerge.MIDDLE;
             }
         });
         return this;
@@ -417,15 +419,17 @@ public class CellTable<T> {
             }
             if (i == from) {
                 cell.horizontalMerge = TableCellMerge.FIRST;
+            } else if (i == to) {
+                cell.horizontalMerge = TableCellMerge.LAST;
             } else {
-                cell.horizontalMerge = TableCellMerge.PREVIOUS;
+                cell.horizontalMerge = TableCellMerge.MIDDLE;
             }
         }
         return this;
     }
 
     /**
-     * Merge cell horizontally of the latest row. Typically follows addRow
+     * Merge cells horizontally of the latest row. Typically follows addRow
      * method.
      *
      * @param from column start index
@@ -434,6 +438,24 @@ public class CellTable<T> {
      */
     public CellTable<T> merge(int from, int to) {
         return this.mergeHorizontal(from, to, rows.size() - 1);
+    }
+
+    /**
+     *
+     * Merge empty cells horizontally of the latest row. Typically follows
+     * addRow method.
+     *
+     * @return
+     */
+    public CellTable<T> mergeLastEmpty() {
+        Row<T> row = rows.get(this.getLastRowIndex());
+        Optional<Integer> firstIndex = F.findBackwards(row.cells, (i, cell) -> {
+            return cell.content.isPresent();
+        }).map(m -> m.g1);
+        firstIndex.ifPresent(from -> {
+            this.mergeHorizontal(from, row.cells.size() - 1, rows.size() - 1);
+        });
+        return this;
     }
 
     /**
