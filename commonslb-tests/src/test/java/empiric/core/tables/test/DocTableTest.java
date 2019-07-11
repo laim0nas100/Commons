@@ -20,7 +20,7 @@ import org.junit.Test;
  */
 public class DocTableTest {
 
-    @Test
+//    @Test
     public void test() throws Exception {
         CellTable<String> table = new CellTable<>();
 

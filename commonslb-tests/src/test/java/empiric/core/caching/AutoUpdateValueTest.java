@@ -17,7 +17,7 @@ import org.junit.Test;
  */
 public class AutoUpdateValueTest {
 
-    @Test
+//    @Test
     public void test1() throws Exception{
         AutoUpdateValue<String> val = new AutoUpdateValue<>(null, () -> {
             Thread.sleep(1000);

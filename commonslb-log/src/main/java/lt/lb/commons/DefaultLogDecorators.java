@@ -3,7 +3,7 @@ package lt.lb.commons;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.function.Supplier;
-import lt.lb.commons.containers.LazyValue;
+import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.containers.Value;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;

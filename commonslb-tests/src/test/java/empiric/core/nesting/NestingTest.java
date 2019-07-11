@@ -13,7 +13,7 @@ public class NestingTest {
 
     
 
-    @Test
+//    @Test
     public void testNest() throws Exception {
 
         N<String, Integer> of

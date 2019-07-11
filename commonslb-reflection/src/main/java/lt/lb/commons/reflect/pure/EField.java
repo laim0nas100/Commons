@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.LazyValue;
+import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.reflect.FieldHolder;
 
 /**

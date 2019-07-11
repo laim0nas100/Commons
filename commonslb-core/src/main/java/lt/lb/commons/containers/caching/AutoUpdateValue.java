@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.containers.caching;
 
 import java.util.concurrent.Callable;
@@ -75,6 +70,22 @@ public class AutoUpdateValue<T> extends Value<T> {
             }
         }
         return super.get();
+    }
+    
+    /**
+     * Get computed value and init new computation
+     * @return 
+     */
+    public T getAndUpdate(){
+        return this.get(false);
+    }
+    
+    /**
+     * Init new computation, wait until it finishes, return new updated value
+     * @return 
+     */
+    public T updateAndGet(){
+        return this.get(true);
     }
 
     /**

@@ -1,4 +1,4 @@
-package lt.lb.commons.containers;
+package lt.lb.commons.containers.caching;
 
 import java.util.Collection;
 import java.util.Iterator;
