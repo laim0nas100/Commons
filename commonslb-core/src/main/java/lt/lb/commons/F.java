@@ -68,14 +68,11 @@ public class F {
      * @return
      */
     public static <T extends Closeable, U> U safeClose(T closeable, Function<? super T, ? extends U> mapper) {
-        Value<U> val = new Value<>();
-        F.checkedRun(() -> {
-            val.set(mapper.apply(closeable));
-        });
+        U val = F.checkedCallNoExceptions(()-> mapper.apply(closeable));
         F.checkedRun(() -> {
             closeable.close();
         });
-        return val.get();
+        return val;
 
     }
 

@@ -68,7 +68,7 @@ public class TimeOutTest {
         
         
         UnsafeRunnable timeOut = RunnableDecorators.withTimeoutRepeat(WaitTime.ofSeconds(2),8, longTask);
-        FutureTask<Void> of = Futures.of(timeOut);
+        FutureTask<Void> of = Futures.of(UnsafeRunnable.toCallable(timeOut));
         exe.execute(of);
 
         of.get();

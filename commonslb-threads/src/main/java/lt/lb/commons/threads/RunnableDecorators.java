@@ -3,6 +3,7 @@ package lt.lb.commons.threads;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lt.lb.commons.F;
@@ -32,21 +33,22 @@ public class RunnableDecorators {
             Runnable interrupter = () -> {
                 if (!isDone.get()) {
                     toCancel.interrupt();
+                }else{
+                    service.shutdown();
                 }
             };
             service.schedule(interrupter, time.time, time.unit);
-            service.shutdown();
             Optional<Throwable> checkedRun = F.checkedRun(run);
             isDone.set(true);
             service.shutdownNow();
             if (checkedRun.isPresent()) {
-                throw new ExecutionException(checkedRun.map(m -> NestedException.unwrap(m)).get());
+                throw new ExecutionException(checkedRun.get());
             }
 
         };
 
     }
-
+    
     /**
      *
      * Decorates Runnable to be interrupted after a set amount of time. If given
@@ -92,7 +94,7 @@ public class RunnableDecorators {
             };
             while ((always || repeat > 0) && !isDone.get()) {
                 service.schedule(interrupter, time.time, time.unit);
-                Optional<Throwable> map = F.checkedRun(run).map(m -> NestedException.unwrap(m));
+                Optional<Throwable> map = F.checkedRun(run);
                 if (map.isPresent()) {
                     if (interruptReached.get() && map.get() instanceof InterruptedException) {
                         //repeat
