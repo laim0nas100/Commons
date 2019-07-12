@@ -379,7 +379,7 @@ public class CellTable<T> {
      */
     public CellTable<T> mergeVertical(int from, int to, int column) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
-        F.iterate(rows, from, to, (i, row) -> {
+        F.iterate(rows, from, to+1, (i, row) -> {
             CellPrep<T> cell = row.cells.get(column);
             if (cell.verticalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(i, column) + " clean existing merge first");
@@ -456,6 +456,15 @@ public class CellTable<T> {
             this.mergeHorizontal(from, row.cells.size() - 1, rows.size() - 1);
         });
         return this;
+    }
+    
+    /**
+     * Modify last row size to give size and merge last empty rows.
+     * @param size
+     * @return 
+     */
+    public CellTable<T> mergeLastInsertEmpty(int size){
+        return modifySize(size).mergeLastEmpty();
     }
 
     /**
