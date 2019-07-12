@@ -468,11 +468,12 @@ public class F {
     public static <T> Optional<Tuple<Integer, T>> findBackwards(List<T> list, Integer from, Iter<T> iter) {
         ListIterator<T> iterator = list.listIterator(from);
         while (iterator.hasPrevious()) {
+            from--;
             T next = iterator.previous();
             if (iter.visit(from, next)) {
                 return Optional.of(new Tuple<>(from, next));
             }
-            from--;
+            
         }
         return Optional.empty();
     }

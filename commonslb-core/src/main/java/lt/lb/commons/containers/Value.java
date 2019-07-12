@@ -1,5 +1,6 @@
 package lt.lb.commons.containers;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 import lt.lb.commons.interfaces.ValueProxy;
 
@@ -29,6 +30,24 @@ public class Value<T> implements ValueProxy<T> {
         this.value = val;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Value<?> other = (Value<?>) obj;
+        if (!Objects.equals(this.value, other.value)) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      *
      * @return current value
@@ -45,6 +64,13 @@ public class Value<T> implements ValueProxy<T> {
     @Override
     public void set(T val) {
         this.value = val;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 29 * hash + Objects.hashCode(this.value);
+        return hash;
     }
 
     @Override
