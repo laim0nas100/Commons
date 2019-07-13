@@ -1,13 +1,14 @@
 package lt.lb.commons;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.containers.BooleanValue;
 import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.interfaces.Equator.EqualityHashProxy;
 
 /**
  *
@@ -54,6 +55,7 @@ public class Predicates {
     }
 
     /**
+     * Predicate to filter your streams. Supports multiple threads.
      *
      * @param <T>
      * @param equator on how compare elements
@@ -62,36 +64,49 @@ public class Predicates {
     public static <T> Predicate<T> filterDistinct(Equator.HashEquator<T> equator) {
 
         return new Predicate<T>() {
-            LinkedHashMap<Object, T> kept = new LinkedHashMap<>();
+            ConcurrentHashMap<Object, EqualityHashProxy<T>> kept = new ConcurrentHashMap<>();
+            AtomicBoolean foundNull = new AtomicBoolean(false);
 
             @Override
             public boolean test(T t) {
-                Object hash = equator.getHashable(t);
-                if (kept.containsKey(hash)) {
-                    return false;
-                } else {
-                    kept.put(hash, t);
-                    return true;
+                if (t == null) {
+                    return foundNull.compareAndSet(false, true);
                 }
+
+                BooleanValue isNew = BooleanValue.FALSE();
+                EqualityHashProxy<T> equalityHashProxy = new EqualityHashProxy<>(t, equator);
+                kept.computeIfAbsent(equalityHashProxy, k -> {
+                    isNew.accept(true);
+                    return equalityHashProxy;
+                });
+
+                return isNew.get();
             }
         };
     }
 
     /**
+     * Predicate to filter your streams. Supports multiple threads.
      *
-     * @param <T> type
+     * @param <T>
      * @param equator equality condition
      * @return Predicate to use in a stream
      */
     public static <T> Predicate<T> filterDistinct(Equator<T> equator) {
 
         return new Predicate<T>() {
-            LinkedList<T> kept = new LinkedList<>();
+            ConcurrentLinkedDeque<T> kept = new ConcurrentLinkedDeque<>();
+            AtomicBoolean foundNull = new AtomicBoolean(false);
 
             @Override
             public boolean test(T t) {
-                Optional<Tuple<Integer, T>> find = F.find(kept, (i, item) -> equator.equals(t, item));
-                boolean toKeep = !find.isPresent();
+
+                if (t == null) {
+                    return foundNull.compareAndSet(false, true);
+                }
+
+                boolean toKeep = !F.find(kept, (i, item) -> equator.equals(t, item)).isPresent();
+
                 if (toKeep) {
                     kept.add(t);
                 }

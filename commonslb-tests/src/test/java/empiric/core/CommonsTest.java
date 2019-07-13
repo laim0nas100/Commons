@@ -32,6 +32,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.Memoized;
 import lt.lb.commons.parsing.CommentParser;
+import lt.lb.commons.threads.FastExecutor;
 import org.apache.commons.lang3.concurrent.Computable;
 import org.apache.commons.lang3.concurrent.Memoizer;
 import org.junit.*;
@@ -101,15 +102,14 @@ public class CommonsTest {
 //    @Test
     public void testFilterDistinct() {
         Collection<Integer> collection = new LinkedList<>(Arrays.asList(1, 1, 2, 3, 4, 5, 6, 6, 7, 8, 9, 10));
-
-//        List<Integer> filterParallel = F.filterParallel(collection, n -> n%2 == 0, new DisposableExecutor(4));
-//        Log.print("Removed after filter",filterParallel);
+        Log.print("Initial", collection);
+        List<Integer> filterParallel = F.filterParallel(collection, n -> n % 2 == 0, new FastExecutor(4));
+        Log.print("Removed after filter", filterParallel);
         Log.print("Left after filter", collection);
         Predicate<Integer> pred = Predicates.filterDistinct(Equator.primitiveHashEquator());
-        List<Integer> filterDistinct = collection.stream().filter(pred).collect(Collectors.toList());
+        List<Integer> filterDistinct = collection.stream().parallel().filter(pred).collect(Collectors.toList());
 
-        Log.print("Removed filter distinct", filterDistinct);
-        Log.print("Left", collection);
+        Log.print("Filtered distinct", filterDistinct);
         F.checkedRun(() -> {
             Log.await(1, TimeUnit.HOURS);
         });
@@ -154,7 +154,7 @@ public class CommonsTest {
         });
 
     }
-    
+
     public void parseTest() throws Exception {
         URL resource = Thread.currentThread().getContextClassLoader().getResource("text.txt");
         ArrayList<String> readFromFile = FileReader.readFrom(new FileInputStream(new File(resource.getFile())));
@@ -312,37 +312,34 @@ public class CommonsTest {
         });
 
     }
-    
-    
+
 //    @Test
-    public void memoizerTest(){
+    public void memoizerTest() {
         Lambda.L1R<Long, BigInteger> of = Lambda.of(StackOverflowTest.RecursionBuilder::fibb2);
-        
+
         Memoized memoized = new Memoized();
         Lambda.L1R<Long, BigInteger> memoize = memoized.memoize(of);
-        
-        
+
         Log.print("RUN");
-        Runnable r1 = () ->{
-            for(Integer i = 10; i < 35; i++){
+        Runnable r1 = () -> {
+            for (Integer i = 10; i < 35; i++) {
                 of.apply(i.longValue());
             }
         };
-        
-        Runnable r2 = () ->{
-            for(Integer i = 10; i < 35; i++){
+
+        Runnable r2 = () -> {
+            for (Integer i = 10; i < 35; i++) {
                 memoize.apply(i.longValue());
             }
         };
-        
+
         Benchmark b = new Benchmark();
         b.executeBench(10, "DEF", r1).print(Log::print);
         b.executeBench(10, "MEM", r2).print(Log::print);
         b.executeBench(10, "DEF", r1).print(Log::print);
         b.executeBench(10, "MEM", r2).print(Log::print);
-        
+
         Log.print("END RUN");
-        
-        
+
     }
 }
