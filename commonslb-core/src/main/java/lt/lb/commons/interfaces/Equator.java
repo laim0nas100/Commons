@@ -53,9 +53,6 @@ public interface Equator<T> {
             if (obj == null) {
                 return false;
             }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
             final EqualityProxy<?> other = (EqualityProxy<?>) obj;
             return eq.genericEquals(this.value, other.value);
         }

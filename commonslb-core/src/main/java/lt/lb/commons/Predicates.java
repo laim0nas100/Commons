@@ -64,7 +64,7 @@ public class Predicates {
     public static <T> Predicate<T> filterDistinct(Equator.HashEquator<T> equator) {
 
         return new Predicate<T>() {
-            ConcurrentHashMap<Object, EqualityHashProxy<T>> kept = new ConcurrentHashMap<>();
+            ConcurrentHashMap<EqualityHashProxy<T>, EqualityHashProxy<T>> kept = new ConcurrentHashMap<>();
             AtomicBoolean foundNull = new AtomicBoolean(false);
 
             @Override
@@ -76,8 +76,8 @@ public class Predicates {
                 BooleanValue isNew = BooleanValue.FALSE();
                 EqualityHashProxy<T> equalityHashProxy = new EqualityHashProxy<>(t, equator);
                 kept.computeIfAbsent(equalityHashProxy, k -> {
-                    isNew.accept(true);
-                    return equalityHashProxy;
+                    isNew.set(true);
+                    return k;
                 });
 
                 return isNew.get();
@@ -104,7 +104,7 @@ public class Predicates {
                 if (t == null) {
                     return foundNull.compareAndSet(false, true);
                 }
-
+                
                 boolean toKeep = !F.find(kept, (i, item) -> equator.equals(t, item)).isPresent();
 
                 if (toKeep) {
@@ -113,5 +113,15 @@ public class Predicates {
                 return toKeep;
             }
         };
+    }
+    
+    /**
+     * Predicate to filter your streams. Supports multiple threads.
+     * Hashing and value property are the same.
+     * @param <T>
+     * @return 
+     */
+    public static <T> Predicate<T> filterDistinct(){
+        return filterDistinct(Equator.primitiveHashEquator());
     }
 }
