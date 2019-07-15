@@ -164,7 +164,7 @@ public class Log {
             throw new IllegalStateException("Is allready closed");
         }
         log.closed = true;
-        FutureTask<Void> shutdownRequest = Futures.of(() -> {
+        FutureTask<Void> shutdownRequest = Futures.ofRunnable(() -> {
             flushBuffer(log);
             log.printStream.flush();
             if (log.closeable) {
