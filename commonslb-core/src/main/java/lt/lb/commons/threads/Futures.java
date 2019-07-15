@@ -17,15 +17,15 @@ import java.util.function.Supplier;
  */
 public class Futures {
 
-    public static <V> FutureTask<V> of(Callable<V> call) {
+    public static <V> FutureTask<V> ofCallable(Callable<V> call) {
         return new FutureTask<>(call);
     }
 
     public static <V> FutureTask<V> ofSupplier(Supplier<V> call) {
         return new FutureTask<>(call::get);
     }
-
-    public static FutureTask<Void> of(Runnable r) {
+    
+    public static FutureTask<Void> ofRunnable(Runnable r) {
         return new FutureTask<>(() -> {
             r.run();
             return null;
@@ -33,11 +33,11 @@ public class Futures {
     }
 
     public static <V> FutureTask<V> empty() {
-        return of(() -> null);
+        return ofCallable(() -> null);
     }
 
     public static <V> FutureTask<V> chainForward(Future<V> base, Collection<Future> next) {
-        return of(() -> {
+        return ofCallable(() -> {
             V get = base.get();
             for (Future f : next) {
                 f.get();
@@ -47,7 +47,7 @@ public class Futures {
     }
 
     public static <V> FutureTask<V> chainBackward(Future<V> base, Collection<Future> before) {
-        return of(() -> {
+        return ofCallable(() -> {
             for (Future f : before) {
                 f.get();
             }
