@@ -235,7 +235,7 @@ public interface RandomDistribution {
             if (inLower && inUpper) {
                 return nextLong;
             } else {
-                return nextLong += Long.MAX_VALUE;
+                return nextLong + Long.MAX_VALUE;
             }
 
         } else {
@@ -280,7 +280,7 @@ public interface RandomDistribution {
             if (inLower && inUpper) {
                 return nextInt;
             } else {
-                return nextInt += Integer.MAX_VALUE;
+                return nextInt + Integer.MAX_VALUE;
             }
 
         } else {
