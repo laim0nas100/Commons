@@ -1,55 +1,60 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.jobs;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lt.lb.commons.UUIDgenerator;
+import java.util.concurrent.atomic.AtomicInteger;
+import lt.lb.commons.F;
+import lt.lb.commons.func.unchecked.UnsafeSupplier;
+import lt.lb.commons.threads.Futures;
 
 /**
  *
+ * 
+ * 
  * @author laim0nas100
  */
-public abstract class Job implements Runnable {
+public final class Job<T> implements Future<T> {
 
-    public static Job fromRunnable(Runnable run) {
-        Job job = new Job() {
-            @Override
-            protected void logic() throws Exception {
-                run.run();
-            }
-        };
-        return job;
-    }
+    Collection<JobDependency<?>> doBefore = new HashSet<>();
+    Collection<JobDependency<?>> doAfter = new HashSet<>();
+    private final String uuid;
 
-    private Collection<JobDependency> doBefore = new HashSet<>();
-    private Collection<JobDependency> doAfter = new HashSet<>();
-    private String uuid;
+    Map<String, Collection<JobEventListener>> listeners = new HashMap<>();
 
-    private Map<String, Collection<JobEventListener>> listeners = new HashMap<>();
-
-    private boolean canceled = false;
+    AtomicBoolean cancelled = new AtomicBoolean(false);
     private boolean failed = false;
     private boolean successfull = false;
-    private AtomicBoolean running = new AtomicBoolean(false);
+    AtomicInteger failedToStart = new AtomicInteger(0);
+    AtomicBoolean scheduled = new AtomicBoolean(false);
+    AtomicBoolean running = new AtomicBoolean(false);
 
-    private int leftToRun;
-
-    private Job me = this;
-
+    private Job canceledParent;
     private Job canceledRoot;
 
-    public Job() {
-        uuid = UUIDgenerator.nextUUID("JOB");
-        leftToRun = 1;
+    private final FutureTask<T> task;
+
+    public Job(String uuid, UnsafeSupplier<T> call) {
+        this.uuid = uuid;
+        task = Futures.ofCallable(call);
     }
 
-    public Job(int timesToRun) {
-        this();
-        this.leftToRun = timesToRun;
+    public Job(UnsafeSupplier<T> run) {
+        this(UUID.randomUUID().toString(), run);
+    }
+
+    @Override
+    public T get() throws InterruptedException, ExecutionException {
+        return task.get();
+    }
+
+    @Override
+    public T get(long time, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return task.get(time, unit);
     }
 
     @Override
@@ -76,23 +81,33 @@ public abstract class Job implements Runnable {
     }
 
     public void cancel() {
-        this.cancel(true);
+        this.cancel(true, true);
     }
 
-    public void cancel(boolean propogate) {
-        if (this.canceled) {
-            return;
-        }
-        this.canceled = true;
-        this.fireEvent(new JobEvent(JobEvent.ON_CANCEL, me));
-        if (!propogate) {
-            return;
-        }
-        for (JobDependency j : this.doAfter) {
-            j.getJob().canceledRoot = me;
-            j.getJob().cancel();
+    public boolean cancel(boolean interrupt, boolean propogate) {
+        return cancelInner(interrupt, propogate, this);
+    }
 
+    private boolean cancelInner(boolean interrupt, boolean propogate, Job root) {
+
+        if (!cancelled.compareAndSet(false, true)) {
+            return false;
         }
+        this.fireEvent(new JobEvent(JobEvent.ON_CANCEL, this));
+        boolean ok = task.cancel(interrupt);
+        if (propogate) {
+            for (JobDependency j : this.doAfter) {
+                j.getJob().canceledRoot = root;
+                j.getJob().canceledParent = this;
+                j.getJob().cancelInner(interrupt, propogate, root);
+
+            }
+        }
+        return ok;
+    }
+
+    public boolean cancel(boolean interrupt) {
+        return this.cancel(interrupt, true);
     }
 
     public boolean canRun() {
@@ -108,15 +123,13 @@ public abstract class Job implements Runnable {
         return true;
     }
 
-    public boolean isDiscardable() {
-        if (this.isCanceled() || this.isFailed()) {
-            return true;
-        }
-        return this.leftToRun == 0;
+    @Override
+    public boolean isCancelled() {
+        return cancelled.get();
     }
 
-    public boolean isCanceled() {
-        return canceled;
+    public boolean isDiscardable() {
+        return this.isDone();
     }
 
     public boolean isSuccessfull() {
@@ -127,100 +140,130 @@ public abstract class Job implements Runnable {
         return failed;
     }
 
+    public boolean isRunning() {
+        return running.get();
+    }
+
+    public boolean isScheduled() {
+        return scheduled.get();
+    }
+    
+    public int getFailedToStart(){
+        return this.failedToStart.get();
+    }
+    
     public List<Job> getCanceledChain() {
 
         LinkedList<Job> chain = new LinkedList<>();
-        if (!isCanceled()) {
+        if (!isCancelled()) {
             return chain;
         } else {
-            chain.addLast(me);
+            chain.addLast(this);
         }
-        if (this.canceledRoot != null) {
-            chain.addAll(canceledRoot.getCanceledChain());
+        if (this.canceledParent != null) {
+            chain.addAll(canceledParent.getCanceledChain());
         }
         return chain;
 
     }
 
+    public Optional<Job> getCanceledRoot() {
+        return Optional.ofNullable(this.canceledRoot);
+    }
+
     public boolean isDone() {
-        return ((isCanceled() || isFailed()) || isSuccessfull());
+        return ((isCancelled() || isFailed()) || isSuccessfull());
     }
 
-    public void addBackward(String onEvent, Job job) {
-        DefaultJobDependency jobd1 = new DefaultJobDependency(job, onEvent);
-        this.doBefore.add(jobd1);
-        DefaultJobDependency jobd2 = new DefaultJobDependency(me, onEvent);
-        job.doAfter.add(jobd2);
+    public Job addBackward(String onEvent, Job job) {
+        job.addDependencyAfter(new DefaultJobDependency(this, onEvent));
+        this.addDependencyBefore(new DefaultJobDependency(job, onEvent));
+        return this;
     }
 
-    public void addForward(String onEvent, Job job) {
-        DefaultJobDependency jobd1 = new DefaultJobDependency(job, onEvent);
-        this.doAfter.add(jobd1);
-        DefaultJobDependency jobd2 = new DefaultJobDependency(me, onEvent);
-        job.doBefore.add(jobd2);
+    public Job addForward(String onEvent, Job job) {
+        this.addDependencyAfter(new DefaultJobDependency(job, onEvent));
+        job.addDependencyBefore(new DefaultJobDependency(this, onEvent));
+        return this;
     }
 
-    public void addBackward(Job job) {
-        this.addBackward(JobEvent.ON_SUCCEEDED, job);
+    public Job addBackward(Job job) {
+        return this.addBackward(JobEvent.ON_SUCCEEDED, job);
     }
 
-    public void addForward(Job job) {
-        this.addForward(JobEvent.ON_SUCCEEDED, job);
+    public Job addForward(Job job) {
+        return this.addForward(JobEvent.ON_SUCCEEDED, job);
     }
 
-    protected abstract void logic() throws Exception;
+    public Job addDependencyBefore(JobDependency dep) {
+        if (this.isScheduled()) {
+            throw new IllegalStateException("Job has been scheduled, dependencies should not change");
+        }
+        this.doBefore.add(dep);
+        return this;
+    }
 
-    @Override
+    public Job addDependencyAfter(JobDependency dep) {
+        if (this.isScheduled()) {
+            throw new IllegalStateException("Job has been scheduled, dependencies should not change");
+        }
+        this.doAfter.add(dep);
+        return this;
+    }
+
     public void run() {
         if (!this.canRun()) {
+            this.fireEvent(new JobEvent(JobEvent.ON_FAILED_TO_START, this));
+            this.failedToStart.incrementAndGet();
+            this.scheduled.set(false);
             return;
         }
         if (this.running.compareAndSet(false, true)) { // ensure only one running instance
-            if (leftToRun > 0) {
-                this.leftToRun--;
-            }
-            Throwable e = null;
-            try {
-                logic();
-                this.successfull = true;
 
-            } catch (Throwable ex) {
+            this.fireEvent(new JobEvent(JobEvent.ON_EXECUTE, this));
+            task.run();
+            Optional<Throwable> error = F.checkedRun(task::get);
+            if (error.isPresent()) {
                 this.failed = true;
-                e = ex;
+            } else {
+                this.successfull = true;
             }
             if (isSuccessfull()) {
-                this.fireEvent(new JobEvent(JobEvent.ON_SUCCEEDED, me));
+                this.fireEvent(new JobEvent(JobEvent.ON_SUCCEEDED, this));
             }
-            if (isFailed()) {
-                this.fireEvent(new JobEvent(JobEvent.ON_FAILED, me, e));
+            if (isFailed() && error.isPresent()) {
+                this.fireEvent(new JobEvent(JobEvent.ON_FAILED, this, error.get()));
             }
-            this.fireEvent(new JobEvent(JobEvent.ON_DONE, me));
+            this.fireEvent(new JobEvent(JobEvent.ON_DONE, this));
             if (this.isDiscardable()) {
-                this.fireEvent(new JobEvent(JobEvent.ON_BECAME_DISCARDABLE, me));
+                this.fireEvent(new JobEvent(JobEvent.ON_BECAME_DISCARDABLE, this));
             }
+
             if (!this.running.compareAndSet(true, false)) {
                 throw new IllegalStateException("After job:" + this.getUUID() + " ran, property running was set to false");
             }
+
         }
 
     }
 
-    public void addListener(String name, JobEventListener listener) {
-        Collection<JobEventListener> collection;
-        if (!this.listeners.containsKey(name)) {
-            collection = new LinkedList<>();
-            this.listeners.put(name, collection);
-        } else {
-            collection = this.listeners.get(name);
-        }
-        collection.add(listener);
+    public void addListener(String nathis, JobEventListener listener) {
+        listeners.computeIfAbsent(nathis, n -> new LinkedList<>()).add(listener);
     }
 
     public void fireEvent(JobEvent event) {
         if (this.listeners.containsKey(event.getEventName())) {
             for (JobEventListener listener : this.listeners.get(event.getEventName())) {
-                listener.onEvent(event);
+                F.checkedRun(() -> {
+                    listener.onEvent(event);
+                });
+                //ignore exceptions
+
             }
         }
+    }
+
+    public Runnable asRunnable() {
+        return this::run;
     }
 }

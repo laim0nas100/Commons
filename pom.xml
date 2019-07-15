@@ -93,6 +93,11 @@
                 <artifactId>commonslb-log</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-jobs</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
             
             
             <dependency>

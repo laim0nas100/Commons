@@ -1,9 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.jobs;
+
+import java.util.Optional;
 
 /**
  *
@@ -16,10 +13,13 @@ public class JobEvent {
     public static final String ON_FAILED = "onFailed";
     public static final String ON_BECAME_DISCARDABLE = "onFinished";
     public static final String ON_SUCCEEDED = "onSucceeded";
+    public static final String ON_SCHEDULED = "onScheduled";
+    public static final String ON_FAILED_TO_START = "onFailedToStart";
+    public static final String ON_EXECUTE = "onExecute";
 
     private String eventName;
     private Job createdBy;
-    private Object data;
+    private Optional<Object> data;
 
     public String getEventName() {
         return eventName;
@@ -29,17 +29,17 @@ public class JobEvent {
         return this.createdBy;
     }
 
-    public Object getData() {
+    public Optional<Object> getData() {
         return data;
     }
 
     public JobEvent(String eventName, Job source) {
-        this.eventName = eventName;
-        this.createdBy = source;
+        this(eventName, source, null);
     }
 
     public JobEvent(String eventName, Job source, Object data) {
-        this(eventName, source);
-        this.data = data;
+        this.eventName = eventName;
+        this.createdBy = source;
+        this.data = Optional.ofNullable(data);
     }
 }

@@ -1,80 +1,70 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.jobs;
 
-import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  *
  * @author laim0nas100
  */
-public class DefaultJobDependency implements JobDependency {
+public class DefaultJobDependency extends AbstractJobDependency {
 
-    private Job job;
-    private String onEvent;
+    protected Supplier<Boolean> completed;
 
+    /**
+     * Default job dependency support all standard events defined in JobEvent
+     * class
+     *
+     * @param j
+     * @param event
+     */
     public DefaultJobDependency(Job j, String event) {
-        job = j;
-        onEvent = event;
-    }
+        super(j, event);
+        switch (onEvent) {
+            case (JobEvent.ON_FAILED_TO_START): {
+                completed = () -> job.getFailedToStart() > 0;
+                break;
+            }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null) {
-            return false;
-        }
-        if (o instanceof DefaultJobDependency) {
-            return this.hashCode() == o.hashCode();
-        }
-        return false;
-    }
+            case (JobEvent.ON_SCHEDULED): {
+                completed = () -> job.isScheduled();
+                break;
+            }
 
-    @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 83 * hash + this.job.hashCode();
-        hash = 83 * hash + Objects.hashCode(this.onEvent);
-        return hash;
+            case (JobEvent.ON_EXECUTE): {
+                completed = () -> job.isRunning() || job.isDone();
+                break;
+            }
+
+            case (JobEvent.ON_BECAME_DISCARDABLE): {
+                completed = () -> job.isDiscardable();
+                break;
+            }
+            case (JobEvent.ON_FAILED): {
+                completed = () -> job.isFailed();
+                break;
+            }
+            case (JobEvent.ON_CANCEL): {
+                completed = () -> job.isCancelled();
+                break;
+            }
+            case (JobEvent.ON_SUCCEEDED): {
+                completed = () -> job.isSuccessfull();
+                break;
+            }
+            case (JobEvent.ON_DONE): {
+                completed = () -> job.isDone();
+                break;
+            }
+            default: {
+                completed = () -> job.isSuccessfull();
+                break;
+            }
+        }
+
     }
 
     @Override
     public boolean isCompleted() {
-        boolean completed = false;
-
-        switch (onEvent) {
-            case (JobEvent.ON_BECAME_DISCARDABLE): {
-                completed = job.isDiscardable();
-                break;
-            }
-            case (JobEvent.ON_FAILED): {
-                completed = job.isFailed();
-                break;
-            }
-            case (JobEvent.ON_CANCEL): {
-                completed = job.isCanceled();
-                break;
-            }
-            case (JobEvent.ON_SUCCEEDED): {
-                completed = job.isSuccessfull();
-                break;
-            }
-            case (JobEvent.ON_DONE): {
-                completed = job.isDone();
-                break;
-            }
-            default: {
-                completed = job.isSuccessfull();
-                break;
-            }
-        }
-        return completed;
-    }
-
-    @Override
-    public Job getJob() {
-        return job;
+        return completed.get();
     }
 }
