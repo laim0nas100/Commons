@@ -9,19 +9,20 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.F;
+import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.func.unchecked.UnsafeSupplier;
 import lt.lb.commons.threads.Futures;
 
 /**
  *
- * 
- * 
+ *
+ *
  * @author laim0nas100
  */
 public final class Job<T> implements Future<T> {
 
     Collection<JobDependency<?>> doBefore = new HashSet<>();
-    Collection<JobDependency<?>> doAfter = new HashSet<>();
+    Collection<Job> doAfter = new HashSet<>();
     private final String uuid;
 
     Map<String, Collection<JobEventListener>> listeners = new HashMap<>();
@@ -37,14 +38,25 @@ public final class Job<T> implements Future<T> {
     private Job canceledRoot;
 
     private final FutureTask<T> task;
-
+    
     public Job(String uuid, UnsafeSupplier<T> call) {
         this.uuid = uuid;
         task = Futures.ofCallable(call);
     }
 
-    public Job(UnsafeSupplier<T> run) {
-        this(UUID.randomUUID().toString(), run);
+    public Job(String uuid, UnsafeFunction<Job<T>, T> call) {
+        this.uuid = uuid;
+        UnsafeSupplier<T> sup = () -> call.applyUnsafe(this);
+        task = Futures.ofCallable(sup);
+
+    }
+
+    public Job(UnsafeSupplier<T> call) {
+        this(UUID.randomUUID().toString(), call);
+    }
+    
+    public Job(UnsafeFunction<Job<T>, T> call){
+        this(UUID.randomUUID().toString(), call);
     }
 
     @Override
@@ -96,10 +108,10 @@ public final class Job<T> implements Future<T> {
         this.fireEvent(new JobEvent(JobEvent.ON_CANCEL, this));
         boolean ok = task.cancel(interrupt);
         if (propogate) {
-            for (JobDependency j : this.doAfter) {
-                j.getJob().canceledRoot = root;
-                j.getJob().canceledParent = this;
-                j.getJob().cancelInner(interrupt, propogate, root);
+            for (Job j : this.doAfter) {
+                j.canceledRoot = root;
+                j.canceledParent = this;
+                j.cancelInner(interrupt, propogate, root);
 
             }
         }
@@ -136,6 +148,10 @@ public final class Job<T> implements Future<T> {
         return successfull;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isFailed() {
         return failed;
     }
@@ -147,11 +163,11 @@ public final class Job<T> implements Future<T> {
     public boolean isScheduled() {
         return scheduled.get();
     }
-    
-    public int getFailedToStart(){
+
+    public int getFailedToStart() {
         return this.failedToStart.get();
     }
-    
+
     public List<Job> getCanceledChain() {
 
         LinkedList<Job> chain = new LinkedList<>();
@@ -175,42 +191,79 @@ public final class Job<T> implements Future<T> {
         return ((isCancelled() || isFailed()) || isSuccessfull());
     }
 
-    public Job addBackward(String onEvent, Job job) {
-        job.addDependencyAfter(new DefaultJobDependency(this, onEvent));
+    /**
+     * Chain jobs on given event type. Given job must execute before this.
+     *
+     * @param onEvent
+     * @param job
+     * @return
+     */
+    public Job chainBackward(String onEvent, Job job) {
+        job.addAfter(this);
         this.addDependencyBefore(new DefaultJobDependency(job, onEvent));
         return this;
     }
 
-    public Job addForward(String onEvent, Job job) {
-        this.addDependencyAfter(new DefaultJobDependency(job, onEvent));
+    /**
+     * Chain jobs on given event type. Given job must execute after this.
+     *
+     * @param onEvent
+     * @param job
+     * @return
+     */
+    public Job chainForward(String onEvent, Job job) {
+        this.addAfter(job);
         job.addDependencyBefore(new DefaultJobDependency(this, onEvent));
         return this;
     }
 
-    public Job addBackward(Job job) {
-        return this.addBackward(JobEvent.ON_SUCCEEDED, job);
+    /**
+     * Chain jobs on success. Given job must execute after this.
+     *
+     * @param job
+     * @return
+     */
+    public Job chainBackward(Job job) {
+        return this.chainBackward(JobEvent.ON_SUCCEEDED, job);
     }
 
-    public Job addForward(Job job) {
-        return this.addForward(JobEvent.ON_SUCCEEDED, job);
+    /**
+     * Chain jobs on success. Given job must execute after this.
+     *
+     * @param job
+     * @return
+     */
+    public Job chainForward(Job job) {
+        return this.chainForward(JobEvent.ON_SUCCEEDED, job);
     }
 
+    /**
+     * Add dependency manually
+     *
+     * @param dep
+     * @return
+     */
     public Job addDependencyBefore(JobDependency dep) {
-        if (this.isScheduled()) {
-            throw new IllegalStateException("Job has been scheduled, dependencies should not change");
-        }
+        assertNoChange("dependencies");
         this.doBefore.add(dep);
         return this;
     }
 
-    public Job addDependencyAfter(JobDependency dep) {
-        if (this.isScheduled()) {
-            throw new IllegalStateException("Job has been scheduled, dependencies should not change");
-        }
+    /**
+     * Add job, that can be canceled, if this is canceled
+     *
+     * @param dep
+     * @return
+     */
+    public Job addAfter(Job dep) {
+        assertNoChange("child jobs");
         this.doAfter.add(dep);
         return this;
     }
 
+    /**
+     * Run job manually
+     */
     public void run() {
         if (!this.canRun()) {
             this.fireEvent(new JobEvent(JobEvent.ON_FAILED_TO_START, this));
@@ -247,8 +300,23 @@ public final class Job<T> implements Future<T> {
 
     }
 
-    public void addListener(String nathis, JobEventListener listener) {
-        listeners.computeIfAbsent(nathis, n -> new LinkedList<>()).add(listener);
+    /**
+     * Add job listener that
+     *
+     * @param name
+     * @param listener
+     */
+    public void addListener(String name, JobEventListener listener) {
+        if (this.isScheduled()) {
+            throw new IllegalStateException("Job has been scheduled, dependencies should not change");
+        }
+        listeners.computeIfAbsent(name, n -> new LinkedList<>()).add(listener);
+    }
+
+    private void assertNoChange(String msg) {
+        if (this.isScheduled()) {
+            throw new IllegalStateException("Job has been scheduled, " + msg + " should not change");
+        }
     }
 
     public void fireEvent(JobEvent event) {

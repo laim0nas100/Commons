@@ -15,14 +15,23 @@ import lt.lb.commons.iteration.TreeVisitor;
  */
 public class Jobs {
 
+    /**
+     * Creates job dependency based on standard events defined in JobEvent.
+     *
+     * @param job
+     * @param event
+     * @return
+     */
     public static DefaultJobDependency standard(Job job, String event) {
         return new DefaultJobDependency(job, event);
     }
 
     /**
-     * Creates JobDependency, which is satisfied while provided job is not executing.
+     * Creates JobDependency, which is satisfied while provided job is not
+     * executing.
+     *
      * @param job
-     * @return 
+     * @return
      */
     public static JobDependency whileNotExecuting(Job job) {
         return new JobDependency() {
@@ -39,35 +48,58 @@ public class Jobs {
     }
 
     /**
-     * Adds JobDependecy to all jobs, that only allows 1 job to be executing at any given time.
-     * @param jobs 
+     * Adds JobDependecy to all jobs, that only allows 1 job to be executing at
+     * any given time.
+     *
+     * @param jobs
      */
     public static void mutuallyExclusive(Collection<Job> jobs) {
         if (jobs.size() <= 1) { // nothing to exclude
             return;
         }
 
-        F.iterate(jobs, (i,main)->{
-            F.iterate(jobs, (j,other)->{
-                if(!Objects.equals(i, j)){
+        F.iterate(jobs, (i, main) -> {
+            F.iterate(jobs, (j, other) -> {
+                if (!Objects.equals(i, j)) {
                     main.addDependencyBefore(whileNotExecuting(other));
                 }
             });
         });
     }
 
-    public static void addForward(Job root, String evName, Collection<Job> deps) {
+    /**
+     * Chain all jobs forward.
+     *
+     * @param root
+     * @param evName
+     * @param deps
+     */
+    public static void chainForward(Job root, String evName, Collection<Job> deps) {
         for (Job j : deps) {
-            root.addForward(evName, j);
+            root.chainForward(evName, j);
         }
     }
 
-    public static void addBackward(Job root, String evName, Collection<Job> deps) {
+    /**
+     * Chain all jobs backward.
+     *
+     * @param root
+     * @param evName
+     * @param deps
+     */
+    public static void chainBackward(Job root, String evName, Collection<Job> deps) {
         for (Job j : deps) {
-            root.addBackward(evName, j);
+            root.chainBackward(evName, j);
         }
     }
 
+    /**
+     * Resolve child leafs. Can be used to determine jobs without anything after
+     * them.
+     *
+     * @param root
+     * @return
+     */
     public static List<Job> resolveChildLeafs(Job root) {
         ArrayList<Job> leafs = new ArrayList<>();
         Consumer<Job> cons = job -> {
@@ -76,11 +108,17 @@ public class Jobs {
             }
         };
 
-        TreeVisitor<Job> visitor = TreeVisitor.ofAll(cons, node -> ReadOnlyIterator.of((Collection<JobDependency>) node.doAfter).map(j -> j.getJob()));
+        TreeVisitor<Job> visitor = TreeVisitor.ofAll(cons, node -> ReadOnlyIterator.of(node.doAfter));
         visitor.BFS(root);
         return leafs;
     }
 
+    /**
+     * Resolve root leafs. Can be used to determine jobs without dependencies.
+     *
+     * @param root
+     * @return
+     */
     public static List<Job> resolveRootLeafs(Job root) {
         ArrayList<Job> leafs = new ArrayList<>();
         Consumer<Job> cons = job -> {
@@ -93,6 +131,5 @@ public class Jobs {
         visitor.BFS(root);
         return leafs;
     }
-    
-    
+
 }
