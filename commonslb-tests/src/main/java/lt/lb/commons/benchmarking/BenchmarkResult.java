@@ -27,7 +27,20 @@ public class BenchmarkResult {
         return String.format(nameSuff + " Times(ms) Total(s): %.5f Min: %.5f Max: %.5f Avg: %.5f", totalTime / (mil * 1000), minTime / mil, maxTime / mil, averageTime / mil);
     }
 
-    public void print(Consumer<String> printer) {
+    public BenchmarkResult print(Consumer<String> printer) {
         printer.accept(this.toString());
+        return this;
+    }
+
+    public BenchmarkResult merge(BenchmarkResult other) {
+        BenchmarkResult res = new BenchmarkResult();
+        res.totalTime = totalTime + other.totalTime;
+        res.timesRan = timesRan + other.timesRan;
+        res.name = name;
+        res.maxTime = Math.max(maxTime, other.maxTime);
+        res.minTime = Math.min(minTime, other.minTime);
+        res.averageTime = (double) res.totalTime / res.timesRan;
+
+        return res;
     }
 }
