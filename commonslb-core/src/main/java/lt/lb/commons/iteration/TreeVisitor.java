@@ -1,10 +1,10 @@
 package lt.lb.commons.iteration;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 
 /**
@@ -28,7 +28,41 @@ public interface TreeVisitor<T> extends Visitor<T> {
      * @return
      */
     public default Optional<T> DFSIterative(T root) {
-        return TreeVisitorImpl.DFSIterative(this, root);
+        return TreeVisitorImpl.DFSIterative(this, root, Optional.empty(), false);
+    }
+
+    /**
+     * Depth-first search iterative. Same as preorder traversal. With element
+     * collection hence cycle prevention.
+     *
+     * @param root
+     * @param set
+     * @return
+     */
+    public default Optional<T> DFSIterative(T root, Set<T> set) {
+        return TreeVisitorImpl.DFSIterative(this, root, Optional.of(set), false);
+    }
+
+    /**
+     * Depth-first search iterative. Same as preorder traversal.
+     *
+     * @param root
+     * @return
+     */
+    public default Optional<T> DFSIterativeLazy(T root) {
+        return TreeVisitorImpl.DFSIterative(this, root, Optional.empty(), true);
+    }
+
+    /**
+     * Depth-first search iterative. Same as preorder traversal. With element
+     * collection hence cycle prevention.
+     *
+     * @param root
+     * @param set
+     * @return
+     */
+    public default Optional<T> DFSIterativeLazy(T root, Set<T> set) {
+        return TreeVisitorImpl.DFSIterative(this, root, Optional.of(set), true);
     }
 
     /**
@@ -38,17 +72,40 @@ public interface TreeVisitor<T> extends Visitor<T> {
      * @return
      */
     public default Optional<T> DFS(T root) {
-        return TreeVisitorImpl.DFS(this, root);
+        return TreeVisitorImpl.DFS(this, root, Optional.of(new HashSet<>()));
     }
 
     /**
-     * Breath-first search.
+     * Depth-first search recursive.Same as preorder traversal. With element
+     * collection hence cycle prevention.
+     *
+     * @param root
+     * @param set
+     * @return
+     */
+    public default Optional<T> DFS(T root, Set<T> set) {
+        return TreeVisitorImpl.DFS(this, root, Optional.of(set));
+    }
+
+    /**
+     * Breath-first search. With element collection hence cycle prevention.
      *
      * @param root
      * @return
      */
     public default Optional<T> BFS(T root) {
-        return TreeVisitorImpl.BFS(this, root);
+        return TreeVisitorImpl.BFS(this, root, Optional.empty());
+    }
+
+    /**
+     * Breath-first search.With element collection hence cycle prevention.
+     *
+     * @param root
+     * @param set
+     * @return
+     */
+    public default Optional<T> BFS(T root, Set<T> set) {
+        return TreeVisitorImpl.BFS(this, root, Optional.of(set));
     }
 
     /**
@@ -58,7 +115,19 @@ public interface TreeVisitor<T> extends Visitor<T> {
      * @return
      */
     public default Optional<T> PosOrder(T root) {
-        return TreeVisitorImpl.PostOrder(this, root);
+        return TreeVisitorImpl.PostOrder(this, root, Optional.empty());
+    }
+
+    /**
+     * PosOrder search (Children first). Recursive. With element collection
+     * hence cycle prevention.
+     *
+     * @param root
+     * @param set
+     * @return
+     */
+    public default Optional<T> PosOrder(T root, Set<T> set) {
+        return TreeVisitorImpl.PostOrder(this, root, Optional.of(set));
     }
 
     /**
@@ -68,7 +137,41 @@ public interface TreeVisitor<T> extends Visitor<T> {
      * @return
      */
     public default Optional<T> PosOrderIterative(T root) {
-        return TreeVisitorImpl.PostOrderIterative(this, root);
+        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.empty(),false);
+    }
+
+    /**
+     * PosOrder search (Children first). Iterative. With element collection
+     * hence cycle prevention.
+     *
+     * @param root
+     * @param set
+     * @return
+     */
+    public default Optional<T> PosOrderIterative(T root, Set<T> set) {
+        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.of(set),false);
+    }
+
+    /**
+     * PosOrder search (Children first). Iterative.
+     *
+     * @param root
+     * @return
+     */
+    public default Optional<T> PosOrderIterativeLazy(T root) {
+        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.empty(), true);
+    }
+
+    /**
+     * PosOrder search (Children first). Iterative. With element collection
+     * hence cycle prevention.
+     *
+     * @param root
+     * @param set
+     * @return
+     */
+    public default Optional<T> PosOrderIterativeLazy(T root, Set<T> set) {
+        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.of(set), true);
     }
 
     public static <T> TreeVisitor<T> of(Visitor<T> visit, Function<? super T, ReadOnlyIterator<T>> childrenGetter) {

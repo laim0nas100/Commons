@@ -3,48 +3,41 @@ package lt.lb.commons;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
+ * Recursion avoiding function modeling.
  *
  * @author laim0nas100
  */
 public class Caller<T> {
 
+    private static final List<?> empty = new ArrayList<>(0);
     private boolean hasValue;
     private boolean hasCall;
     private T value;
     private Function<List<T>, Caller<T>> call;
-    private List<Caller<T>> dependants = new ArrayList<>();
+    private List<Caller<T>> dependencies;
 
     public static class CallerBuilder<T> {
 
-        private List<Caller<T>> dependants = new ArrayList<>();
-
-        public static <T> Caller<T> ofResult(T result) {
-            return new Caller<>(result);
+        public CallerBuilder(int size) {
+            if (size <= 0) {
+                dependants = F.cast(empty);
+            } else {
+                dependants = new ArrayList<>(size);
+            }
         }
 
-        public static <T> Caller<T> ofFunction(Function<List<T>, Caller<T>> call) {
-            return new Caller<>(call);
+        public CallerBuilder() {
+            dependants = new ArrayList<>(); // not empty, but default
         }
 
-        public static <T> Caller<T> ofSupplier(Supplier<Caller<T>> call) {
-            return new Caller<>(args -> call.get());
-        }
-
-        public static <T> Caller<T> ofSupplierResult(Supplier<T> call) {
-            return new Caller<>(args -> ofResult(call.get()));
-        }
-
-        public static <T> Caller<T> ofResultCall(Function<List<T>, T> call) {
-            return new Caller<>(args -> ofResult(call.apply(args)));
-        }
+        private List<Caller<T>> dependants;
 
         public CallerBuilder<T> withDependency(Caller<T> dep) {
             this.dependants.add(dep);
@@ -66,15 +59,15 @@ public class Caller<T> {
         public CallerBuilder<T> withDependencySuppResult(Supplier<T> call) {
             return this.withDependency(ofSupplierResult(call));
         }
-        
-        public CallerBuilder<T> withDependencyResult(T res){
+
+        public CallerBuilder<T> withDependencyResult(T res) {
             return this.withDependency(ofResult(res));
         }
 
         public Caller<T> toResultCall(Function<List<T>, T> call) {
             return new Caller<>(args -> ofResult(call.apply(args)), this.dependants);
         }
-        
+
         public Caller<T> toResultCall(Supplier<T> call) {
             return new Caller<>(args -> ofResult(call.get()), this.dependants);
         }
@@ -82,10 +75,141 @@ public class Caller<T> {
         public Caller<T> toCall(Function<List<T>, Caller<T>> call) {
             return new Caller<>(call, this.dependants);
         }
-        
-        public Caller<T> toCall(Supplier<Caller<T>> call){
+
+        public Caller<T> toCall(Supplier<Caller<T>> call) {
             return new Caller<>(args -> call.get(), this.dependants);
         }
+    }
+
+    /**
+     *
+     * @param <T>
+     * @param result
+     * @return Caller, that has a result
+     */
+    public static <T> Caller<T> ofResult(T result) {
+        return new Caller<>(result);
+    }
+
+    /**
+     *
+     * @param <T>
+     * @param call
+     * @return Caller, with recursive tail call
+     */
+    public static <T> Caller<T> ofFunction(Function<List<T>, Caller<T>> call) {
+        return new Caller<>(call);
+    }
+
+    /**
+     *
+     * @param <T>
+     * @param call
+     * @return Caller, with recursive tail call
+     */
+    public static <T> Caller<T> ofSupplier(Supplier<Caller<T>> call) {
+        return new Caller<>(args -> call.get());
+    }
+
+    /**
+     *
+     * @param <T>
+     * @param call
+     * @return Caller, with recursive tail call, that ends up as a result
+     */
+    public static <T> Caller<T> ofSupplierResult(Supplier<T> call) {
+        return new Caller<>(args -> ofResult(call.get()));
+    }
+
+    /**
+     *
+     * @param <T>
+     * @param call
+     * @return Caller, with recursive tail call, that ends up as a result
+     */
+    public static <T> Caller<T> ofResultCall(Function<List<T>, T> call) {
+        return new Caller<>(args -> ofResult(call.apply(args)));
+    }
+
+    /**
+     * Retrieves items all at once. Creates dependent call chain. Lazy version
+     * is usually faster if iterator returns many items (more than 3500) or item
+     * retrieval is not free.
+     *
+     * Chain version creates call chain, and then evaluates it all, while lazy
+     * version creates call chain as needed.
+     *
+     * @param <T> the main type of Caller product
+     * @param <R> type that iteration happens
+     * @param emptyCase Caller when iterator is empty of not terminated anywhere
+     * @param iterator ReadOnlyIterator that has items
+     * @param endFunction BiFunction that checks wether to end iteration in the
+     * middle of it
+     * @param contFunc BiFunction that provides Caller that can continue
+     * function calls
+     * @return
+     */
+    public static <T, R> Caller<T> ofIteratorChain(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, T, Boolean> endFunction, BiFunction<Integer, R, Caller<T>> contFunc) {
+        int i = 0;
+        Caller<T> call = null;
+        for (R c : iterator) {
+            final int index = i;
+            final Caller<T> cont = Caller.ofFunction(args -> {
+                return contFunc.apply(index, c);
+            });
+            if (i == 0) { // first
+                call = cont;
+            } else {
+                call = new CallerBuilder<T>(1)
+                        .withDependency(call)
+                        .toCall(args -> {
+                            T result = args.get(0);
+                            if (endFunction.apply(index, result)) {
+                                return ofResult(result);
+                            } else {
+                                return cont;
+                            }
+                        });
+            }
+            i++;
+
+        }
+        return F.nullWrap(call, emptyCase);
+    }
+
+    /**
+     * Retrieves items one by one, each time creating new call. Doesn't make
+     * call chain for every item in iterator. Chain version is usually faster if
+     * item count returned by iterator is low (up to 3500)
+     *
+     * Chain version creates call chain, and then evaluates it all, while lazy
+     * version creates call chain as needed.
+     *
+     * @param <T> the main type of Caller product
+     * @param <R> type that iteration happens
+     * @param emptyCase Caller when iterator is empty of not terminated anywhere
+     * @param iterator ReadOnlyIterator that has items
+     * @param endFunction BiFunction that checks wether to end iteration in the
+     * middle of it
+     * @param contFunc BiFunction that provides Caller that can continue
+     * function calls
+     * @return
+     */
+    public static <T, R> Caller<T> ofIteratorLazy(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, T, Boolean> endFunction, BiFunction<Integer, R, Caller<T>> contFunc) {
+
+        if (!iterator.hasNext()) {
+            return emptyCase;
+        }
+        return new CallerBuilder<T>(1)
+                .withDependencyCall(args -> contFunc.apply(iterator.getCurrentIndex() + 1, iterator.next()))
+                .toCall(args -> {
+                    T result = args.get(0);
+                    if (endFunction.apply(iterator.getCurrentIndex(), result)) {
+                        return ofResult(result);
+                    } else {
+                        return ofIteratorLazy(emptyCase, iterator, endFunction, contFunc);
+                    }
+                });
     }
 
     /**
@@ -93,9 +217,10 @@ public class Caller<T> {
      *
      * @param result
      */
-    public Caller(T result) {
+    Caller(T result) {
         this.hasValue = true;
         this.value = result;
+        this.dependencies = F.cast(empty);
     }
 
     /**
@@ -103,9 +228,10 @@ public class Caller<T> {
      *
      * @param nextCall
      */
-    public Caller(Function<List<T>, Caller<T>> nextCall) {
+    Caller(Function<List<T>, Caller<T>> nextCall) {
         this.hasCall = true;
         this.call = nextCall;
+        this.dependencies = F.cast(empty);
     }
 
     /**
@@ -114,7 +240,7 @@ public class Caller<T> {
      * @param nextCall
      * @param dependency
      */
-    public Caller(Function<List<T>, Caller<T>> nextCall, Caller<T>... dependency) {
+    Caller(Function<List<T>, Caller<T>> nextCall, Caller<T>... dependency) {
         this(nextCall, Arrays.asList(dependency));
     }
 
@@ -124,20 +250,15 @@ public class Caller<T> {
      * @param nextCall
      * @param dependencies
      */
-    public Caller(Function<List<T>, Caller<T>> nextCall, List<Caller<T>> dependencies) {
-        this(new Tuple<>(nextCall, dependencies.stream().collect(Collectors.toList())));
-    }
-
-    private Caller(Tuple<Function<List<T>, Caller<T>>, List<Caller<T>>> info) {
+    Caller(Function<List<T>, Caller<T>> nextCall, List<Caller<T>> dependencies) {
         this.hasCall = true;
-        this.call = info.g1;
-        this.dependants = info.g2;
+        this.call = nextCall;
+        this.dependencies = dependencies;
     }
 
     public T resolve() {
         return Caller.resolve(this);
     }
-
 
     private static class StackFrame<T> {
 
@@ -146,12 +267,12 @@ public class Caller<T> {
         private Integer index;
 
         public StackFrame(Caller<T> call) {
-            this.args = new LinkedList<>();
+            this.args = new ArrayList<>(0);
             this.call = call;
             this.index = 0;
         }
-        
-        public void clearWith(Caller<T> call){
+
+        public void clearWith(Caller<T> call) {
             this.args.clear();
             this.call = call;
             this.index = 0;
@@ -161,7 +282,7 @@ public class Caller<T> {
     public static <T> T resolve(Caller<T> caller) {
 
         ArrayDeque<StackFrame<T>> stack = new ArrayDeque<>();
-        ArrayList<T> empty = new ArrayList<>(0);
+        ArrayList<T> emptyArgs = new ArrayList<>(0);
 
         while (true) {
             if (stack.isEmpty()) {
@@ -169,8 +290,8 @@ public class Caller<T> {
                     return caller.value;
                 } else if (caller.hasCall) {
 
-                    if (caller.dependants.isEmpty()) {
-                        caller = caller.call.apply(empty);
+                    if (caller.dependencies.isEmpty()) {
+                        caller = caller.call.apply(emptyArgs);
                     } else {
                         stack.addLast(new StackFrame(caller));
                     }
@@ -180,7 +301,7 @@ public class Caller<T> {
             } else { // in stack
                 StackFrame<T> frame = stack.getLast();
                 caller = frame.call;
-                if (caller.dependants.size() <= frame.args.size()) { //demolish stack, because got all dependecies
+                if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
                     caller = caller.call.apply(frame.args); // last call with dependants
                     if (caller.hasCall) {
                         stack.getLast().clearWith(caller);
@@ -198,10 +319,10 @@ public class Caller<T> {
                     if (caller.hasValue) {
                         frame.args.add(caller.value);
                     } else if (caller.hasCall) {
-                        if (caller.dependants.isEmpty()) { // just call, assume we have expanded stack before
-                            frame.clearWith(caller.call.apply(empty)); // replace current frame, because of simple tail recursion
+                        if (caller.dependencies.isEmpty()) { // just call, assume we have expanded stack before
+                            frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
                         } else { // dep not empty
-                            Caller<T> get = caller.dependants.get(frame.index);
+                            Caller<T> get = caller.dependencies.get(frame.index);
                             frame.index++;
                             if (get.hasValue) {
                                 frame.args.add(get.value);

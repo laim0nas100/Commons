@@ -122,9 +122,9 @@ public class RelationMap<K, V> implements Map<K, V> {
         }
         if (filled.size() == 1) {
             Rnode<K, V> next = filled.getFirst();
-            return new Caller<>(args -> traverse(next, to, rel));
+            return Caller.ofFunction(args -> traverse(next, to, rel));
         } else {
-            return new Caller<>(from);
+            return Caller.ofResult(from);
 
         }
     }

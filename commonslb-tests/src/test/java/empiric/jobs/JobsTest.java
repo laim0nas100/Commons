@@ -22,10 +22,11 @@ public class JobsTest {
     RandomDistribution rng = RandomDistribution.uniform(new Random());
 
     public Job makeJob(String txt, List<Job> jobs) {
-        Job<Long> job = new Job<>(txt, () -> {
+        Job<Long> job = new Job<>(txt, j -> {
             Log.print("In execute", txt);
             Long nextLong = rng.nextLong(1000L, 2000L);
             Thread.sleep(nextLong);
+            
 
             if (rng.nextInt(10) >= 8) {
                 throw new RuntimeException("OOPSIE");
@@ -72,14 +73,14 @@ public class JobsTest {
         Job j6 = makeJob("6", jobs);
         Job j7 = makeJob("7", jobs);
 
-        j0.addForward(j1).addForward(j2).addForward(j3);
-        j1.addForward(j4).addForward(j5);
-        j2.addForward(j6);
-        j3.addForward(j7);
+        j0.chainForward(j1).chainForward(j2).chainForward(j3);
+        j1.chainForward(j4).chainForward(j5);
+        j2.chainForward(j6);
+        j3.chainForward(j7);
 
         Job f = makeJob("Final", new ArrayList<>());
 
-        Jobs.addBackward(f, JobEvent.ON_DONE, Jobs.resolveChildLeafs(j0));
+        Jobs.chainBackward(f, JobEvent.ON_DONE, Jobs.resolveChildLeafs(j0));
 
 //        Jobs.mutuallyExclusive(jobs);
 

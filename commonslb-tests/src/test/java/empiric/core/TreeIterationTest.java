@@ -5,7 +5,9 @@
  */
 package empiric.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,8 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.ReflectionUtils;
+import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.benchmarking.BenchmarkResult;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.graphtheory.GNode;
@@ -27,6 +31,7 @@ import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.iteration.impl.CompositeROI;
+import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 import org.junit.Test;
 
 /**
@@ -48,13 +53,13 @@ public class TreeIterationTest {
         Log.printLines(comp.iterator());
 
         Log.print("ok");
-        Log.print("Stack depth:",ReflectionUtils.getMaximumStackDepth());
+        Log.print("Stack depth:", ReflectionUtils.getMaximumStackDepth());
 
         F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
 
     }
 
-    public Orgraph generateTree(int layers, int childPerLayer) {
+    public static Orgraph generateTree(int layers, int childPerLayer) {
         Orgraph g = new Orgraph();
         for (int i = 0; i < childPerLayer; i++) {
             g.linkNodes(0, i + 1, 0);
@@ -83,7 +88,7 @@ public class TreeIterationTest {
         Log.println("", g.toStringNodes());
         Log.println("", g.toStringLinks());
         TreeVisitor<GNode> it;
-        it = treeVisitor(g,-1);
+        it = treeVisitor(g, -1);
 
         Log.print("BFS");
         it.BFS(g.getNode(0).get());
@@ -93,21 +98,21 @@ public class TreeIterationTest {
 
         Log.print("DFS it");
         it.DFSIterative(g.getNode(0).get());
-        
+
         Log.print("Post order");
         it.PosOrder(g.getNode(0).get());
-        
+
         Log.print("Post order iter");
         it.PosOrder(g.getNode(0).get());
 
-        Orgraph tree = this.generateTree(50000, 6);
+        Orgraph tree = generateTree(50000, 6);
         Log.print("TREE");
-//        Log.print(tree.toStringNodes());
-        it = treeVisitor(tree,999);
-        Log.print("Found BFS?:",it.BFS(tree.getNode(0).get()));
-        Log.print("Found Post it?:",it.PosOrderIterative(tree.getNode(0).get()));
-        Log.print("Found DFS it?:",it.DFSIterative(tree.getNode(0).get()));
-        Log.print("Found DFS ?:",it.DFS(tree.getNode(0).get()));
+        Log.print(tree.toStringNodes());
+        it = treeVisitor(tree, 999);
+        Log.print("Found BFS?:", it.BFS(tree.getNode(0).get()));
+        Log.print("Found Post it?:", it.PosOrderIterative(tree.getNode(0).get()));
+        Log.print("Found DFS it?:", it.DFSIterative(tree.getNode(0).get()));
+//        Log.print("Found DFS ?:",it.DFS(tree.getNode(0).get()));
 
         F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
 
@@ -131,4 +136,5 @@ public class TreeIterationTest {
             }
         };
     }
+
 }
