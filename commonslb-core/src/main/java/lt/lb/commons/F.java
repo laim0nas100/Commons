@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.containers.Value;
 import lt.lb.commons.containers.tuples.Pair;
@@ -43,6 +44,23 @@ public class F {
     }
 
     /**
+     * Convenience wrapped null check instead of ? operator avoid duplication of
+     * object when using ? operator. If java 9 is available, use
+     * Object.requireNotNullElseGet
+     *
+     * @param <T>
+     * @param object
+     * @param nullCaseSup
+     * @return
+     */
+    public static <T> T nullSupp(T object, Supplier<T> nullCaseSup) {
+        if (object == null) {
+            return Objects.requireNonNull(Objects.requireNonNull(nullCaseSup, "supplier").get(), "supplier.get()");
+        }
+        return object;
+    }
+
+    /**
      * Convenience wrapped if check instead of ? operator avoid duplication of
      * trueCase when using ? operator
      *
@@ -68,7 +86,7 @@ public class F {
      * @return
      */
     public static <T extends Closeable, U> U safeClose(T closeable, Function<? super T, ? extends U> mapper) {
-        U val = F.checkedCallNoExceptions(()-> mapper.apply(closeable));
+        U val = F.checkedCallNoExceptions(() -> mapper.apply(closeable));
         F.checkedRun(() -> {
             closeable.close();
         });
@@ -473,7 +491,7 @@ public class F {
             if (iter.visit(from, next)) {
                 return Optional.of(new Tuple<>(from, next));
             }
-            
+
         }
         return Optional.empty();
     }
