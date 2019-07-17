@@ -28,7 +28,7 @@ public interface TreeVisitor<T> extends Visitor<T> {
      * @return
      */
     public default Optional<T> DFSIterative(T root) {
-        return TreeVisitorImpl.DFSIterative(this, root, Optional.empty(), false);
+        return TreeVisitorImpl.DFSIterative(this, root, Optional.empty());
     }
 
     /**
@@ -40,29 +40,7 @@ public interface TreeVisitor<T> extends Visitor<T> {
      * @return
      */
     public default Optional<T> DFSIterative(T root, Set<T> set) {
-        return TreeVisitorImpl.DFSIterative(this, root, Optional.of(set), false);
-    }
-
-    /**
-     * Depth-first search iterative. Same as preorder traversal.
-     *
-     * @param root
-     * @return
-     */
-    public default Optional<T> DFSIterativeLazy(T root) {
-        return TreeVisitorImpl.DFSIterative(this, root, Optional.empty(), true);
-    }
-
-    /**
-     * Depth-first search iterative. Same as preorder traversal. With element
-     * collection hence cycle prevention.
-     *
-     * @param root
-     * @param set
-     * @return
-     */
-    public default Optional<T> DFSIterativeLazy(T root, Set<T> set) {
-        return TreeVisitorImpl.DFSIterative(this, root, Optional.of(set), true);
+        return TreeVisitorImpl.DFSIterative(this, root, Optional.of(set));
     }
 
     /**
@@ -137,7 +115,7 @@ public interface TreeVisitor<T> extends Visitor<T> {
      * @return
      */
     public default Optional<T> PosOrderIterative(T root) {
-        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.empty(),false);
+        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.empty());
     }
 
     /**
@@ -149,29 +127,7 @@ public interface TreeVisitor<T> extends Visitor<T> {
      * @return
      */
     public default Optional<T> PosOrderIterative(T root, Set<T> set) {
-        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.of(set),false);
-    }
-
-    /**
-     * PosOrder search (Children first). Iterative.
-     *
-     * @param root
-     * @return
-     */
-    public default Optional<T> PosOrderIterativeLazy(T root) {
-        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.empty(), true);
-    }
-
-    /**
-     * PosOrder search (Children first). Iterative. With element collection
-     * hence cycle prevention.
-     *
-     * @param root
-     * @param set
-     * @return
-     */
-    public default Optional<T> PosOrderIterativeLazy(T root, Set<T> set) {
-        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.of(set), true);
+        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.of(set));
     }
 
     public static <T> TreeVisitor<T> of(Visitor<T> visit, Function<? super T, ReadOnlyIterator<T>> childrenGetter) {

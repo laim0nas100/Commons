@@ -1,11 +1,14 @@
 package lt.lb.commons.iteration.impl;
 
+import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import lt.lb.commons.Caller;
 import lt.lb.commons.Caller.CallerBuilder;
+import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
 
@@ -29,11 +32,7 @@ public abstract class TreeVisitorImpl {
         }
     }
 
-    public static <T> Optional<T> DFSIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
-        return DFSCaller(visitor, root, visited, lazy).resolve();
-    }
-
-    private static <T> Caller<Optional<T>> DFSCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
+    public static <T> Caller<Optional<T>> DFSCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
         if (visited.isPresent()) {
             Set<T> get = visited.get();
             if (get.contains(root)) {
@@ -57,6 +56,32 @@ public abstract class TreeVisitorImpl {
             }
         }
 
+    }
+
+    public static <T> Optional<T> DFSIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
+        ArrayDeque<ReadOnlyIterator<T>> stack = new ArrayDeque<>();
+        stack.addFirst(ReadOnlyIterator.of(root));
+        while (!stack.isEmpty()) {
+            if (!stack.getFirst().hasNext()) {
+                stack.pollFirst();
+                continue;
+            }
+            T newRoot = stack.getFirst().getNext();
+            if (visited.isPresent()) {
+                Set<T> get = visited.get();
+                if (get.contains(newRoot)) {
+                    continue; // prevent looping
+                } else {
+                    get.add(newRoot);
+                }
+            }
+            if (visitor.find(newRoot)) {
+                return Optional.ofNullable(newRoot);
+            }
+            stack.addFirst(visitor.getChildrenIterator(newRoot));
+
+        }
+        return Optional.empty();
     }
 
     public static <T> Optional<T> BFS(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
@@ -83,6 +108,32 @@ public abstract class TreeVisitorImpl {
 
     }
 
+    public static <T> Optional<T> PostOrderIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
+        ArrayDeque<Tuple<T, ReadOnlyIterator<T>>> stack = new ArrayDeque<>();
+        stack.addFirst(Tuples.create(root, visitor.getChildrenIterator(root)));
+        while (!stack.isEmpty()) {
+            if (!stack.getFirst().getG2().hasNext()) {
+                Tuple<T, ReadOnlyIterator<T>> pollFirst = stack.pollFirst();
+                if (visitor.find(pollFirst.getG1())) {
+                    return Optional.ofNullable(pollFirst.getG1());
+                }
+                continue;
+            }
+            T newRoot = stack.getFirst().getG2().getNext();
+            if (visited.isPresent()) {
+                Set<T> get = visited.get();
+                if (get.contains(newRoot)) {
+                    continue; // prevent looping
+                } else {
+                    get.add(newRoot);
+                }
+            }
+            stack.addFirst(Tuples.create(newRoot, visitor.getChildrenIterator(newRoot)));
+
+        }
+        return Optional.empty();
+    }
+
     public static <T> Optional<T> PostOrder(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
         if (visited.isPresent()) {
             Set<T> get = visited.get();
@@ -102,10 +153,6 @@ public abstract class TreeVisitorImpl {
             return Optional.ofNullable(root);
         }
         return Optional.empty();
-    }
-
-    public static <T> Optional<T> PostOrderIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
-        return PostOrderCaller(visitor, root, visited, lazy).resolve();
     }
 
     public static <T> Caller<Optional<T>> PostOrderCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
