@@ -34,13 +34,13 @@ public class SafeOpt<T> {
         val = value;
         threw = throwable;
     }
-
+    
     public static <T> SafeOpt<T> of(T val) {
         Objects.requireNonNull(val);
         return new SafeOpt(val, null);
     }
 
-    public static <T> SafeOpt<T> of(Supplier<T> sup) {
+    public static <T> SafeOpt<T> ofGet(Supplier<T> sup) {
         return ready.map(m -> sup.get());
     }
 

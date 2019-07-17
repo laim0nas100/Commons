@@ -113,7 +113,7 @@ public class Lexer {
     }
 
     protected SafeOpt<Character> getByPos(Integer[] pos) {
-        return SafeOpt.of(() -> lines[pos[0]].charAt(pos[1]));
+        return SafeOpt.ofGet(() -> lines[pos[0]].charAt(pos[1]));
     }
 
     protected Integer[] rangeCheck(Integer shift) {
