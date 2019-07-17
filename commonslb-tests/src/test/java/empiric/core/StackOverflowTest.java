@@ -8,6 +8,7 @@ package empiric.core;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import lt.lb.commons.CallOrResult;
 import lt.lb.commons.Caller;
@@ -176,10 +177,10 @@ public class StackOverflowTest {
             }
 
             if (cmp.greaterThan(m, 0L) && cmp.greaterThan(n, 0L)) {
-                
+
                 return new CallerBuilder<Long>()
-                        .withDependencyCall(args -> ackermannCaller(m, n-1))
-                        .toCall(args -> ackermannCaller(m-1, args.get(0)));
+                        .withDependencyCall(args -> ackermannCaller(m, n - 1))
+                        .toCall(args -> ackermannCaller(m - 1, args.get(0)));
             }
             throw new IllegalStateException();
         }
@@ -201,7 +202,7 @@ public class StackOverflowTest {
         Log.print(RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(exp)).resolve());
 
         Log.print(RecursionBuilder.fibb2(35));
-        Log.print(RecursionBuilder.fibb2Caller(35).resolve());
+        Log.print(Caller.resolve(RecursionBuilder.fibb2Caller(35), Optional.empty(), Optional.empty()));
         Log.print(RecursionBuilder.fibb2Caller(35).resolve());
 
         Log.print("############");

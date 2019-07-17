@@ -5,33 +5,16 @@
  */
 package empiric.core;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.ReflectionUtils;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.benchmarking.BenchmarkResult;
-import lt.lb.commons.containers.tuples.Tuple;
-import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
-import lt.lb.commons.iteration.impl.CompositeROI;
-import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 import org.junit.Test;
 
 /**
@@ -112,7 +95,7 @@ public class TreeIterationTest {
         Log.print("Found BFS?:", it.BFS(tree.getNode(0).get()));
         Log.print("Found Post it?:", it.PosOrderIterative(tree.getNode(0).get()));
         Log.print("Found DFS it?:", it.DFSIterative(tree.getNode(0).get()));
-//        Log.print("Found DFS ?:",it.DFS(tree.getNode(0).get()));
+        Log.print("Found DFS ?:",it.DFS(tree.getNode(0).get()));
 
         F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
 

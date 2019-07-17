@@ -30,10 +30,10 @@ public abstract class TreeVisitorImpl {
     }
 
     public static <T> Optional<T> DFSIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
-        return dfsInner(visitor, root, visited, lazy).resolve();
+        return DFSCaller(visitor, root, visited, lazy).resolve();
     }
 
-    public static <T> Caller<Optional<T>> dfsInner(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
+    private static <T> Caller<Optional<T>> DFSCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
         if (visited.isPresent()) {
             Set<T> get = visited.get();
             if (get.contains(root)) {
@@ -48,7 +48,7 @@ public abstract class TreeVisitorImpl {
             Caller<Optional<T>> emptyCase = Caller.ofResult(Optional.empty());
             ReadOnlyIterator<T> iterator = visitor.getChildrenIterator(root);
             BiFunction<Integer, Optional<T>, Boolean> endFunc = (i, item) -> item.isPresent();
-            BiFunction<Integer, T, Caller<Optional<T>>> contFunc = (i, item) -> dfsInner(visitor, item, visited, lazy);
+            BiFunction<Integer, T, Caller<Optional<T>>> contFunc = (i, item) -> DFSCaller(visitor, item, visited, lazy);
 
             if (lazy) {
                 return Caller.ofIteratorLazy(emptyCase, iterator, endFunc, contFunc);
@@ -105,10 +105,10 @@ public abstract class TreeVisitorImpl {
     }
 
     public static <T> Optional<T> PostOrderIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
-        return PostOrderInner(visitor, root, visited, lazy).resolve();
+        return PostOrderCaller(visitor, root, visited, lazy).resolve();
     }
 
-    private static <T> Caller<Optional<T>> PostOrderInner(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
+    public static <T> Caller<Optional<T>> PostOrderCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
         if (visited.isPresent()) {
             Set<T> get = visited.get();
             if (get.contains(root)) {
@@ -122,7 +122,7 @@ public abstract class TreeVisitorImpl {
         Caller<Optional<T>> emptyCase = Caller.ofResult(Optional.empty());
         ReadOnlyIterator<T> iterator = visitor.getChildrenIterator(root);
         BiFunction<Integer, Optional<T>, Boolean> endFunc = (i, item) -> item.isPresent();
-        BiFunction<Integer, T, Caller<Optional<T>>> contFunc = (i, item) -> dfsInner(visitor, item, visited, lazy);
+        BiFunction<Integer, T, Caller<Optional<T>>> contFunc = (i, item) -> PostOrderCaller(visitor, item, visited, lazy);
 
         if (lazy) {
             call = Caller.ofIteratorLazy(emptyCase, iterator, endFunc, contFunc);
@@ -137,7 +137,7 @@ public abstract class TreeVisitorImpl {
                 return Caller.ofResult(Optional.empty());
             }
         });
-        return new CallerBuilder<Optional<T>>()
+        return new CallerBuilder<Optional<T>>(1)
                 .withDependency(call)
                 .toCall(args -> {
                     Optional<T> result = args.get(0);

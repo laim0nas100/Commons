@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -146,7 +147,8 @@ public class Caller<T> {
      * @param endFunction BiFunction that checks wether to end iteration in the
      * middle of it
      * @param contFunc BiFunction that provides Caller that can continue
-     * function calls
+     * function calls. If endFunction is satisfied with any given item, the
+     * resulting Caller is just the item on which iteration terminates
      * @return
      */
     public static <T, R> Caller<T> ofIteratorChain(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, T, Boolean> endFunction, BiFunction<Integer, R, Caller<T>> contFunc) {
@@ -192,7 +194,8 @@ public class Caller<T> {
      * @param endFunction BiFunction that checks wether to end iteration in the
      * middle of it
      * @param contFunc BiFunction that provides Caller that can continue
-     * function calls
+     * function calls. If endFunction is satisfied with any given item, the
+     * resulting Caller is just the item on which iteration terminates
      * @return
      */
     public static <T, R> Caller<T> ofIteratorLazy(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, T, Boolean> endFunction, BiFunction<Integer, R, Caller<T>> contFunc) {
@@ -280,9 +283,14 @@ public class Caller<T> {
     }
 
     public static <T> T resolve(Caller<T> caller) {
+        return resolve(caller, Optional.empty(), Optional.empty());
+    }
+
+    public static <T> T resolve(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit) {
 
         ArrayDeque<StackFrame<T>> stack = new ArrayDeque<>();
         ArrayList<T> emptyArgs = new ArrayList<>(0);
+        Long callNumber = 0L;
 
         while (true) {
             if (stack.isEmpty()) {
@@ -291,6 +299,9 @@ public class Caller<T> {
                 } else if (caller.hasCall) {
 
                     if (caller.dependencies.isEmpty()) {
+                        if (callLimit.isPresent() && callNumber++ >= callLimit.get()) {
+                            throw new IllegalStateException("Call limit reached " + callNumber);
+                        }
                         caller = caller.call.apply(emptyArgs);
                     } else {
                         stack.addLast(new StackFrame(caller));
@@ -299,9 +310,15 @@ public class Caller<T> {
                     throw new IllegalStateException("No value or call");
                 }
             } else { // in stack
+                if (stackLimit.isPresent() && stackLimit.get() <= stack.size()) {
+                    throw new IllegalStateException("Stack limit overrun " + stack.size());
+                }
                 StackFrame<T> frame = stack.getLast();
                 caller = frame.call;
                 if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
+                    if (callLimit.isPresent() && callNumber++ >= callLimit.get()) {
+                        throw new IllegalStateException("Call limit reached " + callNumber);
+                    }
                     caller = caller.call.apply(frame.args); // last call with dependants
                     if (caller.hasCall) {
                         stack.getLast().clearWith(caller);
@@ -320,6 +337,9 @@ public class Caller<T> {
                         frame.args.add(caller.value);
                     } else if (caller.hasCall) {
                         if (caller.dependencies.isEmpty()) { // just call, assume we have expanded stack before
+                            if (callLimit.isPresent() && callNumber++ >= callLimit.get()) {
+                                throw new IllegalStateException("Call limit reached " + callNumber);
+                            }
                             frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
                         } else { // dep not empty
                             Caller<T> get = caller.dependencies.get(frame.index);
