@@ -5,16 +5,21 @@
  */
 package empiric.core;
 
+import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.ReflectionUtils;
+import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
+import lt.lb.commons.iteration.impl.TreeVisitorImpl;
+import lt.lb.commons.misc.rng.RandomDistribution;
 import org.junit.Test;
 
 /**
@@ -74,29 +79,30 @@ public class TreeIterationTest {
         it = treeVisitor(g, -1);
 
         Log.print("BFS");
-        it.BFS(g.getNode(0).get());
+        GNode node = g.getNode(0).get();
+        it.BFS(node);
 
         Log.print("DFS rec");
-        it.DFS(g.getNode(0).get());
+        it.DFS(node);
 
         Log.print("DFS it");
-        it.DFSIterative(g.getNode(0).get());
+        it.DFSIterative(node);
 
         Log.print("Post order");
-        it.PosOrder(g.getNode(0).get());
+        it.PosOrder(node);
 
-        Log.print("Post order iter");
-        it.PosOrder(g.getNode(0).get());
+        Log.print("Post order it");
+        it.PosOrderIterative(node);
 
-        Orgraph tree = generateTree(50000, 6);
-        Log.print("TREE");
-        Log.print(tree.toStringNodes());
-        it = treeVisitor(tree, 999);
-        Log.print("Found BFS?:", it.BFS(tree.getNode(0).get()));
-        Log.print("Found Post it?:", it.PosOrderIterative(tree.getNode(0).get()));
-        Log.print("Found DFS it?:", it.DFSIterative(tree.getNode(0).get()));
-        Log.print("Found DFS ?:",it.DFS(tree.getNode(0).get()));
-
+//        Orgraph tree = generateTree(50000, 6);
+//        Log.print("TREE");
+//        Log.print(tree.toStringNodes());
+//        it = treeVisitor(tree, 999);
+//        node = tree.getNode(0).get();
+//        Log.print("Found BFS?:", it.BFS(node));
+//        Log.print("Found Post it?:", it.PosOrderIterative(node));
+//        Log.print("Found DFS it?:", it.DFSIterative(node));
+//        Log.print("Found DFS ?:",TreeVisitorImpl.DFSsimple(it, node, Optional.empty()));
         F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
 
     }
@@ -109,15 +115,62 @@ public class TreeIterationTest {
                 return item.ID == id;
             }
 
+//            @Override
+//            public ReadOnlyIterator<GNode> getChildrenIterator(GNode item) {
+//                return ReadOnlyIterator.of(gr.resolveLinkedTo(item, i -> true))
+//                        .map(link -> link.nodeFrom == item.ID ? gr.getNode(link.nodeTo) : gr.getNode(link.nodeFrom))
+//                        .map(m -> m.get());
+//            }
             @Override
             public ReadOnlyIterator<GNode> getChildrenIterator(GNode item) {
-                Stream<GNode> collect = gr.resolveLinkedTo(item, i -> true)
-                        .stream()
-                        .map(link -> link.nodeFrom == item.ID ? gr.getNode(link.nodeTo) : gr.getNode(link.nodeFrom))
-                        .map(m -> m.get());
-                return ReadOnlyIterator.of(collect);
+                return ReadOnlyIterator.of(item.linksTo).map(id -> gr.getNode(id).get());
             }
         };
+
     }
 
+    public static void benchMe(int times, int layers, int children) {
+        Benchmark bench = new Benchmark();
+        bench.threads = 1;
+        Orgraph tree = generateTree(layers, children);
+
+        RandomDistribution rng = RandomDistribution.uniform(new Random());
+        GNode root = tree.getNode(0).get();
+
+        for (int i = 0; i < 10; i++) {
+            Integer find = rng.nextInt(tree.nodes.size());
+            TreeVisitor<GNode> it = treeVisitor(tree, find);
+
+            bench.executeBench(times, "DFS rec", () -> {
+                TreeVisitorImpl.DFS(it, root, Optional.empty());
+            }).print(Log::print);
+
+            bench.executeBench(times, "DFS it", () -> {
+                TreeVisitorImpl.DFSIterative(it, root, Optional.empty());
+            }).print(Log::print);
+            
+            bench.executeBench(times, "DFS cal", () -> {
+                TreeVisitorImpl.DFSCaller(it, root, Optional.empty(),true).resolve();
+            }).print(Log::print);
+            
+            bench.executeBench(times, "Pos rec", () -> {
+                TreeVisitorImpl.PostOrder(it, root, Optional.empty());
+            }).print(Log::print);
+
+            bench.executeBench(times, "Pos it", () -> {
+                TreeVisitorImpl.PostOrderIterative(it, root, Optional.empty());
+            }).print(Log::print);
+            
+            bench.executeBench(times, "Pos cal", () -> {
+                TreeVisitorImpl.PostOrderCaller(it, root, Optional.empty(),true).resolve();
+            }).print(Log::print);
+        }
+
+    }
+
+    public static void main(String... args) {
+
+        benchMe(20, 10000, 5000);
+        Log.close();
+    }
 }

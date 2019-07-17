@@ -202,7 +202,7 @@ public class StackOverflowTest {
         Log.print(RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(exp)).resolve());
 
         Log.print(RecursionBuilder.fibb2(35));
-        Log.print(Caller.resolve(RecursionBuilder.fibb2Caller(35), Optional.empty(), Optional.empty()));
+        Log.print(Caller.resolve(RecursionBuilder.fibb2Caller(35), Optional.empty(), Optional.of(50L)));
         Log.print(RecursionBuilder.fibb2Caller(35).resolve());
 
         Log.print("############");

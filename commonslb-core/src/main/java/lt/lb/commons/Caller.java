@@ -286,6 +286,14 @@ public class Caller<T> {
         return resolve(caller, Optional.empty(), Optional.empty());
     }
 
+    /**
+     * Resolve function call chain with optional limits
+     * @param <T>
+     * @param caller
+     * @param stackLimit
+     * @param callLimit
+     * @return 
+     */
     public static <T> T resolve(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit) {
 
         ArrayDeque<StackFrame<T>> stack = new ArrayDeque<>();
@@ -307,7 +315,7 @@ public class Caller<T> {
                         stack.addLast(new StackFrame(caller));
                     }
                 } else {
-                    throw new IllegalStateException("No value or call");
+                    throw new IllegalStateException("No value or call"); // should never happen
                 }
             } else { // in stack
                 if (stackLimit.isPresent() && stackLimit.get() <= stack.size()) {
@@ -317,7 +325,7 @@ public class Caller<T> {
                 caller = frame.call;
                 if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
                     if (callLimit.isPresent() && callNumber++ >= callLimit.get()) {
-                        throw new IllegalStateException("Call limit reached " + callNumber);
+                        throw new CallerException("Call limit reached " + callNumber);
                     }
                     caller = caller.call.apply(frame.args); // last call with dependants
                     if (caller.hasCall) {
@@ -330,7 +338,7 @@ public class Caller<T> {
                             stack.getLast().args.add(caller.value);
                         }
                     } else {
-                        throw new IllegalStateException("No value or call");
+                        throw new IllegalStateException("No value or call"); // should never happen
                     }
                 } else { // not demolish stack
                     if (caller.hasValue) {
@@ -338,7 +346,7 @@ public class Caller<T> {
                     } else if (caller.hasCall) {
                         if (caller.dependencies.isEmpty()) { // just call, assume we have expanded stack before
                             if (callLimit.isPresent() && callNumber++ >= callLimit.get()) {
-                                throw new IllegalStateException("Call limit reached " + callNumber);
+                                throw new CallerException("Call limit reached " + callNumber);
                             }
                             frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
                         } else { // dep not empty
@@ -349,12 +357,31 @@ public class Caller<T> {
                             } else if (get.hasCall) {
                                 stack.addLast(new StackFrame<>(get));
                             } else {
-                                throw new IllegalStateException("No value or call");
+                                throw new IllegalStateException("No value or call"); // should never happen
                             }
                         }
                     }
                 }
             }
         }
+    }
+    
+    public static class CallerException extends IllegalStateException {
+
+        public CallerException() {
+        }
+
+        public CallerException(String s) {
+            super(s);
+        }
+
+        public CallerException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public CallerException(Throwable cause) {
+            super(cause);
+        }
+        
     }
 }

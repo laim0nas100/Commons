@@ -14,7 +14,7 @@ public class StreamROI<T> extends BaseROI<T>{
 
     protected Spliterator<T> spliterator;
     protected Stream<T> stream;
-    protected Tuple<Boolean,T> nextItem = new Tuple<>(false, null); // <Is Present, Next item>
+    protected Tuple<Boolean,T> nextItem = new Tuple<>(false, null); // <Is Present, Next item> must be mutable, so no prmitives
     protected Consumer<T> cons = (item) -> {
         nextItem.setG2(item);
         nextItem.setG1(true);

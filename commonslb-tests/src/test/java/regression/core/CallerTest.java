@@ -45,9 +45,7 @@ public class CallerTest {
                     .isEqualTo(it.DFS(root))
                     .isEqualTo(it.PosOrder(root))
                     .isEqualTo(it.DFSIterative(root))
-                    .isEqualTo(it.DFSIterativeLazy(root))
-                    .isEqualTo(it.PosOrderIterative(root))
-                    .isEqualTo(it.PosOrderIterativeLazy(root));
+                    .isEqualTo(it.PosOrderIterative(root));
 
         }
 
@@ -62,15 +60,13 @@ public class CallerTest {
 
             @Override
             public ReadOnlyIterator<GNode> getChildrenIterator(GNode item) {
-                Stream<GNode> collect = gr.resolveLinkedTo(item, i -> true)
-                        .stream()
+                return ReadOnlyIterator.of(gr.resolveLinkedTo(item, i -> true))
                         .map(link -> link.nodeFrom == item.ID ? gr.getNode(link.nodeTo) : gr.getNode(link.nodeFrom))
                         .map(m -> m.get());
-                return ReadOnlyIterator.of(collect);
             }
         };
     }
-    
+
     public static Orgraph generateTree(int layers, int childPerLayer) {
         Orgraph g = new Orgraph();
         for (int i = 0; i < childPerLayer; i++) {
