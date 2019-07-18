@@ -1,6 +1,7 @@
 package lt.lb.commons.iteration.impl;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -10,17 +11,18 @@ import lt.lb.commons.containers.tuples.Tuple;
  *
  * @author laim0nas100
  */
-public class StreamROI<T> extends BaseROI<T>{
+public class StreamROI<T> extends BaseROI<T> {
 
     protected Spliterator<T> spliterator;
     protected Stream<T> stream;
-    protected Tuple<Boolean,T> nextItem = new Tuple<>(false, null); // <Is Present, Next item> must be mutable, so no prmitives
+    protected Tuple<Boolean, T> nextItem = new Tuple<>(false, null); // <Is Present, Next item> must be mutable, so no prmitives
     protected Consumer<T> cons = (item) -> {
         nextItem.setG2(item);
         nextItem.setG1(true);
     };
 
     public StreamROI(Stream<T> stream) {
+        Objects.requireNonNull(stream);
         this.stream = stream;
         this.spliterator = stream.spliterator();
     }
@@ -47,7 +49,7 @@ public class StreamROI<T> extends BaseROI<T>{
     }
 
     @Override
-    public void close(){
+    public void close() {
         stream.close();
     }
 

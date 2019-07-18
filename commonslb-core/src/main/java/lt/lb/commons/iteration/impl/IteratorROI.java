@@ -1,6 +1,7 @@
 package lt.lb.commons.iteration.impl;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  *
@@ -11,6 +12,7 @@ public class IteratorROI<T> extends BaseROI<T> {
     protected Iterator<T> iter;
 
     public IteratorROI(Iterator<T> iter) {
+        Objects.requireNonNull(iter);
         this.iter = iter;
     }
 

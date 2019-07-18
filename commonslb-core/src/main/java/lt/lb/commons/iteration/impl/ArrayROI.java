@@ -1,5 +1,6 @@
 package lt.lb.commons.iteration.impl;
 
+import java.util.Objects;
 import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 
 /**
@@ -11,6 +12,7 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
     protected T[] array;
 
     public ArrayROI(T... array) {
+        Objects.requireNonNull(array);
         this.array = array;
     }
 

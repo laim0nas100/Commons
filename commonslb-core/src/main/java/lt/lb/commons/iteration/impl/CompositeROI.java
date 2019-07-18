@@ -1,6 +1,7 @@
 package lt.lb.commons.iteration.impl;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
@@ -13,6 +14,7 @@ public class CompositeROI<T> extends BaseROI<T> {
     private ReadOnlyIterator<ReadOnlyIterator<T>> rois;
 
     public CompositeROI(ReadOnlyIterator<ReadOnlyIterator<T>> rois) {
+        Objects.requireNonNull(rois);
         this.rois = rois;
     }
 
