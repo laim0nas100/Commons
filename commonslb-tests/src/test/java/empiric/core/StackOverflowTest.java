@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import lt.lb.commons.CallOrResult;
 import lt.lb.commons.Caller;
 import lt.lb.commons.Caller.CallerBuilder;
 import lt.lb.commons.Log;
@@ -41,17 +40,6 @@ public class StackOverflowTest {
                 return 0;
             }
 
-        }
-
-        public static CallOrResult<Integer> okCall(Integer n1, Integer n2) {
-            if (n1 <= n2) {
-                if (n1 % 1000 == 0) {
-                    Log.print(n1);
-                }
-                return new CallOrResult(() -> okCall(1 + n1, n2));
-            } else {
-                return new CallOrResult(0);
-            }
         }
 
         public static BigInteger fibb(BigInteger f1, BigInteger f2, BigInteger limit) {
@@ -97,16 +85,6 @@ public class StackOverflowTest {
 
         }
 
-        public static CallOrResult<BigInteger> fibbCall(BigInteger f1, BigInteger f2, BigInteger limit) {
-            ExtComparator<BigInteger> cmp = ExtComparator.ofComparable();
-            BigInteger add = f1.add(f2);
-            if (cmp.greaterThan(f1, limit)) {
-                return CallOrResult.returnValue(f1);
-            } else {
-                return CallOrResult.returnIntermediate(f1, () -> fibbCall(add, f1, limit));
-            }
-        }
-
         public static BigInteger ackermann(BigInteger m, BigInteger n) {
             if (m.equals(BigInteger.ZERO)) {
                 return n.add(BigInteger.ONE);
@@ -118,22 +96,6 @@ public class StackOverflowTest {
 
             if (cmp.greaterThan(m, BigInteger.ZERO) && cmp.greaterThan(n, BigInteger.ZERO)) {
                 return ackermann(m.subtract(BigInteger.ONE), ackermann(m, n.subtract(BigInteger.ONE)));
-            }
-            throw new IllegalStateException();
-
-        }
-
-        public static CallOrResult<BigInteger> ackermannCall(BigInteger m, BigInteger n) {
-            if (m.equals(BigInteger.ZERO)) {
-                return CallOrResult.returnValue(n.add(BigInteger.ONE));
-            }
-            ExtComparator<BigInteger> cmp = ExtComparator.ofComparable();
-            if (cmp.greaterThan(m, BigInteger.ZERO) && cmp.equals(n, BigInteger.ZERO)) {
-                return CallOrResult.returnCall(() -> ackermannCall(m.subtract(BigInteger.ONE), BigInteger.ONE));
-            }
-
-            if (cmp.greaterThan(m, BigInteger.ZERO) && cmp.greaterThan(n, BigInteger.ZERO)) {
-                return CallOrResult.returnCall(() -> ackermannCall(m.subtract(BigInteger.ONE), CallOrResult.iterative(ackermannCall(m, n.subtract(BigInteger.ONE)))));
             }
             throw new IllegalStateException();
 
@@ -191,19 +153,21 @@ public class StackOverflowTest {
 //        CallOrResult<Integer> okCall = RecursionBuilder.okCall(1, 200000);
 //        RecursionBuilder.iterative(okCall);
         BigInteger big = BigInteger.valueOf(100000000);
-        Log.print(CallOrResult.iterative(RecursionBuilder.fibbCall(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(999))));
         BigInteger m = BigInteger.valueOf(3);
         BigInteger n = BigInteger.valueOf(8);
 //        Log.print(RecursionBuilder.ackermann(m, n));
 //        Log.print(CallOrResult.iterative(RecursionBuilder.ackermannCall(m, n)));
 
         int exp = 20;
-        Log.print(RecursionBuilder.fibb(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(exp)));
-        Log.print(RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(exp)).resolve());
-
-        Log.print(RecursionBuilder.fibb2(35));
-        Log.print(Caller.resolve(RecursionBuilder.fibb2Caller(35), Optional.empty(), Optional.of(50L)));
+//        Log.print(RecursionBuilder.fibb(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(exp)));
+//        Log.print(RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(exp)).resolve());
+//
+//        Log.print(RecursionBuilder.fibb2(35));
+//        Log.print(Caller.resolve(RecursionBuilder.fibb2Caller(35), Optional.empty(), Optional.of(50L)));
         Log.print(RecursionBuilder.fibb2Caller(35).resolve());
+        Log.print(RecursionBuilder.fibb2Caller(35).resolveThreaded());
+        Log.print(RecursionBuilder.fibb2Caller(35).resolve());
+        Log.print(RecursionBuilder.fibb2Caller(35).resolveThreaded());
 
         Log.print("############");
 //        Caller<BigInteger> fibbCaller = RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(999));

@@ -4,16 +4,29 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.misc.NestedException;
+import lt.lb.commons.threads.Futures;
+import lt.lb.commons.threads.Promise;
 
 /**
  * Recursion avoiding function modeling. Main purpose: write a recursive
@@ -525,6 +538,10 @@ public class Caller<T> {
     public T resolve() {
         return Caller.resolve(this);
     }
+    
+    public T resolveThreaded(){
+        return Caller.resolveThreaded(this, Optional.empty(), Optional.empty(), 12);
+    }
 
     private static class StackFrame<T> {
 
@@ -577,7 +594,7 @@ public class Caller<T> {
      */
     public static <T> T resolve(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit) {
 
-        ArrayDeque<StackFrame<T>> stack = new ArrayDeque<>();
+        Deque<StackFrame<T>> stack = new ArrayDeque<>();
         ArrayList<T> emptyArgs = new ArrayList<>(0);
         AtomicLong callNumber = new AtomicLong(0);
 
@@ -633,6 +650,107 @@ public class Caller<T> {
                                 stack.addLast(new StackFrame<>(get));
                             } else {
                                 throw new IllegalStateException("No value or call"); // should never happen
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static <T> T resolveThreaded(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch) {
+        ExecutorService service = Executors.newCachedThreadPool();
+        try {
+            T resolved = resolveThreadedInner(caller, stackLimit, callLimit, branch, 0, new AtomicLong(0), service);
+            List<Runnable> shutdownNow = service.shutdownNow();
+            if(!shutdownNow.isEmpty()){
+                throw new IllegalStateException("No all tasks terminated?");
+            }
+            return resolved;
+        } catch (InterruptedException | ExecutionException ex) {
+            throw NestedException.of(ex.getCause());
+        }
+
+    }
+
+    private static <T> T resolveThreadedInner(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, int prevStackSize, AtomicLong callNumber, Executor exe) throws InterruptedException, ExecutionException {
+
+        Deque<StackFrame<T>> stack = new ArrayDeque<>();
+        ArrayList<T> emptyArgs = new ArrayList<>(0);
+
+        while (true) {
+            if (stack.isEmpty()) {
+                if (caller.hasValue) {
+                    return caller.value;
+                } else if (caller.hasCall) {
+
+                    if (caller.dependencies.isEmpty()) {
+                        assertCallLimit(callLimit, callNumber);
+                        caller = caller.call.apply(emptyArgs);
+                    } else {
+                        stack.addLast(new StackFrame(caller));
+                    }
+                } else {
+                    throw new IllegalStateException("No value or call"); // should never happen
+                }
+            } else { // in stack
+                if (stackLimit.isPresent() && (prevStackSize + stackLimit.get()) <= stack.size()) {
+                    throw new IllegalStateException("Stack limit overrun " + stack.size() + prevStackSize);
+                }
+                StackFrame<T> frame = stack.getLast();
+                caller = frame.call;
+                if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
+                    assertCallLimit(callLimit, callNumber);
+                    caller = caller.call.apply(frame.args); // last call with dependants
+                    if (caller.hasCall) {
+                        stack.getLast().clearWith(caller);
+                    } else if (caller.hasValue) {
+                        stack.pollLast();
+                        if (stack.isEmpty()) {
+                            return caller.value;
+                        } else {
+                            stack.getLast().args.add(caller.value);
+                        }
+                    } else {
+                        throw new IllegalStateException("No value or call"); // should never happen
+                    }
+                } else { // not demolish stack
+                    if (caller.hasValue) {
+                        frame.args.add(caller.value);
+                    } else if (caller.hasCall) {
+                        if (caller.dependencies.isEmpty()) { // just call, assume we have expanded stack before
+                            assertCallLimit(callLimit, callNumber);
+                            frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
+                        } else { // dep not empty
+                            if (branch > 0 && caller.dependencies.size() > 1) {
+                                Promise[] array = new Promise[caller.dependencies.size()];
+                                int stackSize = stack.size() + prevStackSize;
+                                F.iterate(caller.dependencies, (i, c) -> {
+                                    if (c.hasValue) {
+                                        array[i] = new Promise(() -> c.value);
+                                    } else if (c.hasCall) {
+                                        array[i] = new Promise(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
+                                            return resolveThreadedInner(Caller.ofFunction(c.call), stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
+                                        });
+                                    }
+                                    array[i].execute(exe);
+                                });
+                                new Promise<>().waitFor(array).execute(exe).get();
+                                for (Promise pro : array) {
+                                    frame.args.add((T) pro.get());
+
+                                }
+                                frame.index += array.length;
+                            } else {
+                                Caller<T> get = caller.dependencies.get(frame.index);
+                                frame.index++;
+                                if (get.hasValue) {
+                                    frame.args.add(get.value);
+                                } else if (get.hasCall) {
+                                    stack.addLast(new StackFrame<>(get));
+                                } else {
+                                    throw new IllegalStateException("No value or call"); // should never happen
+                                }
                             }
                         }
                     }
