@@ -63,7 +63,7 @@ public class TreeIterationTest {
         return g;
     }
 
-//    @Test
+    @Test
     public void graphIteration() {
         Orgraph g = new Orgraph();
         g.linkNodes(0, 1, 0);
@@ -102,7 +102,15 @@ public class TreeIterationTest {
 //        Log.print("Found BFS?:", it.BFS(node));
 //        Log.print("Found Post it?:", it.PosOrderIterative(node));
 //        Log.print("Found DFS it?:", it.DFSIterative(node));
-//        Log.print("Found DFS ?:",TreeVisitorImpl.DFSsimple(it, node, Optional.empty()));
+        Log.print("Post order 2");
+        Log.print("Found  ?:",TreeVisitorImpl.PostOrderCaller(it, node, Optional.empty(),false).resolve());
+        Log.print("Post order 3");
+        Log.print("Found  ?:",TreeVisitorImpl.PostOrderCaller(it, node, Optional.empty(),true).resolve());
+        
+        Log.print("DFS order 2");
+        Log.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),false).resolve());
+        Log.print("DFS order 3");
+        Log.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),true).resolve());
         F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
 
     }
@@ -111,7 +119,7 @@ public class TreeIterationTest {
         return new TreeVisitor<GNode>() {
             @Override
             public Boolean find(GNode item) {
-//                Log.print("Visiting:", item.ID);
+                Log.print("Visiting:", item.ID);
                 return item.ID == id;
             }
 

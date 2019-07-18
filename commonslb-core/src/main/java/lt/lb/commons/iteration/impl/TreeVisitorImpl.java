@@ -4,9 +4,8 @@ import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import lt.lb.commons.Caller;
-import lt.lb.commons.Caller.CallerBuilder;
+import lt.lb.commons.Caller.CallerForBuilder;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.ReadOnlyIterator;
@@ -19,6 +18,10 @@ import lt.lb.commons.iteration.TreeVisitor;
 public abstract class TreeVisitorImpl {
 
     public static <T> Optional<T> DFS(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
+        if (visitedCheck(root, visited)) {
+            return Optional.empty();
+        }
+
         if (visitor.find(root)) {
             return Optional.ofNullable(root);
         } else {
@@ -32,28 +35,45 @@ public abstract class TreeVisitorImpl {
         }
     }
 
-    public static <T> Caller<Optional<T>> DFSCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
+    private static <T> Optional<Caller<Optional<T>>> visitedCheckCaller(T node, Optional<Set<T>> visited) {
         if (visited.isPresent()) {
             Set<T> get = visited.get();
-            if (get.contains(root)) {
-                return Caller.ofResult(Optional.empty()); // prevent looping
+            if (get.contains(node)) {
+                return Optional.of(Caller.ofResult(Optional.empty())); // prevent looping
             } else {
-                get.add(root);
+                get.add(node);
             }
         }
+        return Optional.empty();
+    }
+
+    private static <T> boolean visitedCheck(T node, Optional<Set<T>> visited) {
+        if (visited.isPresent()) {
+            Set<T> get = visited.get();
+            if (get.contains(node)) {
+                return true; // prevent looping
+            } else {
+                get.add(node);
+            }
+        }
+        return false;
+    }
+
+    public static <T> Caller<Optional<T>> DFSCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
+        Optional<Caller<Optional<T>>> check = visitedCheckCaller(root, visited);
+        if (check.isPresent()) {
+            return check.get();
+        }
+
         if (visitor.find(root)) {
             return Caller.ofResult(Optional.ofNullable(root));
         } else {
-            Caller<Optional<T>> emptyCase = Caller.ofResult(Optional.empty());
-            ReadOnlyIterator<T> iterator = visitor.getChildrenIterator(root);
-            BiFunction<Integer, Optional<T>, Boolean> endFunc = (i, item) -> item.isPresent();
-            BiFunction<Integer, T, Caller<Optional<T>>> contFunc = (i, item) -> DFSCaller(visitor, item, visited, lazy);
 
-            if (lazy) {
-                return Caller.ofIteratorLazy(emptyCase, iterator, endFunc, contFunc);
-            } else {
-                return Caller.ofIteratorChain(emptyCase, iterator, endFunc, contFunc);
-            }
+            return new CallerForBuilder<T, Optional<T>>(visitor.getChildrenIterator(root))
+                    .forEachCall((i, item) -> DFSCaller(visitor, item, visited, lazy))
+                    .evaluate(lazy, item -> item.isPresent() ? Caller.ofResult(item).toForEnd() : Caller.forContinue())
+                    .afterwards(Caller.ofResult(Optional.empty()));
+
         }
 
     }
@@ -67,13 +87,8 @@ public abstract class TreeVisitorImpl {
                 continue;
             }
             T newRoot = stack.getFirst().getNext();
-            if (visited.isPresent()) {
-                Set<T> get = visited.get();
-                if (get.contains(newRoot)) {
-                    continue; // prevent looping
-                } else {
-                    get.add(newRoot);
-                }
+            if (visitedCheck(newRoot, visited)) {
+                continue;
             }
             if (visitor.find(newRoot)) {
                 return Optional.ofNullable(newRoot);
@@ -89,13 +104,8 @@ public abstract class TreeVisitorImpl {
         while (composite.hasNext()) {
             LinkedList<ReadOnlyIterator<T>> nextIteration = new LinkedList<>();
             for (T newRoot : composite) {
-                if (visited.isPresent()) {
-                    Set<T> get = visited.get();
-                    if (get.contains(newRoot)) {
-                        continue; // prevent looping
-                    } else {
-                        get.add(newRoot);
-                    }
+                if (visitedCheck(newRoot, visited)) {
+                    continue;
                 }
                 if (visitor.find(newRoot)) {
                     return Optional.ofNullable(newRoot);
@@ -120,13 +130,8 @@ public abstract class TreeVisitorImpl {
                 continue;
             }
             T newRoot = stack.getFirst().getG2().getNext();
-            if (visited.isPresent()) {
-                Set<T> get = visited.get();
-                if (get.contains(newRoot)) {
-                    continue; // prevent looping
-                } else {
-                    get.add(newRoot);
-                }
+            if (visitedCheck(newRoot, visited)) {
+                continue;
             }
             stack.addFirst(Tuples.create(newRoot, visitor.getChildrenIterator(newRoot)));
 
@@ -135,13 +140,8 @@ public abstract class TreeVisitorImpl {
     }
 
     public static <T> Optional<T> PostOrder(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
-        if (visited.isPresent()) {
-            Set<T> get = visited.get();
-            if (get.contains(root)) {
-                return Optional.empty(); // prevent looping
-            } else {
-                get.add(root);
-            }
+        if (visitedCheck(root, visited)) {
+            return Optional.empty();
         }
         for (T child : visitor.getChildrenIterator(root)) {
             Optional<T> dfs = PostOrder(visitor, child, visited);
@@ -156,42 +156,21 @@ public abstract class TreeVisitorImpl {
     }
 
     public static <T> Caller<Optional<T>> PostOrderCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
-        if (visited.isPresent()) {
-            Set<T> get = visited.get();
-            if (get.contains(root)) {
-                return Caller.ofResult(Optional.empty()); // prevent looping
-            } else {
-                get.add(root);
-            }
+        Optional<Caller<Optional<T>>> check = visitedCheckCaller(root, visited);
+        if (check.isPresent()) {
+            return check.get();
         }
-        Caller<Optional<T>> call = null;
-
-        Caller<Optional<T>> emptyCase = Caller.ofResult(Optional.empty());
-        ReadOnlyIterator<T> iterator = visitor.getChildrenIterator(root);
-        BiFunction<Integer, Optional<T>, Boolean> endFunc = (i, item) -> item.isPresent();
-        BiFunction<Integer, T, Caller<Optional<T>>> contFunc = (i, item) -> PostOrderCaller(visitor, item, visited, lazy);
-
-        if (lazy) {
-            call = Caller.ofIteratorLazy(emptyCase, iterator, endFunc, contFunc);
-        } else {
-            call = Caller.ofIteratorChain(emptyCase, iterator, endFunc, contFunc);
-        }
-
-        Caller<Optional<T>> delayedRootCall = Caller.ofSupplier(() -> {
-            if (visitor.find(root)) {
-                return Caller.ofResult(Optional.ofNullable(root));
-            } else {
-                return Caller.ofResult(Optional.empty());
-            }
-        });
-        return new CallerBuilder<Optional<T>>(1)
-                .withDependency(call)
+        return new CallerForBuilder<T, Optional<T>>(visitor.getChildrenIterator(root))
+                .forEachCall((i, item) -> PostOrderCaller(visitor, item, visited, lazy))
+                .evaluate(lazy, (i, item) -> item.isPresent() ? Caller.ofResult(item).toForEnd() : Caller.forContinue())
+                .afterwards(Caller.ofResult(Optional.empty()))
+                .toCallerBuilderAsDep()
                 .toCall(args -> {
                     Optional<T> result = args.get(0);
                     if (result.isPresent()) {
                         return Caller.ofResult(result);
                     } else {
-                        return delayedRootCall;
+                        return Caller.ofResult(Optional.ofNullable(root).filter(visitor::find));
                     }
                 });
     }

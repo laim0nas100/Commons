@@ -9,7 +9,7 @@ import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public interface TreeVisitor<T> extends Visitor<T> {
 

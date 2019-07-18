@@ -3,15 +3,25 @@ package lt.lb.commons;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
- * Recursion avoiding function modeling.
+ * Recursion avoiding function modeling. Main purpose: write a recursive
+ * function. If likely to get stack overflown, use this framework to replace
+ * every recursive call with Caller equivalent, without needing to design an
+ * iterative solution.
+ *
+ * Preformance and memory penalties are self-evident.
  *
  * @author laim0nas100
  */
@@ -26,6 +36,11 @@ public class Caller<T> {
 
     public static class CallerBuilder<T> {
 
+        /**
+         * Create new caller
+         *
+         * @param size expected dependencies (for better performance)
+         */
         public CallerBuilder(int size) {
             if (size <= 0) {
                 dependants = F.cast(empty);
@@ -82,6 +97,211 @@ public class Caller<T> {
         }
     }
 
+    public static class CallerForContinue<T> {
+
+        private final Caller<T> caller;
+        private final boolean endCycle;
+
+        private CallerForContinue(Caller<T> caller, boolean endCycle) {
+            this.caller = caller;
+            this.endCycle = endCycle;
+        }
+
+    }
+
+    /**
+     * Signify for loop end inside Caller for loop. Equivalent of using return.
+     *
+     * @param <T>
+     * @param next next Caller object
+     * @return
+     */
+    public static <T> CallerForContinue<T> forEnd(Caller<T> next) {
+        return new CallerForContinue<>(next, true);
+    }
+
+    /**
+     * Signify for loop continue inside Caller for loop
+     *
+     * @param <T>
+     * @return
+     */
+    public static <T> CallerForContinue<T> forContinue() {
+        return new CallerForContinue<>(null, false);
+    }
+
+    /**
+     * Recursive for loop modeling builder.
+     *
+     * @param <T> the main type of Caller product
+     * @param <R> item type that iteration happens
+     */
+    public static class CallerForBuilder<R, T> {
+
+        private ReadOnlyIterator<R> iter;
+        private BiFunction<Integer, R, Caller<T>> contFunction;
+        private BiFunction<Integer, T, CallerForContinue<T>> thenFunction;
+        private boolean lazy;
+
+        /**
+         * @param iterator ReadOnlyIterator that has items
+         *
+         */
+        public CallerForBuilder(ReadOnlyIterator<R> iterator) {
+            this.iter = iterator;
+        }
+
+        public CallerForBuilder(Stream<R> stream) {
+            this(ReadOnlyIterator.of(stream));
+        }
+
+        public CallerForBuilder(Iterator<R> iterator) {
+            this(ReadOnlyIterator.of(iterator));
+        }
+
+        public CallerForBuilder(Collection<R> collection) {
+            this(ReadOnlyIterator.of(collection));
+        }
+
+        public CallerForBuilder(R... array) {
+            this(ReadOnlyIterator.of(array));
+        }
+
+        /**
+         * Create recursive calls for each (index,item) pair in iterator.
+         *
+         * @param contFunction
+         * @return
+         */
+        public CallerForEach<R, T> forEachCall(BiFunction<Integer, R, Caller<T>> contFunction) {
+            Objects.requireNonNull(contFunction);
+            this.contFunction = contFunction;
+
+            return new CallerForEach<>(this);
+        }
+
+        /**
+         * Create recursive calls for each item in iterator.
+         *
+         * @param contFunction
+         * @return
+         */
+        public CallerForEach<R, T> forEachCall(Function<R, Caller<T>> contFunction) {
+            Objects.requireNonNull(contFunction);
+            return this.forEachCall((i, item) -> contFunction.apply(item));
+        }
+
+    }
+
+    public static class CallerForEach<R, T> {
+
+        private CallerForBuilder<R, T> callerFor;
+
+        private CallerForEach(CallerForBuilder<R, T> callerFor) {
+            this.callerFor = callerFor;
+        }
+
+        /**
+         * Lazy evaluation. How to evaluate each item ignoring indices
+         *
+         * @param thenFunction evaluation function that gets how to proceed in
+         * the middle of a for loop
+         * @return final builder stage
+         */
+        public CallerForEnd<R, T> evaluateLazy(Function<T, CallerForContinue<T>> thenFunction) {
+            Objects.requireNonNull(thenFunction);
+            return this.evaluate(true, thenFunction);
+        }
+
+        /**
+         * Lazy evaluation. How to evaluate each item
+         *
+         * @param thenFunction evaluation function that gets how to proceed in
+         * the middle of a for loop
+         * @return final builder stage
+         */
+        public CallerForEnd<R, T> evaluateLazy(BiFunction<Integer, T, CallerForContinue<T>> thenFunction) {
+            Objects.requireNonNull(thenFunction);
+            return this.evaluate(true, thenFunction);
+        }
+
+        /**
+         * Eager evaluation. How to evaluate each item ignoring indices
+         *
+         * @param thenFunction evaluation function that gets how to proceed in
+         * the middle of a for loop
+         * @return final builder stage
+         */
+        public CallerForEnd<R, T> evaluateEager(Function<T, CallerForContinue<T>> thenFunction) {
+            Objects.requireNonNull(thenFunction);
+            return this.evaluate(false, thenFunction);
+        }
+
+        /**
+         * Eager evaluation. How to evaluate each item
+         *
+         * @param thenFunction evaluation function that gets how to proceed in
+         * the middle of a for loop
+         * @return final builder stage
+         */
+        public CallerForEnd<R, T> evaluateEager(BiFunction<Integer, T, CallerForContinue<T>> thenFunction) {
+            Objects.requireNonNull(thenFunction);
+            return this.evaluate(false, thenFunction);
+        }
+
+        /**
+         * How to evaluate each item ignoring indices
+         *
+         * @param lazy evaluation policy
+         * @param thenFunction evaluation function that gets how to proceed in
+         * the middle of a for loop
+         * @return final builder stage
+         */
+        public CallerForEnd<R, T> evaluate(boolean lazy, Function<T, CallerForContinue<T>> thenFunction) {
+            return this.evaluate(lazy, (i, item) -> thenFunction.apply(item));
+        }
+
+        /**
+         * How to evaluate each item
+         *
+         * @param lazy evaluation policy
+         * @param thenFunction evaluation function that gets how to proceed in
+         * the middle of a for loop
+         * @return final builder stage
+         */
+        public CallerForEnd<R, T> evaluate(boolean lazy, BiFunction<Integer, T, CallerForContinue<T>> thenFunction) {
+            Objects.requireNonNull(thenFunction);
+            this.callerFor.lazy = lazy;
+            this.callerFor.thenFunction = thenFunction;
+
+            return new CallerForEnd<>(callerFor);
+        }
+
+    }
+
+    public static class CallerForEnd<R, T> {
+
+        private CallerForBuilder<R, T> callerFor;
+
+        private CallerForEnd(CallerForBuilder<R, T> callerFor) {
+            this.callerFor = callerFor;
+        }
+
+        /**
+         * @param afterwards Caller when iterator runs out of items (or never
+         * had them to begin with) and <b>for</b> loop never exited inside.
+         * @return Caller instance of such for loop
+         */
+        public Caller<T> afterwards(Caller<T> afterwards) {
+            Objects.requireNonNull(afterwards);
+            if (callerFor.lazy) {
+                return Caller.ofIteratorLazy(afterwards, callerFor.iter, callerFor.contFunction, callerFor.thenFunction);
+            } else {
+                return Caller.ofIteratorChain(afterwards, callerFor.iter, callerFor.contFunction, callerFor.thenFunction);
+            }
+        }
+    }
+
     /**
      *
      * @param <T>
@@ -99,6 +319,7 @@ public class Caller<T> {
      * @return Caller, with recursive tail call
      */
     public static <T> Caller<T> ofFunction(Function<List<T>, Caller<T>> call) {
+        Objects.requireNonNull(call);
         return new Caller<>(call);
     }
 
@@ -109,6 +330,7 @@ public class Caller<T> {
      * @return Caller, with recursive tail call
      */
     public static <T> Caller<T> ofSupplier(Supplier<Caller<T>> call) {
+        Objects.requireNonNull(call);
         return new Caller<>(args -> call.get());
     }
 
@@ -119,6 +341,7 @@ public class Caller<T> {
      * @return Caller, with recursive tail call, that ends up as a result
      */
     public static <T> Caller<T> ofSupplierResult(Supplier<T> call) {
+        Objects.requireNonNull(call);
         return new Caller<>(args -> ofResult(call.get()));
     }
 
@@ -129,54 +352,8 @@ public class Caller<T> {
      * @return Caller, with recursive tail call, that ends up as a result
      */
     public static <T> Caller<T> ofResultCall(Function<List<T>, T> call) {
+        Objects.requireNonNull(call);
         return new Caller<>(args -> ofResult(call.apply(args)));
-    }
-
-    /**
-     * Retrieves items all at once. Creates dependent call chain. Lazy version
-     * is usually faster if iterator returns many items (more than 3500) or item
-     * retrieval is not free.
-     *
-     * Chain version creates call chain, and then evaluates it all, while lazy
-     * version creates call chain as needed.
-     *
-     * @param <T> the main type of Caller product
-     * @param <R> type that iteration happens
-     * @param emptyCase Caller when iterator is empty of not terminated anywhere
-     * @param iterator ReadOnlyIterator that has items
-     * @param endFunction BiFunction that checks wether to end iteration in the
-     * middle of it
-     * @param contFunc BiFunction that provides Caller that can continue
-     * function calls. If endFunction is satisfied with any given item, the
-     * resulting Caller is just the item on which iteration terminates
-     * @return
-     */
-    public static <T, R> Caller<T> ofIteratorChain(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, T, Boolean> endFunction, BiFunction<Integer, R, Caller<T>> contFunc) {
-        int i = 0;
-        Caller<T> call = null;
-        for (R c : iterator) {
-            final int index = i;
-            final Caller<T> cont = Caller.ofFunction(args -> {
-                return contFunc.apply(index, c);
-            });
-            if (i == 0) { // first
-                call = cont;
-            } else {
-                call = new CallerBuilder<T>(1)
-                        .withDependency(call)
-                        .toCall(args -> {
-                            T result = args.get(0);
-                            if (endFunction.apply(index, result)) {
-                                return ofResult(result);
-                            } else {
-                                return cont;
-                            }
-                        });
-            }
-            i++;
-
-        }
-        return F.nullWrap(call, emptyCase);
     }
 
     /**
@@ -191,28 +368,91 @@ public class Caller<T> {
      * @param <R> type that iteration happens
      * @param emptyCase Caller when iterator is empty of not terminated anywhere
      * @param iterator ReadOnlyIterator that has items
-     * @param endFunction BiFunction that checks wether to end iteration in the
-     * middle of it
-     * @param contFunc BiFunction that provides Caller that can continue
-     * function calls. If endFunction is satisfied with any given item, the
-     * resulting Caller is just the item on which iteration terminates
+     * @param func BiFunction that provides Caller that eventually results in T
+     * type of variable. Used to make recursive calls from all items.
+     * @param contFunc BiFunction that checks wether to end iteration in the
+     * middle of it and how
      * @return
      */
-    public static <T, R> Caller<T> ofIteratorLazy(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, T, Boolean> endFunction, BiFunction<Integer, R, Caller<T>> contFunc) {
+    private static <T, R> Caller<T> ofIteratorLazy(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, R, Caller<T>> func, BiFunction<Integer, T, CallerForContinue<T>> contFunc) {
 
         if (!iterator.hasNext()) {
             return emptyCase;
         }
+        R next = iterator.getNext();
+        Integer index = iterator.getCurrentIndex();
+
         return new CallerBuilder<T>(1)
-                .withDependencyCall(args -> contFunc.apply(iterator.getCurrentIndex() + 1, iterator.next()))
+                .withDependencyCall(args -> func.apply(index, next))
                 .toCall(args -> {
-                    T result = args.get(0);
-                    if (endFunction.apply(iterator.getCurrentIndex(), result)) {
-                        return ofResult(result);
+
+                    CallerForContinue<T> apply = contFunc.apply(index, args.get(0));
+                    if (apply.endCycle) {
+                        return apply.caller;
                     } else {
-                        return ofIteratorLazy(emptyCase, iterator, endFunction, contFunc);
+                        return ofIteratorLazy(emptyCase, iterator, func, contFunc);
                     }
                 });
+
+    }
+
+    /**
+     * Retrieves items all at once. Creates dependent call chain. Lazy version
+     * is usually faster if iterator returns many items (more than 3500) or item
+     * retrieval is not free.
+     *
+     * Chain version creates call chain, and then evaluates it all, while lazy
+     * version creates call chain as needed.
+     *
+     * @param <T> the main type of Caller product
+     * @param <R> type that iteration happens
+     * @param emptyCase Caller when iterator is empty of not terminated anywhere
+     * @param iterator ReadOnlyIterator that has items
+     * @param func BiFunction that provides Caller that eventually results in T
+     * type of variable. Used to make recursive calls from all items.
+     * @param contFunc BiFunction that checks wether to end iteration in the
+     * middle of it and how
+     * @return
+     */
+    private static <T, R> Caller<T> ofIteratorChain(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, R, Caller<T>> func, BiFunction<Integer, T, CallerForContinue<T>> contFunc) {
+        int i = 0;
+        Caller<T> call = null;
+        for (R c : iterator) {
+            final int index = i;
+            final Caller<T> cont = Caller.ofFunction(args -> {
+                return func.apply(index, c);
+            });
+            if (i == 0) { // first
+                call = cont;
+            } else {
+                call = new CallerBuilder<T>(1)
+                        .withDependency(call)
+                        .toCall(args -> {
+                            CallerForContinue<T> apply = contFunc.apply(index, args.get(0));
+                            if (apply.endCycle) {
+                                return apply.caller;
+                            } else {
+                                return cont;
+                            }
+                        });
+            }
+            i++;
+
+        }
+        return F.nullWrap(call, emptyCase);
+    }
+
+    /**
+     * Iteration builder factory method. Prefer calling using <b>new</b>
+     * operator for explicit typing.
+     *
+     * @param <T> item type, that function returns
+     * @param <R> item in for loop type
+     * @param iter
+     * @return
+     */
+    public static <T, R> CallerForBuilder<R, T> ofIterationBuilder(ReadOnlyIterator<R> iter) {
+        return new CallerForBuilder<>(iter);
     }
 
     /**
@@ -259,6 +499,29 @@ public class Caller<T> {
         this.dependencies = dependencies;
     }
 
+    /**
+     * Construct Caller for loop end from this caller
+     *
+     * @return
+     */
+    public CallerForContinue<T> toForEnd() {
+        return Caller.forEnd(this);
+    }
+
+    /**
+     * Construct CallerBuilder with this caller as first dependency
+     *
+     * @return
+     */
+    public CallerBuilder<T> toCallerBuilderAsDep() {
+        return new CallerBuilder<T>(1).withDependency(this);
+    }
+
+    /**
+     * Resolve value without limits
+     *
+     * @return
+     */
     public T resolve() {
         return Caller.resolve(this);
     }
@@ -282,23 +545,41 @@ public class Caller<T> {
         }
     }
 
+    /**
+     * Resolve given caller without limits
+     *
+     * @param <T>
+     * @param caller
+     * @return
+     */
     public static <T> T resolve(Caller<T> caller) {
         return resolve(caller, Optional.empty(), Optional.empty());
     }
 
+    private static void assertCallLimit(Optional<Long> callLimit, AtomicLong current) {
+        if (callLimit.isPresent()) {
+            if (current.getAndIncrement() >= callLimit.get()) {
+                throw new CallerException("Call limit reached " + current.get());
+            }
+        }
+    }
+
     /**
      * Resolve function call chain with optional limits
+     *
      * @param <T>
      * @param caller
-     * @param stackLimit
-     * @param callLimit
-     * @return 
+     * @param stackLimit limit of a stack size (each nested dependency expands
+     * stack by 1). Use Optional.empty to disable limit.
+     * @param callLimit limit of how many calls can be made (useful for endless
+     * recursion detection). Use Optional.empty to disable limit.
+     * @return
      */
     public static <T> T resolve(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit) {
 
         ArrayDeque<StackFrame<T>> stack = new ArrayDeque<>();
         ArrayList<T> emptyArgs = new ArrayList<>(0);
-        Long callNumber = 0L;
+        AtomicLong callNumber = new AtomicLong(0);
 
         while (true) {
             if (stack.isEmpty()) {
@@ -307,9 +588,7 @@ public class Caller<T> {
                 } else if (caller.hasCall) {
 
                     if (caller.dependencies.isEmpty()) {
-                        if (callLimit.isPresent() && callNumber++ >= callLimit.get()) {
-                            throw new IllegalStateException("Call limit reached " + callNumber);
-                        }
+                        assertCallLimit(callLimit, callNumber);
                         caller = caller.call.apply(emptyArgs);
                     } else {
                         stack.addLast(new StackFrame(caller));
@@ -324,9 +603,7 @@ public class Caller<T> {
                 StackFrame<T> frame = stack.getLast();
                 caller = frame.call;
                 if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
-                    if (callLimit.isPresent() && callNumber++ >= callLimit.get()) {
-                        throw new CallerException("Call limit reached " + callNumber);
-                    }
+                    assertCallLimit(callLimit, callNumber);
                     caller = caller.call.apply(frame.args); // last call with dependants
                     if (caller.hasCall) {
                         stack.getLast().clearWith(caller);
@@ -345,9 +622,7 @@ public class Caller<T> {
                         frame.args.add(caller.value);
                     } else if (caller.hasCall) {
                         if (caller.dependencies.isEmpty()) { // just call, assume we have expanded stack before
-                            if (callLimit.isPresent() && callNumber++ >= callLimit.get()) {
-                                throw new CallerException("Call limit reached " + callNumber);
-                            }
+                            assertCallLimit(callLimit, callNumber);
                             frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
                         } else { // dep not empty
                             Caller<T> get = caller.dependencies.get(frame.index);
@@ -365,7 +640,7 @@ public class Caller<T> {
             }
         }
     }
-    
+
     public static class CallerException extends IllegalStateException {
 
         public CallerException() {
@@ -382,6 +657,6 @@ public class Caller<T> {
         public CallerException(Throwable cause) {
             super(cause);
         }
-        
+
     }
 }
