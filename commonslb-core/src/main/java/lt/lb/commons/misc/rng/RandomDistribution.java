@@ -194,7 +194,7 @@ public interface RandomDistribution {
     }
 
     /**
-     * Default implementation calls nextInt(0,2) > 0
+     * Default implementation calls nextInt() % 2 = 0
      *
      * @return returns boolean
      */

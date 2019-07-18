@@ -9,11 +9,13 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import lt.lb.commons.Caller;
 import lt.lb.commons.Caller.CallerBuilder;
 import lt.lb.commons.Log;
 import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.rng.RandomDistribution;
 
 /**
  *
@@ -61,9 +63,8 @@ public class StackOverflowTest {
             }
             return fibb2(seq - 1).add(fibb2(seq - 2));
         }
-
-        public static HashMap<Long, Caller<BigInteger>> mem = new HashMap<>();
-
+       
+        private static RandomDistribution rng = RandomDistribution.uniform(new Random());
         public static Caller<BigInteger> fibb2Caller(long seq) {
             if (seq == 0) {
                 return Caller.ofResult(BigInteger.ZERO);
@@ -71,16 +72,18 @@ public class StackOverflowTest {
             if (seq == 1) {
                 return Caller.ofResult(BigInteger.ONE);
             }
+            
+            
+//            if(rng.nextInt(1000) >=999){
+//                throw new Error("Whoopsie");
+//            }
+            
 
-            if (mem.containsKey(seq)) {
-                return mem.get(seq);
-            }
             Caller<BigInteger> toResultCall = new CallerBuilder<BigInteger>()
                     .withDependencyCall(a -> fibb2Caller(seq - 1))
                     .withDependencyCall(a -> fibb2Caller(seq - 2))
                     .toResultCall(args -> args.get(0).add(args.get(1)));
 
-            mem.put(seq, toResultCall);
             return toResultCall;
 
         }
@@ -164,10 +167,10 @@ public class StackOverflowTest {
 //
 //        Log.print(RecursionBuilder.fibb2(35));
 //        Log.print(Caller.resolve(RecursionBuilder.fibb2Caller(35), Optional.empty(), Optional.of(50L)));
-        Log.print(RecursionBuilder.fibb2Caller(35).resolve());
-        Log.print(RecursionBuilder.fibb2Caller(35).resolveThreaded());
-        Log.print(RecursionBuilder.fibb2Caller(35).resolve());
-        Log.print(RecursionBuilder.fibb2Caller(35).resolveThreaded());
+//        Log.print(RecursionBuilder.fibb2Caller(40).resolve());
+        Log.print(RecursionBuilder.fibb2Caller(40).resolveThreaded());
+        Log.print(RecursionBuilder.fibb2Caller(40).resolve());
+        Log.print(RecursionBuilder.fibb2Caller(40).resolveThreaded());
 
         Log.print("############");
 //        Caller<BigInteger> fibbCaller = RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(999));

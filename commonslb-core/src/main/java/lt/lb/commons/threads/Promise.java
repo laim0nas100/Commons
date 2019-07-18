@@ -28,6 +28,16 @@ public class Promise<Type> extends FutureTask<Type> {
         });
     }
 
+    public Promise(Collection<Promise> before) {
+        this(() -> {
+            for (Promise p : before) {
+                p.run();
+                p.get();
+            }
+            return null;
+        });
+    }
+
     public Promise() {
         this(() -> null);
     }
@@ -40,6 +50,21 @@ public class Promise<Type> extends FutureTask<Type> {
         Promise<Type> original = this;
         Promise<Type> newTask = new Promise<>(() -> {
             for (Promise p : before) {
+                p.get();
+            }
+            original.run();
+
+            return original.get();
+        });
+
+        return newTask;
+    }
+
+    public Promise<Type> waitForAndRun(Collection<Promise> before) {
+        Promise<Type> original = this;
+        Promise<Type> newTask = new Promise<>(() -> {
+            for (Promise p : before) {
+                p.run();
                 p.get();
             }
             original.run();

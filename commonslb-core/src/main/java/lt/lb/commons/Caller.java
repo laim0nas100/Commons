@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
@@ -538,9 +539,9 @@ public class Caller<T> {
     public T resolve() {
         return Caller.resolve(this);
     }
-    
-    public T resolveThreaded(){
-        return Caller.resolveThreaded(this, Optional.empty(), Optional.empty(), 12);
+
+    public T resolveThreaded() {
+        return Caller.resolveThreaded(this, Optional.empty(), Optional.empty(), 10, ForkJoinPool.commonPool());
     }
 
     private static class StackFrame<T> {
@@ -658,14 +659,9 @@ public class Caller<T> {
         }
     }
 
-    public static <T> T resolveThreaded(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch) {
-        ExecutorService service = Executors.newCachedThreadPool();
+    public static <T> T resolveThreaded(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, Executor exe) {
         try {
-            T resolved = resolveThreadedInner(caller, stackLimit, callLimit, branch, 0, new AtomicLong(0), service);
-            List<Runnable> shutdownNow = service.shutdownNow();
-            if(!shutdownNow.isEmpty()){
-                throw new IllegalStateException("No all tasks terminated?");
-            }
+            T resolved = resolveThreadedInner(caller, stackLimit, callLimit, branch, 0, new AtomicLong(0), exe);
             return resolved;
         } catch (InterruptedException | ExecutionException ex) {
             throw NestedException.of(ex.getCause());
@@ -727,18 +723,28 @@ public class Caller<T> {
                                 int stackSize = stack.size() + prevStackSize;
                                 F.iterate(caller.dependencies, (i, c) -> {
                                     if (c.hasValue) {
-                                        array[i] = new Promise(() -> c.value);
+                                        array[i] = new Promise(() -> c.value).execute(Runnable::run);
                                     } else if (c.hasCall) {
                                         array[i] = new Promise(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
                                             return resolveThreadedInner(Caller.ofFunction(c.call), stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
-                                        });
+                                        }).execute(exe);
                                     }
-                                    array[i].execute(exe);
                                 });
-                                new Promise<>().waitFor(array).execute(exe).get();
+//                                new Promise<>().waitForAndRun(Arrays.asList(array)).execute(Runnable::run).get();
+                                Promise<Object> waiterAndRunner = new Promise<>(Arrays.asList(array));
+
+                                try {
+                                    waiterAndRunner.run(); // help with progress
+                                    waiterAndRunner.get(); // wait for execution
+                                } catch (ExecutionException err) {
+                                    while (err.getCause() instanceof ExecutionException) {
+                                        err = (ExecutionException) err.getCause();
+                                    }
+                                    throw err;
+
+                                }
                                 for (Promise pro : array) {
                                     frame.args.add((T) pro.get());
-
                                 }
                                 frame.index += array.length;
                             } else {
