@@ -664,7 +664,7 @@ public class Caller<T> {
             T resolved = resolveThreadedInner(caller, stackLimit, callLimit, branch, 0, new AtomicLong(0), exe);
             return resolved;
         } catch (InterruptedException | ExecutionException ex) {
-            throw NestedException.of(ex.getCause());
+            throw NestedException.of(ex);
         }
 
     }
@@ -723,10 +723,10 @@ public class Caller<T> {
                                 int stackSize = stack.size() + prevStackSize;
                                 F.iterate(caller.dependencies, (i, c) -> {
                                     if (c.hasValue) {
-                                        array[i] = new Promise(() -> c.value).execute(Runnable::run);
+                                        array[i] = new Promise(() -> c.value).execute(r -> r.run());
                                     } else if (c.hasCall) {
                                         array[i] = new Promise(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
-                                            return resolveThreadedInner(Caller.ofFunction(c.call), stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
+                                            return resolveThreadedInner(c, stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
                                         }).execute(exe);
                                     }
                                 });
