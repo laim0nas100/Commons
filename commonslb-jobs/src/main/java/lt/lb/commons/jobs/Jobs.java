@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
@@ -33,8 +34,8 @@ public class Jobs {
      * @param job
      * @return
      */
-    public static JobDependency whileNotExecuting(Job job) {
-        return new JobDependency() {
+    public static <T> JobDependency<T> whileNotExecuting(Job<T> job) {
+        return new JobDependency<T>() {
             @Override
             public Job getJob() {
                 return job;
@@ -93,6 +94,22 @@ public class Jobs {
         }
     }
 
+    public static Dependency any(JobDependency... deps) {
+        if (ArrayOp.isEmpty(deps)) {
+            throw new IllegalArgumentException("JobDependecies are empty");
+        }
+
+        return () -> ArrayOp.any(j -> j.isCompleted(), deps);
+    }
+
+    public static Dependency all(JobDependency... deps) {
+        if (ArrayOp.isEmpty(deps)) {
+            throw new IllegalArgumentException("JobDependecies are empty");
+        }
+
+        return () -> ArrayOp.all(j -> j.isCompleted(), deps);
+    }
+
     /**
      * Resolve child leafs. Can be used to determine jobs without anything after
      * them.
@@ -127,7 +144,11 @@ public class Jobs {
             }
         };
 
-        TreeVisitor<Job> visitor = TreeVisitor.ofAll(cons, node -> ReadOnlyIterator.of((Collection<JobDependency>) node.doBefore).map(j -> j.getJob()));
+        TreeVisitor<Job> visitor = TreeVisitor.ofAll(cons, node -> {
+            Collection<Dependency> doBefore = node.doBefore;
+            return ReadOnlyIterator.of(doBefore.stream().filter(p -> p instanceof JobDependency))
+                    .map(m -> (JobDependency) m).map(m -> m.getJob());
+        });
         visitor.BFS(root);
         return leafs;
     }

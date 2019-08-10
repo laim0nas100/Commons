@@ -21,7 +21,7 @@ import lt.lb.commons.threads.Futures;
  */
 public final class Job<T> implements Future<T> {
 
-    Collection<JobDependency<?>> doBefore = new HashSet<>();
+    Collection<Dependency> doBefore = new HashSet<>();
     Collection<Job> doAfter = new HashSet<>();
     private final String uuid;
 
@@ -127,8 +127,8 @@ public final class Job<T> implements Future<T> {
         if (this.isDiscardable()) {
             return false;
         }
-        for (JobDependency job : this.doBefore) {
-            if (!job.isCompleted()) {
+        for (Dependency dep : this.doBefore) {
+            if (!dep.isCompleted()) {
                 return false;
             }
         }
@@ -218,7 +218,7 @@ public final class Job<T> implements Future<T> {
     }
 
     /**
-     * Chain jobs on success. Given job must execute after this.
+     * Chain jobs on success. Given job must execute before this.
      *
      * @param job
      * @return
@@ -243,7 +243,7 @@ public final class Job<T> implements Future<T> {
      * @param dep
      * @return
      */
-    public Job addDependencyBefore(JobDependency dep) {
+    public Job addDependencyBefore(Dependency dep) {
         assertNoChange("dependencies");
         this.doBefore.add(dep);
         return this;
@@ -307,9 +307,7 @@ public final class Job<T> implements Future<T> {
      * @param listener
      */
     public void addListener(String name, JobEventListener listener) {
-        if (this.isScheduled()) {
-            throw new IllegalStateException("Job has been scheduled, dependencies should not change");
-        }
+        assertNoChange("listeners");
         listeners.computeIfAbsent(name, n -> new LinkedList<>()).add(listener);
     }
 

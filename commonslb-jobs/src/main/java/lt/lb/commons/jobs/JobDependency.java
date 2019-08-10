@@ -2,22 +2,12 @@ package lt.lb.commons.jobs;
 
 /**
  *
- * used to check if job state has been met to schedule a job, that has this dependency
+ * Dependency with explicit job association. 
  * @author laim0nas100
  */
-public interface JobDependency<T> {
+public interface JobDependency<T> extends Dependency{
 
-    @Override
-    public boolean equals(Object o);
-
-    @Override
-    public int hashCode();
-
-    /**
-     * Wether dependency is satisfied
-     * @return 
-     */
-    public boolean isCompleted();
+    
 
     /**
      * Job that comes with dependency
