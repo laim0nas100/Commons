@@ -1,4 +1,4 @@
-package lt.lb.commons.interfaces;
+package lt.lb.commons.containers.values;
 
 import java.util.Optional;
 import java.util.function.Consumer;

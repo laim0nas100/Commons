@@ -2,7 +2,6 @@ package lt.lb.commons.containers.values;
 
 import java.util.Objects;
 import java.util.function.Supplier;
-import lt.lb.commons.interfaces.ValueProxy;
 
 /**
  *
