@@ -18,6 +18,13 @@ public class CompositeROI<T> extends BaseROI<T> {
         this.rois = rois;
     }
 
+    public CompositeROI(ReadOnlyIterator<T> current, ReadOnlyIterator<ReadOnlyIterator<T>> rois) {
+        Objects.requireNonNull(current);
+        Objects.requireNonNull(rois);
+        this.rois = rois;
+        this.currentIterator = current;
+    }
+
     @Override
     public boolean hasNext() {
         ensureNewest();
@@ -27,11 +34,11 @@ public class CompositeROI<T> extends BaseROI<T> {
 
     @Override
     public T next() {
-        if(!hasNext()){
+        if (!hasNext()) {
             throw new NoSuchElementException("No next value");
         }
         this.index++;
-        
+
         return setCurrent(currentIterator.next());
     }
 

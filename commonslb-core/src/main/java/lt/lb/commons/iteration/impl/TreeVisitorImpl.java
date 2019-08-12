@@ -1,13 +1,18 @@
 package lt.lb.commons.iteration.impl;
 
 import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lt.lb.commons.Caller;
 import lt.lb.commons.Caller.CallerForBuilder;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.iteration.ChildrenIteratorProvider;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
 
@@ -118,6 +123,64 @@ public abstract class TreeVisitorImpl {
 
     }
 
+    public static <T> ReadOnlyIterator<T> BFSIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Set<T>> visited) {
+        LinkedList<T> stack = new LinkedList<>();
+        stack.add(root);
+        Iterator<T> iterator = new Iterator<T>() {
+
+            @Override
+            public boolean hasNext() {
+                return !stack.isEmpty();
+            }
+
+            @Override
+            public T next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No next value");
+                }
+                T next = stack.pollFirst();
+                ReadOnlyIterator<T> childrenIterator = visitor.getChildrenIterator(next);
+                for (T child : childrenIterator) {
+                    if (visitedCheck(child, visited)) {
+                        continue;
+                    }
+                    stack.addLast(child);
+                }
+                return next;
+            }
+        };
+        
+        return ReadOnlyIterator.of(iterator);
+    }
+    
+    public static <T> ReadOnlyIterator<T> DFSIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Set<T>> visited) {
+        LinkedList<T> stack = new LinkedList<>();
+        stack.add(root);
+        Iterator<T> iterator = new Iterator<T>() {
+
+            @Override
+            public boolean hasNext() {
+                return !stack.isEmpty();
+            }
+
+            @Override
+            public T next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No next value");
+                }
+                T next = stack.pollFirst();
+                List<T> collect = visitor.getChildrenIterator(next)
+                        .toStream()
+                        .filter(child -> !visitedCheck(child, visited))
+                        .collect(Collectors.toList());
+                stack.addAll(0, collect);
+                return next;
+            }
+        };
+        
+        return ReadOnlyIterator.of(iterator);
+    }
+    
     public static <T> Optional<T> PostOrderIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
         ArrayDeque<Tuple<T, ReadOnlyIterator<T>>> stack = new ArrayDeque<>();
         stack.addFirst(Tuples.create(root, visitor.getChildrenIterator(root)));

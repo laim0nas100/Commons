@@ -93,6 +93,18 @@ public class TreeIterationTest {
 
         Log.print("Post order it");
         it.PosOrderIterative(node);
+        
+        Log.print("DFS order iterator");
+        ReadOnlyIterator<GNode> DFSIterator = TreeVisitorImpl.DFSIterator(it,node,Optional.empty());
+        for(GNode n :DFSIterator){
+            Log.print(n);
+        }
+        
+        Log.print("BFS order iterator");
+        ReadOnlyIterator<GNode> BFSIterator = TreeVisitorImpl.BFSIterator(it,node,Optional.empty());
+        for(GNode n :BFSIterator){
+            Log.print(n);
+        }
 
 //        Orgraph tree = generateTree(50000, 6);
 //        Log.print("TREE");
@@ -102,15 +114,15 @@ public class TreeIterationTest {
 //        Log.print("Found BFS?:", it.BFS(node));
 //        Log.print("Found Post it?:", it.PosOrderIterative(node));
 //        Log.print("Found DFS it?:", it.DFSIterative(node));
-        Log.print("Post order 2");
-        Log.print("Found  ?:",TreeVisitorImpl.PostOrderCaller(it, node, Optional.empty(),false).resolve());
-        Log.print("Post order 3");
-        Log.print("Found  ?:",TreeVisitorImpl.PostOrderCaller(it, node, Optional.empty(),true).resolve());
-        
-        Log.print("DFS order 2");
-        Log.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),false).resolve());
-        Log.print("DFS order 3");
-        Log.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),true).resolve());
+//        Log.print("Post order 2");
+//        Log.print("Found  ?:",TreeVisitorImpl.PostOrderCaller(it, node, Optional.empty(),false).resolve());
+//        Log.print("Post order 3");
+//        Log.print("Found  ?:",TreeVisitorImpl.PostOrderCaller(it, node, Optional.empty(),true).resolve());
+//        
+//        Log.print("DFS order 2");
+//        Log.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),false).resolve());
+//        Log.print("DFS order 3");
+//        Log.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),true).resolve());
         F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
 
     }
@@ -121,6 +133,28 @@ public class TreeIterationTest {
             public Boolean find(GNode item) {
                 Log.print("Visiting:", item.ID);
                 return item.ID == id;
+            }
+
+//            @Override
+//            public ReadOnlyIterator<GNode> getChildrenIterator(GNode item) {
+//                return ReadOnlyIterator.of(gr.resolveLinkedTo(item, i -> true))
+//                        .map(link -> link.nodeFrom == item.ID ? gr.getNode(link.nodeTo) : gr.getNode(link.nodeFrom))
+//                        .map(m -> m.get());
+//            }
+            @Override
+            public ReadOnlyIterator<GNode> getChildrenIterator(GNode item) {
+                return ReadOnlyIterator.of(item.linksTo).map(id -> gr.getNode(id).get());
+            }
+        };
+
+    }
+    
+     public static TreeVisitor<GNode> treeLeafVisitor(Orgraph gr) {
+        return new TreeVisitor<GNode>() {
+            @Override
+            public Boolean find(GNode item) {
+                Log.print("Visiting:", item.ID);
+                return item.linksTo.isEmpty();
             }
 
 //            @Override

@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import lt.lb.commons.containers.ForwardingStream;
+import lt.lb.commons.iteration.impl.EmptyROI;
 
 /**
  *
@@ -30,6 +31,9 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     }
 
     public static <T> ReadOnlyBidirectionalIterator<T> of(T... array) {
+        if(array.length == 0){
+            return new EmptyROI<>();
+        }
         return new ArrayROI<>(array);
     }
 
@@ -38,13 +42,19 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     }
 
     public static <T> ReadOnlyIterator<T> composite(ReadOnlyIterator<T>... iters) {
+        if(iters.length == 0){
+            return new EmptyROI<>();
+        }
         return new CompositeROI<>(of(iters));
     }
 
     public static <T> ReadOnlyIterator<T> composite(Collection<ReadOnlyIterator<T>> iters) {
+        if(iters.isEmpty()){
+            return new EmptyROI<>();
+        }
         return new CompositeROI<>(of(iters));
     }
-
+    
     /**
      * Puts remaining elements to ArrayList.
      *

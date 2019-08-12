@@ -11,15 +11,7 @@ import lt.lb.commons.iteration.impl.TreeVisitorImpl;
  *
  * @author laim0nas100
  */
-public interface TreeVisitor<T> extends Visitor<T> {
-
-    /**
-     * How to traverse deeper.
-     *
-     * @param item
-     * @return
-     */
-    public ReadOnlyIterator<T> getChildrenIterator(T item);
+public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> {
 
     /**
      * Depth-first search iterative. Same as preorder traversal.
@@ -54,7 +46,7 @@ public interface TreeVisitor<T> extends Visitor<T> {
     }
 
     /**
-     * Depth-first search recursive.Same as preorder traversal. With element
+     * Depth-first search recursive. Same as preorder traversal. With element
      * collection hence cycle prevention.
      *
      * @param root
@@ -76,7 +68,7 @@ public interface TreeVisitor<T> extends Visitor<T> {
     }
 
     /**
-     * Breath-first search.With element collection hence cycle prevention.
+     * Breath-first search. With element collection hence cycle prevention.
      *
      * @param root
      * @param set
