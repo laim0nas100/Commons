@@ -1,17 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads.sync;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.ArrayOp;
-import lt.lb.commons.F;
-import lt.lb.commons.misc.ExtComparator;
 
 /**
  *
@@ -27,7 +19,7 @@ public class WaitTime {
     public WaitTime(long time, TimeUnit unit) {
         Objects.requireNonNull(time);
         Objects.requireNonNull(unit);
-        if(time < 0){
+        if (time < 0) {
             throw new IllegalArgumentException("Time should not be negative");
         }
         this.time = time;
@@ -41,6 +33,18 @@ public class WaitTime {
     public Duration toDuration() {
         long nanos = WaitTime.convert(this, TimeUnit.NANOSECONDS).time;
         return Duration.of(nanos, ChronoUnit.NANOS);
+    }
+
+    public WaitTime convert(TimeUnit unit) {
+        return WaitTime.convert(this, unit);
+    }
+
+    public WaitTime add(WaitTime other) {
+        return WaitTime.add(this, other);
+    }
+
+    public WaitTime subtract(WaitTime other) {
+        return WaitTime.subtract(this, other);
     }
 
     public static WaitTime ofNanos(long time) {
@@ -75,29 +79,44 @@ public class WaitTime {
         return new WaitTime(unit.convert(current.time, current.unit), unit);
     }
 
-    private static final TimeUnit[] units = ArrayOp.asArray(
-            TimeUnit.NANOSECONDS,
-            TimeUnit.MICROSECONDS,
-            TimeUnit.MILLISECONDS,
-            TimeUnit.SECONDS,
-            TimeUnit.MINUTES,
-            TimeUnit.HOURS,
-            TimeUnit.DAYS
-    );
+    /**
+     * Returns unit type order in ascending fashion from 0 to 6.
+     *
+     * @param tu
+     * @return
+     */
+    public static int unitOrder(TimeUnit tu) {
 
-    private static int unitOrder(TimeUnit tu) {
-        return F.find(units, (i, u) -> u == tu).get().g1; // ordinal() might work, but order of definition might be different in other JVM's
+        Objects.requireNonNull(tu);
+        // TimeUnit.ordinal() might work, but order of definition might be different in other JVM's
+        switch (tu) {
+            case NANOSECONDS:
+                return 0;
+            case MICROSECONDS:
+                return 1;
+            case MILLISECONDS:
+                return 2;
+            case SECONDS:
+                return 3;
+            case MINUTES:
+                return 4;
+            case HOURS:
+                return 5;
+            case DAYS:
+                return 6;
+            default:
+                throw new IllegalArgumentException("Unrecognized time unit " + tu);
+        }
     }
 
     public static WaitTime add(WaitTime a, WaitTime b) {
         int aOrder = unitOrder(a.unit);
         int bOrder = unitOrder(b.unit);
-        ExtComparator<Integer> cmp = ExtComparator.ofComparable();
         long sum = 0;
         TimeUnit unit = a.unit;
-        if (cmp.equals(aOrder, bOrder)) {
+        if (aOrder == bOrder) {
             sum = a.time + b.time;
-        } else if (cmp.greaterThan(aOrder, bOrder)) {
+        } else if (aOrder > bOrder) {
             sum = b.unit.convert(a.time, a.unit) + b.time;
             unit = b.unit;
         } else {
@@ -110,12 +129,11 @@ public class WaitTime {
     public static WaitTime subtract(WaitTime a, WaitTime b) {
         int aOrder = unitOrder(a.unit);
         int bOrder = unitOrder(b.unit);
-        ExtComparator<Integer> cmp = ExtComparator.ofComparable();
         long sum = 0;
         TimeUnit unit = a.unit;
-        if (cmp.equals(aOrder, bOrder)) {
+        if (aOrder == bOrder) {
             sum = a.time - b.time;
-        } else if (cmp.greaterThan(aOrder, bOrder)) {
+        } else if (aOrder > bOrder) {
             sum = b.unit.convert(a.time, a.unit) - b.time;
             unit = b.unit;
         } else {

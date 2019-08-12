@@ -75,7 +75,7 @@ public class ThreadBottleneck {
     }
 
     protected Object tryTakeToken() throws InterruptedException {
-        return q.take();
+        return q.poll();
     }
     
     protected Object tryTakeToken(WaitTime wt) throws InterruptedException {
