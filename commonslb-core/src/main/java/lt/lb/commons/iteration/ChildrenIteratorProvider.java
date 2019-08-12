@@ -61,4 +61,24 @@ public interface ChildrenIteratorProvider<T> {
     public default ReadOnlyIterator<T> DFSiterator(T root, Set<T> set) {
         return TreeVisitorImpl.DFSIterator(this, root, Optional.of(set));
     }
+    
+    /**
+     * Make tree iterator with different visitor.
+     * @param visit
+     * @return 
+     */
+    public default TreeVisitor<T> toTreeIterator(Visitor<T> visit){
+        ChildrenIteratorProvider<T> me = this;
+        return new TreeVisitor<T>() {
+            @Override
+            public Boolean find(T item) {
+                return visit.find(item);
+            }
+
+            @Override
+            public ReadOnlyIterator<T> getChildrenIterator(T item) {
+                return me.getChildrenIterator(item);
+            }
+        };
+    }
 }

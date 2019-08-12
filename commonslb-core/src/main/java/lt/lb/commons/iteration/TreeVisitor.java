@@ -1,5 +1,6 @@
 package lt.lb.commons.iteration;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -31,8 +32,8 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param set
      * @return
      */
-    public default Optional<T> DFSIterative(T root, Set<T> set) {
-        return TreeVisitorImpl.DFSIterative(this, root, Optional.of(set));
+    public default Optional<T> DFSIterative(T root, Collection<T> set) {
+        return TreeVisitorImpl.DFSIterative(this, root, Optional.ofNullable(set));
     }
 
     /**
@@ -42,7 +43,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @return
      */
     public default Optional<T> DFS(T root) {
-        return TreeVisitorImpl.DFS(this, root, Optional.of(new HashSet<>()));
+        return TreeVisitorImpl.DFS(this, root, Optional.empty());
     }
 
     /**
@@ -54,7 +55,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @return
      */
     public default Optional<T> DFS(T root, Set<T> set) {
-        return TreeVisitorImpl.DFS(this, root, Optional.of(set));
+        return TreeVisitorImpl.DFS(this, root, Optional.ofNullable(set));
     }
 
     /**
@@ -74,8 +75,8 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param set
      * @return
      */
-    public default Optional<T> BFS(T root, Set<T> set) {
-        return TreeVisitorImpl.BFS(this, root, Optional.of(set));
+    public default Optional<T> BFS(T root, Collection<T> set) {
+        return TreeVisitorImpl.BFS(this, root, Optional.ofNullable(set));
     }
 
     /**
@@ -96,8 +97,8 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param set
      * @return
      */
-    public default Optional<T> PosOrder(T root, Set<T> set) {
-        return TreeVisitorImpl.PostOrder(this, root, Optional.of(set));
+    public default Optional<T> PosOrder(T root, Collection<T> set) {
+        return TreeVisitorImpl.PostOrder(this, root, Optional.ofNullable(set));
     }
 
     /**
@@ -118,8 +119,8 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param set
      * @return
      */
-    public default Optional<T> PosOrderIterative(T root, Set<T> set) {
-        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.of(set));
+    public default Optional<T> PosOrderIterative(T root, Collection<T> set) {
+        return TreeVisitorImpl.PostOrderIterative(this, root, Optional.ofNullable(set));
     }
 
     public static <T> TreeVisitor<T> of(Visitor<T> visit, Function<? super T, ReadOnlyIterator<T>> childrenGetter) {

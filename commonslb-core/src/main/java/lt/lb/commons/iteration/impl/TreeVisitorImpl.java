@@ -1,6 +1,7 @@
 package lt.lb.commons.iteration.impl;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +23,7 @@ import lt.lb.commons.iteration.TreeVisitor;
  */
 public abstract class TreeVisitorImpl {
 
-    public static <T> Optional<T> DFS(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
+    public static <T> Optional<T> DFS(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited) {
         if (visitedCheck(root, visited)) {
             return Optional.empty();
         }
@@ -40,9 +41,9 @@ public abstract class TreeVisitorImpl {
         }
     }
 
-    private static <T> Optional<Caller<Optional<T>>> visitedCheckCaller(T node, Optional<Set<T>> visited) {
+    private static <T> Optional<Caller<Optional<T>>> visitedCheckCaller(T node, Optional<Collection<T>> visited) {
         if (visited.isPresent()) {
-            Set<T> get = visited.get();
+            Collection<T> get = visited.get();
             if (get.contains(node)) {
                 return Optional.of(Caller.ofResult(Optional.empty())); // prevent looping
             } else {
@@ -52,9 +53,9 @@ public abstract class TreeVisitorImpl {
         return Optional.empty();
     }
 
-    private static <T> boolean visitedCheck(T node, Optional<Set<T>> visited) {
+    private static <T> boolean visitedCheck(T node, Optional<Collection<T>> visited) {
         if (visited.isPresent()) {
-            Set<T> get = visited.get();
+            Collection<T> get = visited.get();
             if (get.contains(node)) {
                 return true; // prevent looping
             } else {
@@ -64,7 +65,7 @@ public abstract class TreeVisitorImpl {
         return false;
     }
 
-    public static <T> Caller<Optional<T>> DFSCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
+    public static <T> Caller<Optional<T>> DFSCaller(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited, boolean lazy) {
         Optional<Caller<Optional<T>>> check = visitedCheckCaller(root, visited);
         if (check.isPresent()) {
             return check.get();
@@ -83,7 +84,7 @@ public abstract class TreeVisitorImpl {
 
     }
 
-    public static <T> Optional<T> DFSIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
+    public static <T> Optional<T> DFSIterative(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited) {
         ArrayDeque<ReadOnlyIterator<T>> stack = new ArrayDeque<>();
         stack.addFirst(ReadOnlyIterator.of(root));
         while (!stack.isEmpty()) {
@@ -104,7 +105,7 @@ public abstract class TreeVisitorImpl {
         return Optional.empty();
     }
 
-    public static <T> Optional<T> BFS(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
+    public static <T> Optional<T> BFS(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited) {
         ReadOnlyIterator<T> composite = ReadOnlyIterator.of(root);
         while (composite.hasNext()) {
             LinkedList<ReadOnlyIterator<T>> nextIteration = new LinkedList<>();
@@ -123,7 +124,7 @@ public abstract class TreeVisitorImpl {
 
     }
 
-    public static <T> ReadOnlyIterator<T> BFSIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Set<T>> visited) {
+    public static <T> ReadOnlyIterator<T> BFSIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Collection<T>> visited) {
         LinkedList<T> stack = new LinkedList<>();
         stack.add(root);
         Iterator<T> iterator = new Iterator<T>() {
@@ -153,7 +154,7 @@ public abstract class TreeVisitorImpl {
         return ReadOnlyIterator.of(iterator);
     }
     
-    public static <T> ReadOnlyIterator<T> DFSIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Set<T>> visited) {
+    public static <T> ReadOnlyIterator<T> DFSIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Collection<T>> visited) {
         LinkedList<T> stack = new LinkedList<>();
         stack.add(root);
         Iterator<T> iterator = new Iterator<T>() {
@@ -181,7 +182,7 @@ public abstract class TreeVisitorImpl {
         return ReadOnlyIterator.of(iterator);
     }
     
-    public static <T> Optional<T> PostOrderIterative(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
+    public static <T> Optional<T> PostOrderIterative(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited) {
         ArrayDeque<Tuple<T, ReadOnlyIterator<T>>> stack = new ArrayDeque<>();
         stack.addFirst(Tuples.create(root, visitor.getChildrenIterator(root)));
         while (!stack.isEmpty()) {
@@ -202,7 +203,7 @@ public abstract class TreeVisitorImpl {
         return Optional.empty();
     }
 
-    public static <T> Optional<T> PostOrder(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited) {
+    public static <T> Optional<T> PostOrder(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited) {
         if (visitedCheck(root, visited)) {
             return Optional.empty();
         }
@@ -218,7 +219,7 @@ public abstract class TreeVisitorImpl {
         return Optional.empty();
     }
 
-    public static <T> Caller<Optional<T>> PostOrderCaller(TreeVisitor<T> visitor, T root, Optional<Set<T>> visited, boolean lazy) {
+    public static <T> Caller<Optional<T>> PostOrderCaller(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited, boolean lazy) {
         Optional<Caller<Optional<T>>> check = visitedCheckCaller(root, visited);
         if (check.isPresent()) {
             return check.get();
