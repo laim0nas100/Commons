@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.misc.NestedException;
 
 /**

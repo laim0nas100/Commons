@@ -3,7 +3,7 @@ package lt.lb.commons.interfaces;
 import java.util.Objects;
 import java.util.function.Function;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.BooleanValue;
+import lt.lb.commons.containers.values.BooleanValue;
 
 /**
  *

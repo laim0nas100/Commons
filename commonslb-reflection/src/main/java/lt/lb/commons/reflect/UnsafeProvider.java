@@ -3,7 +3,7 @@ package lt.lb.commons.reflect;
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 import sun.misc.Unsafe;
 
 /**

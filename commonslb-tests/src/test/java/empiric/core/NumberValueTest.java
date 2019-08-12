@@ -8,7 +8,7 @@ package empiric.core;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
-import lt.lb.commons.containers.NumberValue;
+import lt.lb.commons.containers.values.NumberValue;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

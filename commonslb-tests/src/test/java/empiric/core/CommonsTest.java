@@ -26,7 +26,7 @@ import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.Predicates;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;

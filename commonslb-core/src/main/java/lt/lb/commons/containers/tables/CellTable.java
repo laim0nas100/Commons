@@ -11,7 +11,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.containers.IntegerValue;
+import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;

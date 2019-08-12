@@ -1,15 +1,16 @@
-package lt.lb.commons.containers;
+package lt.lb.commons.containers.values;
 
 import lt.lb.commons.F;
 import lt.lb.commons.misc.numbers.NumberBiFunctions;
-import lt.lb.commons.misc.numbers.TypedBiFunction;
+import lt.lb.commons.func.TypedBiFunction;
 
 /**
- *
+ * Can be used, but prefer explicit type derivatives. Only supports basic number types (Byte,Short,Integer,Long,Float,Double)
+ * 
  * @author laim0nas100
  * @param <T>
  */
-public class NumberValue<T extends Number> extends Value<T> {
+public abstract class NumberValue<T extends Number> extends Value<T> {
 
     protected TypedBiFunction<Number, Number, Number> PLUS = new NumberBiFunctions.DefaultPlus();
     protected TypedBiFunction<Number, Number, Number> MINUS = new NumberBiFunctions.DefaultMinus();
@@ -18,7 +19,7 @@ public class NumberValue<T extends Number> extends Value<T> {
     protected TypedBiFunction<Number, Number, Number> MOD = new NumberBiFunctions.DefaultMod();
 
     public static <F extends Number> NumberValue<F> of(F i) {
-        return new NumberValue<>(i);
+        return new NumberValue<F>(i){};
     }
 
     public NumberValue() {

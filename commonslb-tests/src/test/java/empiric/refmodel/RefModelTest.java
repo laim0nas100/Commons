@@ -12,7 +12,7 @@ import java.util.Date;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
 import lt.lb.commons.Log;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.refmodel.*;
 import org.junit.*;
 

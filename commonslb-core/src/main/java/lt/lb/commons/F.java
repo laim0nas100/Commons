@@ -9,7 +9,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;

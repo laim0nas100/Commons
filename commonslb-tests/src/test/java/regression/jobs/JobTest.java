@@ -2,7 +2,7 @@ package regression.jobs;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
-import lt.lb.commons.containers.LongValue;
+import lt.lb.commons.containers.values.LongValue;
 import lt.lb.commons.datafill.NumberFill;
 import lt.lb.commons.jobs.Job;
 import lt.lb.commons.jobs.JobEvent;

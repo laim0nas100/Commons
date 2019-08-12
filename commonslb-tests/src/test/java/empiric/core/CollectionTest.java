@@ -14,7 +14,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.PrefillArrayList;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.NumberValue;
+import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.rng.FastRandom;

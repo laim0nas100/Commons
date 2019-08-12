@@ -8,7 +8,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.Timer;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.misc.NestedException;
 
 /**

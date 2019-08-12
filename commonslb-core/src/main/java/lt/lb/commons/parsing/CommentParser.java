@@ -2,9 +2,9 @@ package lt.lb.commons.parsing;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import lt.lb.commons.containers.BooleanValue;
-import lt.lb.commons.containers.IntegerValue;
-import lt.lb.commons.containers.StringValue;
+import lt.lb.commons.containers.values.BooleanValue;
+import lt.lb.commons.containers.values.IntegerValue;
+import lt.lb.commons.containers.values.StringValue;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**

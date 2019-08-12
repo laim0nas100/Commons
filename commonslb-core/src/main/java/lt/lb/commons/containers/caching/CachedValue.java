@@ -1,6 +1,6 @@
 package lt.lb.commons.containers.caching;
 
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;

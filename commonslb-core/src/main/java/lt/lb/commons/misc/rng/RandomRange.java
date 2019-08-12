@@ -1,6 +1,6 @@
 package lt.lb.commons.misc.rng;
 
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 
 /**
  *

@@ -8,7 +8,7 @@ package empiric.core;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.Timer;
-import lt.lb.commons.containers.IntegerValue;
+import lt.lb.commons.containers.values.IntegerValue;
 import org.junit.Test;
 
 /**

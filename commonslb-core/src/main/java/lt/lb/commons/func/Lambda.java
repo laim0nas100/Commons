@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 
 /**
  *

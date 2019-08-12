@@ -1,5 +1,6 @@
 package lt.lb.commons.misc.numbers;
 
+import lt.lb.commons.func.TypedBiFunction;
 import lt.lb.commons.containers.tuples.Tuples;
 
 /**

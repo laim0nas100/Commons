@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Predicates;
-import lt.lb.commons.containers.IntegerValue;
+import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.datafill.NumberFill;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.iteration.Iter;

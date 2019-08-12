@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumSet;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 
 /**
  *

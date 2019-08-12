@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import lt.lb.commons.containers.BooleanValue;
+import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.interfaces.Equator.EqualityHashProxy;
 
