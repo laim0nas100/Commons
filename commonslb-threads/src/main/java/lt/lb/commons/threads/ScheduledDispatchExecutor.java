@@ -11,7 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.containers.BooleanValue;
+import lt.lb.commons.containers.values.BooleanValue;
 
 /**
  *

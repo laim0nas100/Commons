@@ -9,7 +9,7 @@ import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import lt.lb.commons.containers.StringValue;
+import lt.lb.commons.containers.values.StringValue;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.threads.CloseableExecutor;

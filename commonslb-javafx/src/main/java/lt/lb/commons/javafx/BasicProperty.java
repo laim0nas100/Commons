@@ -8,9 +8,9 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 
-import lt.lb.commons.interfaces.ValueProxy;
+import lt.lb.commons.containers.values.ValueProxy;
 
 /**
  *

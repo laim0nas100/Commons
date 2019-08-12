@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import javafx.application.Platform;
-import lt.lb.commons.containers.Value;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.F;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.Caller;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.IntegerValue;
+import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.misc.ExtComparator;
