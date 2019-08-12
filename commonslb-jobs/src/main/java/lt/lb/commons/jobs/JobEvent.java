@@ -8,13 +8,38 @@ import java.util.Optional;
  */
 public class JobEvent {
 
+    /**
+     * When Job becomes done. (failed || succeeded || cancelled)
+     */
     public static final String ON_DONE = "onDone";
+    /**
+     * When Job becomes cancelled.
+     */
     public static final String ON_CANCEL = "onCancel";
+    /**
+     * When Job becomes failed.
+     */
     public static final String ON_FAILED = "onFailed";
-    public static final String ON_BECAME_DISCARDABLE = "onFinished";
+    /**
+     * When Job becomes discarded.
+     */
+    public static final String ON_DISCARDED = "onDiscarded";
+    
+    /**
+     * When Job becomes succeeded.
+     */
     public static final String ON_SUCCEEDED = "onSucceeded";
+    /**
+     * When Job becomes scheduled.
+     */
     public static final String ON_SCHEDULED = "onScheduled";
+    /**
+     * When Job fails to start after being scheduled and then de-scheduled.
+     */
     public static final String ON_FAILED_TO_START = "onFailedToStart";
+    /**
+     * When Job fails starts after being scheduled.
+     */
     public static final String ON_EXECUTE = "onExecute";
 
     private String eventName;

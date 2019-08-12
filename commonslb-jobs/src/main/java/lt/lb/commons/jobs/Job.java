@@ -32,6 +32,7 @@ public final class Job<T> implements Future<T> {
     private boolean successfull = false;
     AtomicInteger failedToStart = new AtomicInteger(0);
     AtomicBoolean scheduled = new AtomicBoolean(false);
+    AtomicBoolean discarded = new AtomicBoolean(false);
     AtomicBoolean running = new AtomicBoolean(false);
 
     private Job canceledParent;
@@ -124,7 +125,7 @@ public final class Job<T> implements Future<T> {
 
     public boolean canRun() {
 
-        if (this.isDiscardable()) {
+        if (this.isDone()) {
             return false;
         }
         for (Dependency dep : this.doBefore) {
@@ -140,22 +141,18 @@ public final class Job<T> implements Future<T> {
         return cancelled.get();
     }
 
-    public boolean isDiscardable() {
-        return this.isDone();
-    }
-
     public boolean isSuccessfull() {
         return successfull;
     }
 
-    /**
-     *
-     * @return
-     */
     public boolean isFailed() {
         return failed;
     }
-
+    
+    public boolean isDiscarded(){
+        return discarded.get();
+    }
+    
     public boolean isRunning() {
         return running.get();
     }
@@ -288,9 +285,6 @@ public final class Job<T> implements Future<T> {
                 this.fireEvent(new JobEvent(JobEvent.ON_FAILED, this, error.get()));
             }
             this.fireEvent(new JobEvent(JobEvent.ON_DONE, this));
-            if (this.isDiscardable()) {
-                this.fireEvent(new JobEvent(JobEvent.ON_BECAME_DISCARDABLE, this));
-            }
 
             if (!this.running.compareAndSet(true, false)) {
                 throw new IllegalStateException("After job:" + this.getUUID() + " ran, property running was set to false");

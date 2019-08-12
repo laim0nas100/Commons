@@ -16,6 +16,11 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-core</artifactId>
         </dependency>      
+        
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-threads</artifactId>
+        </dependency>   
 
     </dependencies>
     

@@ -11,6 +11,7 @@ import lt.lb.commons.jobs.JobEvent;
 import lt.lb.commons.jobs.JobExecutor;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.threads.FastExecutor;
+import lt.lb.commons.threads.sync.WaitTime;
 import org.junit.Test;
 
 /**
@@ -28,9 +29,9 @@ public class JobsTest {
             Thread.sleep(nextLong);
             
 
-            if (rng.nextInt(10) >= 8) {
-                throw new RuntimeException("OOPSIE");
-            }
+//            if (rng.nextInt(10) >= 8) {
+//                throw new RuntimeException("OOPSIE");
+//            }
             return nextLong;
 
         });
@@ -78,17 +79,16 @@ public class JobsTest {
         j2.chainForward(j6);
         j3.chainForward(j7);
 
-        Job f = makeJob("Final", new ArrayList<>());
+//        Job f = makeJob("Final", new ArrayList<>());
 
-        Jobs.chainBackward(f, JobEvent.ON_DONE, Jobs.resolveChildLeafs(j0));
+//        Jobs.chainBackward(f, JobEvent.ON_DONE, Jobs.resolveChildLeafs(j0));
 
 //        Jobs.mutuallyExclusive(jobs);
 
         jobs.forEach(job -> exe.submit(job));
-        exe.submit(f);
 
-        f.get();
-
+        exe.shutdown();
+        exe.awaitTermination(WaitTime.ofDays(1));
         Log.await(1, TimeUnit.DAYS);
 
     }

@@ -3,7 +3,6 @@ package lt.lb.commons.jobs;
 import java.util.Objects;
 
 /**
- *
  * @author laim0nas100
  */
 public abstract class AbstractJobDependency implements JobDependency {
