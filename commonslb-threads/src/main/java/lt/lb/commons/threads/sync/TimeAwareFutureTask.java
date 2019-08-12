@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
+import lt.lb.commons.JavaProperties;
 import lt.lb.commons.Timer;
 
 /**
@@ -29,16 +30,16 @@ public class TimeAwareFutureTask<T> extends FutureTask<T> {
     
     @Override
     public void run() {
-        startAt.set(Timer.getNanoTime());
+        startAt.set(JavaProperties.getNanoTime());
         super.run();
-        finishedAt.set(Timer.getNanoTime());
+        finishedAt.set(JavaProperties.getNanoTime());
     }
     
     @Override
     protected boolean runAndReset() {
-        startAt.set(Timer.getNanoTime());
+        startAt.set(JavaProperties.getNanoTime());
         boolean r = super.runAndReset();
-        finishedAt.set(Timer.getNanoTime());
+        finishedAt.set(JavaProperties.getNanoTime());
         return r;
     }
     

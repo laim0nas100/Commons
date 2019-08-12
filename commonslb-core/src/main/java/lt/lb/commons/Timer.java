@@ -1,5 +1,7 @@
 package lt.lb.commons;
 
+import static lt.lb.commons.JavaProperties.getNanoTime;
+
 /**
  *
  * @author laim0nas100 Minimal timer using System.nanoTime()
@@ -87,26 +89,6 @@ public class Timer {
     
     public long getLastStopNanos(){
         return this.lastStopNanos;
-    }
-
-    private static final long FIRST_NANO_TIME_CALL = System.nanoTime();
-    private static final long NANO_TIME_LONG_OFFSET = FIRST_NANO_TIME_CALL - Long.MIN_VALUE;
-
-    /**
-     * 
-     * @return Nano time counting from Long.MIN_VALUE (always incrementing).
-     * Convenient for using &gt &lt &ge &le operators instead of subtraction
-     */
-    public static final long getNanoTime() {
-        return System.nanoTime() - NANO_TIME_LONG_OFFSET;
-    }
-    
-    /**
-     * @return Nano time counting from zero (always incrementing and positive).
-     * Convenient for using &gt &lt &ge &le operators instead of subtraction.
-     */
-    public static final long getNanoTimePlus(){
-        return System.nanoTime() - FIRST_NANO_TIME_CALL;
     }
 
 }
