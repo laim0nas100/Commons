@@ -43,7 +43,7 @@ public class Jobs {
 
             @Override
             public boolean isCompleted() {
-                return (!getJob().isScheduled() && !getJob().isRunning()) || getJob().isDone();
+                return getJob().isDone() || (!getJob().isScheduled() && !getJob().isRunning());
             }
         };
     }
@@ -69,7 +69,7 @@ public class Jobs {
     }
 
     /**
-     * Chain all jobs forward.
+     * Chain all jobs forward to given root job.
      *
      * @param root
      * @param evName
@@ -82,7 +82,45 @@ public class Jobs {
     }
 
     /**
-     * Chain all jobs backward.
+     * Chains given jobs consecutively forward
+     *
+     * @param jobs
+     * @param evName
+     */
+    public static void forwardChain(Collection<Job> jobs, String evName) {
+        Job prev = null;
+        for (Job job : jobs) {
+            if (prev == null) {
+                prev = job;
+                continue;
+            }
+
+            prev.chainForward(evName, job);
+            prev = job;
+        }
+    }
+
+    /**
+     * Chains given jobs consecutively backward
+     *
+     * @param jobs
+     * @param evName
+     */
+    public static void backwardChain(Collection<Job> jobs, String evName) {
+        Job prev = null;
+        for (Job job : jobs) {
+            if (prev == null) {
+                prev = job;
+                continue;
+            }
+
+            prev.chainBackward(evName, job);
+            prev = job;
+        }
+    }
+
+    /**
+     * Chain all jobs backward to given root job.
      *
      * @param root
      * @param evName
@@ -131,7 +169,7 @@ public class Jobs {
     }
 
     /**
-     * Resolve root leafs. Can be used to determine jobs without dependencies.
+     * Resolve root leafs. Can be used to determine jobs without JobDependencies.
      *
      * @param root
      * @return
