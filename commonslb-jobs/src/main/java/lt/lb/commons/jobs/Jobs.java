@@ -50,7 +50,8 @@ public class Jobs {
 
     /**
      * Adds JobDependecy to all jobs, that only allows 1 job to be executing at
-     * any given time.
+     * any given time. Creates (n-1) * (n-1) dependencies, where n is number of
+     * jobs submitted.
      *
      * @param jobs
      */
@@ -62,7 +63,7 @@ public class Jobs {
         F.iterate(jobs, (i, main) -> {
             F.iterate(jobs, (j, other) -> {
                 if (!Objects.equals(i, j)) {
-                    main.addDependencyBefore(whileNotExecuting(other));
+                    main.addDependency(whileNotExecuting(other));
                 }
             });
         });
@@ -169,7 +170,8 @@ public class Jobs {
     }
 
     /**
-     * Resolve root leafs. Can be used to determine jobs without JobDependencies.
+     * Resolve root leafs. Can be used to determine jobs without
+     * JobDependencies.
      *
      * @param root
      * @return

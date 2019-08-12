@@ -197,7 +197,7 @@ public final class Job<T> implements Future<T> {
      */
     public Job chainBackward(String onEvent, Job job) {
         job.addAfter(this);
-        this.addDependencyBefore(new DefaultJobDependency(job, onEvent));
+        this.addDependency(new DefaultJobDependency(job, onEvent));
         return this;
     }
 
@@ -210,7 +210,7 @@ public final class Job<T> implements Future<T> {
      */
     public Job chainForward(String onEvent, Job job) {
         this.addAfter(job);
-        job.addDependencyBefore(new DefaultJobDependency(this, onEvent));
+        job.addDependency(new DefaultJobDependency(this, onEvent));
         return this;
     }
 
@@ -240,7 +240,7 @@ public final class Job<T> implements Future<T> {
      * @param dep
      * @return
      */
-    public Job addDependencyBefore(Dependency dep) {
+    public Job addDependency(Dependency dep) {
         assertNoChange("dependencies");
         this.doBefore.add(dep);
         return this;
