@@ -1,6 +1,6 @@
 package lt.lb.commons;
 
-import static lt.lb.commons.JavaProperties.getNanoTime;
+import static lt.lb.commons.Java.getNanoTime;
 
 /**
  *

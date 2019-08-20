@@ -6,7 +6,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-import lt.lb.commons.JavaProperties;
+import lt.lb.commons.Java;
 import lt.lb.commons.Timer;
 
 /**
@@ -51,7 +51,7 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
             requests.set(0);
             return lastCommitTask.get();
         }
-        long now = JavaProperties.getNanoTime();
+        long now = Java.getNanoTime();
         requests.set(0);
         TimeAwareFutureTask<T> lastTask = lastCommitTask.get();
 

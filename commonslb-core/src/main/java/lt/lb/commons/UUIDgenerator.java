@@ -20,7 +20,7 @@ public class UUIDgenerator {
 
     public static String nextUUID(String classID) {
 
-        long time = JavaProperties.getNanoTimePlus();
+        long time = Java.getNanoTimePlus();
         long valTo = 0L;
         if (lastTime.compareAndSet(time, time)) {
             valTo = val.incrementAndGet();

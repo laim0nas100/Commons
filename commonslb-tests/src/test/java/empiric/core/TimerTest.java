@@ -6,7 +6,7 @@
 package empiric.core;
 
 import lt.lb.commons.F;
-import lt.lb.commons.JavaProperties;
+import lt.lb.commons.Java;
 import lt.lb.commons.Log;
 import lt.lb.commons.containers.values.IntegerValue;
 
@@ -22,7 +22,7 @@ public class TimerTest {
         F.unsafeRun(() -> {
             while (times.decrementAndGet() > 0) {
                 for (int i = 0; i < 10; i++) {
-                    Log.print(System.nanoTime(), JavaProperties.getNanoTimePlus(), JavaProperties.getNanoTime(), JavaProperties.getNanoTime() - JavaProperties.getNanoTimePlus(), Long.MIN_VALUE);
+                    Log.print(System.nanoTime(), Java.getNanoTimePlus(), Java.getNanoTime(), Java.getNanoTime() - Java.getNanoTimePlus(), Long.MIN_VALUE);
                 }
                 Log.print();
                 Thread.sleep(5000);

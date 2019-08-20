@@ -8,80 +8,99 @@ import java.io.File;
  *
  * @author laim0nas100
  */
-public class JavaProperties {
+public class Java {
 
 
     /**
-     *
-     * @return current work directory
+     * System.getProperty("user.dir")
+     * 
+     * @return Current work directory
+     * 
      */
-    public static String getWorkDirectory() {
+    public static final String getWorkDirectory() {
         return System.getProperty("user.dir");
     }
 
     /**
-     *
-     * @return class path
+     * System.getProperty("java.class.path")
+     * 
+     * @return Class path
      */
-    public static String getClassPath() {
+    public static final String getClassPath() {
         return System.getProperty("java.class.path");
     }
 
     /**
-     *
-     * @return system architecture (32/64)
+     * System.getProperty("sun.arch.data.model")
+     * 
+     * @return System architecture (32/64)
      */
-    public static String getArchitecture() {
+    public static final String getArchitecture() {
         return System.getProperty("sun.arch.data.model");
     }
 
     /**
      *
-     * @return name of the operating system
+     * @return Name of the operating system
      */
-    public static String getOSname() {
+    public static final String getOSname() {
         return System.getProperty("os.name");
     }
 
     /**
-     *
+     * System.getProperty("os.version")
+     * 
      * @return version of the operating system
      */
-    public static String getOSversion() {
+    public static final String getOSversion() {
         return System.getProperty("os.version");
     }
 
     /**
      *
-     * @return currently active OS user name
+     * System.getProperty("user.name")
+     * 
+     * @return Currently active OS user name
      */
-    public static String getUserName() {
+    public static final String getUserName() {
         return System.getProperty("user.name");
     }
 
     /**
+     * System.getProperty("java.io.tmpdir")
      * 
      * @return System path of a temporary directory
      */
-    public static String getTempDirectory() {
+    public static final String getTempDirectory() {
         return System.getProperty("java.io.tmpdir");
     }
 
     /**
+     * Runtime.getRuntime().availableProcessors()
      * 
      * @return amount of available processors to the JVM
      */
-    public static Integer getAvailableProcessors() {
+    public static final Integer getAvailableProcessors() {
 
         return Runtime.getRuntime().availableProcessors();
     }
 
     /**
+     * File.separator
      * 
-     * @return OS-specific file separator 
+     * @return OS-specific file separator for forming absolute paths
      */
-    public static String getFileSeparator() {
+    public static final String getFileSeparator() {
         return File.separator;
+    }
+    
+    /**
+     * File.pathSeparator
+     * 
+     * @return OS-specific path separator 
+     */
+    public static final String getPathSeparator() {
+        return File.pathSeparator;
     }
 
     private static final long FIRST_NANO_TIME_CALL = System.nanoTime();
@@ -104,6 +123,10 @@ public class JavaProperties {
         return System.nanoTime() - FIRST_NANO_TIME_CALL;
     }
 
+    /**
+     * 
+     * @return System.currentTimeMillis()
+     */
     public static final long getCurrentTimeMillis() {
         return System.currentTimeMillis();
     }

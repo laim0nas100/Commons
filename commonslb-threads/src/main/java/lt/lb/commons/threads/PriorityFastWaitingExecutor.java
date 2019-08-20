@@ -2,7 +2,7 @@ package lt.lb.commons.threads;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
-import lt.lb.commons.JavaProperties;
+import lt.lb.commons.Java;
 import lt.lb.commons.Timer;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.sync.WaitTime;
@@ -44,7 +44,7 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
             if (r == null) {
                 throw new NullPointerException("Runnable is null");
             }
-            this.time = JavaProperties.getNanoTime();
+            this.time = Java.getNanoTime();
             this.ru = r;
             this.order = order;
         }

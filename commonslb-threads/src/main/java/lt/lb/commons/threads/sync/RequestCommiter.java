@@ -8,7 +8,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.F;
-import lt.lb.commons.JavaProperties;
+import lt.lb.commons.Java;
 import lt.lb.commons.Timer;
 
 /**
@@ -25,7 +25,7 @@ public class RequestCommiter<T> {
 
     protected Callable<T> task;
     protected volatile FutureTask<T> lastCommitTask;
-    protected volatile long lastRequestAdd = JavaProperties.getNanoTime();
+    protected volatile long lastRequestAdd = Java.getNanoTime();
     protected Executor commitExecutor;
 
     protected Runnable timeRun = () -> {
@@ -37,7 +37,7 @@ public class RequestCommiter<T> {
                 }
                 long lastRq = this.getLastRequestAdd();
                 
-                long now = JavaProperties.getNanoTime();
+                long now = Java.getNanoTime();
                 
                 sleepTime = (now - lastRq)/10000000; // to milliseonds
                 if (sleepTime <= 0) {
@@ -58,7 +58,7 @@ public class RequestCommiter<T> {
 
     public void addRequest() {
         
-        lastRequestAdd = JavaProperties.getNanoTime();
+        lastRequestAdd = Java.getNanoTime();
         update();
         if (pendingRequests.incrementAndGet() >= requestThreshhold) {
             commit();

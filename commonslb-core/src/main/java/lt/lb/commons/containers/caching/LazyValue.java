@@ -5,7 +5,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import lt.lb.commons.JavaProperties;
+import lt.lb.commons.Java;
 import lt.lb.commons.Timer;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.threads.Futures;
@@ -19,7 +19,7 @@ import lt.lb.commons.threads.Futures;
 public class LazyValue<T> extends Value<T> {
 
     protected Long loaded = null;
-    protected Supplier<Boolean> loader = () -> loaded != null && loaded <= JavaProperties.getNanoTime();
+    protected Supplier<Boolean> loader = () -> loaded != null && loaded <= Java.getNanoTime();
     protected Supplier<T> supply;
 
     protected AtomicBoolean inGet = new AtomicBoolean(false);
@@ -40,7 +40,7 @@ public class LazyValue<T> extends Value<T> {
      */
     @Override
     public void set(T val) {
-        loaded = JavaProperties.getNanoTime();
+        loaded = Java.getNanoTime();
         super.set(val);
     }
 

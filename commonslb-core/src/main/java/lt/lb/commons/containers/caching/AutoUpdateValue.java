@@ -7,7 +7,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import lt.lb.commons.JavaProperties;
+import lt.lb.commons.Java;
 import lt.lb.commons.Timer;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.misc.NestedException;
@@ -58,7 +58,7 @@ public class AutoUpdateValue<T> extends Value<T> {
                 throw NestedException.of(ex);
             }
         }
-        long now = JavaProperties.getNanoTime();
+        long now = Java.getNanoTime();
 
         if (called.get() > now) {
             return super.get();
@@ -108,7 +108,7 @@ public class AutoUpdateValue<T> extends Value<T> {
      * @return Future so you can monitor when update is finished
      */
     public Future<T> update() {
-        long now = JavaProperties.getNanoTime();
+        long now = Java.getNanoTime();
         long lastCalled = called.get();
         if (called.compareAndSet(lastCalled, now)) {
             FutureTask<T> updateFunc = this.createUpdateFunction();
@@ -125,7 +125,7 @@ public class AutoUpdateValue<T> extends Value<T> {
      */
     @Override
     public void set(T val) {
-        long now = JavaProperties.getNanoTime();
+        long now = Java.getNanoTime();
         long lastSet = lastSetTime.get();
         if(lastSet < now && lastSetTime.compareAndSet(lastSet, now)){
             super.set(val);
