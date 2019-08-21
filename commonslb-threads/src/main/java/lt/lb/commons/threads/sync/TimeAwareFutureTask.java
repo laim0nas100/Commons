@@ -5,11 +5,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.Java;
-import lt.lb.commons.Timer;
 
 /**
  *
- * @author laim0nas100 Time aware FutureTask using Timer.getNanoTime for time
+ * @author laim0nas100 Time aware FutureTask using Java.getNanoTime for time
  */
 public class TimeAwareFutureTask<T> extends FutureTask<T> {
     

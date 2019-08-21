@@ -39,7 +39,7 @@ public final class Job<T> implements Future<T> {
     private Job canceledRoot;
 
     private final FutureTask<T> task;
-    
+
     public Job(String uuid, UnsafeSupplier<T> call) {
         this.uuid = uuid;
         task = Futures.ofCallable(call);
@@ -55,8 +55,8 @@ public final class Job<T> implements Future<T> {
     public Job(UnsafeSupplier<T> call) {
         this(UUID.randomUUID().toString(), call);
     }
-    
-    public Job(UnsafeFunction<Job<T>, T> call){
+
+    public Job(UnsafeFunction<Job<T>, T> call) {
         this(UUID.randomUUID().toString(), call);
     }
 
@@ -148,11 +148,11 @@ public final class Job<T> implements Future<T> {
     public boolean isFailed() {
         return failed;
     }
-    
-    public boolean isDiscarded(){
+
+    public boolean isDiscarded() {
         return discarded.get();
     }
-    
+
     public boolean isRunning() {
         return running.get();
     }
@@ -311,15 +311,15 @@ public final class Job<T> implements Future<T> {
         }
     }
 
-    public void fireEvent(JobEvent event) {
-        if (this.listeners.containsKey(event.getEventName())) {
-            for (JobEventListener listener : this.listeners.get(event.getEventName())) {
-                F.checkedRun(() -> {
-                    listener.onEvent(event);
-                });
-                //ignore exceptions
+    private static final ArrayList<JobEventListener> empty = new ArrayList<>(0);
 
-            }
+    public void fireEvent(JobEvent event) {
+        for (JobEventListener listener : this.listeners.getOrDefault(event.getEventName(), empty)) {
+            F.checkedRun(() -> {
+                listener.onEvent(event);
+            });
+            //ignore exceptions
+
         }
     }
 

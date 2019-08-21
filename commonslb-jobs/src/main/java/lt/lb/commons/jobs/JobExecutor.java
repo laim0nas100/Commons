@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
+import lt.lb.commons.threads.sync.RepeatedRequestCollector;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -28,6 +29,7 @@ public class JobExecutor {
 
     public JobExecutor(Executor exe) {
         this.exe = exe;
+        this.rrc = new RepeatedRequestCollector(3, () -> rescanJobs0(), exe);
     }
 
     /**
@@ -45,14 +47,21 @@ public class JobExecutor {
     }
 
     protected void addScanRequest() {
-        exe.execute(this::rescanJobs);
+        rrc.addRequest();
     }
 
     /**
-     * Rescan jobs. Schedule ready jobs and discard discardable. If no more jobs
-     * are left, completes emptiness waiter.
+     * Re-scan jobs. Schedule ready jobs and discard discardable. If no more
+     * jobs are left, completes emptiness waiter.
      */
     public void rescanJobs() {
+        this.addScanRequest();
+    }
+
+    private RepeatedRequestCollector rrc;
+
+    private void rescanJobs0() {
+
         Iterator<Job> iterator = jobs.iterator();
         while (iterator.hasNext()) {
             Job job = iterator.next();
@@ -66,8 +75,11 @@ public class JobExecutor {
             } else if (job.canRun()) {
                 if (job.scheduled.compareAndSet(false, true)) {
                     job.fireEvent(new JobEvent(JobEvent.ON_SCHEDULED, job));
-
-                    exe.execute(job.asRunnable());
+                    try {
+                        //we dont control executor, so just in case it is bad
+                        exe.execute(job.asRunnable());
+                    } catch (Throwable t) {
+                    }
                 }
             }
         }
@@ -79,7 +91,7 @@ public class JobExecutor {
     }
 
     /**
-     * 
+     *
      * @return true if no more jobs left.
      */
     public boolean isEmpty() {
@@ -93,7 +105,8 @@ public class JobExecutor {
     }
 
     /**
-     * Only prevents new jobs from being submitted and completes termination waiter.
+     * Only prevents new jobs from being submitted and completes termination
+     * waiter.
      */
     public void shutdown() {
         this.isShutdown = true;
@@ -102,9 +115,10 @@ public class JobExecutor {
 
     /**
      * Wait a given time for job list to be empty
+     *
      * @param time
      * @return
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     public boolean awaitJobEmptiness(WaitTime time)
             throws InterruptedException {
@@ -122,13 +136,14 @@ public class JobExecutor {
 
     /**
      * If shutdown was fired, then wait for job list to be empty.
+     *
      * @param time
      * @return
-     * @throws InterruptedException 
+     * @throws InterruptedException
      * @throws IllegalStateException if shutdown was not called
      */
     public boolean awaitTermination(WaitTime time)
-            throws InterruptedException,IllegalStateException {
+            throws InterruptedException, IllegalStateException {
         if (!isShutdown) {
             throw new IllegalStateException("Shutdown was not called");
         }
