@@ -5,21 +5,18 @@ import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  *
  * @author laim0nas100
  */
-public class StreamROI<T> extends BaseROI<T> {
+public class StreamROI<T> extends BaseROI<T> implements Consumer<T> {
 
     protected Spliterator<T> spliterator;
     protected Stream<T> stream;
-    protected Tuple<Boolean, T> nextItem = new Tuple<>(false, null); // <Is Present, Next item> must be mutable, so no prmitives
-    protected Consumer<T> cons = (item) -> {
-        nextItem.setG2(item);
-        nextItem.setG1(true);
-    };
+    protected boolean valueReady;
+    protected T nextValue;
+//    protected Tuple<Boolean, T> nextItem = new Tuple<>(false, null); // <Is Present, Next item> must be mutable, so no prmitives
 
     public StreamROI(Stream<T> stream) {
         Objects.requireNonNull(stream);
@@ -28,24 +25,29 @@ public class StreamROI<T> extends BaseROI<T> {
     }
 
     @Override
+    public void accept(T t) {
+        valueReady = true;
+        nextValue = t;
+    }
+
+    @Override
     public boolean hasNext() {
-        if (!nextItem.g1) {
-            spliterator.tryAdvance(cons);
+        if (!valueReady) {
+            return spliterator.tryAdvance(this);
         }
-        return nextItem.g1;
+        return valueReady;
     }
 
     @Override
     public T next() {
-        if (!nextItem.g1) { // item not present, try to get
-            if (!spliterator.tryAdvance(cons)) {
+        if (!valueReady) { // item not present, try to get
+            if (!spliterator.tryAdvance(this)) {
                 throw new NoSuchElementException();
             }
         }
-        T next = nextItem.g2;
-        nextItem.setG1(false);
+        valueReady = false;
         index++;
-        return setCurrent(next);
+        return setCurrent(nextValue);
     }
 
     @Override

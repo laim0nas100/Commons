@@ -8,7 +8,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
  */
 public abstract class BaseROI<T> implements ReadOnlyIterator<T>{
 
-    protected Integer index = -1;
+    protected int index = -1;
     protected T current;
     
     @Override

@@ -1,14 +1,23 @@
 package empiric.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.ReflectionUtils;
+import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.containers.values.IntegerValue;
+import lt.lb.commons.datafill.NumberFill;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.Iter.IterNoStop;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.iteration.impl.ArrayROI;
+import lt.lb.commons.misc.rng.FastRandom;
 import lt.lb.commons.reflect.ReflectionPrint;
 import org.junit.Test;
 
@@ -33,7 +42,7 @@ public class IteratorTest {
         };
 
         Log.print("as List from 10");
-        F.iterate(asList, 10,14,it);
+        F.iterate(asList, 10, 14, it);
 
         F.iterate(asList, it);
 
@@ -44,6 +53,71 @@ public class IteratorTest {
         F.iterate(arr, it);
 
         F.iterate(ReadOnlyIterator.of(arr), it);
+
+//        Log.print(() -> ReflectionUtils.reflectionString(Log.main(), 2));
+        Log.await(1, TimeUnit.HOURS);
+    }
+
+    @Test
+    public void testBench() throws Exception {
+        FastRandom rng = new FastRandom();
+        ArrayList<Integer> asList = NumberFill.fillArrayList(855555, () -> rng.nextInt());
+        Integer[] arr = asList.stream().toArray(t -> new Integer[t]);
+        Collection<Integer> col = asList;
+        Benchmark bench = new Benchmark();
+        bench.threads = 1;
+
+        Log.main().stackTrace = false;
+        Iter it = (i, item) -> {
+            return (i == 755555);
+        };
+        int times = 100;
+
+        bench.executeBench(times, "List", () -> {
+            F.find(asList, it);
+        }).print(Log::print);
+
+        bench.executeBench(times, "Collection", () -> {
+            F.find(col, it);
+        }).print(Log::print);
+        bench.executeBench(times, "ROI list", () -> {
+            F.find(ReadOnlyIterator.of(asList), it);
+        }).print(Log::print);
+        bench.executeBench(times, "ROI stream ", () -> {
+            F.find(asList.stream(), it);
+        }).print(Log::print);
+        
+        
+        F.find(asList.stream().iterator(), it);
+        bench.executeBench(times, "Stream iter", () -> {
+            F.find(asList.stream().iterator(), it);
+        }).print(Log::print);
+
+        bench.executeBench(times, "pure stream ", () -> {
+            IntegerValue val = new IntegerValue(0);
+            asList.stream().filter(f -> it.visit(val.getAndIncrement(), f)).findFirst();
+        }).print(Log::print);
+        bench.executeBench(times, "ROI array", () -> {
+            F.find(new ArrayROI<>(arr), it);
+        }).print(Log::print);
+        
+        
+        
+        bench.executeBench(times, "Stream array", () -> {
+            IntegerValue val = new IntegerValue(0);
+            Stream.of(arr).filter(f -> it.visit(val.getAndIncrement(), f)).findFirst();
+        }).print(Log::print);
+        bench.executeBench(times, "Array   ", () -> {
+            F.find(arr, it);
+        }).print(Log::print);
+        bench.executeBench(times, "For List", () -> {
+            int i = 0;
+            for (Integer value : asList) {
+                if (it.visit(i++, value)) {
+                    break;
+                }
+            }
+        }).print(Log::print);
 
 //        Log.print(() -> ReflectionUtils.reflectionString(Log.main(), 2));
         Log.await(1, TimeUnit.HOURS);

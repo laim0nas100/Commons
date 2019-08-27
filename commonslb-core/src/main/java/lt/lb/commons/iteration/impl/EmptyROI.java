@@ -2,7 +2,6 @@ package lt.lb.commons.iteration.impl;
 
 import java.util.NoSuchElementException;
 import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
-import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
  *

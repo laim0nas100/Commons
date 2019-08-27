@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import lt.lb.commons.containers.ForwardingStream;
 import lt.lb.commons.iteration.impl.EmptyROI;
+import lt.lb.commons.iteration.impl.ListROI;
 
 /**
  *
@@ -27,7 +29,11 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     }
 
     public static <T> ReadOnlyIterator<T> of(Collection<T> col) {
-        return of(col.iterator());
+        return new IteratorROI<>(col.iterator());
+    }
+    
+    public static <T> ReadOnlyBidirectionalIterator<T> of(List<T> col) {
+        return new ListROI<>(col.listIterator());
     }
 
     public static <T> ReadOnlyBidirectionalIterator<T> of(T... array) {

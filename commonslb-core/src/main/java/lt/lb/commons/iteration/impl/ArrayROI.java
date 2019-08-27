@@ -1,5 +1,6 @@
 package lt.lb.commons.iteration.impl;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 
@@ -9,7 +10,7 @@ import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
  */
 public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIterator<T> {
 
-    protected T[] array;
+    protected final T[] array;
 
     public ArrayROI(T... array) {
         Objects.requireNonNull(array);
@@ -23,8 +24,10 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
 
     @Override
     public T previous() {
-        T val = array[--index];
-        return setCurrent(val);
+        if(!hasPrevious()){
+            throw new NoSuchElementException("No previous value");
+        }
+        return setCurrent(array[--index]);
     }
 
     @Override
@@ -34,8 +37,10 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
 
     @Override
     public T next() {
-        T val = array[++index];
-        return setCurrent(val);
+        if(!hasNext()){
+            throw new NoSuchElementException("No previous value");
+        }
+        return setCurrent(array[++index]);
     }
 
 }
