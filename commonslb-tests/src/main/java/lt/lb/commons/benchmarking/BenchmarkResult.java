@@ -24,7 +24,7 @@ public class BenchmarkResult {
             nameSuff += "\t";
             left -= 8;
         }
-        return String.format(nameSuff + " Times(ms) Total(s): %.5f Min: %.5f Max: %.5f Avg: %.5f", totalTime / (mil * 1000), minTime / mil, maxTime / mil, averageTime / mil);
+        return String.format(nameSuff + " Times(ms) Avg: %.5f Min: %.5f Max: %.5f Total(s): %.5f", averageTime / mil, minTime / mil, maxTime / mil, totalTime / (mil * 1000));
     }
 
     public BenchmarkResult print(Consumer<String> printer) {

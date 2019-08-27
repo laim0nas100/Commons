@@ -17,15 +17,21 @@ public class Benchmark {
     public boolean useGChint = false;
     public boolean useGVhintAfterFullBench = true;
     public int threads = 8;
+    public int warmupTimes = 5;
 
     public BenchmarkResult executeBench(Integer times, String name, Runnable... run) {
 
+        
         Executor serv;
         if (threads > 1) {
             serv = Executors.newFixedThreadPool(threads);
         } else {
             serv = r -> r.run();
         }
+        for(int i = 0; i < warmupTimes; i++) {
+            execute(serv, run);
+        }
+        
         BenchmarkResult res = new BenchmarkResult();
         res.name = name;
         if (useGVhintAfterFullBench) {
@@ -68,7 +74,6 @@ public class Benchmark {
         }
         Promise waiter = new Promise().waitFor(promises);
 
-        
         Timer t = new Timer();
 
         for (Promise p : promises) {
