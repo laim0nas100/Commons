@@ -550,7 +550,7 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(List<T> list, Iter<T> iter) {
-        return find(list, 0, iter);
+        return find(list, 0, -1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Collection<T> list, Integer from, Integer to, Iter<T> iter) {
@@ -558,22 +558,24 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Collection<T> list, Integer from, Iter<T> iter) {
-        return find(ReadOnlyIterator.of(list), from, iter);
+        return find(ReadOnlyIterator.of(list), from, -1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Collection<T> list, Iter<T> iter) {
-        return find(list, 0, iter);
+        return find(ReadOnlyIterator.of(list), 0, -1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(ReadOnlyIterator<T> iterator, Integer from, Integer to, Iter<T> iter) {
+        Integer index = -1;
         while (iterator.hasNext()) {
+            index++;
             T next = iterator.next();
-            if (to >= 0 && iterator.getCurrentIndex() >= to) {
+            if (to >= 0 && index >= to) {
                 return Optional.empty();
             }
-            if (iterator.getCurrentIndex() >= from) {
-                if (iter.visit(iterator.getCurrentIndex(), next)) {
-                    return Optional.of(new Tuple<>(iterator.getCurrentIndex(), next));
+            if (index >= from) {
+                if (iter.visit(index, next)) {
+                    return Optional.of(new Tuple<>(index, next));
                 }
             }
         }
@@ -585,19 +587,32 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(ReadOnlyIterator<T> iterator, Iter<T> iter) {
-        return find(iterator, 0, iter);
+        return find(iterator, 0, -1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Iterator<T> iterator, Integer from, Integer to, Iter<T> iter) {
-        return find(ReadOnlyIterator.of(iterator), from, to, iter);
+        Integer index = -1;
+        while (iterator.hasNext()) {
+            index++;
+            T next = iterator.next();
+            if (to >= 0 && index >= to) {
+                return Optional.empty();
+            }
+            if (index >= from) {
+                if (iter.visit(index, next)) {
+                    return Optional.of(new Tuple<>(index, next));
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Iterator<T> iterator, Integer from, Iter<T> iter) {
-        return find(ReadOnlyIterator.of(iterator), from, iter);
+        return find(iterator, from, -1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Iterator<T> iterator, Iter<T> iter) {
-        return find(ReadOnlyIterator.of(iterator), 0, iter);
+        return find(iterator, 0, -1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(T[] array, Integer from, Integer to, Iter<T> iter) {
@@ -617,7 +632,7 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(T[] array, Iter<T> iter) {
-        return find(array, 0, iter);
+        return find(array, 0, array.length, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Stream<T> stream, Integer from, Integer to, Iter<T> iter) {
@@ -625,11 +640,11 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Stream<T> stream, Integer from, Iter<T> iter) {
-        return find(ReadOnlyIterator.of(stream), from, iter);
+        return find(ReadOnlyIterator.of(stream), from, -1, iter);
     }
 
     public static <T> Optional<Tuple<Integer, T>> find(Stream<T> stream, Iter<T> iter) {
-        return find(stream, 0, iter);
+        return find(stream, 0, -1, iter);
     }
 
     public static <T> void iterate(List<T> list, Integer from, Integer to, Iter.IterNoStop<T> iter) {
@@ -637,11 +652,11 @@ public class F {
     }
 
     public static <T> void iterate(List<T> list, Integer from, Iter.IterNoStop<T> iter) {
-        find(list, from, iter);
+        find(list, from, -1, iter);
     }
 
     public static <T> void iterate(List<T> list, Iter.IterNoStop<T> iter) {
-        find(list, 0, iter);
+        find(list, 0, -1, iter);
     }
 
     public static <T> void iterate(T[] array, Integer from, Integer to, Iter.IterNoStop<T> iter) {
@@ -649,11 +664,11 @@ public class F {
     }
 
     public static <T> void iterate(T[] array, Integer from, Iter.IterNoStop<T> iter) {
-        find(array, from, iter);
+        find(array, from, array.length, iter);
     }
 
     public static <T> void iterate(T[] array, Iter.IterNoStop<T> iter) {
-        find(array, 0, iter);
+        find(array, 0, array.length, iter);
     }
 
     public static <T> void iterate(Iterator<T> iterator, Integer from, Integer to, Iter.IterNoStop<T> iter) {
@@ -665,19 +680,19 @@ public class F {
     }
 
     public static <T> void iterate(Iterator<T> iterator, Iter.IterNoStop<T> iter) {
-        find(ReadOnlyIterator.of(iterator), 0, iter);
+        find(ReadOnlyIterator.of(iterator), 0, -1, iter);
     }
 
     public static <T> void iterate(Collection<T> list, Integer from, Integer to, Iter.IterNoStop<T> iter) {
-        find(list, from, to, iter);
+        find(ReadOnlyIterator.of(list), from, to, iter);
     }
 
     public static <T> void iterate(Collection<T> list, Integer from, Iter.IterNoStop<T> iter) {
-        find(list, from, iter);
+        find(ReadOnlyIterator.of(list), from, -1, iter);
     }
 
     public static <T> void iterate(Collection<T> list, Iter.IterNoStop<T> iter) {
-        find(list, 0, iter);
+        find(ReadOnlyIterator.of(list), 0, -1, iter);
     }
 
     public static <T> void iterate(ReadOnlyIterator<T> iterator, Integer from, Integer to, Iter.IterNoStop<T> iter) {
@@ -685,23 +700,23 @@ public class F {
     }
 
     public static <T> void iterate(ReadOnlyIterator<T> iterator, Integer from, Iter.IterNoStop<T> iter) {
-        find(iterator, from, iter);
+        find(iterator, from, -1, iter);
     }
 
     public static <T> void iterate(ReadOnlyIterator<T> iterator, Iter.IterNoStop<T> iter) {
-        find(iterator, 0, iter);
+        find(iterator, 0, -1, iter);
     }
 
     public static <T> void iterate(Stream<T> stream, Integer from, Integer to, Iter.IterNoStop<T> iter) {
-        find(stream, from, to, iter);
+        find(ReadOnlyIterator.of(stream), from, to, iter);
     }
 
     public static <T> void iterate(Stream<T> stream, Integer from, Iter.IterNoStop<T> iter) {
-        find(stream, from, iter);
+        find(ReadOnlyIterator.of(stream), from, -1, iter);
     }
 
     public static <T> void iterate(Stream<T> stream, Iter.IterNoStop<T> iter) {
-        find(stream, 0, iter);
+        find(ReadOnlyIterator.of(stream), 0, -1, iter);
     }
 
 }
