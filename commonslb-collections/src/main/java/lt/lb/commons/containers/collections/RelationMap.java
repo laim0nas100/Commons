@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.Caller;
 import lt.lb.commons.F;
+import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
@@ -120,11 +121,10 @@ public class RelationMap<K, V> implements Map<K, V> {
             b.append("Multiple relations satisfied with [").append(from.key).append("] > ").append(violations);
             throw new IllegalArgumentException(b.toString() + " Terminating to prevent undefined behaviour.");
         }
-        if (filled.size() == 1) {
-            Rnode<K, V> next = filled.getFirst();
-            return Caller.ofFunction(args -> traverse(next, to, rel));
-        } else {
+        if (filled.isEmpty()) {
             return Caller.ofResult(from);
+        } else {
+            return Caller.ofFunction(args -> traverse(filled.getFirst(), to, rel));
 
         }
     }
@@ -310,7 +310,7 @@ public class RelationMap<K, V> implements Map<K, V> {
      * @return
      */
     public static <T> RelationMap<Class, T> newTypeMap(Class rootClass, T root) {
-        return new RelationMap<>(rootClass, root, (k1, k2) -> F.instanceOf(k1, k2));
+        return new RelationMap<>(rootClass, root, (k1, k2) -> Ins.instanceOf(k1, k2));
     }
 
     /**
@@ -355,7 +355,7 @@ public class RelationMap<K, V> implements Map<K, V> {
                 return true;
             }
 
-            return F.instanceOf(child, parent);
+            return Ins.instanceOf(child, parent);
 
         }
     }

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import lt.lb.commons.F;
+import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.parsing.StringOp;
@@ -63,7 +64,7 @@ public class WekaParser<T> {
         }
         //try to match derived class
         return F.find(printers, (c, pr) -> {
-            return F.instanceOf(cls, c);
+            return Ins.of(cls).instanceOf(c);
         }).map(m -> m.g2);
     }
 
@@ -102,12 +103,11 @@ public class WekaParser<T> {
         int maxTypeLength = arr.stream().map(f -> f.getType()).map(f -> ensureWekaPrinter(f).typeInfo().length()).max(ExtComparator.ofComparable()).orElse(30) + 3;
         final String format = "@ATTRIBUTE %-" + maxFieldLength + "s %-" + maxTypeLength + "s %s";
         F.iterate(arr, (i, field) -> {
-            Optional<String> map = F.find(field.getAnnotations(), (j, a) -> {
-                return a instanceof Comment;
-            }).map(m -> {
-                Comment com = F.cast(m.g2);
-                return com.value();
-            }).map(m -> " % " + m);
+            Optional<String> map = F.find(field.getAnnotations(), (j, a) -> a instanceof Comment)
+                    .map(m -> {
+                        Comment com = F.cast(m.g2);
+                        return com.value();
+                    }).map(m -> " % " + m);
             str.add(String.format(format, field.getName(), ensureWekaPrinter(field.getType()).typeInfo(), map.orElse("")));
         });
         return str;
@@ -139,7 +139,6 @@ public class WekaParser<T> {
         });
         return newInstance;
     }
-
 
     /**
      *
@@ -194,6 +193,3 @@ public class WekaParser<T> {
 
     }
 }
-
-
-

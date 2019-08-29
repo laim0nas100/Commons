@@ -9,7 +9,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
@@ -212,36 +211,6 @@ public class F {
      */
     public static <T extends E, E> T cast(E ob) throws ClassCastException {
         return (T) ob;
-    }
-
-    public static boolean instanceOf(Object ob, Class... cls) {
-        if (ob == null) {
-            return false;
-        }
-        Class obClass = ob.getClass();
-        return instanceOf(obClass, cls);
-    }
-
-    public static boolean instanceOfAll(Object ob, Class... cls) {
-        if (ob == null) {
-            return false;
-        }
-        Class obClass = ob.getClass();
-        return instanceOfAll(obClass, cls);
-    }
-
-    public static boolean instanceOf(Class obClass, Class... cls) {
-        if (obClass == null) {
-            return false;
-        }
-        return ArrayOp.any(c -> c.isAssignableFrom(obClass), cls);
-    }
-
-    public static boolean instanceOfAll(Class obClass, Class... cls) {
-        if (obClass == null) {
-            return false;
-        }
-        return ArrayOp.all(c -> c.isAssignableFrom(obClass), cls);
     }
 
     public static <T> void merge(List<T> l1, List<T> l2, List<T> addTo, Comparator<T> cmp) {
