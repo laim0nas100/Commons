@@ -2,6 +2,7 @@ package lt.lb.commons.misc;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import lt.lb.commons.Ins;
 
 /**
  *
@@ -44,6 +45,23 @@ public class NestedException extends RuntimeException {
             return ((NestedException) t).unwrapReal();
         } else {
             return t;
+        }
+    }
+
+    /**
+     * Unwraps Nested exception, if such exists. Then compares exception to
+     * allowed types and throws if any of the types matches.
+     *
+     * @param <X>
+     * @param th
+     * @param ex
+     * @throws X
+     */
+    public static <X extends Throwable> void unwrappedThrowIf(Throwable th, Class<X>... ex) throws X {
+
+        Throwable t = unwrap(th);
+        if (Ins.ofNullable(t).instanceOfAny(ex)) {
+            throw (X) t;
         }
     }
 

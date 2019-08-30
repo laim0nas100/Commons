@@ -1,7 +1,13 @@
 package lt.lb.commons.misc;
 
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 import lt.lb.commons.interfaces.Equator;
 
 /**
@@ -10,9 +16,13 @@ import lt.lb.commons.interfaces.Equator;
  *
  * @author laim0nas100
  */
-public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
-
+public interface ExtComparator<T> extends Comparator<T>, Equator<T>, Serializable {
+    
     public static final ExtComparator NO_ORDER = (a, b) -> 0;
+    
+    public static <T> ExtComparator<T> basis(Class<T> cls) {
+        return NO_ORDER;
+    }
 
     /**
      * @param o1
@@ -118,19 +128,20 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
      * @param func mapping functions
      * @return
      */
-    public static <T ,V extends Comparable> ExtComparator<T> ofValues(Function<? super T, ? extends V>... func) {
-        Comparator<T> cmp = NO_ORDER;
+    public static <T, V extends Comparable> ExtComparator<T> ofValues(Function<? super T, ? extends V>... func) {
+        
         if (func.length == 0) {
             return NO_ORDER;
         }
+        ExtComparator<T> cmp = NO_ORDER;
         if (func.length >= 1) {
             cmp = ExtComparator.ofValue(func[0]);
             for (int i = 1; i < func.length; i++) {
                 cmp = cmp.thenComparing(func[i]);
             }
         }
-
-        return ExtComparator.of(cmp);
+        
+        return cmp;
     }
 
     /**
@@ -140,18 +151,19 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
      * @return
      */
     public static <T> ExtComparator<T> ofComparators(Comparator<T>... func) {
-        Comparator<T> cmp = NO_ORDER;
+        
         if (func.length == 0) {
             return NO_ORDER;
         }
+        ExtComparator<T> cmp = NO_ORDER;
         if (func.length >= 1) {
             cmp = ExtComparator.of(func[0]);
             for (int i = 1; i < func.length; i++) {
                 cmp = cmp.thenComparing(func[i]);
             }
         }
-
-        return ExtComparator.of(cmp);
+        
+        return cmp;
     }
 
     /**
@@ -182,7 +194,7 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
             }
             return o1.compareTo(o2);
         };
-
+        
     }
 
     /**
@@ -205,7 +217,7 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
             }
             return o1.compareTo(o2);
         };
-
+        
     }
 
     /**
@@ -217,5 +229,44 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T> {
     public default Comparable<? extends T> asComparable(T obj) {
         return (T o) -> this.compare(obj, o);
     }
-
+    
+    @Override
+    public default ExtComparator<T> reversed() {
+        return of(Collections.reverseOrder(this));
+    }
+    
+    @Override
+    public default ExtComparator<T> thenComparing(Comparator<? super T> other) {
+        Objects.requireNonNull(other);
+        return (ExtComparator<T> & Serializable) (c1, c2) -> {
+            int res = compare(c1, c2);
+            return (res != 0) ? res : other.compare(c1, c2);
+        };
+    }
+    
+    @Override
+    public default <U> ExtComparator<T> thenComparing(Function<? super T, ? extends U> keyExtractor, Comparator<? super U> keyComparator) {
+        return thenComparing(ofValue(keyExtractor, keyComparator));
+    }
+    
+    @Override
+    public default <U extends Comparable<? super U>> ExtComparator<T> thenComparing(Function<? super T, ? extends U> keyExtractor) {
+        return thenComparing(ofValue(keyExtractor));
+    }
+    
+    @Override
+    public default ExtComparator<T> thenComparingDouble(ToDoubleFunction<? super T> keyExtractor) {
+        return of(Comparator.super.thenComparingDouble(keyExtractor)); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public default ExtComparator<T> thenComparingInt(ToIntFunction<? super T> keyExtractor) {
+        return of(Comparator.super.thenComparingInt(keyExtractor)); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public default ExtComparator<T> thenComparingLong(ToLongFunction<? super T> keyExtractor) {
+        return of(Comparator.super.thenComparingLong(keyExtractor)); //To change body of generated methods, choose Tools | Templates.
+    }
+    
 }

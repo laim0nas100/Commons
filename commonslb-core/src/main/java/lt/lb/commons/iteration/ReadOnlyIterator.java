@@ -150,4 +150,36 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
             }
         };
     }
+    
+    default ReadOnlyIterator<T> withCloseOperation(Runnable run){
+        ReadOnlyIterator<T> me = this;
+        return new ReadOnlyIterator<T>() {
+            @Override
+            public void close() {
+                me.close();
+                run.run();
+            }
+            @Override
+            public T getCurrent() {
+                return me.getCurrent();
+            }
+
+            @Override
+            public Integer getCurrentIndex() {
+                return me.getCurrentIndex();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return me.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return me.next();
+            }
+            
+            
+        };
+    }
 }

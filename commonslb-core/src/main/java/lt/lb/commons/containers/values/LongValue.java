@@ -2,12 +2,11 @@ package lt.lb.commons.containers.values;
 
 import lt.lb.commons.misc.numbers.ExplicitNumberFunctions.BiFunctionsLong;
 
-
 /**
  *
  * @author laim0nas100
  */
-public class LongValue extends NumberValue<Long>{
+public class LongValue extends NumberValue<Long> {
 
     public LongValue() {
     }
@@ -15,7 +14,11 @@ public class LongValue extends NumberValue<Long>{
     public LongValue(Long val) {
         super(val);
     }
-    
+
+    public LongValue(int val) {
+        super((long) val);
+    }
+
     @Override
     public Long getAndMod(Number n) {
         Long i = value;
@@ -100,5 +103,5 @@ public class LongValue extends NumberValue<Long>{
     public Long incrementAndGet() {
         return ++value;
     }
-    
+
 }
