@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.LongValue;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
 import org.junit.Test;
 
@@ -23,7 +24,7 @@ public class ThreadBottleneckTest {
         public long increment();
     }
 
-    public static Runnable makeRun(Incrementer inc, int times) {
+    public static UnsafeRunnable makeRun(Incrementer inc, int times) {
         return () -> {
             for (int i = 0; i < times; i++) {
                 inc.increment();

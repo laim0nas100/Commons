@@ -19,7 +19,7 @@ public class Benchmark {
     public int threads = 8;
     public int warmupTimes = 5;
 
-    public BenchmarkResult executeBench(Integer times, String name, Runnable... run) {
+    public BenchmarkResult executeBench(Integer times, String name, UnsafeRunnable... run) {
 
         
         Executor serv;
@@ -66,11 +66,11 @@ public class Benchmark {
 
     }
 
-    public long execute(Executor exe, Runnable... run) {
+    public long execute(Executor exe, UnsafeRunnable... run) {
 
         List<Promise> promises = new LinkedList<>();
-        for (Runnable r : run) {
-            promises.add(new Promise(UnsafeRunnable.from(r)));
+        for (UnsafeRunnable r : run) {
+            promises.add(new Promise(r));
         }
         Promise waiter = new Promise().waitFor(promises);
 

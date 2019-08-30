@@ -28,6 +28,7 @@ import lt.lb.commons.Predicates;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.Lambda;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.Memoized;
@@ -321,13 +322,13 @@ public class CommonsTest {
         Lambda.L1R<Long, BigInteger> memoize = memoized.memoize(of);
 
         Log.print("RUN");
-        Runnable r1 = () -> {
+        UnsafeRunnable r1 = () -> {
             for (Integer i = 10; i < 35; i++) {
                 of.apply(i.longValue());
             }
         };
 
-        Runnable r2 = () -> {
+        UnsafeRunnable r2 = () -> {
             for (Integer i = 10; i < 35; i++) {
                 memoize.apply(i.longValue());
             }

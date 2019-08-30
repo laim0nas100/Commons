@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.benchmarking.BenchmarkResult;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
@@ -262,9 +263,9 @@ Benchmark b = new Benchmark();
 
     }
 
-    public <T> Runnable makeBenchWrite(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UnsafeRunnable makeBenchWrite(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        Runnable run = () -> {
+        UnsafeRunnable run = () -> {
 
             Object ob = new Object();
             int bound = list.size();
@@ -285,9 +286,9 @@ Benchmark b = new Benchmark();
         }
     }
 
-    public <T> Runnable makeBenchRead(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UnsafeRunnable makeBenchRead(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        Runnable run = () -> {
+        UnsafeRunnable run = () -> {
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {
                 Object get = list.get(rnd.nextInt(list.size()));
@@ -297,9 +298,9 @@ Benchmark b = new Benchmark();
         return run;
     }
 
-    public <T> Runnable makeBenchReadWrite(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UnsafeRunnable makeBenchReadWrite(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        Runnable run = () -> {
+        UnsafeRunnable run = () -> {
             Object ob = new Object();
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {
@@ -313,9 +314,9 @@ Benchmark b = new Benchmark();
         return run;
     }
 
-    public <T> Runnable makeBenchWriteRead(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UnsafeRunnable makeBenchWriteRead(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        Runnable run = () -> {
+        UnsafeRunnable run = () -> {
             Object ob = new Object();
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {
@@ -334,9 +335,9 @@ Benchmark b = new Benchmark();
         return run;
     }
 
-    public <T> Runnable makeBenchRandomWriteRead(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UnsafeRunnable makeBenchRandomWriteRead(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        Runnable run = () -> {
+        UnsafeRunnable run = () -> {
             Object ob = new Object();
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {

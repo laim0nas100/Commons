@@ -6,7 +6,6 @@
 package regression.core;
 
 import lt.lb.commons.Ins;
-import lt.lb.commons.Log;
 import org.junit.Test;
 
 /**

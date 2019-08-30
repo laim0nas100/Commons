@@ -16,6 +16,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.rng.FastRandom;
 import org.junit.Test;
@@ -77,7 +78,7 @@ public class CollectionTest {
         
     }
     
-    public Runnable makeRun(Map<Integer, String> map, Random r, int times) {
+    public UnsafeRunnable makeRun(Map<Integer, String> map, Random r, int times) {
         return () -> {
             map.put(0, r.nextInt() + "");
             for (int i = 0; i < times; i++) {
