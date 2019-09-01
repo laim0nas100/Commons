@@ -1,10 +1,10 @@
 package lt.lb.commons.io.blobify;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import lt.lb.commons.io.blobify.bytes.Bytes;
+import lt.lb.commons.io.blobify.bytes.ChunkyBytes;
 import lt.lb.commons.parsing.StringOp;
+import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;
 
 /**
  *
@@ -15,8 +15,8 @@ public class Blobby {
     static final String sep = "\\/";
     private String relativePath;
     private boolean file;
-    private byte[] bytes;
-    private int length;
+    private ChunkyBytes bytes = ChunkyBytes.empty();
+    private long length;
     private long offset;
 
     private Blobby() {
@@ -27,11 +27,11 @@ public class Blobby {
         return this.relativePath;
     }
 
-    public int getLength() {
+    public long getLength() {
         return length;
     }
 
-    public byte[] getBytes() {
+    public ChunkyBytes getBytes() {
         return this.bytes;
     }
 
@@ -44,31 +44,30 @@ public class Blobby {
     }
 
     public boolean isLoaded() {
-        return !file || bytes != null;
+        return !file || bytes.notEmpty();
     }
 
     public boolean isLoadedFile() {
-        return file && bytes != null;
+        return file && bytes.notEmpty();
     }
 
     public boolean isUnloadedFile() {
-        return file && bytes == null;
+        return file && bytes.isEmpty();
     }
 
-    public static Blobby fromArgsFileBytes(String path, int length, long offset, byte[] bytes) {
+    public static Blobby fromArgsFileBytes(String path, long length, long offset, ChunkyBytes bytes) {
         Blobby obj = fromArgsFile(path, length, offset);
         obj.bytes = bytes;
 
         return obj;
     }
     
-    public static Blobby fromArgsFile(String path, int length, long offset) {
+    public static Blobby fromArgsFile(String path, long length, long offset) {
         Blobby obj = new Blobby();
         obj.relativePath = path;
         obj.file = true;
         obj.offset = offset;
         obj.length = length;
-
         return obj;
     }
 
@@ -92,21 +91,12 @@ public class Blobby {
     }
     
     public void nullBytes(){
-        this.bytes = null;
+        this.bytes.nullBytes();
     }
     
-     public void tryLoad(FileChannel channel) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(this.getLength());
-        channel.read(buffer, this.getOffset());
-        this.bytes = buffer.array();
-    }
-    
-    public void tryLoad(InputStream stream) throws IOException {
-        stream.reset();
-        stream.skip(this.getOffset());
-        byte[] readBytes = new byte[this.getLength()];
-        stream.read(readBytes);
-        this.bytes = readBytes;
+    public void tryLoad(ReadableSeekBytes stream) throws IOException {
+        stream.jumpTo(this.getOffset());
+        bytes.readIn(getLength(), stream);
     }
 
 }

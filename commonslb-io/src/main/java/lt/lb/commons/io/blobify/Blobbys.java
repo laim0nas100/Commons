@@ -1,9 +1,8 @@
 package lt.lb.commons.io.blobify;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,16 +17,22 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.io.DirectoryTreeVisitor;
+import lt.lb.commons.io.blobify.bytes.Bytes;
+import lt.lb.commons.io.blobify.bytes.ChunkyBytes;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.parsing.StringOp;
+import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;
+import lt.lb.commons.io.blobify.bytes.WriteableBytes;
 
 /**
  *
  * @author laim0nas100
  */
 public class Blobbys {
+
+    public static final int CHUNK_SIZE = 1073741824; // 1 GigaByte
 
     public static Blobbys loadFromConfig(ReadOnlyIterator<String> config) {
 
@@ -45,6 +50,7 @@ public class Blobbys {
 
         Blobbys objs = new Blobbys();
         DirectoryTreeVisitor visitor = new DirectoryTreeVisitor() {
+
             long offset = 0;
 
             @Override
@@ -57,15 +63,19 @@ public class Blobbys {
                     throw NestedException.of(new IOException(relative + " contains reserved custom separator: " + Blobby.sep));
                 }
                 if (!Files.isDirectory(item)) {
-                    try {
-                        byte[] bytes = Files.readAllBytes(item);
-                        int length = bytes.length;
-                        objs.add(Blobby.fromArgsFileBytes(relative, length, offset, bytes));
+                    try (SeekableByteChannel channel = Files.newByteChannel(item)) {
+
+                        long length = channel.size();
+
+                        ChunkyBytes chunky = ChunkyBytes.chunky(CHUNK_SIZE);
+
+                        objs.add(Blobby.fromArgsFileBytes(relative, length, offset, chunky));
+                        chunky.readIn(length, Bytes.readFromSeekableByteChannel(channel));
                         offset += length;
 
                     } catch (IOException e) {
                         throw NestedException.of(e);
-                    }
+                    } 
 
                 } else {
                     objs.add(Blobby.fromArgsDirectory(relative));
@@ -87,25 +97,17 @@ public class Blobbys {
     }
 
     public void unload(String relative) {
-        this.get(relative).filter(p -> p.isLoadedFile()).ifPresent(p -> p = null);
+        this.get(relative).filter(p -> p.isLoadedFile()).ifPresent(p -> p.nullBytes());
     }
 
     public void unloadAll() {
         this.getKeys().forEach(k -> unload(k));
     }
 
-    public void loadAll(FileChannel channel) throws IOException {
+    public void loadAll(ReadableSeekBytes channel) throws IOException {
         Blobby[] array = objects.values().stream().filter(f -> f.isUnloadedFile()).toArray(s -> new Blobby[s]);
         for (Blobby obj : array) {
             obj.tryLoad(channel);
-        }
-    }
-
-    public void loadAll(InputStream stream) throws IOException {
-        Blobby[] array = objects.values().stream().filter(f -> f.isUnloadedFile()).toArray(s -> new Blobby[s]);
-        for (Blobby obj : array) {
-            obj.tryLoad(stream);
-
         }
     }
 
@@ -154,7 +156,7 @@ public class Blobbys {
     }
 
     public long loadedSize() {
-        return objects.values().stream().filter(f -> f.isLoadedFile()).mapToInt(m -> m.getLength()).sum();
+        return objects.values().stream().filter(f -> f.isLoadedFile()).mapToLong(m -> m.getLength()).sum();
     }
 
     public boolean isAllLoaded() {
@@ -165,7 +167,7 @@ public class Blobbys {
         return this.getInOrder().filter(filter).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public void exportFiles(String exportFolder, BiConsumer<byte[], Path> onFileExists) throws IOException {
+    public void exportFiles(String exportFolder, BiConsumer<ChunkyBytes, Path> onFileExists) throws IOException {
         Files.createDirectories(Paths.get(exportFolder));
 
         for (Blobby obj : getLoadedInOrder()) {
@@ -173,7 +175,7 @@ public class Blobbys {
             Files.createDirectories(path);
             if (obj.isLoadedFile()) {
                 try (OutputStream newOutputStream = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
-                    newOutputStream.write(obj.getBytes());
+                    obj.getBytes().writeOutFull(Bytes.writeToOutputStream(newOutputStream));
                 } catch (FileAlreadyExistsException ex) {
                     onFileExists.accept(obj.getBytes(), path);
                 }
@@ -181,71 +183,52 @@ public class Blobbys {
         }
     }
 
-    public ArrayList<String> exportBlob(OutputStream stream) throws IOException {
-        ArrayList<String> config = new ArrayList<>((int) this.loadedCount());
+    public Blobbys copyWithOnlyLoaded() throws IOException {
+        Blobbys blob = new Blobbys();
+        long offset = 0;
         for (Blobby obj : getLoadedInOrder()) {
-            config.add(obj.toSerializable());
+
             if (obj.isLoadedFile()) {
-                stream.write(obj.getBytes());
+                blob.add(Blobby.fromArgsFile(obj.getRelativePath(), obj.getLength(), offset));
+                offset += obj.getLength();
+            } else {
+                blob.add(Blobby.fromArgsDirectory(obj.getRelativePath()));
+
+            }
+        }
+        return blob;
+    }
+
+    public ArrayList<String> exportBlob(WriteableBytes output) throws IOException {
+        ArrayList<String> config = new ArrayList<>(this.loadedCount());
+        for (Blobby b : this.getLoadedInOrder()) {
+            config.add(b.toSerializable());
+
+            if (b.isLoadedFile()) {
+                b.getBytes().writeOutFull(output);
             }
         }
         return config;
-
-    }
-
-    public ArrayList<Blobby> exportPartAndLoad(FileChannel channel, Predicate<? super Blobby> filter) throws IOException {
-        ArrayList<Blobby> collect = this.getInOrder().filter(filter).collect(Collectors.toCollection(ArrayList::new));
-        for (Blobby obj : collect) {
-            obj.tryLoad(channel);
-        }
-        return collect;
-    }
-
-    public ArrayList<Blobby> exportPartAndLoad(InputStream stream, Predicate<? super Blobby> filter) throws IOException {
-        ArrayList<Blobby> collect = this.getInOrder().filter(filter).collect(Collectors.toCollection(ArrayList::new));
-        for (Blobby obj : collect) {
-            obj.tryLoad(stream);
-        }
-        return collect;
     }
 
     public Optional<Blobby> get(String relativePath) {
         return Optional.ofNullable(objects.get(relativePath));
     }
 
-    public Optional<Blobby> getAndLoad(FileChannel channel, String relativePath) throws IOException {
+    public Optional<Blobby> getAndLoad(ReadableSeekBytes channel, String relativePath) throws IOException {
 
         Optional<Blobby> get = this.get(relativePath);
 
-        if (goodToReturn(get)) {
-            return get;
-        }
-        get.get().tryLoad(channel);
-
-        return get;
-
-    }
-
-    public Optional<Blobby> getAndLoad(InputStream stream, String relativePath) throws IOException {
-        Optional<Blobby> get = this.get(relativePath);
-
-        if (goodToReturn(get)) {
-            return get;
-        }
-        get.get().tryLoad(stream);
-
-        return get;
-    }
-
-    private boolean goodToReturn(Optional<Blobby> get) {
         if (!get.isPresent()) {
-            return true;
+            return get;
         }
-        Blobby obj = get.get();
-        if (obj.isLoaded()) {
-            return true;
+        Blobby blobby = get.get();
+        if (!blobby.isLoaded()) {
+            blobby.tryLoad(channel);
         }
-        return false;
+
+        return get;
+
     }
 
 }
