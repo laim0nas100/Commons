@@ -50,11 +50,11 @@ public class SizedChunkyBytes implements ChunkyBytes {
             this.chunkCount++;
         }
         byteLength = 0;
-        multiBytes = new byte[getChunkCount()][];
-        for (int i = 0; i < getChunkCount(); i++) {
+        multiBytes = new byte[chunkCount][];
+        for (int i = 0; i < chunkCount; i++) {
             int size = this.getChunkSize();
             if (i == lastChunkIndex) {
-                size = lastChunkIndex;
+                size = lastChunkSize;
             }
             byte[] bytes = new byte[size];
             readableBytes.readBytesFully(bytes);

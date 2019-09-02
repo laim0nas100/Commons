@@ -54,6 +54,10 @@ public class Blobby {
     public boolean isUnloadedFile() {
         return file && bytes.isEmpty();
     }
+    
+    public boolean isFile(){
+        return file;
+    }
 
     public static Blobby fromArgsFileBytes(String path, long length, long offset, ChunkyBytes bytes) {
         Blobby obj = fromArgsFile(path, length, offset);
@@ -86,6 +90,7 @@ public class Blobby {
         obj.file = Boolean.parseBoolean(split[1]);
         obj.offset = Long.parseLong(split[2]);
         obj.length = Integer.parseInt(split[3]);
+        obj.bytes = ChunkyBytes.chunky(Blobbys.CHUNK_SIZE);
 
         return obj;
     }
@@ -94,7 +99,7 @@ public class Blobby {
         this.bytes.nullBytes();
     }
     
-    public void tryLoad(ReadableSeekBytes stream) throws IOException {
+    void tryLoad(ReadableSeekBytes stream) throws IOException {
         stream.jumpTo(this.getOffset());
         bytes.readIn(getLength(), stream);
     }

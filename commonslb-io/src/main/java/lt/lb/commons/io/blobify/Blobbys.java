@@ -16,6 +16,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lt.lb.commons.containers.caching.LazyDependantValue;
 import lt.lb.commons.io.DirectoryTreeVisitor;
 import lt.lb.commons.io.blobify.bytes.Bytes;
 import lt.lb.commons.io.blobify.bytes.ChunkyBytes;
@@ -32,7 +33,11 @@ import lt.lb.commons.io.blobify.bytes.WriteableBytes;
  */
 public class Blobbys {
 
-    public static final int CHUNK_SIZE = 1073741824; // 1 GigaByte
+    public long nextOffset = 0;
+    public static final int KB = 1024;
+    public static final int MB = KB * KB;
+
+    public static final int CHUNK_SIZE = 16 * MB;
 
     public static Blobbys loadFromConfig(ReadOnlyIterator<String> config) {
 
@@ -68,14 +73,16 @@ public class Blobbys {
                         long length = channel.size();
 
                         ChunkyBytes chunky = ChunkyBytes.chunky(CHUNK_SIZE);
+                        ReadableSeekBytes readFromSeekableByteChannel = Bytes.readFromSeekableByteChannel(channel);
+                        chunky.readIn(length, readFromSeekableByteChannel);
+                        Blobby fromArgsFileBytes = Blobby.fromArgsFileBytes(relative, length, offset, chunky);
+                        objs.add(fromArgsFileBytes);
 
-                        objs.add(Blobby.fromArgsFileBytes(relative, length, offset, chunky));
-                        chunky.readIn(length, Bytes.readFromSeekableByteChannel(channel));
                         offset += length;
 
                     } catch (IOException e) {
                         throw NestedException.of(e);
-                    } 
+                    }
 
                 } else {
                     objs.add(Blobby.fromArgsDirectory(relative));
@@ -117,8 +124,6 @@ public class Blobbys {
         return ReadOnlyIterator.of(getInOrder().filter(f -> f.isLoaded()));
     }
 
-    private static ExtComparator<Blobby> cmp = ExtComparator.ofValue(v -> v.getOffset());
-
     private static ExtComparator<Blobby> getCmp() {
 
         return ExtComparator.basis(Blobby.class)
@@ -139,8 +144,16 @@ public class Blobbys {
     }
 
     public Blobbys add(Blobby obj) {
+
         if (objects.containsKey(obj.getRelativePath())) {
             throw new IllegalArgumentException(obj.getRelativePath() + " is allready in this collection");
+        }
+        if (obj.isFile()) {
+            if (obj.getOffset() != getNextOffset()) {
+                throw new IllegalArgumentException("Last offset missmatch expected:" + getNextOffset() + " got:" + obj.getOffset());
+            }
+            nextOffset += obj.getLength();
+
         }
         objects.put(obj.getRelativePath(), obj);
 
@@ -161,6 +174,16 @@ public class Blobbys {
 
     public boolean isAllLoaded() {
         return count() == loadedCount();
+    }
+
+    public long getNextOffset() {
+        return nextOffset;
+    }
+
+    private long calculateNextOffset() {
+        return objects.values().stream()
+                .max(ExtComparator.ofValue(v -> v.getOffset()))
+                .map(m -> m.getLength() + m.getOffset()).orElse(0L);
     }
 
     public ArrayList<Blobby> getInOrderFiltered(Predicate<? super Blobby> filter) {
@@ -189,7 +212,7 @@ public class Blobbys {
         for (Blobby obj : getLoadedInOrder()) {
 
             if (obj.isLoadedFile()) {
-                blob.add(Blobby.fromArgsFile(obj.getRelativePath(), obj.getLength(), offset));
+                blob.add(Blobby.fromArgsFileBytes(obj.getRelativePath(), obj.getLength(), offset, obj.getBytes()));
                 offset += obj.getLength();
             } else {
                 blob.add(Blobby.fromArgsDirectory(obj.getRelativePath()));

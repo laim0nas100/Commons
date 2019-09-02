@@ -8,8 +8,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
-import lt.lb.commons.io.blobify.bytes.impl.SizedChunkyBytes;
-import lt.lb.commons.io.blobify.bytes.impl.EmptyChunkyBytes;
 
 /**
  *
