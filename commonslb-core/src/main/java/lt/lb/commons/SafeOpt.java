@@ -3,10 +3,12 @@ package lt.lb.commons;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import lt.lb.commons.func.unchecked.UnsafeBiFunction;
 import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.misc.NestedException;
 
@@ -171,7 +173,7 @@ public class SafeOpt<T> implements Supplier<T> {
             try {
                 return predicate.test(val) ? this : empty();
             } catch (Throwable t) {
-                return SafeOpt.empty(t);
+                return SafeOpt.empty(NestedException.unwrap(t));
             }
         }
     }
@@ -197,7 +199,7 @@ public class SafeOpt<T> implements Supplier<T> {
             try {
                 return SafeOpt.ofNullable(mapper.apply(val));
             } catch (Throwable t) {
-                return SafeOpt.empty(t);
+                return SafeOpt.empty(NestedException.unwrap(t));
             }
         }
     }
@@ -259,7 +261,7 @@ public class SafeOpt<T> implements Supplier<T> {
                     return apply;
                 }
             } catch (Throwable t) {
-                return SafeOpt.empty(t);
+                return SafeOpt.empty(NestedException.unwrap(t));
             }
             return SafeOpt.empty();
         }
@@ -299,7 +301,52 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
-     * If a value is present in this {@code Optional}, returns the value,
+     * If both values are present (in this {@code SafeOpt} and provided
+     * {@code SafeOpt with} object, then proceed with combining those values in
+     * a safe manner, capturing any exceptions. With and mapper must be
+     * explicitly not null.
+     *
+     * @param <U>
+     * @param <P>
+     * @param with
+     * @param mapper
+     * @return
+     */
+    public <U, P> SafeOpt<U> mapCombine(SafeOpt<P> with, UnsafeBiFunction<? super T, P, ? extends U> mapper) {
+        return mapCombine(with, (BiFunction<T, P, U>) mapper);
+    }
+
+    /**
+     * If both values are present (in this {@code SafeOpt} and provided
+     * {@code SafeOpt with} object, then proceed with combining those values in
+     * a safe manner, capturing any exceptions. With and mapper must be
+     * explicitly not null.
+     *
+     * @param <U>
+     * @param <P>
+     * @param with
+     * @param mapper
+     * @return
+     */
+    public <U, P> SafeOpt<U> mapCombine(SafeOpt<P> with, BiFunction<? super T, P, ? extends U> mapper) {
+        Objects.requireNonNull(with, "Null with object");
+        Objects.requireNonNull(mapper, "Null map function");
+
+        if (!isPresent()) {
+            return SafeOpt.empty(this.threw);
+        } else if (!with.isPresent()) {
+            return SafeOpt.empty(with.threw);
+        } else {
+            try {
+                return SafeOpt.ofNullable(mapper.apply(this.val, with.val));
+            } catch (Throwable t) {
+                return SafeOpt.empty(NestedException.unwrap(t));
+            }
+        }
+    }
+
+    /**
+     * If a value is present in this {@code SafeOpt}, returns the value,
      * otherwise throws {@code NoSuchElementException}.
      *
      * @return the non-null value held by this {@code Optional}
