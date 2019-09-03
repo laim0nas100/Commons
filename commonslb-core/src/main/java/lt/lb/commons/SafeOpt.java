@@ -352,7 +352,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param options
      * @return 
      */
-    public <U> SafeOpt<U> selectFirstPresent(SafeOpt<U>...options){
+    public static <U> SafeOpt<U> selectFirstPresent(SafeOpt<U>...options){
         Objects.requireNonNull(options,"Null options");
         for(SafeOpt<U> opt:options){
             if(opt.isPresent()){
