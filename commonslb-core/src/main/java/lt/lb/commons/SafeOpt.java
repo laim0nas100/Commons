@@ -344,6 +344,23 @@ public class SafeOpt<T> implements Supplier<T> {
             }
         }
     }
+    
+    
+    /**
+     * Select first {@code SafeOpt} which is present, otherwise return empty;
+     * @param <U>
+     * @param options
+     * @return 
+     */
+    public <U> SafeOpt<U> selectFirstPresent(SafeOpt<U>...options){
+        Objects.requireNonNull(options,"Null options");
+        for(SafeOpt<U> opt:options){
+            if(opt.isPresent()){
+                return opt;
+            }
+        }
+        return SafeOpt.empty();
+    }
 
     /**
      * If a value is present in this {@code SafeOpt}, returns the value,
