@@ -58,7 +58,7 @@ public class IteratorTest {
         Log.await(1, TimeUnit.HOURS);
     }
 
-    @Test
+//    @Test
     public void testBench() throws Exception {
         FastRandom rng = new FastRandom();
         ArrayList<Integer> asList = NumberFill.fillArrayList(855555, () -> rng.nextInt());

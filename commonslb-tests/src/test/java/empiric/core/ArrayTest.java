@@ -1,7 +1,7 @@
 package empiric.core;
 
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -9,6 +9,7 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.SafeOpt;
+import lt.lb.commons.func.unchecked.UnsafeBiFunction;
 import org.junit.Test;
 
 /*
@@ -53,16 +54,21 @@ public class ArrayTest {
 
         Log.print(ArrayOp.replicate(5, Integer.class, () -> 1));
         Log.println(ArrayOp.replicate(3, 1d, 2, 3L));
-        List listu = new ArrayList();
+        List<Integer> listu = new ArrayList();
+        listu.addAll(Arrays.asList(2,5,8));
         
-        SafeOpt<Object> map = SafeOpt.of(listu).map(m -> m.get(0));
 
-        
+        SafeOpt<Object> map = SafeOpt.of(listu).map(m -> m.get(5));
+
+        SafeOpt<List<Integer>> of = SafeOpt.of(listu);
+
+        SafeOpt<Integer> mapCombine = of.map(m -> m.get(0)).mapCombine(of.map(m -> m.get(5)), (a, b) -> a + b);
+
         Log.print(map.getError().get().getMessage());
-        
-        
+        Log.print(mapCombine);
+
         Log.print("Šakės".equalsIgnoreCase("šakĖs"));
-        
+
         Log.await(1, TimeUnit.HOURS);
     }
 }

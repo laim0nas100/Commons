@@ -5,6 +5,7 @@
  */
 package empiric.newThings;
 
+import com.google.common.io.ByteArrayDataInput;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -16,6 +17,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.io.FileReader;
 import lt.lb.commons.io.blobify.Blobbys;
+import lt.lb.commons.io.blobify.bytes.Bytes;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
@@ -37,7 +39,8 @@ public class ZipTest {
                 F.unsafeRun(() -> {
 //                    ZipFile newZip = new ZipFile(Paths.get(zipboi).toFile());
                     InputStream inputStream = zip.getInputStream(entry);
-                    byte[] readAllBytes = inputStream.readAllBytes();
+                    
+                    byte[] readAllBytes = com.google.common.io.ByteStreams.toByteArray(inputStream);
                 });
 
 //                Log.print(readAllBytes.length);
@@ -60,7 +63,7 @@ public class ZipTest {
 
             F.unsafeRun(() -> {
                     FileInputStream is = new FileInputStream("E:\\DS_DATA.comp");
-                    load.loadAll(is.getChannel());
+                    load.loadAll(Bytes.readFromSeekableByteChannel(is.getChannel()));
                     is.close();
                 });
 
