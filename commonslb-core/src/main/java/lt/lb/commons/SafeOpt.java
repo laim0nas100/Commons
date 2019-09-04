@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import lt.lb.commons.func.unchecked.UnsafeBiFunction;
 import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.misc.NestedException;
@@ -16,7 +17,8 @@ import lt.lb.commons.misc.NestedException;
  *
  * @author laim0nas100
  *
- * Optional equivalent, but with exception ignoring mapping
+ * {@code Optional} equivalent and in-place replacement, but with exception
+ * capturing mapping.
  */
 public class SafeOpt<T> implements Supplier<T> {
 
@@ -140,6 +142,17 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
+     * Return {@code true} if there is no value present, otherwise
+     * {@code false}.
+     *
+     * @return {@code true} if there is no value present, otherwise
+     * {@code false}
+     */
+    public boolean isEmpty() {
+        return val == null;
+    }
+
+    /**
      * If a value is present, invoke the specified consumer with the value,
      * otherwise do nothing.
      *
@@ -150,6 +163,26 @@ public class SafeOpt<T> implements Supplier<T> {
     public void ifPresent(Consumer<? super T> consumer) {
         if (val != null) {
             consumer.accept(val);
+        }
+    }
+
+    /**
+     * If a value is present, performs the given action with the value,
+     * otherwise performs the given empty-based action.
+     *
+     * @param action the action to be performed, if a value is present
+     * @param emptyAction the empty-based action to be performed, if no value is
+     * present
+     * @throws NullPointerException if a value is present and the given action
+     * is {@code null}, or no value is present and the given empty-based action
+     * is {@code null}.
+     * @since 9
+     */
+    public void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction) {
+        if (val != null) {
+            action.accept(val);
+        } else {
+            emptyAction.run();
         }
     }
 
@@ -229,7 +262,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @return an {@code SafeOpt} of given action aggregation
      * @throws NullPointerException if the clazz is null
      */
-    public <U> SafeOpt<U> select(Class<U> clazz) {
+    public <U> SafeOpt<U> select(Class<? extends U> clazz) {
         Objects.requireNonNull(clazz);
         return filter(clazz::isInstance).map(t -> (U) t);
     }
@@ -250,7 +283,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * otherwise an empty {@code SafeOpt}
      * @throws NullPointerException if the mapping function is null
      */
-    public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
+    public <U> SafeOpt<U> flatMapOpt(Function<? super T, SafeOpt<U>> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent()) {
             return SafeOpt.empty(this.threw);
@@ -283,20 +316,54 @@ public class SafeOpt<T> implements Supplier<T> {
      * otherwise an empty {@code SafeOpt}
      * @throws NullPointerException if the mapping function is null
      */
-    public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
+    public <U> SafeOpt<U> flatMap(Function<? super T, Optional<U>> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent()) {
             return SafeOpt.empty(this.threw);
         } else {
             try {
-                SafeOpt<U> apply = SafeOpt.ofOptional(mapper.apply(val));
-                if (apply != null) {
-                    return apply;
-                }
+                return SafeOpt.ofOptional(mapper.apply(val));
             } catch (Throwable t) {
                 return SafeOpt.empty(t);
             }
-            return SafeOpt.empty(this.threw);
+        }
+    }
+
+    /**
+     * If a value is present, returns an {@code SafeOpt} describing the value,
+     * otherwise returns an {@code SafeOpt} produced by the supplying function.
+     *
+     * @param supplier the supplying function that produces an {@code Optional}
+     * @return returns an {@code SafeOpt} describing the value of this
+     * {@code SafeOpt}, if a value is present, otherwise an wrapped
+     * {@code SafeOpt} produced by the supplying function.
+     * @throws NullPointerException if the supplying function is {@code null}
+     */
+    public SafeOpt<T> or(Supplier<? extends Optional<? extends T>> supplier) {
+        Objects.requireNonNull(supplier);
+        if (isPresent()) {
+            return this;
+        } else {
+            return F.cast(SafeOpt.ofOptional(supplier.get()));
+        }
+    }
+
+    /**
+     * If a value is present, returns an {@code SafeOpt} describing the value,
+     * otherwise returns an {@code SafeOpt} produced by the supplying function.
+     *
+     * @param supplier the supplying function that produces an {@code SafeOpt}
+     * @return returns an {@code SafeOpt} describing the value of this
+     * {@code SafeOpt}, if a value is present, otherwise an wrapped
+     * {@code SafeOpt} produced by the supplying function.
+     * @throws NullPointerException if the supplying function is {@code null}
+     */
+    public SafeOpt<T> orSafe(Supplier<? extends SafeOpt<? extends T>> supplier) {
+        Objects.requireNonNull(supplier);
+        if (isPresent()) {
+            return this;
+        } else {
+            return SafeOpt.READY.flatMapOpt(m -> F.cast(supplier.get()));
         }
     }
 
@@ -312,7 +379,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param mapper
      * @return
      */
-    public <U, P> SafeOpt<U> mapCombine(SafeOpt<P> with, UnsafeBiFunction<? super T, P, ? extends U> mapper) {
+    public <U, P> SafeOpt<U> mapCombine(SafeOpt<? extends P> with, UnsafeBiFunction<? super T, ? super P, ? extends U> mapper) {
         return mapCombine(with, (BiFunction<T, P, U>) mapper);
     }
 
@@ -328,7 +395,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param mapper
      * @return
      */
-    public <U, P> SafeOpt<U> mapCombine(SafeOpt<P> with, BiFunction<? super T, P, ? extends U> mapper) {
+    public <U, P> SafeOpt<U> mapCombine(SafeOpt<? extends P> with, BiFunction<? super T, ? super P, ? extends U> mapper) {
         Objects.requireNonNull(with, "Null with object");
         Objects.requireNonNull(mapper, "Null map function");
 
@@ -344,18 +411,32 @@ public class SafeOpt<T> implements Supplier<T> {
             }
         }
     }
-    
-    
+
+    /**
+     * If a value is present, returns a sequential {@link Stream} containing
+     * only that value, otherwise returns an empty {@code Stream}.
+     *
+     * @return the optional value as a {@code Stream}
+     */
+    public Stream<T> stream() {
+        if (!isPresent()) {
+            return Stream.empty();
+        } else {
+            return Stream.of(val);
+        }
+    }
+
     /**
      * Select first {@code SafeOpt} which is present, otherwise return empty;
+     *
      * @param <U>
      * @param options
-     * @return 
+     * @return
      */
-    public static <U> SafeOpt<U> selectFirstPresent(SafeOpt<U>...options){
-        Objects.requireNonNull(options,"Null options");
-        for(SafeOpt<U> opt:options){
-            if(opt.isPresent()){
+    public static <U> SafeOpt<U> selectFirstPresent(SafeOpt<U>... options) {
+        Objects.requireNonNull(options, "Null options");
+        for (SafeOpt<U> opt : options) {
+            if (opt.isPresent()) {
                 return opt;
             }
         }
@@ -432,16 +513,16 @@ public class SafeOpt<T> implements Supplier<T> {
      * (if no contained value, throws NoSuchElementException)
      *
      *
-     * @param <X> Type of the exception to be thrown
+     * @param <Ex> Type of the exception to be thrown
      * @param type
      * @return the present value
-     * @throws X if there is such exception
+     * @throws Ex if there is such exception
      */
-    public <X extends Throwable> T throwIfErrorOrGet(Class<X> type) throws X {
+    public <Ex extends Throwable> T throwIfErrorOrGet(Class<Ex> type) throws Ex {
         if (threw != null) {
             Throwable t = NestedException.unwrap(threw);
             if (Ins.ofNullable(threw).instanceOf(type)) {
-                throw (X) t;
+                throw (Ex) t;
             }
         }
         return get();
