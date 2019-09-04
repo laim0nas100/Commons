@@ -13,7 +13,7 @@ import lt.lb.commons.containers.values.Value;
 public class LazyValue<T> extends Value<T> {
 
     protected Long loaded = null;
-    protected Supplier<Boolean> loader = () -> loaded != null && loaded <= Java.getNanoTime();
+    protected Supplier<Boolean> loader = () -> loaded != null;
     protected Supplier<T> supply;
 
     public LazyValue(Supplier<T> supply) {
@@ -31,8 +31,8 @@ public class LazyValue<T> extends Value<T> {
      */
     @Override
     public void set(T val) {
-        loaded = Java.getNanoTime();
         super.set(val);
+        loaded = Java.getNanoTime();
     }
 
     /**
@@ -41,7 +41,15 @@ public class LazyValue<T> extends Value<T> {
      * @return
      */
     @Override
-    public synchronized T get() {
+    public T get() {
+        if (!loader.get()) {
+            return syncGet();
+        }
+
+        return super.get();
+    }
+    
+    private synchronized T syncGet(){
         if (!loader.get()) {
             return super.setAndGet(supply);
         }

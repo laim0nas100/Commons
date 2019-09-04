@@ -12,7 +12,7 @@ import org.junit.Test;
  */
 public class LazyValueTest {
     @Test
-    public void test() {
+    public void testLazyDependency() {
         HashMap<String, String> str = new HashMap<>();
         str.put("1", "one");
         str.put("2", "two");
@@ -32,4 +32,6 @@ public class LazyValueTest {
         assertThat(map2.get()).isEqualTo("ONE__");
         
     }
+    
+    
 }

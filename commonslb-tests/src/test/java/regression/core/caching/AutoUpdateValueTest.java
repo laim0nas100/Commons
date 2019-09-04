@@ -13,7 +13,7 @@ public class AutoUpdateValueTest {
     @Test
     public void test1() throws Exception{
         AutoUpdateValue<String> val = new AutoUpdateValue<>(null, () -> {
-            Thread.sleep(1000);
+            Thread.sleep(200);
             return "Sleepy";
         }, new FastExecutor(1), false);
         
@@ -28,7 +28,7 @@ public class AutoUpdateValueTest {
     @Test
     public void test2() throws Exception{
         AutoUpdateValue<String> val = new AutoUpdateValue<>(null, () -> {
-            Thread.sleep(1000);
+            Thread.sleep(200);
             return "Sleepy";
         }, new FastExecutor(1), true);
         
