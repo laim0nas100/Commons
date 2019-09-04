@@ -89,10 +89,10 @@ public class TreeIterationTest {
         it.DFSIterative(node);
 
         Log.print("Post order");
-        it.PosOrder(node);
+        it.PostOrder(node);
 
         Log.print("Post order it");
-        it.PosOrderIterative(node);
+        it.PostOrderIterative(node);
         
         Log.print("DFS order iterator");
         ReadOnlyIterator<GNode> DFSIterator = TreeVisitorImpl.DFSIterator(it,node,Optional.empty());

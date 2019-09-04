@@ -62,6 +62,29 @@ public interface ChildrenIteratorProvider<T> {
         return TreeVisitorImpl.DFSIterator(this, root, Optional.of(set));
     }
     
+    
+    /**
+     * Lazy populated iterator in Post-order search order.
+     *
+     * @param root
+     * @return
+     */
+    public default ReadOnlyIterator<T> PostOrderIterator(T root) {
+        return TreeVisitorImpl.PostOrderIterator(this, root, Optional.empty());
+    }
+
+    /**
+     * Lazy populated iterator in Post-order search order. With element
+     * collection hence cycle prevention.
+     *
+     * @param root
+     * @param set
+     * @return
+     */
+    public default ReadOnlyIterator<T> PostOrderIterator(T root, Set<T> set) {
+        return TreeVisitorImpl.PostOrderIterator(this, root, Optional.of(set));
+    }
+    
     /**
      * Make tree iterator with different visitor.
      * @param visit

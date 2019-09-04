@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lt.lb.commons.Caller;
 import lt.lb.commons.Caller.CallerForBuilder;
@@ -125,6 +124,9 @@ public abstract class TreeVisitorImpl {
     }
 
     public static <T> ReadOnlyIterator<T> BFSIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Collection<T>> visited) {
+        if (visitedCheck(root, visited)) {
+            return ReadOnlyIterator.of();
+        }
         LinkedList<T> stack = new LinkedList<>();
         stack.add(root);
         Iterator<T> iterator = new Iterator<T>() {
@@ -150,11 +152,14 @@ public abstract class TreeVisitorImpl {
                 return next;
             }
         };
-        
+
         return ReadOnlyIterator.of(iterator);
     }
-    
+
     public static <T> ReadOnlyIterator<T> DFSIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Collection<T>> visited) {
+        if (visitedCheck(root, visited)) {
+            return ReadOnlyIterator.of();
+        }
         LinkedList<T> stack = new LinkedList<>();
         stack.add(root);
         Iterator<T> iterator = new Iterator<T>() {
@@ -178,15 +183,51 @@ public abstract class TreeVisitorImpl {
                 return next;
             }
         };
-        
+
         return ReadOnlyIterator.of(iterator);
     }
-    
+
+    public static <T> ReadOnlyIterator<T> PostOrderIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Collection<T>> visited) {
+        if (visitedCheck(root, visited)) {
+            return ReadOnlyIterator.of();
+        }
+        ArrayDeque<Tuple<T, ReadOnlyIterator<T>>> stack = new ArrayDeque<>();
+        stack.addFirst(Tuples.create(root, visitor.getChildrenIterator(root)));
+        Iterator<T> iterator = new Iterator<T>() {
+
+            @Override
+            public boolean hasNext() {
+                return !stack.isEmpty();
+            }
+
+            @Override
+            public T next() {
+                while (hasNext()) { // this can be very lengthy, but such is the Post-order way
+                    if (!stack.getFirst().getG2().hasNext()) { // has no more nodes, send in parent of those nodes
+                        return stack.pollFirst().g1; // the only way to correctly exit loop
+                    }
+                    T newRoot = stack.getFirst().getG2().getNext();
+                    if (!visitedCheck(newRoot, visited)) {
+                        stack.addFirst(Tuples.create(newRoot, visitor.getChildrenIterator(newRoot)));
+                    }
+                }
+                throw new NoSuchElementException("No next value");
+
+            }
+        };
+
+        return ReadOnlyIterator.of(iterator);
+    }
+
     public static <T> Optional<T> PostOrderIterative(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited) {
+
+        if (visitedCheck(root, visited)) {
+            return Optional.empty();//empty, root is allready visited
+        }
         ArrayDeque<Tuple<T, ReadOnlyIterator<T>>> stack = new ArrayDeque<>();
         stack.addFirst(Tuples.create(root, visitor.getChildrenIterator(root)));
         while (!stack.isEmpty()) {
-            if (!stack.getFirst().getG2().hasNext()) {
+            if (!stack.getFirst().getG2().hasNext()) { // has no more nodes, do now we send in parent of those nodes
                 Tuple<T, ReadOnlyIterator<T>> pollFirst = stack.pollFirst();
                 if (visitor.find(pollFirst.getG1())) {
                     return Optional.ofNullable(pollFirst.getG1());

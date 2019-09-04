@@ -85,7 +85,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param root
      * @return
      */
-    public default Optional<T> PosOrder(T root) {
+    public default Optional<T> PostOrder(T root) {
         return TreeVisitorImpl.PostOrder(this, root, Optional.empty());
     }
 
@@ -97,7 +97,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param set
      * @return
      */
-    public default Optional<T> PosOrder(T root, Collection<T> set) {
+    public default Optional<T> PostOrder(T root, Collection<T> set) {
         return TreeVisitorImpl.PostOrder(this, root, Optional.ofNullable(set));
     }
 
@@ -107,7 +107,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param root
      * @return
      */
-    public default Optional<T> PosOrderIterative(T root) {
+    public default Optional<T> PostOrderIterative(T root) {
         return TreeVisitorImpl.PostOrderIterative(this, root, Optional.empty());
     }
 
@@ -119,7 +119,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param set
      * @return
      */
-    public default Optional<T> PosOrderIterative(T root, Collection<T> set) {
+    public default Optional<T> PostOrderIterative(T root, Collection<T> set) {
         return TreeVisitorImpl.PostOrderIterative(this, root, Optional.ofNullable(set));
     }
 
