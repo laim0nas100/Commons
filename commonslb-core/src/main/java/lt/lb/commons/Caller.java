@@ -9,24 +9,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
-import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.Promise;
 
 /**
@@ -35,7 +27,8 @@ import lt.lb.commons.threads.Promise;
  * every recursive call with Caller equivalent, without needing to design an
  * iterative solution.
  *
- * Preformance and memory penalties are self-evident.
+ * Performance and memory penalties are self-evident. Is not likely to be faster
+ * than well-made iterative solution.
  *
  * @author laim0nas100
  */
@@ -124,7 +117,8 @@ public class Caller<T> {
     }
 
     /**
-     * Signify for loop end inside Caller for loop. Equivalent of using return.
+     * Signify {@code for} loop end inside {@code Caller} {@code for} loop.
+     * Equivalent of using return with recursive function call.
      *
      * @param <T>
      * @param next next Caller object
@@ -135,7 +129,7 @@ public class Caller<T> {
     }
 
     /**
-     * Signify for loop continue inside Caller for loop
+     * Signify {@code for} loop continue inside Caller for loop
      *
      * @param <T>
      * @return
@@ -145,7 +139,7 @@ public class Caller<T> {
     }
 
     /**
-     * Recursive for loop modeling builder.
+     * Recursive {@code for} loop modeling builder.
      *
      * @param <T> the main type of Caller product
      * @param <R> item type that iteration happens
@@ -219,7 +213,7 @@ public class Caller<T> {
          * Lazy evaluation. How to evaluate each item ignoring indices
          *
          * @param thenFunction evaluation function that gets how to proceed in
-         * the middle of a for loop
+         * the middle of a {@code for} loop
          * @return final builder stage
          */
         public CallerForEnd<R, T> evaluateLazy(Function<T, CallerForContinue<T>> thenFunction) {
@@ -231,7 +225,7 @@ public class Caller<T> {
          * Lazy evaluation. How to evaluate each item
          *
          * @param thenFunction evaluation function that gets how to proceed in
-         * the middle of a for loop
+         * the middle of a {@code for} loop
          * @return final builder stage
          */
         public CallerForEnd<R, T> evaluateLazy(BiFunction<Integer, T, CallerForContinue<T>> thenFunction) {
@@ -243,7 +237,7 @@ public class Caller<T> {
          * Eager evaluation. How to evaluate each item ignoring indices
          *
          * @param thenFunction evaluation function that gets how to proceed in
-         * the middle of a for loop
+         * the middle of a {@code for} loop
          * @return final builder stage
          */
         public CallerForEnd<R, T> evaluateEager(Function<T, CallerForContinue<T>> thenFunction) {
@@ -255,7 +249,7 @@ public class Caller<T> {
          * Eager evaluation. How to evaluate each item
          *
          * @param thenFunction evaluation function that gets how to proceed in
-         * the middle of a for loop
+         * the middle of a {@code for} loop
          * @return final builder stage
          */
         public CallerForEnd<R, T> evaluateEager(BiFunction<Integer, T, CallerForContinue<T>> thenFunction) {
@@ -268,7 +262,7 @@ public class Caller<T> {
          *
          * @param lazy evaluation policy
          * @param thenFunction evaluation function that gets how to proceed in
-         * the middle of a for loop
+         * the middle of a {@code for} loop
          * @return final builder stage
          */
         public CallerForEnd<R, T> evaluate(boolean lazy, Function<T, CallerForContinue<T>> thenFunction) {
@@ -280,7 +274,7 @@ public class Caller<T> {
          *
          * @param lazy evaluation policy
          * @param thenFunction evaluation function that gets how to proceed in
-         * the middle of a for loop
+         * the middle of a {@code for} loop
          * @return final builder stage
          */
         public CallerForEnd<R, T> evaluate(boolean lazy, BiFunction<Integer, T, CallerForContinue<T>> thenFunction) {
@@ -303,8 +297,8 @@ public class Caller<T> {
 
         /**
          * @param afterwards Caller when iterator runs out of items (or never
-         * had them to begin with) and <b>for</b> loop never exited inside.
-         * @return Caller instance of such for loop
+         * had them to begin with) and {@code for} loop never exited inside.
+         * @return Caller instance of such {@code for} loop
          */
         public Caller<T> afterwards(Caller<T> afterwards) {
             Objects.requireNonNull(afterwards);
@@ -457,7 +451,7 @@ public class Caller<T> {
     }
 
     /**
-     * Iteration builder factory method. Prefer calling using <b>new</b>
+     * Iteration builder factory method. Prefer calling using {@code new}
      * operator for explicit typing.
      *
      * @param <T> item type, that function returns
@@ -595,70 +589,24 @@ public class Caller<T> {
      */
     public static <T> T resolve(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit) {
 
-        Deque<StackFrame<T>> stack = new ArrayDeque<>();
-        ArrayList<T> emptyArgs = new ArrayList<>(0);
-        AtomicLong callNumber = new AtomicLong(0);
+        return resolveThreaded(caller, stackLimit, callLimit, -1, Runnable::run); // should never throw exceptions related to threading
 
-        while (true) {
-            if (stack.isEmpty()) {
-                if (caller.hasValue) {
-                    return caller.value;
-                } else if (caller.hasCall) {
-
-                    if (caller.dependencies.isEmpty()) {
-                        assertCallLimit(callLimit, callNumber);
-                        caller = caller.call.apply(emptyArgs);
-                    } else {
-                        stack.addLast(new StackFrame(caller));
-                    }
-                } else {
-                    throw new IllegalStateException("No value or call"); // should never happen
-                }
-            } else { // in stack
-                if (stackLimit.isPresent() && stackLimit.get() <= stack.size()) {
-                    throw new IllegalStateException("Stack limit overrun " + stack.size());
-                }
-                StackFrame<T> frame = stack.getLast();
-                caller = frame.call;
-                if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
-                    assertCallLimit(callLimit, callNumber);
-                    caller = caller.call.apply(frame.args); // last call with dependants
-                    if (caller.hasCall) {
-                        stack.getLast().clearWith(caller);
-                    } else if (caller.hasValue) {
-                        stack.pollLast();
-                        if (stack.isEmpty()) {
-                            return caller.value;
-                        } else {
-                            stack.getLast().args.add(caller.value);
-                        }
-                    } else {
-                        throw new IllegalStateException("No value or call"); // should never happen
-                    }
-                } else { // not demolish stack
-                    if (caller.hasValue) {
-                        frame.args.add(caller.value);
-                    } else if (caller.hasCall) {
-                        if (caller.dependencies.isEmpty()) { // just call, assume we have expanded stack before
-                            assertCallLimit(callLimit, callNumber);
-                            frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
-                        } else { // dep not empty
-                            Caller<T> get = caller.dependencies.get(frame.index);
-                            frame.index++;
-                            if (get.hasValue) {
-                                frame.args.add(get.value);
-                            } else if (get.hasCall) {
-                                stack.addLast(new StackFrame<>(get));
-                            } else {
-                                throw new IllegalStateException("No value or call"); // should never happen
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
+    /**
+     * Resolve function call chain with optional limits
+     *
+     * @param <T>
+     * @param caller
+     * @param stackLimit limit of a stack size (each nested dependency expands
+     * stack by 1). Use Optional.empty to disable limit.
+     * @param callLimit limit of how many calls can be made (useful for endless
+     * recursion detection). Use Optional.empty to disable limit.
+     * @param branch how many branch levels to allow (uses recursion) amount of
+     * forks is determined by {@code Caller} dependencies
+     * @param exe executor
+     * @return
+     */
     public static <T> T resolveThreaded(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, Executor exe) {
         try {
             T resolved = resolveThreadedInner(caller, stackLimit, callLimit, branch, 0, new AtomicLong(0), exe);
@@ -718,7 +666,18 @@ public class Caller<T> {
                             assertCallLimit(callLimit, callNumber);
                             frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
                         } else { // dep not empty
-                            if (branch > 0 && caller.dependencies.size() > 1) {
+                            
+                            if (branch <= 0 || caller.dependencies.size() <= 1) {
+                                Caller<T> get = caller.dependencies.get(frame.index);
+                                frame.index++;
+                                if (get.hasValue) {
+                                    frame.args.add(get.value);
+                                } else if (get.hasCall) {
+                                    stack.addLast(new StackFrame<>(get));
+                                } else {
+                                    throw new IllegalStateException("No value or call"); // should never happen
+                                }
+                            } else { // use threading with dependencies 
                                 Promise[] array = new Promise[caller.dependencies.size()];
                                 int stackSize = stack.size() + prevStackSize;
                                 F.iterate(caller.dependencies, (i, c) -> {
@@ -730,7 +689,6 @@ public class Caller<T> {
                                         }).execute(exe);
                                     }
                                 });
-//                                new Promise<>().waitForAndRun(Arrays.asList(array)).execute(Runnable::run).get();
                                 Promise<Object> waiterAndRunner = new Promise<>(Arrays.asList(array));
 
                                 try {
@@ -747,16 +705,6 @@ public class Caller<T> {
                                     frame.args.add((T) pro.get());
                                 }
                                 frame.index += array.length;
-                            } else {
-                                Caller<T> get = caller.dependencies.get(frame.index);
-                                frame.index++;
-                                if (get.hasValue) {
-                                    frame.args.add(get.value);
-                                } else if (get.hasCall) {
-                                    stack.addLast(new StackFrame<>(get));
-                                } else {
-                                    throw new IllegalStateException("No value or call"); // should never happen
-                                }
                             }
                         }
                     }
