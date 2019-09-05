@@ -250,6 +250,25 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T>, Serializabl
         };
 
     }
+    
+    /**
+     * Create ExtComparator with proper handling of null values.
+     *
+     * @param nullFirst null order policy
+     * @return
+     */
+    public default ExtComparator<T> withNulls(boolean nullFirst){
+        ExtComparator<T> real = this;
+        return (T a, T b) ->{
+            if (a == null) {
+                return (b == null) ? 0 : (nullFirst ? -1 : 1);
+            } else if (b == null) {
+                return nullFirst ? 1: -1;
+            } else {
+                return (real == null) ? 0 : real.compare(a, b);
+            }
+        };
+    }
 
     /**
      * Create comparable object using this as basis for order
