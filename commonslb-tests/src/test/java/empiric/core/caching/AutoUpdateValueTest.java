@@ -7,7 +7,7 @@ package empiric.core.caching;
 
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Log;
-import lt.lb.commons.containters.caching.AutoUpdateValue;
+import lt.lb.commons.containers.caching.AutoUpdateValue;
 import lt.lb.commons.threads.FastExecutor;
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package lt.lb.commons.containters.caching;
+package lt.lb.commons.containers.caching;
 
 import java.util.function.Function;
 import java.util.function.Supplier;

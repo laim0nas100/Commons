@@ -3,7 +3,7 @@ package empiric.core;
 import java.util.HashMap;
 import java.util.Map;
 import lt.lb.commons.Log;
-import lt.lb.commons.containters.caching.LazyDependantValue;
+import lt.lb.commons.containers.caching.LazyDependantValue;
 import org.junit.Test;
 
 /**

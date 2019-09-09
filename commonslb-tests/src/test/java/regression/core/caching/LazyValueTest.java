@@ -2,7 +2,7 @@ package regression.core.caching;
 
 import java.util.HashMap;
 import java.util.Map;
-import lt.lb.commons.containters.caching.LazyDependantValue;
+import lt.lb.commons.containers.caching.LazyDependantValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 

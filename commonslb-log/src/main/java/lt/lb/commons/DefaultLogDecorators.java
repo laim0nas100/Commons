@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.values.Value;
-import lt.lb.commons.containters.caching.LazyValue;
+import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;

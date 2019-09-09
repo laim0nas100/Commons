@@ -1,4 +1,4 @@
-package lt.lb.commons.containters.caching;
+package lt.lb.commons.containers.caching;
 
 import lt.lb.commons.threads.sync.SynchronizedValueSupplier;
 import java.util.concurrent.Callable;
