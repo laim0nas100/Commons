@@ -77,25 +77,7 @@ public class Value<T> implements ValueProxy<T> {
         return this.value + "";
     }
 
-    /**
-     *
-     * @param func new value
-     * @return updated value
-     */
-    public T setAndGet(Supplier<T> func) {
-        set(func.get());
-        return get();
-    }
-
-    /**
-     * @param func new value
-     * @return old value
-     */
-    public T getAndSet(Supplier<T> func) {
-        T got = this.get();
-        set(func.get());
-        return got;
-    }
+    
 
     /**
      * Method for making exceptions
@@ -108,14 +90,6 @@ public class Value<T> implements ValueProxy<T> {
         return () -> {
             return new RuntimeException("Invalid operation (" + this.get() + " " + opname + " " + val + ")");
         };
-    }
-
-    public boolean isNotNull() {
-        return this.get() != null;
-    }
-
-    public boolean isEmpty() {
-        return this.get() == null;
     }
 
 }

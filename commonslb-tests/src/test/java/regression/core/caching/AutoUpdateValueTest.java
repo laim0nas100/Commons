@@ -1,6 +1,6 @@
 package regression.core.caching;
 
-import lt.lb.commons.containers.caching.AutoUpdateValue;
+import lt.lb.commons.containters.caching.AutoUpdateValue;
 import lt.lb.commons.threads.FastExecutor;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;

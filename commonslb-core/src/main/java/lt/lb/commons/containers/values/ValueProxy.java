@@ -38,6 +38,44 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
         this.set(v);
     }
 
+    /**
+     * {@code true} if value is null
+     *
+     * @return
+     */
+    public default boolean isNotNull() {
+        return this.get() != null;
+    }
+
+    /**
+     * {@code true} if value is not null
+     *
+     * @return
+     */
+    public default boolean isEmpty() {
+        return this.get() == null;
+    }
+
+    /**
+     *
+     * @param func new value
+     * @return updated value
+     */
+    public default T setAndGet(Supplier<T> func) {
+        set(func.get());
+        return get();
+    }
+
+    /**
+     * @param func new value
+     * @return old value
+     */
+    public default T getAndSet(Supplier<T> func) {
+        T got = this.get();
+        set(func.get());
+        return got;
+    }
+
     public default Optional<T> toOptional() {
         return Optional.ofNullable(get());
     }

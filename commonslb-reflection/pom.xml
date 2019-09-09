@@ -16,6 +16,10 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-core</artifactId>
         </dependency>  
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-caching</artifactId>
+        </dependency>  
         
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

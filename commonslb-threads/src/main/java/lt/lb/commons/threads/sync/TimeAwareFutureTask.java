@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import lt.lb.commons.Java;
 
 /**
@@ -11,43 +12,50 @@ import lt.lb.commons.Java;
  * @author laim0nas100 Time aware FutureTask using Java.getNanoTime for time
  */
 public class TimeAwareFutureTask<T> extends FutureTask<T> {
-    
-    protected volatile AtomicLong startAt = new AtomicLong(Long.MIN_VALUE);
-    protected volatile AtomicLong finishedAt = new AtomicLong(Long.MIN_VALUE);
-    
-    public TimeAwareFutureTask(Callable<T> callable) {
+
+    protected volatile AtomicLong startAt;
+    protected volatile AtomicLong finishedAt;
+    protected Supplier<Long> timeCheck;
+
+    public TimeAwareFutureTask(Callable<T> callable, Supplier<Long> supp, long initialTimeValue) {
         super(callable);
+        timeCheck = supp;
+        startAt = new AtomicLong(initialTimeValue);
+        finishedAt = new AtomicLong(initialTimeValue);
     }
-    
+
     public TimeAwareFutureTask(Runnable run) {
-        this(Executors.callable(run, null));
+        this(Executors.callable(run, null), () -> Java.getNanoTime(), Long.MIN_VALUE);
     }
-    
+
     public TimeAwareFutureTask() {
-        this(() -> null);
+        this(() -> {});
     }
-    
+
     @Override
     public void run() {
-        startAt.set(Java.getNanoTime());
+        if(this.isDone()){
+            return;
+        }
+        startAt.set(timeCheck.get());
         super.run();
-        finishedAt.set(Java.getNanoTime());
+        finishedAt.set(timeCheck.get());
     }
-    
+
     @Override
     protected boolean runAndReset() {
-        startAt.set(Java.getNanoTime());
+        startAt.set(timeCheck.get());
         boolean r = super.runAndReset();
-        finishedAt.set(Java.getNanoTime());
+        finishedAt.set(timeCheck.get());
         return r;
     }
-    
-    public long startAtNanos() {
+
+    public long startAt() {
         return startAt.get();
     }
-    
-    public long finishedAtNanos() {
+
+    public long finishedAt() {
         return finishedAt.get();
     }
-    
+
 }

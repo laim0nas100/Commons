@@ -54,11 +54,11 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
         requests.set(0);
         TimeAwareFutureTask<T> lastTask = lastCommitTask.get();
 
-        if (lastTask.isDone() && lastTask.finishedAtNanos() > now) {
+        if (lastTask.isDone() && lastTask.finishedAt() > now) {
             return lastTask;
 
         }
-        if (lastTask.startAtNanos() > Long.MIN_VALUE && lastTask.startAtNanos() > now) {
+        if (lastTask.startAt() > Long.MIN_VALUE && lastTask.startAt() > now) {
             return lastTask;
         }
         TimeAwareFutureTask executeNow = executeNow();

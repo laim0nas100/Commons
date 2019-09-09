@@ -2,29 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>lt.lb.commons</groupId>
-    <artifactId>commonslb-log</artifactId>
+    <artifactId>commonslb-caching</artifactId>
     <packaging>jar</packaging>
-    
+    <name>CommonsLB Caching</name>
     <parent>
         <groupId>lt.lb.commons</groupId>
         <artifactId>Commons</artifactId>
         <version>local-jar</version>
     </parent>
-    <name>CommonsLB Log</name>
-    
     <dependencies>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-core</artifactId>
-        </dependency>  
+        </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-threads</artifactId>
-        </dependency> 
-        <dependency>
-            <groupId>lt.lb.commons</groupId>
-            <artifactId>commonslb-caching</artifactId>
-        </dependency> 
+        </dependency>
     </dependencies>
     
 </project>

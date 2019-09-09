@@ -5,6 +5,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
+import lt.lb.commons.Java;
 
 /**
  *
@@ -68,7 +69,7 @@ public class ServiceTimeoutTask<V> {
     }
 
     protected TimeAwareFutureTask<V> executeNow() {
-        TimeAwareFutureTask<V> task = new TimeAwareFutureTask<>(call);
+        TimeAwareFutureTask<V> task = new TimeAwareFutureTask<>(call, Java::getNanoTime, Long.MIN_VALUE);
         exe.execute(task);
         return task;
     }
