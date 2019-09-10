@@ -21,9 +21,6 @@ public class Java {
         return new File("").getAbsolutePath();
     }
     
-    public static void main(String[] args){
-        System.out.println(Java.getWorkDirectory());
-    }
 
     /**
      * System.getProperty("java.class.path")
