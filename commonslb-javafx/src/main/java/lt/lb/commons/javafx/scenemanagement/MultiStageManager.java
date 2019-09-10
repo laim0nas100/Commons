@@ -54,6 +54,7 @@ public class MultiStageManager {
             Parent root = loader.load();
             Stage stage = new Stage();
 
+            
             stage.setTitle(title);
             stage.setScene(new Scene(root));
             BaseController controller = loader.getController();

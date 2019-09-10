@@ -12,13 +12,17 @@ public class Java {
 
 
     /**
-     * System.getProperty("user.dir")
+     * new File("").getAbsolutePath()
      * 
-     * @return Current work directory
+     * @return Current work directory (where the program was started from)
      * 
      */
     public static final String getWorkDirectory() {
-        return System.getProperty("user.dir");
+        return new File("").getAbsolutePath();
+    }
+    
+    public static void main(String[] args){
+        System.out.println(Java.getWorkDirectory());
     }
 
     /**
