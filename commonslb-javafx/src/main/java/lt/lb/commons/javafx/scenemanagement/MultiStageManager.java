@@ -54,6 +54,7 @@ public class MultiStageManager {
             Parent root = loader.load();
             Stage stage = new Stage();
 
+            
             stage.setTitle(title);
             stage.setScene(new Scene(root));
             BaseController controller = loader.getController();
@@ -102,14 +103,18 @@ public class MultiStageManager {
 
     }
 
-    public void closeFrame(String ID) {
-        Frame frame = frames.get(ID);
+    public boolean closeFrame(String ID) {
+        Frame frame = frames.remove(ID);
+        
+        if(frame == null){
+            return false;
+        }
         Stage stage = frame.getStage();
         stage.xProperty().removeListener(frame.listenerX);
         stage.yProperty().removeListener(frame.listenerY);
         stage.close();
+        return true;
 
-        frames.remove(ID);
     }
 
     private int findSmallestAvailable(Map<String, Frame> map, String title) {

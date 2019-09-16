@@ -35,7 +35,7 @@ public abstract class ExtTask<T> implements RunnableFuture {
     private InvokeChildTask onInterrupted, onDone, onFailed, onCanceled, onSucceded;
     private int timesToRun = 1;
     private int timesRan = 0;
-    private Exception exception;
+    private Throwable error;
 
     public static interface InvokeChildTask {
 
@@ -87,8 +87,8 @@ public abstract class ExtTask<T> implements RunnableFuture {
             } catch (InterruptedException ex) {
                 setProperty(interrupted, true);
                 tryRun(onInterrupted);
-            } catch (Exception ex) {
-                exception = ex;
+            } catch (Throwable ex) {
+                error = ex;
                 setProperty(failed, true);
                 tryRun(onFailed);
             }
@@ -218,8 +218,8 @@ public abstract class ExtTask<T> implements RunnableFuture {
         this.valueMap.put(key, object);
     }
 
-    public Exception getException() {
-        return this.exception;
+    public Throwable getException() {
+        return this.error;
     }
 
 }

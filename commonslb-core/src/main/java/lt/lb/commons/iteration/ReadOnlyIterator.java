@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -31,13 +32,13 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     public static <T> ReadOnlyIterator<T> of(Collection<T> col) {
         return new IteratorROI<>(col.iterator());
     }
-    
+
     public static <T> ReadOnlyBidirectionalIterator<T> of(List<T> col) {
         return new ListROI<>(col.listIterator());
     }
 
     public static <T> ReadOnlyBidirectionalIterator<T> of(T... array) {
-        if(array.length == 0){
+        if (array.length == 0) {
             return new EmptyROI<>();
         }
         return new ArrayROI<>(array);
@@ -48,19 +49,19 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     }
 
     public static <T> ReadOnlyIterator<T> composite(ReadOnlyIterator<T>... iters) {
-        if(iters.length == 0){
+        if (iters.length == 0) {
             return new EmptyROI<>();
         }
         return new CompositeROI<>(of(iters));
     }
 
     public static <T> ReadOnlyIterator<T> composite(Collection<ReadOnlyIterator<T>> iters) {
-        if(iters.isEmpty()){
+        if (iters.isEmpty()) {
             return new EmptyROI<>();
         }
         return new CompositeROI<>(of(iters));
     }
-    
+
     /**
      * Puts remaining elements to ArrayList.
      *
@@ -150,15 +151,26 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
             }
         };
     }
-    
-    default ReadOnlyIterator<T> withCloseOperation(Runnable run){
+
+    /**
+     * Appends close operation, even when not int try-with-resources block
+     * @param run
+     * @return 
+     */
+    default ReadOnlyIterator<T> withCloseOperation(Runnable run) {
         ReadOnlyIterator<T> me = this;
+        AtomicBoolean closed = new AtomicBoolean(false);
         return new ReadOnlyIterator<T>() {
             @Override
             public void close() {
-                me.close();
-                run.run();
+                //single
+                if (closed.compareAndSet(false, true)) {
+                    me.close();
+                    run.run();
+                }
+
             }
+
             @Override
             public T getCurrent() {
                 return me.getCurrent();
@@ -171,15 +183,19 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
 
             @Override
             public boolean hasNext() {
-                return me.hasNext();
+                //maybe close
+                boolean hasNext = me.hasNext();
+                if (!hasNext) {
+                    close();
+                }
+                return hasNext;
             }
 
             @Override
             public T next() {
                 return me.next();
             }
-            
-            
+
         };
     }
 }
