@@ -2,6 +2,7 @@ package lt.lb.commons.containers.tables;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.values.IntegerValue;
@@ -285,6 +287,22 @@ public class CellTable<T> {
             return new CellFormatIndexCollectorRectangle<>(previous, table, leftTopRow, leftTopColumn);
         }
 
+        /**
+         * Specify explicit cell ids
+         * @param collection
+         * @return 
+         */
+        public CellFormatBuilder<T> withCellIds(Collection<Long> collection) {
+            List<CellPrep<T>> collect = collection.stream()
+                    .distinct()
+                    .map(m -> this.table.findCell(m))
+                    .filter(f -> f.isPresent())
+                    .map(m -> m.get())
+                    .collect(Collectors.toList());
+            return this.appendOrNew(collect);
+
+        }
+
     }
 
     private static <T> Row<T> getRow(CellTable<T> table, Integer row) {
@@ -379,7 +397,7 @@ public class CellTable<T> {
      */
     public CellTable<T> mergeVertical(int from, int to, int column) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
-        F.iterate(rows, from, to+1, (i, row) -> {
+        F.iterate(rows, from, to + 1, (i, row) -> {
             CellPrep<T> cell = row.cells.get(column);
             if (cell.verticalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(i, column) + " clean existing merge first");
@@ -457,13 +475,14 @@ public class CellTable<T> {
         });
         return this;
     }
-    
+
     /**
      * Modify last row size to give size and merge last empty rows.
+     *
      * @param size
-     * @return 
+     * @return
      */
-    public CellTable<T> mergeLastInsertEmpty(int size){
+    public CellTable<T> mergeLastInsertEmpty(int size) {
         return modifySize(size).mergeLastEmpty();
     }
 
