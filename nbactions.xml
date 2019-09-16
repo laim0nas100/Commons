@@ -21,4 +21,14 @@
                 <goal>-DskipTests</goal>
             </goals>
         </action>
+        <action>
+            <actionName>CUSTOM-clean install update skip tests</actionName>
+            <displayName>clean install update skip tests</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>install</goal>
+                <goal>-U</goal>
+                <goal>-DskipTests</goal>
+            </goals>
+        </action>
     </actions>
