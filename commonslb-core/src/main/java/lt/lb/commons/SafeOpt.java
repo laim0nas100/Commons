@@ -283,7 +283,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * otherwise an empty {@code SafeOpt}
      * @throws NullPointerException if the mapping function is null
      */
-    public <U> SafeOpt<U> flatMapOpt(Function<? super T, SafeOpt<U>> mapper) {
+    public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent()) {
             return SafeOpt.empty(this.threw);
@@ -316,7 +316,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * otherwise an empty {@code SafeOpt}
      * @throws NullPointerException if the mapping function is null
      */
-    public <U> SafeOpt<U> flatMap(Function<? super T, Optional<U>> mapper) {
+    public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent()) {
             return SafeOpt.empty(this.threw);

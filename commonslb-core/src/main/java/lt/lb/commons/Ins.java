@@ -32,15 +32,15 @@ public class Ins<T> {
         /**
          * Delegates to {@link #superClassOfAll(InsCl)},
          *
-         * @param cls
+         * @param obj
          * @return
          */
-        public boolean superClassOf(Object cls) {
-            return superClassOfAll(cls);
+        public boolean superClassOf(Object obj) {
+            return superClassOfAll(obj);
         }
 
         /**
-         * Checks whether contained class are an superClass of all given objects.
+         * Checks whether contained class is a superClass of all given objects.
          * Accepts null. Empty array results in {@code false}
          *
          * @param objs
@@ -67,7 +67,7 @@ public class Ins<T> {
         }
 
         /**
-         * Checks whether contained class are an superClass of all given objects.
+         * Checks whether contained class is a superClass of any given objects.
          * Accepts null. Empty array results in {@code false}
          *
          * @param objs
@@ -94,7 +94,7 @@ public class Ins<T> {
         }
 
         /**
-         * Checks whether contained class are an superClass of all given classes.
+         * Checks whether contained class is a superClass of all given classes.
          * Accepts null. Empty array results in {@code false}
          *
          * @param cls
@@ -121,7 +121,7 @@ public class Ins<T> {
         }
 
         /**
-         * Checks whether contained class are an superClass of all given classes.
+         * Checks whether contained class are an superClass of any given classes.
          * Accepts null. Empty array results in {@code false}
          *
          * @param cls

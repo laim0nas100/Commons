@@ -1,6 +1,5 @@
 package lt.lb.commons.parsing;
 
-import java.util.Optional;
 import lt.lb.commons.SafeOpt;
 
 /**
@@ -9,40 +8,40 @@ import lt.lb.commons.SafeOpt;
  */
 public class NumberParsing {
 
-    public static Optional<Long> parseLong(boolean unsigned, int radix, String str) {
-        return SafeOpt.ofNullable(str).map(s ->{
-            if(unsigned){
+    public static SafeOpt<Long> parseLong(boolean unsigned, int radix, String str) {
+        return SafeOpt.ofNullable(str).map(s -> {
+            if (unsigned) {
                 return Long.parseUnsignedLong(s, radix);
-            }else{
-                return Long.parseLong(s);
+            } else {
+                return Long.parseLong(s, radix);
             }
-        }).asOptional();
+        });
     }
 
-    public static Optional<Long> parseLong(String str) {
+    public static SafeOpt<Long> parseLong(String str) {
         return parseLong(false, 10, str);
     }
 
-    public static Optional<Integer> parseInt(boolean unsigned, int radix, String str) {
-        return SafeOpt.ofNullable(str).map(s ->{
+    public static SafeOpt<Integer> parseInt(boolean unsigned, int radix, String str) {
+        return SafeOpt.ofNullable(str).map(s -> {
             if (unsigned) {
-                return Integer.parseUnsignedInt(str, radix);
+                return Integer.parseUnsignedInt(s, radix);
             } else {
-                return Integer.parseInt(str, radix);
+                return Integer.parseInt(s, radix);
             }
-        }).asOptional();
+        });
     }
 
-    public static Optional<Integer> parseInt(String str) {
+    public static SafeOpt<Integer> parseInt(String str) {
         return parseInt(false, 10, str);
     }
 
-    public static Optional<Double> parseDouble(String str) {
-        return SafeOpt.ofNullable(str).map(s -> Double.parseDouble(s)).asOptional();
+    public static SafeOpt<Double> parseDouble(String str) {
+        return SafeOpt.ofNullable(str).map(s -> Double.parseDouble(s));
     }
 
-    public static Optional<Float> parseFloat(String str) {
-        return SafeOpt.ofNullable(str).map(s -> Float.parseFloat(s)).asOptional();
+    public static SafeOpt<Float> parseFloat(String str) {
+        return SafeOpt.ofNullable(str).map(s -> Float.parseFloat(s));
     }
 
 }
