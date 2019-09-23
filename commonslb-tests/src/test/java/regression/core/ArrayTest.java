@@ -21,7 +21,7 @@ public class ArrayTest {
         list.add(6);
         list.add(7);
         Object[] newArray = ArrayOp.newArray(list);
-
+        
         assert Arrays.equals(ArrayOp.asArray(5, 6, 7), newArray);
         Integer[] merge = ArrayOp.merge(arr, ArrayOp.castArray(newArray, Integer.class));
 

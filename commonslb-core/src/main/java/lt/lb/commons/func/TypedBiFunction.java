@@ -3,7 +3,6 @@ package lt.lb.commons.func;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import lt.lb.commons.func.Lambda;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 
