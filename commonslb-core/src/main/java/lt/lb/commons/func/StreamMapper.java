@@ -23,11 +23,11 @@ public class StreamMapper<T, Z> {
     public static <E> StreamDecorator<E> of() {
         return new StreamDecorator<>();
     }
-    
+
     public static <E> StreamDecorator<E> of(Class<E> cls) {
         return new StreamDecorator<>();
     }
-    
+
     public static class StreamDecorator<E> extends StreamMapper<E, E> {
     };
 
@@ -37,7 +37,7 @@ public class StreamMapper<T, Z> {
 
     private StreamMapper(int size) {
         decs = new ArrayList<>(size);
-        
+
     }
 
     public Stream<Z> decorate(Stream<T> stream) {
@@ -46,9 +46,9 @@ public class StreamMapper<T, Z> {
             Stream decorated = parent.decorate(stream);
             if (mapper != null) {
                 return applyDecs(decorated.map(mapper));
-            } else if (flatmapper != null){
+            } else if (flatmapper != null) {
                 return applyDecs(decorated.flatMap(flatmapper));
-            } else{
+            } else {
                 return applyDecs(after.decorate(decorated));
             }
         } else {
@@ -98,6 +98,10 @@ public class StreamMapper<T, Z> {
         return then(s -> s.limit(maxSize));
     }
 
+    public <R> StreamMapper<T, R> select(Class<R> cls) {
+        return this.filter(cls::isInstance).map(m -> (R) m);
+    }
+
     public <R> StreamMapper<T, R> map(Function<? super Z, ? extends R> mapper) {
 
         StreamMapper streamDecorator = new StreamMapper();
@@ -114,14 +118,14 @@ public class StreamMapper<T, Z> {
         return streamDecorator;
 
     }
-    
-    public <R> StreamMapper<T, R> thenApply(StreamMapper<Z,R> sm){
-        
+
+    public <R> StreamMapper<T, R> thenApply(StreamMapper<Z, R> sm) {
+
         StreamMapper streamDecorator = new StreamMapper();
         streamDecorator.after = sm;
         streamDecorator.parent = this;
         return streamDecorator;
-        
+
     }
 
     public StreamMapper<T, Z> then(Function<Stream<Z>, Stream<Z>> fun) {
