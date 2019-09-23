@@ -13,7 +13,7 @@ public class SizedChunkyBytes implements ChunkyBytes {
 
     protected int chunkSize = 0;
     protected int chunkCount = 0;
-    protected long byteLength = 0;
+    protected long byteLength = -1;
     protected byte[][] multiBytes;
 
     public SizedChunkyBytes(int chunkSize) {
@@ -36,7 +36,7 @@ public class SizedChunkyBytes implements ChunkyBytes {
 
     @Override
     public boolean isEmpty() {
-        return byteLength == 0;
+        return byteLength < 0;
     }
 
     @Override
@@ -96,7 +96,7 @@ public class SizedChunkyBytes implements ChunkyBytes {
 
     @Override
     public void nullBytes() {
-        this.byteLength = 0;
+        this.byteLength = -1;
         this.chunkCount = 0;
         this.multiBytes = null;
     }

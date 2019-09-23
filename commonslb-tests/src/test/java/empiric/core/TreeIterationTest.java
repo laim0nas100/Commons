@@ -63,7 +63,7 @@ public class TreeIterationTest {
         return g;
     }
 
-    @Test
+//    @Test
     public void graphIteration() {
         Orgraph g = new Orgraph();
         g.linkNodes(0, 1, 0);
