@@ -4,7 +4,7 @@ package lt.lb.commons.jpa.ids;
  *
  * @author laim0nas100
  */
-public class LongFactory implements IDFactory<Long> {
+public class IDLongFactory implements IDFactory<Long> {
 
     @Override
     public <T> IDLong<T> of(T object) {
