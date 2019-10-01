@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>lt.lb.commons</groupId>
-    <artifactId>commonslb-collections</artifactId>
+    <artifactId>commonslb-caller</artifactId>
     <packaging>jar</packaging>
-    <name>CommonsLB Collections</name>
+    <name>CommonsLB Caller</name>
     <parent>
         <groupId>lt.lb.commons</groupId>
         <artifactId>Commons</artifactId>
@@ -17,7 +17,7 @@
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
-            <artifactId>commonslb-caller</artifactId>
+            <artifactId>commonslb-threads</artifactId>
         </dependency>
     </dependencies>
     

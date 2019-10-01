@@ -21,6 +21,8 @@ import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import org.junit.Test;
+import static regression.core.CallerTest.DFSCaller;
+import static regression.core.CallerTest.PostOrderCaller;
 
 /**
  *
@@ -131,7 +133,7 @@ public class TreeIterationTest {
         return new TreeVisitor<GNode>() {
             @Override
             public Boolean find(GNode item) {
-                Log.print("Visiting:", item.ID);
+//                Log.print("Visiting:", item.ID);
                 return item.ID == id;
             }
 
@@ -153,7 +155,7 @@ public class TreeIterationTest {
         return new TreeVisitor<GNode>() {
             @Override
             public Boolean find(GNode item) {
-                Log.print("Visiting:", item.ID);
+//                Log.print("Visiting:", item.ID);
                 return item.linksTo.isEmpty();
             }
 
@@ -192,7 +194,7 @@ public class TreeIterationTest {
             }).print(Log::print);
             
             bench.executeBench(times, "DFS cal", () -> {
-                TreeVisitorImpl.DFSCaller(it, root, Optional.empty(),true).resolve();
+                DFSCaller(it, root, Optional.empty(),true).resolve();
             }).print(Log::print);
             
             bench.executeBench(times, "Pos rec", () -> {
@@ -204,7 +206,7 @@ public class TreeIterationTest {
             }).print(Log::print);
             
             bench.executeBench(times, "Pos cal", () -> {
-                TreeVisitorImpl.PostOrderCaller(it, root, Optional.empty(),true).resolve();
+                PostOrderCaller(it, root, Optional.empty(),true).resolve();
             }).print(Log::print);
         }
 
@@ -212,7 +214,7 @@ public class TreeIterationTest {
 
     public static void main(String... args) {
 
-        benchMe(20, 10000, 5000);
+        benchMe(30, 10000, 5000);
         Log.close();
     }
 }

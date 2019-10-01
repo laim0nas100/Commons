@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.Caller;
+import lt.lb.commons.caller.Caller;
 import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.IntegerValue;
@@ -341,7 +341,7 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     private static final class Any {
 
-        private static final boolean instanceOf(Class child, Class parent) {
+        private static boolean instanceOf(Class child, Class parent) {
             if (child == null || parent == null) {
                 throw new NullPointerException("One of the arguments is null");
             }

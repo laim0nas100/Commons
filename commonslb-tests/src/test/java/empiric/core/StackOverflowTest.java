@@ -6,14 +6,11 @@
 package empiric.core;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.Callable;
-import lt.lb.commons.Caller;
-import lt.lb.commons.Caller.CallerBuilder;
 import lt.lb.commons.Log;
+import lt.lb.commons.caller.Caller;
+import lt.lb.commons.caller.CallerBuilder;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.rng.RandomDistribution;
 

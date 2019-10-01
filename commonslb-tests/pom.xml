@@ -94,6 +94,12 @@
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-caller</artifactId>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-refmodel</artifactId>
             <scope>test</scope>
             <type>jar</type>

@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lt.lb.commons.Caller;
-import lt.lb.commons.Caller.CallerForBuilder;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.ChildrenIteratorProvider;
@@ -40,18 +38,6 @@ public abstract class TreeVisitorImpl {
         }
     }
 
-    private static <T> Optional<Caller<Optional<T>>> visitedCheckCaller(T node, Optional<Collection<T>> visited) {
-        if (visited.isPresent()) {
-            Collection<T> get = visited.get();
-            if (get.contains(node)) {
-                return Optional.of(Caller.ofResult(Optional.empty())); // prevent looping
-            } else {
-                get.add(node);
-            }
-        }
-        return Optional.empty();
-    }
-
     private static <T> boolean visitedCheck(T node, Optional<Collection<T>> visited) {
         if (visited.isPresent()) {
             Collection<T> get = visited.get();
@@ -62,25 +48,6 @@ public abstract class TreeVisitorImpl {
             }
         }
         return false;
-    }
-
-    public static <T> Caller<Optional<T>> DFSCaller(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited, boolean lazy) {
-        Optional<Caller<Optional<T>>> check = visitedCheckCaller(root, visited);
-        if (check.isPresent()) {
-            return check.get();
-        }
-
-        if (visitor.find(root)) {
-            return Caller.ofResult(Optional.ofNullable(root));
-        } else {
-
-            return new CallerForBuilder<T, Optional<T>>(visitor.getChildrenIterator(root))
-                    .forEachCall((i, item) -> DFSCaller(visitor, item, visited, lazy))
-                    .evaluate(lazy, item -> item.isPresent() ? Caller.ofResult(item).toForEnd() : Caller.forContinue())
-                    .afterwards(Caller.ofResult(Optional.empty()));
-
-        }
-
     }
 
     public static <T> Optional<T> DFSIterative(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited) {
@@ -258,26 +225,6 @@ public abstract class TreeVisitorImpl {
             return Optional.ofNullable(root);
         }
         return Optional.empty();
-    }
-
-    public static <T> Caller<Optional<T>> PostOrderCaller(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited, boolean lazy) {
-        Optional<Caller<Optional<T>>> check = visitedCheckCaller(root, visited);
-        if (check.isPresent()) {
-            return check.get();
-        }
-        return new CallerForBuilder<T, Optional<T>>(visitor.getChildrenIterator(root))
-                .forEachCall((i, item) -> PostOrderCaller(visitor, item, visited, lazy))
-                .evaluate(lazy, (i, item) -> item.isPresent() ? Caller.ofResult(item).toForEnd() : Caller.forContinue())
-                .afterwards(Caller.ofResult(Optional.empty()))
-                .toCallerBuilderAsDep()
-                .toCall(args -> {
-                    Optional<T> result = args.get(0);
-                    if (result.isPresent()) {
-                        return Caller.ofResult(result);
-                    } else {
-                        return Caller.ofResult(Optional.ofNullable(root).filter(visitor::find));
-                    }
-                });
     }
 
 }

@@ -17,6 +17,7 @@
         <module>commonslb-core</module>
         <module>commonslb-collections</module>
         <module>commonslb-caching</module>
+        <module>commonslb-caller</module>
         <module>commonslb-log</module>
         <module>commonslb-lexing</module>
         <module>commonslb-refmodel</module>
@@ -36,6 +37,11 @@
             <dependency>
                 <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-core</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-caller</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
