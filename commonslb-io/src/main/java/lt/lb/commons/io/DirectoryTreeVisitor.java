@@ -20,7 +20,7 @@ public interface DirectoryTreeVisitor extends TreeVisitor<Path> {
                 DirectoryStream<Path> newDirectoryStream = Files.newDirectoryStream(item);
 
                 return ReadOnlyIterator.of(newDirectoryStream.iterator())
-                        .withCloseOperation(() -> F.checkedRun(newDirectoryStream::close));
+                        .withEnsuredCloseOperation(() -> F.checkedRun(newDirectoryStream::close));
             });
 
         } else {

@@ -75,6 +75,11 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
         return list;
     }
 
+    /**
+     * Puts remaining elements to LinkedList.
+     *
+     * @return
+     */
     public default LinkedList<T> toLinkedList() {
         LinkedList<T> list = new LinkedList();
         for (T item : this) {
@@ -104,18 +109,45 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
         };
     }
 
+    /**
+     * Returns {@code true} if the iteration has more elements. (In other words,
+     * returns {@code true} if {@link #next} would return an element rather than
+     * throwing an exception.)
+     *
+     * @return {@code true} if the iteration has more elements
+     */
     @Override
     boolean hasNext();
 
+    /**
+     * Returns the next element in the iteration.
+     *
+     * @return the next element in the iteration
+     */
     @Override
     T next();
 
+    /**
+     * Returns the next element in the iteration.
+     *
+     * @return
+     */
     default T getNext() {
         return next();
     }
 
+    /**
+     * Returns the current element index (0-based) in the iteration.
+     *
+     * @return the next element index in the iteration
+     */
     Integer getCurrentIndex();
 
+    /**
+     * Returns element, that was received after next call
+     *
+     * @return
+     */
     T getCurrent();
 
     @Override
@@ -154,16 +186,17 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
 
     /**
      * Appends close operation, even when not int try-with-resources block
+     *
      * @param run
-     * @return 
+     * @return
      */
-    default ReadOnlyIterator<T> withCloseOperation(Runnable run) {
+    default ReadOnlyIterator<T> withEnsuredCloseOperation(Runnable run) {
         ReadOnlyIterator<T> me = this;
         AtomicBoolean closed = new AtomicBoolean(false);
         return new ReadOnlyIterator<T>() {
             @Override
             public void close() {
-                //single
+                //ensure only once
                 if (closed.compareAndSet(false, true)) {
                     me.close();
                     run.run();
@@ -183,6 +216,9 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
 
             @Override
             public boolean hasNext() {
+                if (closed.get()) {
+                    return false;
+                }
                 //maybe close
                 boolean hasNext = me.hasNext();
                 if (!hasNext) {
