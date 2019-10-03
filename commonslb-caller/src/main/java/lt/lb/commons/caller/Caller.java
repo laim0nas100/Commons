@@ -28,6 +28,7 @@ public class Caller<T> {
         RESULT, FUNCTION
     }
 
+    protected boolean curriedDependencies;
     private static final List<?> empty = new ArrayList<>(0);
     protected final CallerType type;
     protected T value;
@@ -142,6 +143,11 @@ public class Caller<T> {
      */
     public CallerForContinue<T> toForEnd() {
         return Caller.forEnd(this);
+    }
+    
+    Caller<T> withCurry(boolean curry){
+        this.curriedDependencies = curry;
+        return this;
     }
 
     /**

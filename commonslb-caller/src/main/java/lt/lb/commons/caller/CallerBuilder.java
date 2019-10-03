@@ -31,6 +31,7 @@ public class CallerBuilder<T> {
     }
     
     private List<Caller<T>> dependants;
+    private boolean withCurry = false;
     
     public CallerBuilder<T> withDependency(Caller<T> dep) {
         this.dependants.add(dep);
@@ -57,19 +58,24 @@ public class CallerBuilder<T> {
         return this.withDependency(ofResult(res));
     }
     
+    public CallerBuilder<T> withCurry(){
+        this.withCurry = true;
+        return this;
+    }
+    
     public Caller<T> toResultCall(Function<List<T>, T> call) {
-        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofResult(call.apply(args)), this.dependants);
+        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofResult(call.apply(args)), this.dependants).withCurry(withCurry);
     }
     
     public Caller<T> toResultCall(Supplier<T> call) {
-        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofResult(call.get()), this.dependants);
+        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofResult(call.get()), this.dependants).withCurry(withCurry);
     }
     
     public Caller<T> toCall(Function<List<T>, Caller<T>> call) {
-        return new Caller<>(CallerType.FUNCTION, null, call, this.dependants);
+        return new Caller<>(CallerType.FUNCTION, null, call, this.dependants).withCurry(withCurry);
     }
     
     public Caller<T> toCall(Supplier<Caller<T>> call) {
-        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofSupplier(call), this.dependants);
+        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofSupplier(call), this.dependants).withCurry(withCurry);
     }
 }

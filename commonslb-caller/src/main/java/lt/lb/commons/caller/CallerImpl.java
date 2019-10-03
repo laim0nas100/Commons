@@ -4,12 +4,15 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lt.lb.commons.F;
 import static lt.lb.commons.caller.Caller.CallerType.FUNCTION;
 import static lt.lb.commons.caller.Caller.CallerType.RESULT;
@@ -27,12 +30,19 @@ public class CallerImpl {
 
         private Caller<T> call;
         private List<T> args;
+        private List<T> curriedArgs = new LinkedList<>();
+        private Optional<StackFrame<T>> parent;
         private Integer index;
 
-        public StackFrame(Caller<T> call) {
+        public StackFrame(StackFrame<T> parent, Caller<T> call) {
             this.args = new ArrayList<>(call.dependencies.size());
             this.call = call;
             this.index = 0;
+            this.parent = Optional.ofNullable(parent);
+        }
+
+        public StackFrame(Caller<T> call) {
+            this(null, call);
         }
 
         public void clearWith(Caller<T> call) {
@@ -189,6 +199,10 @@ public class CallerImpl {
         return F.nullWrap(call, emptyCase);
     }
 
+    private static <T> List<T> merge(List<T>... lists) {
+        return Stream.of(lists).flatMap(m -> m.stream()).collect(Collectors.toList());
+    }
+
     private static <T> T resolveThreadedInner(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, int prevStackSize, AtomicLong callNumber, Executor exe) throws InterruptedException, ExecutionException {
 
         Deque<StackFrame<T>> stack = new ArrayDeque<>();
@@ -205,7 +219,8 @@ public class CallerImpl {
                             caller = caller.call.apply(emptyArgs);
                         } else {
                             stack.addLast(new StackFrame(caller));
-                        }   break;
+                        }
+                        break;
                     default:
                         throw new IllegalStateException("No value or call"); // should never happen
                 }
@@ -217,18 +232,30 @@ public class CallerImpl {
                 caller = frame.call;
                 if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
                     assertCallLimit(callLimit, callNumber);
-                    caller = caller.call.apply(frame.args); // last call with dependants
+                    List<T> merge = merge(frame.curriedArgs, frame.args);
+                    boolean curried = caller.curriedDependencies;
+                    caller = caller.call.apply(merge); // last call with dependants
+
                     switch (caller.type) {
                         case FUNCTION:
                             stack.getLast().clearWith(caller);
+                            stack.getLast().parent.filter(p -> p.call.curriedDependencies).ifPresent(parent -> {
+                                parent.curriedArgs.addAll(merge);
+                            });
                             break;
+
                         case RESULT:
-                            stack.pollLast();
+                            StackFrame<T> pollLast = stack.pollLast();
                             if (stack.isEmpty()) {
                                 return caller.value;
                             } else {
                                 stack.getLast().args.add(caller.value);
-                            }   break;
+                            }
+                            pollLast.parent.filter(p -> p.call.curriedDependencies).ifPresent(parent -> {
+                                parent.curriedArgs.addAll(merge);
+                            });
+                            break;
+
                         default:
                             throw new IllegalStateException("No value or call"); // should never happen
                     }
@@ -249,7 +276,7 @@ public class CallerImpl {
                                         frame.args.add(get.value);
                                         break;
                                     case FUNCTION:
-                                        stack.addLast(new StackFrame<>(get));
+                                        stack.addLast(new StackFrame<>(frame, get));
                                         break;
                                     default:
                                         throw new IllegalStateException("No value or call"); // should never happen
