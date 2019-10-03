@@ -200,20 +200,17 @@ public class StackOverflowTest {
         public static long recursiveCounter2(long c1, long c2, long c3) {
             callCounter++;
             Log.print("REGULAR", c1, c2, c3, callCounter);
-            
+
             if (c1 <= 0) {
                 return 0;
             } else if (c2 <= 0) {
                 c2 = c1;
                 c1--;
             } else if (c3 <= 0) {
-                c3 = c2;
                 c2--;
-            } else {
-                c3--;
-            }
+            } 
 
-            c3 = recursiveCounter2(c1, c2, c3);
+            c3 = 0L;
             c2 = recursiveCounter2(c1, c2, c3);
             c1 = recursiveCounter2(c1, c2, c3);
             return recursiveCounter2(c1, c2, c3);
@@ -243,46 +240,48 @@ public class StackOverflowTest {
             return new CallerBuilder<Long>().withDependency(call_3).withDependency(call_2).withDependency(call_1).toCall(a -> recursiveCounterCaller2(a.get(0), a.get(1), a.get(2)));
 
         }
-        
-        public static Caller<Long> recursiveCounterCaller3(long c1, long c2, long c3) {
+
+        public static Caller<Long> recursiveCounterCaller3(long c1, long c2, long c3, String st) {
             callerCounter++;
-            Log.print("CALLER", c1, c2, c3, callerCounter);
+            Log.print(st+"CALLER", c1, c2, c3, callerCounter);
             if (c1 <= 0) {
                 return Caller.ofResult(0L);
             } else if (c2 <= 0) {
                 c2 = c1;
                 c1--;
             } else if (c3 <= 0) {
-                c3 = c2;
                 c2--;
-            } else {
-                c3--;
-            }
+            } 
 
             final long fc1 = c1;
             final long fc2 = c2;
-            final long fc3 = c3;
-            Caller<Long> call_1 = Caller.ofFunction(args -> recursiveCounterCaller3(fc1, fc2, fc3));
-            Caller<Long> call_2 = new CallerBuilder<Long>().withDependency(call_1).withCurry().toCall(args -> recursiveCounterCaller3(fc1, fc2, args.get(0)));
-            Caller<Long> call_3 = new CallerBuilder<Long>().withDependency(call_2).withCurry().toCall(args -> recursiveCounterCaller3(fc1, args.get(0), args.get(1)));
-            return new CallerBuilder<Long>().withDependency(call_3).withCurry().toCall(a -> recursiveCounterCaller3(a.get(0), a.get(1), a.get(2)));
+            Caller<Long> call_2 = new CallerBuilder<Long>().withDependencyResult(0L).withCurry().toCall(args -> {
+                 Log.print("Caller 2",args);
+                return recursiveCounterCaller3(fc1, fc2, args.get(0),st+".");
+            }).withTag("1");
+            Caller<Long> call_3 = new CallerBuilder<Long>().withDependency(call_2).withCurry().toCall(args -> {
+                 Log.print("Caller 3",args);
+                return recursiveCounterCaller3(fc1, args.get(0), args.get(1),st+".");
+            }).withTag("2");
+            return new CallerBuilder<Long>().withDependency(call_3).toCall(args -> {
+                 Log.print("Caller 4",args);
+                return recursiveCounterCaller3(args.get(0), args.get(1), args.get(2),st+".");
+            }).withTag("3");
 
         }
     }
-    
-    
 
     public static void main(String... args) throws Exception {
         Log.main().async = false;
 
         Log.print("Start");
         long a = 1;
-        long b = 5;
-        long c = 5;
+        long b = 1;
+        long c = 0;
         long recursiveCounter1 = recursiveCounter2(a, b, c);
 
         Log.print(callCounter, recursiveCounter1);
-        long recursiveCounter2 = recursiveCounterCaller3(a, b, c).resolve();
+        long recursiveCounter2 = recursiveCounterCaller3(a, b, c,"").resolve();
         Log.print(callerCounter, recursiveCounter2);
         NestedException.nestedThrow(new Error("Quit"));
 //        CallOrResult<Integer> okCall = RecursionBuilder.okCall(1, 200000);

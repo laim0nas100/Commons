@@ -31,24 +31,24 @@ public class CallerImpl {
         private Caller<T> call;
         private List<T> args;
         private List<T> curriedArgs = new LinkedList<>();
-        private Optional<StackFrame<T>> parent;
         private Integer index;
+        private boolean curry;
+        private String tag;
 
-        public StackFrame(StackFrame<T> parent, Caller<T> call) {
+        public StackFrame(Caller<T> call) {
             this.args = new ArrayList<>(call.dependencies.size());
             this.call = call;
             this.index = 0;
-            this.parent = Optional.ofNullable(parent);
-        }
-
-        public StackFrame(Caller<T> call) {
-            this(null, call);
+            this.curry = call.curriedDependencies;
+            this.tag = call.tag;
         }
 
         public void clearWith(Caller<T> call) {
+            this.curriedArgs.clear();
             this.args.clear();
             this.call = call;
             this.index = 0;
+            this.tag = call.tag;
         }
     }
 
@@ -232,28 +232,27 @@ public class CallerImpl {
                 caller = frame.call;
                 if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
                     assertCallLimit(callLimit, callNumber);
-                    List<T> merge = merge(frame.curriedArgs, frame.args);
-                    boolean curried = caller.curriedDependencies;
-                    caller = caller.call.apply(merge); // last call with dependants
-
+                    List<T> args = merge(frame.curriedArgs, frame.args);
+                    caller = caller.call.apply(args); // last call with dependants
+                    boolean curry = frame.curry;
                     switch (caller.type) {
                         case FUNCTION:
                             stack.getLast().clearWith(caller);
-                            stack.getLast().parent.filter(p -> p.call.curriedDependencies).ifPresent(parent -> {
-                                parent.curriedArgs.addAll(merge);
-                            });
+                            if (curry) {
+                                stack.getLast().curriedArgs.addAll(args);
+                            }
                             break;
 
                         case RESULT:
-                            StackFrame<T> pollLast = stack.pollLast();
+                            stack.pollLast();
                             if (stack.isEmpty()) {
                                 return caller.value;
                             } else {
                                 stack.getLast().args.add(caller.value);
+                                if (curry) {
+                                    stack.getLast().curriedArgs.addAll(args);
+                                }
                             }
-                            pollLast.parent.filter(p -> p.call.curriedDependencies).ifPresent(parent -> {
-                                parent.curriedArgs.addAll(merge);
-                            });
                             break;
 
                         default:
@@ -276,7 +275,7 @@ public class CallerImpl {
                                         frame.args.add(get.value);
                                         break;
                                     case FUNCTION:
-                                        stack.addLast(new StackFrame<>(frame, get));
+                                        stack.addLast(new StackFrame<>(get));
                                         break;
                                     default:
                                         throw new IllegalStateException("No value or call"); // should never happen

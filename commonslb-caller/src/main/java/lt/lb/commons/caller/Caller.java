@@ -32,6 +32,7 @@ public class Caller<T> {
     private static final List<?> empty = new ArrayList<>(0);
     protected final CallerType type;
     protected T value;
+    protected String tag;
     protected Function<List<T>, Caller<T>> call;
     protected List<Caller<T>> dependencies;
 
@@ -145,11 +146,16 @@ public class Caller<T> {
         return Caller.forEnd(this);
     }
     
-    Caller<T> withCurry(boolean curry){
+    public Caller<T> withCurry(boolean curry){
         this.curriedDependencies = curry;
         return this;
     }
 
+    
+    public Caller<T> withTag(String tag){
+        this.tag = tag;
+        return this;
+    }
     /**
      * Construct CallerBuilder with this caller as first dependency
      *
