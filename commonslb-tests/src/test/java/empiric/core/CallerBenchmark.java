@@ -37,9 +37,6 @@ public class CallerBenchmark {
             bench.executeBench(times, "Caller fibb2", () -> {
                 RecursionBuilder.fibb2Caller(fibb2).resolveThreaded();
             }).print(Log::print);
-            bench.executeBench(times, "Caller recc", () -> {
-                RecursionBuilder.recursiveCounterCaller(1,1,5).resolveThreaded();
-            }).print(Log::print);
             
             bench.executeBench(times, "acker", () -> {
                 RecursionBuilder.ackermann(m, n);
@@ -50,9 +47,6 @@ public class CallerBenchmark {
 
             bench.executeBench(times, "fibb2", () -> {
                 RecursionBuilder.fibb2(fibb2);
-            }).print(Log::print);
-            bench.executeBench(times, "recc", () -> {
-                RecursionBuilder.recursiveCounter(1,1,5);
             }).print(Log::print);
         }
         Log.close();

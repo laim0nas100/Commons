@@ -30,26 +30,36 @@ public class CallerImpl {
 
         private Caller<T> call;
         private List<T> args;
-        private List<T> curriedArgs = new LinkedList<>();
+        private List<T> forwarded;
         private Integer index;
-        private boolean curry;
+        private boolean forward;
         private String tag;
 
         public StackFrame(Caller<T> call) {
             this.args = new ArrayList<>(call.dependencies.size());
+            this.forwarded = new ArrayList<>();
             this.call = call;
+            
             this.index = 0;
-            this.curry = call.curriedDependencies;
+            this.forward = call.forwardDeps;
             this.tag = call.tag;
         }
 
         public void clearWith(Caller<T> call) {
-            this.curriedArgs.clear();
+            this.forwarded.clear();
             this.args.clear();
             this.call = call;
             this.index = 0;
             this.tag = call.tag;
+            this.forward = call.forwardDeps;
         }
+
+        @Override
+        public String toString() {
+            return "StackFrame{ args=" + args + ", curriedArgs=" + forwarded + ", index=" + index + ", curry=" + forward + ", tag=" + tag + '}';
+        }
+        
+        
     }
 
     /**
@@ -105,8 +115,7 @@ public class CallerImpl {
      */
     public static <T> T resolveThreaded(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, Executor exe) {
         try {
-            T resolved = resolveThreadedInner(caller, stackLimit, callLimit, branch, 0, new AtomicLong(0), exe);
-            return resolved;
+            return resolveThreadedInner(caller, stackLimit, callLimit, branch, 0, new AtomicLong(0), exe);
         } catch (InterruptedException | ExecutionException ex) {
             throw NestedException.of(ex);
         }
@@ -199,8 +208,14 @@ public class CallerImpl {
         return F.nullWrap(call, emptyCase);
     }
 
-    private static <T> List<T> merge(List<T>... lists) {
-        return Stream.of(lists).flatMap(m -> m.stream()).collect(Collectors.toList());
+    private static <T> List<T> merge(List<T> list1, List<T> list2) {
+        if(list1.isEmpty()){
+            return list2;
+        }
+        if(list2.isEmpty()){
+            return list1;
+        }
+        return Stream.of(list1,list2).flatMap(m -> m.stream()).collect(Collectors.toList());
     }
 
     private static <T> T resolveThreadedInner(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, int prevStackSize, AtomicLong callNumber, Executor exe) throws InterruptedException, ExecutionException {
@@ -230,16 +245,19 @@ public class CallerImpl {
                 }
                 StackFrame<T> frame = stack.getLast();
                 caller = frame.call;
+                boolean curry = frame.forward;
                 if (caller.dependencies.size() <= frame.args.size()) { //demolish stack, because got all dependecies
                     assertCallLimit(callLimit, callNumber);
-                    List<T> args = merge(frame.curriedArgs, frame.args);
+                    
+                    List<T> args = merge(frame.forwarded, frame.args);
                     caller = caller.call.apply(args); // last call with dependants
-                    boolean curry = frame.curry;
+                    
                     switch (caller.type) {
                         case FUNCTION:
                             stack.getLast().clearWith(caller);
                             if (curry) {
-                                stack.getLast().curriedArgs.addAll(args);
+                                stack.getLast().forwarded.clear();
+                                stack.getLast().forwarded.addAll(args);
                             }
                             break;
 
@@ -250,7 +268,8 @@ public class CallerImpl {
                             } else {
                                 stack.getLast().args.add(caller.value);
                                 if (curry) {
-                                    stack.getLast().curriedArgs.addAll(args);
+                                    stack.getLast().forwarded.clear();
+                                    stack.getLast().forwarded.addAll(args);
                                 }
                             }
                             break;

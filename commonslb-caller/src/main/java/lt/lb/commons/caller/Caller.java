@@ -28,7 +28,7 @@ public class Caller<T> {
         RESULT, FUNCTION
     }
 
-    protected boolean curriedDependencies;
+    protected boolean forwardDeps;
     private static final List<?> empty = new ArrayList<>(0);
     protected final CallerType type;
     protected T value;
@@ -146,8 +146,8 @@ public class Caller<T> {
         return Caller.forEnd(this);
     }
     
-    public Caller<T> withCurry(boolean curry){
-        this.curriedDependencies = curry;
+    Caller<T> withForwardDeps(boolean curry){
+        this.forwardDeps = curry;
         return this;
     }
 

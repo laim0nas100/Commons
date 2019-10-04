@@ -5,16 +5,9 @@
  */
 package empiric.core;
 
-import static empiric.core.StackOverflowTest.RecursionBuilder.callCounter;
-import static empiric.core.StackOverflowTest.RecursionBuilder.callerCounter;
-import static empiric.core.StackOverflowTest.RecursionBuilder.recursiveCounter;
-import static empiric.core.StackOverflowTest.RecursionBuilder.recursiveCounter2;
-import static empiric.core.StackOverflowTest.RecursionBuilder.recursiveCounterCaller;
-import static empiric.core.StackOverflowTest.RecursionBuilder.recursiveCounterCaller2;
-import static empiric.core.StackOverflowTest.RecursionBuilder.recursiveCounterCaller3;
+import static empiric.core.StackOverflowTest.RecursionBuilder.*;
 import java.math.BigInteger;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import lt.lb.commons.Log;
 import lt.lb.commons.caller.Caller;
 import lt.lb.commons.caller.CallerBuilder;
@@ -208,7 +201,7 @@ public class StackOverflowTest {
                 c1--;
             } else if (c3 <= 0) {
                 c2--;
-            } 
+            }
 
             c3 = 0L;
             c2 = recursiveCounter2(c1, c2, c3);
@@ -243,7 +236,7 @@ public class StackOverflowTest {
 
         public static Caller<Long> recursiveCounterCaller3(long c1, long c2, long c3, String st) {
             callerCounter++;
-            Log.print(st+"CALLER", c1, c2, c3, callerCounter);
+            Log.print(st + "CALLER", c1, c2, c3, callerCounter);
             if (c1 <= 0) {
                 return Caller.ofResult(0L);
             } else if (c2 <= 0) {
@@ -251,24 +244,50 @@ public class StackOverflowTest {
                 c1--;
             } else if (c3 <= 0) {
                 c2--;
-            } 
+            }
 
             final long fc1 = c1;
             final long fc2 = c2;
-            Caller<Long> call_2 = new CallerBuilder<Long>().withDependencyResult(0L).withCurry().toCall(args -> {
-                 Log.print("Caller 2",args);
-                return recursiveCounterCaller3(fc1, fc2, args.get(0),st+".");
-            }).withTag("1");
-            Caller<Long> call_3 = new CallerBuilder<Long>().withDependency(call_2).withCurry().toCall(args -> {
-                 Log.print("Caller 3",args);
-                return recursiveCounterCaller3(fc1, args.get(0), args.get(1),st+".");
-            }).withTag("2");
+            Caller<Long> call_2 = new CallerBuilder<Long>().withDependencyResult(0L).forwardDependeciesAsArguments().toCall(args -> {
+                Log.print("Caller 1", args);
+                return recursiveCounterCaller3(fc1, fc2, args.get(0), st + ".").withTag(st + "1.1");
+            }).withTag(st + "1");
+            Caller<Long> call_3 = new CallerBuilder<Long>().withDependency(call_2).forwardDependeciesAsArguments().toCall(args -> {
+                Log.print("Caller 2", args);
+                return recursiveCounterCaller3(fc1, args.get(0), args.get(1), st + ".").withTag(st + "2.1");
+            }).withTag(st + "2");
             return new CallerBuilder<Long>().withDependency(call_3).toCall(args -> {
-                 Log.print("Caller 4",args);
-                return recursiveCounterCaller3(args.get(0), args.get(1), args.get(2),st+".");
-            }).withTag("3");
+                Log.print("Caller 3", args);
+                return recursiveCounterCaller3(args.get(0), args.get(1), args.get(2), st + ".").withTag(st + "3.1");
+            }).withTag(st + "3");
 
         }
+
+        public static long rec2(long numb) {
+            if (numb <= 0) {
+                return 0;
+            }
+            Log.print(numb);
+            numb--;
+            long n1 = rec2(numb);
+            long n2 = rec2(numb - n1);
+            return rec2(n1 - n2);
+        }
+
+        public static Caller<Long> rec2Caller(long numb) {
+            if (numb <= 0) {
+                return Caller.ofResult(0L);
+            }
+            Log.print(numb);
+            final long n = numb - 1;
+
+            Caller<Long> toCall = new CallerBuilder<Long>().toCall(arg -> rec2Caller(n));
+
+            Caller<Long> toCall1 = new CallerBuilder<Long>().withDependency(toCall).forwardDependeciesAsArguments().toCall(args -> rec2Caller(n - args.get(0)));
+
+            return new CallerBuilder<Long>().withDependency(toCall1).toCall(args -> rec2Caller(args.get(0) - args.get(1)));
+        }
+
     }
 
     public static void main(String... args) throws Exception {
@@ -277,7 +296,13 @@ public class StackOverflowTest {
         Log.print("Start");
         long a = 1;
         long b = 1;
-        long c = 0;
+        long c = 1;
+
+//        long d = 5;
+//        rec2(d);
+//        Log.print("OK");
+//        rec2Caller(d).resolve();
+        
         long recursiveCounter1 = recursiveCounter2(a, b, c);
 
         Log.print(callCounter, recursiveCounter1);

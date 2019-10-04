@@ -31,7 +31,7 @@ public class CallerBuilder<T> {
     }
     
     private List<Caller<T>> dependants;
-    private boolean withCurry = false;
+    private boolean forwardDeps = false;
     
     public CallerBuilder<T> withDependency(Caller<T> dep) {
         this.dependants.add(dep);
@@ -58,24 +58,32 @@ public class CallerBuilder<T> {
         return this.withDependency(ofResult(res));
     }
     
-    public CallerBuilder<T> withCurry(){
-        this.withCurry = true;
+    public CallerBuilder<T> forwardDependeciesAsArguments(){
+        this.forwardDeps = true;
         return this;
     }
     
     public Caller<T> toResultCall(Function<List<T>, T> call) {
-        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofResult(call.apply(args)), this.dependants).withCurry(withCurry);
+        return toCall(args -> Caller.ofResult(call.apply(args)));
     }
     
     public Caller<T> toResultCall(Supplier<T> call) {
-        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofResult(call.get()), this.dependants).withCurry(withCurry);
+        return toCall(args -> Caller.ofResult(call.get()));
     }
     
     public Caller<T> toCall(Function<List<T>, Caller<T>> call) {
-        return new Caller<>(CallerType.FUNCTION, null, call, this.dependants).withCurry(withCurry);
+        if(forwardDeps){
+            Function<List<T>, Caller<T>> call2 = args ->{
+                return call.apply(args).withForwardDeps(true);
+            };
+            return new Caller<>(CallerType.FUNCTION, null, call2, this.dependants).withForwardDeps(forwardDeps);
+        }else{
+            return new Caller<>(CallerType.FUNCTION, null, call, this.dependants);
+        }
+        
     }
     
     public Caller<T> toCall(Supplier<Caller<T>> call) {
-        return new Caller<>(CallerType.FUNCTION, null, args -> Caller.ofSupplier(call), this.dependants).withCurry(withCurry);
+        return toCall(args -> Caller.ofSupplier(call));
     }
 }
