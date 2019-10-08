@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.caller.Caller;
 import lt.lb.commons.caller.CallerBuilder;
@@ -306,6 +307,7 @@ public class StackOverflowTest {
                 if (number > 10000) {
                     return number;
                 } else {
+                    safeSleep(number);
                     long n1 = recBoi(number * 3);
                     long n2 = recBoi(n1 + 1);
                     return recBoi(n1 + n2);
@@ -320,11 +322,17 @@ public class StackOverflowTest {
                 if (number > 10000) {
                     return Caller.ofResult(number);
                 } else {
+                    safeSleep(number);
                     Caller<Long> n1 = new SharedCallerBuilder<Long>().toCall(a -> recBoiCaller(number * 3));
                     Caller<Long> n2 = new SharedCallerBuilder<Long>().with(n1).toCall(a -> recBoiCaller(a.get(0) + 1));
                     return new CallerBuilder<Long>().with(n1, n2).toCall(a -> recBoiCaller(a.get(0) + a.get(1)));
                 }
             }
+        }
+        
+        public static void safeSleep(long sleepy){
+            long s = (long)(sleepy / 100d);
+            F.unsafeRun(()->Thread.sleep(s));
         }
     }
 
@@ -348,7 +356,7 @@ public class StackOverflowTest {
 //        Log.print(callerCounter, callCounter);
 //        Log.print(list1.equals(list2));
         Log.print(recBoi(3L));
-        Log.print(recBoiCaller(3L).resolveThreaded());
+        Log.print(recBoiCaller(3L).resolve());
         NestedException.nestedThrow(new Error("Quit"));
 //        CallOrResult<Integer> okCall = RecursionBuilder.okCall(1, 200000);
 //        RecursionBuilder.iterative(okCall);

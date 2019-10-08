@@ -17,6 +17,10 @@ import java.util.concurrent.*;
  */
 public class Promise<Type> extends FutureTask<Type> {
 
+    public Promise(Future<Type> future){
+        this(()->future.get());
+    }
+    
     public Promise(Callable<Type> clbl) {
         super(clbl);
     }
@@ -80,7 +84,7 @@ public class Promise<Type> extends FutureTask<Type> {
         return this;
     }
 
-    public Promise<Type> collect(Collection<Promise> collection) {
+    public Promise<Type> collect(Collection<Promise<Type>> collection) {
         collection.add(this);
         return this;
     }

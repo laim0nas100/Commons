@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
+import static lt.lb.commons.caller.Caller.CallerType.SHARED;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
@@ -28,14 +31,15 @@ public class Caller<T> {
     static enum CallerType {
         RESULT, FUNCTION, SHARED
     }
-
+    
     private static final List<?> empty = new ArrayList<>(0);
     protected final CallerType type;
     protected T value;
     protected String tag;
     protected Function<List<T>, Caller<T>> call;
     protected List<Caller<T>> dependencies;
-    protected boolean computed;
+    
+    protected CompletableFuture<T> compl = new CompletableFuture<>();
     
     /**
      * Signify {@code for} loop end inside {@code Caller} {@code for} loop.
@@ -136,6 +140,9 @@ public class Caller<T> {
         this.value = result;
         this.call = nextCall;
         this.dependencies = dependencies;
+        if(type == SHARED){
+            this.compl = new CompletableFuture<>();
+        }
     }
 
     /**

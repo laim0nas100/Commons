@@ -27,13 +27,15 @@ public class CallerBuilder<T> {
     }
 
     public CallerBuilder() {
-        dependants = new ArrayList<>(); // not empty, but default
     }
 
     protected boolean sharedMutable = false;
     protected List<Caller<T>> dependants;
 
     public CallerBuilder<T> with(Caller<T>... deps) {
+        if(dependants == null){
+            dependants = new ArrayList<>(deps.length);
+        }
         for (Caller<T> d : deps) {
             this.dependants.add(d);
         }

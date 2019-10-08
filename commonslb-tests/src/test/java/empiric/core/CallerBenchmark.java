@@ -21,6 +21,7 @@ public class CallerBenchmark {
         int times = 10;
         bench.threads = 1;
         bench.warmupTimes = 2;
+        bench.useGVhintAfterFullBench = true;
 
         BigInteger n = BigInteger.valueOf(5);
         BigInteger m = BigInteger.valueOf(3);
@@ -37,6 +38,9 @@ public class CallerBenchmark {
             bench.executeBench(times, "Caller fibb2", () -> {
                 RecursionBuilder.fibb2Caller(fibb2).resolveThreaded();
             }).print(Log::print);
+            bench.executeBench(times, "Caller boi", ()->{
+                RecursionBuilder.recBoiCaller(7).resolveThreaded();
+            }).print(Log::print);
             
             bench.executeBench(times, "acker", () -> {
                 RecursionBuilder.ackermann(m, n);
@@ -47,6 +51,10 @@ public class CallerBenchmark {
 
             bench.executeBench(times, "fibb2", () -> {
                 RecursionBuilder.fibb2(fibb2);
+            }).print(Log::print);
+            
+            bench.executeBench(times, "boi", ()->{
+                RecursionBuilder.recBoi(7);
             }).print(Log::print);
         }
         Log.close();
