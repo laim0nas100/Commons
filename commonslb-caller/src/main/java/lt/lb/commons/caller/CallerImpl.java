@@ -28,7 +28,7 @@ public class CallerImpl {
     private static class StackFrame<T> {
 
         private Caller<T> call;
-        private List<T> args;
+        private ArrayList<T> args;
         private Integer index;
         private Deque<Caller<T>> sharedStack;
 
@@ -224,15 +224,15 @@ public class CallerImpl {
         s.clear();
         return value;
     }
+    private static CastList emptyArgs = new CastList<>(null);
 
     private static <T> T resolveThreadedInner(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, int prevStackSize, AtomicLong callNumber, Executor exe) throws InterruptedException, ExecutionException, TimeoutException {
 
         Deque<StackFrame<T>> stack = new ArrayDeque<>();
 
-        ArrayList<T> emptyArgs = new ArrayList<>(0);
-
         Deque<Caller<T>> emptyStackShared = new ArrayDeque<>();
 
+        Thread me = Thread.currentThread();
         while (true) {
             if (stack.isEmpty()) {
                 switch (caller.type) {
@@ -242,13 +242,16 @@ public class CallerImpl {
                         if (caller.compl.isDone()) {
                             return complete(emptyStackShared, caller.compl.get());
                         }
-
-                        if (caller.dependencies == null) {
-                            assertCallLimit(callLimit, callNumber);
-                            emptyStackShared.add(caller);
-                            caller = caller.call.apply(emptyArgs);
+                        if (caller.runner.compareAndSet(null, me) || caller.runner.compareAndSet(me, me)) {
+                            if (caller.dependencies == null) {
+                                assertCallLimit(callLimit, callNumber);
+                                emptyStackShared.add(caller);
+                                caller = caller.call.apply(emptyArgs);
+                            } else {
+                                stack.addLast(new StackFrame<>(caller));
+                            }
                         } else {
-                            stack.addLast(new StackFrame<>(caller));
+                            return complete(emptyStackShared, caller.compl.get());
                         }
 
                         break;
@@ -272,8 +275,11 @@ public class CallerImpl {
                 caller = frame.call;
                 if (frame.readyArgs(caller)) { //demolish stack, because got all dependecies
                     assertCallLimit(callLimit, callNumber);
-                    caller = caller.call.apply(frame.args); // last call with dependants
-
+                    if (frame.args == null) {
+                        caller = caller.call.apply(emptyArgs);
+                    } else {
+                        caller = caller.call.apply(new CastList<T>(frame.args)); // last call with dependants
+                    }
                     switch (caller.type) {
                         case SHARED:
                             if (caller.compl.isDone()) {
@@ -286,7 +292,19 @@ public class CallerImpl {
                                     stack.getLast().args.add(v);
                                 }
                             } else {
-                                stack.getLast().clearWith(caller);
+                                if (caller.runner.compareAndSet(null, me) || caller.runner.compareAndSet(me, me)) {
+                                    stack.getLast().clearWith(caller);
+                                } else { // executing on other thread
+                                    T v = caller.compl.get();
+                                    complete(stack.getLast().sharedStack, v);
+                                    stack.pollLast();
+                                    if (stack.isEmpty()) {
+                                        return complete(emptyStackShared, v);
+                                    } else {
+                                        stack.getLast().args.add(v);
+                                    }
+                                }
+
                             }
                             break;
                         case FUNCTION:
@@ -311,10 +329,22 @@ public class CallerImpl {
                         frame.args.add(caller.value);
                     } else if (caller.type == SHARED && caller.compl.isDone()) {
                         frame.args.add(caller.compl.get());
-                    } else if (caller.type == FUNCTION || (caller.type == SHARED && !caller.compl.isDone())) {
-                        if (caller.dependencies == null) { // just call, assume we have expanded stack before
-                            assertCallLimit(callLimit, callNumber);
-                            frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
+                    } else if (caller.type == FUNCTION
+                            || (caller.type == SHARED && !caller.compl.isDone())) {
+
+                        if (caller.dependencies == null) {
+                            boolean sharedOk = caller.type == SHARED && (caller.runner.compareAndSet(null, me) || caller.runner.compareAndSet(me, me));
+                            boolean doId = caller.type == FUNCTION || sharedOk;
+
+                            // just call, assume we have expanded stack before
+                            if (doId) {
+                                assertCallLimit(callLimit, callNumber);
+                                frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
+                            } else {//in another thread
+
+                                frame.args.add(caller.compl.get());
+                            }
+
                         } else { // dep not empty
 
                             if (branch <= 0 || caller.dependencies == null || caller.dependencies.size() <= 1) {
@@ -331,7 +361,12 @@ public class CallerImpl {
                                         if (get.compl.isDone()) {
                                             frame.args.add(get.compl.get());
                                         } else {
-                                            stack.addLast(new StackFrame<>(get));
+                                            if (get.runner.compareAndSet(null, me) || get.runner.compareAndSet(me, me)) {
+                                                stack.addLast(new StackFrame<>(get));
+                                            } else {//in another thread
+                                                frame.args.add(get.compl.get());
+                                            }
+
                                         }
                                         break;
                                     default:
@@ -362,7 +397,7 @@ public class CallerImpl {
                                         default:
                                             throw new IllegalStateException("Unknown caller state" + c);
                                     }
-                                };
+                                }
                                 Promise waiterAndRunner = new Promise(array);
 
                                 try {
@@ -381,6 +416,8 @@ public class CallerImpl {
                                 frame.index += array.size();
                             }
                         }
+                    } else { // allready executing in another thread
+                        frame.args.add(caller.compl.get());
                     }
                 }
             }

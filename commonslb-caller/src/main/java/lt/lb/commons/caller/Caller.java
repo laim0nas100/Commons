@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
@@ -36,10 +36,16 @@ public class Caller<T> {
     protected final CallerType type;
     protected T value;
     protected String tag;
-    protected Function<List<T>, Caller<T>> call;
+    protected Function<CastList<T>, Caller<T>> call;
     protected List<Caller<T>> dependencies;
     
-    protected CompletableFuture<T> compl = new CompletableFuture<>();
+    
+    
+    /**
+     * Shared thins
+     */
+    protected CompletableFuture<T> compl;
+    protected AtomicReference<Thread> runner;
     
     /**
      * Signify {@code for} loop end inside {@code Caller} {@code for} loop.
@@ -79,7 +85,7 @@ public class Caller<T> {
      * @param call
      * @return Caller, with recursive tail call
      */
-    public static <T> Caller<T> ofFunction(Function<List<T>, Caller<T>> call) {
+    public static <T> Caller<T> ofFunction(Function<CastList<T>, Caller<T>> call) {
         Objects.requireNonNull(call);
         return new Caller<>(CallerType.FUNCTION, null, call, F.cast(empty));
     }
@@ -112,7 +118,7 @@ public class Caller<T> {
      * @param call
      * @return Caller, with recursive tail call, that ends up as a result
      */
-    public static <T> Caller<T> ofResultCall(Function<List<T>, T> call) {
+    public static <T> Caller<T> ofResultCall(Function<CastList<T>, T> call) {
         Objects.requireNonNull(call);
         return ofFunction(args -> ofResult(call.apply(args)));
     }
@@ -135,13 +141,14 @@ public class Caller<T> {
      *
      * @param nextCall
      */
-    Caller(CallerType type, T result, Function<List<T>, Caller<T>> nextCall, List<Caller<T>> dependencies) {
+    Caller(CallerType type, T result, Function<CastList<T>, Caller<T>> nextCall, List<Caller<T>> dependencies) {
         this.type = type;
         this.value = result;
         this.call = nextCall;
         this.dependencies = dependencies;
         if(type == SHARED){
             this.compl = new CompletableFuture<>();
+            this.runner = new AtomicReference<>();
         }
     }
 

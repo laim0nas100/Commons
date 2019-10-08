@@ -7,8 +7,12 @@ package empiric.core;
 
 import empiric.core.StackOverflowTest.RecursionBuilder;
 import java.math.BigInteger;
+import java.util.Optional;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.caller.Caller;
+import lt.lb.commons.threads.FastExecutor;
+import lt.lb.commons.threads.FastWaitingExecutor;
 
 /**
  *
@@ -21,7 +25,7 @@ public class CallerBenchmark {
         int times = 10;
         bench.threads = 1;
         bench.warmupTimes = 2;
-        bench.useGVhintAfterFullBench = true;
+//        bench.useGVhintAfterFullBench = true;
 
         BigInteger n = BigInteger.valueOf(5);
         BigInteger m = BigInteger.valueOf(3);

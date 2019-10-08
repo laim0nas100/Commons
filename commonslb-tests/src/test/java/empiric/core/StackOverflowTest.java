@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.caller.Caller;
@@ -189,8 +190,8 @@ public class StackOverflowTest {
             final long fc3 = c3;
             Caller<Long> call_1 = Caller.ofFunction(args -> recursiveCounterCaller(fc1, fc2, fc3));
             Caller<Long> call_2 = new CallerBuilder<Long>().with(call_1).toCall(args -> recursiveCounterCaller(fc1, fc2, args.get(0)));
-            Caller<Long> call_3 = new CallerBuilder<Long>().with(call_1,call_2).toCall(args -> recursiveCounterCaller(fc1, args.get(0), args.get(1)));
-            return new CallerBuilder<Long>().with(call_3,call_2,call_1).toCall(a -> recursiveCounterCaller(a.get(0), a.get(1), a.get(2)));
+            Caller<Long> call_3 = new CallerBuilder<Long>().with(call_1, call_2).toCall(args -> recursiveCounterCaller(fc1, args.get(0), args.get(1)));
+            return new CallerBuilder<Long>().with(call_3, call_2, call_1).toCall(a -> recursiveCounterCaller(a.get(0), a.get(1), a.get(2)));
 
         }
 
@@ -211,31 +212,6 @@ public class StackOverflowTest {
             c2 = recursiveCounter2(c1, c2, c3);
             c1 = recursiveCounter2(c1, c2, c3);
             return recursiveCounter2(c1, c2, c3);
-        }
-
-        public static Caller<Long> recursiveCounterCaller2(long c1, long c2, long c3) {
-            callerCounter++;
-            Log.print("CALLER", c1, c2, c3);
-            if (c1 <= 0) {
-                return Caller.ofResult(0L);
-            } else if (c2 <= 0) {
-                c2 = c1;
-                c1--;
-            } else if (c3 <= 0) {
-                c3 = c2;
-                c2--;
-            } else {
-                c3--;
-            }
-
-            final long fc1 = c1;
-            final long fc2 = c2;
-            final long fc3 = c3;
-            Caller<Long> call_1 = Caller.ofFunction(args -> recursiveCounterCaller(fc1, fc2, fc3));
-            Caller<Long> call_2 = new CallerBuilder<Long>().with(call_1).toCall(args -> recursiveCounterCaller2(fc1, fc2, args.get(0)));
-            Caller<Long> call_3 = new CallerBuilder<Long>().with(call_1,call_2).toCall(args -> recursiveCounterCaller2(fc1, args.get(0), args.get(1)));
-            return new CallerBuilder<Long>().with(call_3,call_2,call_1).toCall(a -> recursiveCounterCaller2(a.get(0), a.get(1), a.get(2)));
-
         }
 
         public static Caller<Long> recursiveCounterCaller3(long c1, long c2, long c3, String st) {
@@ -260,7 +236,7 @@ public class StackOverflowTest {
                 Log.print("Caller 2", args);
                 return recursiveCounterCaller3(fc1, args.get(0), args.get(1), st + ".").withTag(st + "2.1");
             }).withTag(st + "2");
-            
+
             return new CallerBuilder<Long>().with(Caller.ofResult(0L), call_2, call_3).toCall(args -> {
                 Log.print("Caller 3", args);
                 return recursiveCounterCaller3(args.get(0), args.get(1), args.get(2), st + ".").withTag(st + "3.1");
@@ -299,40 +275,50 @@ public class StackOverflowTest {
 
         /**
          *
+         * @param number
+         * @return 
          */
+        public static AtomicLong c1 = new AtomicLong(0);
+        public static AtomicLong c2 = new AtomicLong(0);
         public static Long recBoi(long number) {
+            c1.incrementAndGet();
             if (number % 4 == 0) {
                 return 0L;
             } else {
-                if (number > 10000) {
+                if (number > 5000) {
                     return number;
                 } else {
                     safeSleep(number);
                     long n1 = recBoi(number * 3);
                     long n2 = recBoi(n1 + 1);
-                    return recBoi(n1 + n2);
+                    long n3 = recBoi(n1 + 2);
+                    return recBoi(n1 + n2 + n3);
                 }
             }
         }
 
         public static Caller<Long> recBoiCaller(long number) {
+            c2.incrementAndGet();
             if (number % 4 == 0) {
                 return Caller.ofResult(0L);
             } else {
-                if (number > 10000) {
+                if (number > 5000) {
                     return Caller.ofResult(number);
                 } else {
                     safeSleep(number);
                     Caller<Long> n1 = new SharedCallerBuilder<Long>().toCall(a -> recBoiCaller(number * 3));
-                    Caller<Long> n2 = new SharedCallerBuilder<Long>().with(n1).toCall(a -> recBoiCaller(a.get(0) + 1));
-                    return new CallerBuilder<Long>().with(n1, n2).toCall(a -> recBoiCaller(a.get(0) + a.get(1)));
+                    Caller<Long> n2 = new CallerBuilder<Long>().with(n1).toCall(a -> recBoiCaller(a._0 + 1));
+                    Caller<Long> n3 = new CallerBuilder<Long>().with(n1).toCall(a -> recBoiCaller(a._0 + 2));
+                    return new CallerBuilder<Long>()
+                            .with(n1, n2, n3)
+                            .toCall(a -> recBoiCaller(a._0 + a._1 + a._2));
                 }
             }
         }
-        
-        public static void safeSleep(long sleepy){
-            long s = (long)(sleepy / 100d);
-            F.unsafeRun(()->Thread.sleep(s));
+
+        public static void safeSleep(long sleepy) {
+            long s = (long) (sleepy / 500d);
+            F.unsafeRun(() -> Thread.sleep(s));
         }
     }
 
@@ -356,7 +342,8 @@ public class StackOverflowTest {
 //        Log.print(callerCounter, callCounter);
 //        Log.print(list1.equals(list2));
         Log.print(recBoi(3L));
-        Log.print(recBoiCaller(3L).resolve());
+        Log.print(recBoiCaller(3L).resolveThreaded());
+        Log.print(c1.get(),c2.get());
         NestedException.nestedThrow(new Error("Quit"));
 //        CallOrResult<Integer> okCall = RecursionBuilder.okCall(1, 200000);
 //        RecursionBuilder.iterative(okCall);

@@ -42,11 +42,11 @@ public class CallerBuilder<T> {
         return this;
     }
 
-    public CallerBuilder<T> withDependencyCall(Function<List<T>, Caller<T>> call) {
+    public CallerBuilder<T> withDependencyCall(Function<CastList<T>, Caller<T>> call) {
         return this.with(ofFunction(call));
     }
 
-    public CallerBuilder<T> withDependencyResult(Function<List<T>, T> call) {
+    public CallerBuilder<T> withDependencyResult(Function<CastList<T>, T> call) {
         return this.with(ofResultCall(call));
     }
 
@@ -62,7 +62,7 @@ public class CallerBuilder<T> {
         return this.with(ofResult(res));
     }
 
-    public Caller<T> toResultCall(Function<List<T>, T> call) {
+    public Caller<T> toResultCall(Function<CastList<T>, T> call) {
         return toCall(args -> Caller.ofResult(call.apply(args)));
     }
 
@@ -70,7 +70,7 @@ public class CallerBuilder<T> {
         return toCall(args -> Caller.ofResult(call.get()));
     }
 
-    public Caller<T> toCall(Function<List<T>, Caller<T>> call) {
+    public Caller<T> toCall(Function<CastList<T>, Caller<T>> call) {
         if (sharedMutable) {
             return new Caller<>(CallerType.SHARED, null, call, this.dependants);
         } else {
