@@ -25,64 +25,57 @@ public class CallerBuilder<T> {
     public CallerBuilder(int size) {
         dependants = new ArrayList<>(size);
     }
-    
+
     public CallerBuilder() {
         dependants = new ArrayList<>(); // not empty, but default
     }
-    
-    private List<Caller<T>> dependants;
-    private boolean forwardDeps = false;
-    
-    public CallerBuilder<T> withDependency(Caller<T> dep) {
-        this.dependants.add(dep);
+
+    protected boolean sharedMutable = false;
+    protected List<Caller<T>> dependants;
+
+    public CallerBuilder<T> with(Caller<T>... deps) {
+        for (Caller<T> d : deps) {
+            this.dependants.add(d);
+        }
         return this;
     }
-    
+
     public CallerBuilder<T> withDependencyCall(Function<List<T>, Caller<T>> call) {
-        return this.withDependency(ofFunction(call));
+        return this.with(ofFunction(call));
     }
-    
+
     public CallerBuilder<T> withDependencyResult(Function<List<T>, T> call) {
-        return this.withDependency(ofResultCall(call));
+        return this.with(ofResultCall(call));
     }
-    
+
     public CallerBuilder<T> withDependencySupp(Supplier<Caller<T>> call) {
-        return this.withDependency(ofSupplier(call));
+        return this.with(ofSupplier(call));
     }
-    
+
     public CallerBuilder<T> withDependencySuppResult(Supplier<T> call) {
-        return this.withDependency(ofSupplierResult(call));
+        return this.with(ofSupplierResult(call));
     }
-    
+
     public CallerBuilder<T> withDependencyResult(T res) {
-        return this.withDependency(ofResult(res));
+        return this.with(ofResult(res));
     }
-    
-    public CallerBuilder<T> forwardDependeciesAsArguments(){
-        this.forwardDeps = true;
-        return this;
-    }
-    
+
     public Caller<T> toResultCall(Function<List<T>, T> call) {
         return toCall(args -> Caller.ofResult(call.apply(args)));
     }
-    
+
     public Caller<T> toResultCall(Supplier<T> call) {
         return toCall(args -> Caller.ofResult(call.get()));
     }
-    
+
     public Caller<T> toCall(Function<List<T>, Caller<T>> call) {
-        if(forwardDeps){
-            Function<List<T>, Caller<T>> call2 = args ->{
-                return call.apply(args).withForwardDeps(true);
-            };
-            return new Caller<>(CallerType.FUNCTION, null, call2, this.dependants).withForwardDeps(forwardDeps);
-        }else{
+        if (sharedMutable) {
+            return new Caller<>(CallerType.SHARED, null, call, this.dependants);
+        } else {
             return new Caller<>(CallerType.FUNCTION, null, call, this.dependants);
         }
-        
     }
-    
+
     public Caller<T> toCall(Supplier<Caller<T>> call) {
         return toCall(args -> Caller.ofSupplier(call));
     }

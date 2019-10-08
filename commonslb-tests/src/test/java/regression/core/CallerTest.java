@@ -34,7 +34,17 @@ public class CallerTest {
 
         BigInteger m = BigInteger.valueOf(2);
         BigInteger n = BigInteger.valueOf(8);
-        assertThat(RecursionBuilder.ackermann(m, n)).isEqualTo(RecursionBuilder.ackermannCaller(m, n).resolve());
+        assertThat(RecursionBuilder.ackermann(m, n))
+                .isEqualTo(RecursionBuilder.ackermannCaller(m, n).resolve());
+        
+        RandomDistribution rng = RandomDistribution.uniform(new Random());
+        
+        for(int i = 0; i < 50; i++){
+            Long num = rng.nextLong(1000L);
+            assertThat(RecursionBuilder.recBoi(num))
+                    .isEqualTo(RecursionBuilder.recBoiCaller(num).resolve())
+                    .isEqualTo(RecursionBuilder.recBoiCaller(num).resolveThreaded());
+        }
     }
 
     @Test
@@ -46,6 +56,9 @@ public class CallerTest {
 
         for (int i = 0; i < 200; i++) {
             Integer id = rng.nextInt(10, tree.nodes.size());
+            if(i == 0){
+                id = -1;
+            }
             TreeVisitor<GNode> it = treeVisitor(tree, id);
 
             assertThat(tree.getNode(id).isPresent());
@@ -72,6 +85,9 @@ public class CallerTest {
 
         for (int i = 0; i < 200; i++) {
             Integer id = rng.nextInt(1, tree.nodes.size());
+            if(i == 0){
+                id = -1;
+            }
             List<Long> list_1 = new ArrayList<>();
             List<Long> list_2 = new ArrayList<>();
             List<Long> list_3 = new ArrayList<>();
@@ -87,7 +103,11 @@ public class CallerTest {
                     .isEqualTo(list_4);
         }
         for (int i = 0; i < 200; i++) {
+            
             Integer id = rng.nextInt(1, tree.nodes.size());
+            if(i == 0){
+                id = -1;
+            }
             List<Long> list_1 = new ArrayList<>();
             List<Long> list_2 = new ArrayList<>();
             List<Long> list_3 = new ArrayList<>();

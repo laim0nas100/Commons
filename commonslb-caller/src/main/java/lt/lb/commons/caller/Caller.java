@@ -12,7 +12,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
- * Recursion avoiding function modeling. Main purpose: write a recursive
+ * Recursion avoiding function modeling.Main purpose: write a recursive
  * function. If likely to get stack overflown, use this framework to replace
  * every recursive call with Caller equivalent, without needing to design an
  * iterative solution.
@@ -21,21 +21,22 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
  * than well-made iterative solution.
  *
  * @author laim0nas100
+ * @param <T> Most common type of arguments that this is caller is used to model.
  */
 public class Caller<T> {
 
     static enum CallerType {
-        RESULT, FUNCTION
+        RESULT, FUNCTION, SHARED
     }
 
-    protected boolean forwardDeps;
     private static final List<?> empty = new ArrayList<>(0);
     protected final CallerType type;
     protected T value;
     protected String tag;
     protected Function<List<T>, Caller<T>> call;
     protected List<Caller<T>> dependencies;
-
+    protected boolean computed;
+    
     /**
      * Signify {@code for} loop end inside {@code Caller} {@code for} loop.
      * Equivalent of using return with recursive function call.
@@ -126,7 +127,7 @@ public class Caller<T> {
     }
 
     /**
-     * Main contructor
+     * Main constructor
      *
      * @param nextCall
      */
@@ -145,24 +146,53 @@ public class Caller<T> {
     public CallerForContinue<T> toForEnd() {
         return Caller.forEnd(this);
     }
-    
-    Caller<T> withForwardDeps(boolean curry){
-        this.forwardDeps = curry;
-        return this;
+
+    /**
+     * Tag of this caller. Default is null. For debugging or saving caller
+     * instances.
+     *
+     * @return tag of this caller
+     */
+    public String getTag() {
+        return tag;
     }
 
-    
-    public Caller<T> withTag(String tag){
+    /**
+     * Replace tag of this caller
+     *
+     * @param tag
+     */
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    /**
+     * Replace tab of this caller with a builder pattern
+     *
+     * @param tag
+     * @return
+     */
+    public Caller<T> withTag(String tag) {
         this.tag = tag;
         return this;
     }
+
     /**
      * Construct CallerBuilder with this caller as first dependency
      *
      * @return
      */
     public CallerBuilder<T> toCallerBuilderAsDep() {
-        return new CallerBuilder<T>(1).withDependency(this);
+        return new CallerBuilder<T>(1).with(this);
+    }
+
+    /**
+     * Construct SharedCallerBuilder with this caller as first dependency
+     *
+     * @return
+     */
+    public CallerBuilder<T> toSharedCallerBuilderAsDep() {
+        return new SharedCallerBuilder<T>(1).with(this);
     }
 
     /**
