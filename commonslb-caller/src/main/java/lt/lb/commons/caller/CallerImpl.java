@@ -11,6 +11,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import lt.lb.commons.F;
 import static lt.lb.commons.caller.Caller.CallerType.FUNCTION;
 import static lt.lb.commons.caller.Caller.CallerType.RESULT;
@@ -98,9 +100,7 @@ public class CallerImpl {
      * @return
      */
     public static <T> T resolve(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit) {
-
         return resolveThreaded(caller, stackLimit, callLimit, -1, Runnable::run); // should never throw exceptions related to threading
-
     }
 
     /**
@@ -127,12 +127,10 @@ public class CallerImpl {
     }
 
     /**
-     * Retrieves items one by one, each time creating new call. Doesn't make
-     * call chain for every item in iterator. Chain version is usually faster if
-     * item count returned by iterator is low (up to 3500)
-     *
-     * Chain version creates call chain, and then evaluates it all, while lazy
-     * version creates call chain as needed.
+     * Retrieves items one by one, each time creating new call. Just constructs
+     * appropriate functions for {@link ofWhileLoop}. 
+     * 
+     *  Recommended to not use directly for readability. Use {@link CallerForBuilder}.
      *
      * @param <T> the main type of Caller product
      * @param <R> type that iteration happens
@@ -144,71 +142,84 @@ public class CallerImpl {
      * middle of it and how
      * @return
      */
-    public static <T, R> Caller<T> ofIteratorLazy(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, R, Caller<T>> func, BiFunction<Integer, T, CallerForContinue<T>> contFunc) {
+    public static <T, R> Caller<T> ofIteratorLazy(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, R, Caller<T>> func, BiFunction<Integer, T, CallerFlowControl<T>> contFunc) {
 
-        if (!iterator.hasNext()) {
-            return emptyCase;
-        }
-        R next = iterator.getNext();
-        Integer index = iterator.getCurrentIndex();
+        return ofWhileLoop(
+                emptyCase,
+                iterator::hasNext,
+                () -> {
+                    R next = iterator.getNext();
+                    return func.apply(iterator.getCurrentIndex(), next);
+                },
+                item -> contFunc.apply(iterator.getCurrentIndex(), item)
+        );
 
+    }
+
+    /**
+     * Models do while loop. Just does 1 iteration and then just delegates to
+     * {@link ofWhileLoop}.
+     * 
+     * Recommended to not use directly for readability. Use {@link CallerDoWhileBuilder}.
+     *
+     * @param <T> the main type of Caller product
+     * @param emptyCase Caller when iterator is empty of not terminated anywhere
+     * @param condition whether to continue the loop
+     * @param func main recursive call of the loop
+     * @param contFunc how to continue with recursive call result
+     * @return
+     */
+    public static <T> Caller<T> ofDoWhileLoop(Caller<T> emptyCase, Supplier<Boolean> condition, Supplier<Caller<T>> func, Function<T, CallerFlowControl<T>> contFunc) {
         return new CallerBuilder<T>(1)
-                .withDependencyCall(args -> func.apply(index, next))
+                .withDependencySupp(func)
                 .toCall(args -> {
 
-                    CallerForContinue<T> apply = contFunc.apply(index, args.get(0));
-                    if (apply.endCycle) {
-                        return apply.caller;
-                    } else {
-                        return ofIteratorLazy(emptyCase, iterator, func, contFunc);
+                    CallerFlowControl<T> apply = contFunc.apply(args._0);
+                    switch (apply.flowControl) {
+                        case RETURN:
+                            return apply.caller;
+                        case BREAK:
+                            return emptyCase;
+                        default:
+                            return ofWhileLoop(emptyCase, condition, func, contFunc);
                     }
+
                 });
 
     }
 
     /**
-     * Retrieves items all at once. Creates dependent call chain. Lazy version
-     * is usually faster if iterator returns many items (more than 3500) or item
-     * retrieval is not free.
-     *
-     * Chain version creates call chain, and then evaluates it all, while lazy
-     * version creates call chain as needed.
+     * Models while loop.
      *
      * @param <T> the main type of Caller product
-     * @param <R> type that iteration happens
      * @param emptyCase Caller when iterator is empty of not terminated anywhere
-     * @param iterator ReadOnlyIterator that has items
-     * @param func BiFunction that provides Caller that eventually results in T
-     * type of variable. Used to make recursive calls from all items.
-     * @param contFunc BiFunction that checks wether to end iteration in the
-     * middle of it and how
+     * @param condition whether to continue the loop
+     * @param func main recursive call of the loop
+     * @param contFunc how to continue with recursive call result
      * @return
      */
-    public static <T, R> Caller<T> ofIteratorChain(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, R, Caller<T>> func, BiFunction<Integer, T, CallerForContinue<T>> contFunc) {
-        int i = 0;
-        Caller<T> call = null;
-        for (R c : iterator) {
-            final int index = i;
-            final Caller<T> cont = Caller.ofFunction(args -> {
-                return func.apply(index, c);
-            });
-            if (i == 0) { // first
-                call = cont;
-            } else {
-                call = new CallerBuilder<T>(1).with(call)
-                        .toCall(args -> {
-                            CallerForContinue<T> apply = contFunc.apply(index, args.get(0));
-                            if (apply.endCycle) {
-                                return apply.caller;
-                            } else {
-                                return cont;
-                            }
-                        });
-            }
-            i++;
+    public static <T> Caller<T> ofWhileLoop(Caller<T> emptyCase, Supplier<Boolean> condition, Supplier<Caller<T>> func, Function<T, CallerFlowControl<T>> contFunc) {
 
+        if (!condition.get()) {
+            return emptyCase;
         }
-        return F.nullWrap(call, emptyCase);
+
+        return new CallerBuilder<T>(1)
+                .withDependencySupp(func)
+                .toCall(args -> {
+
+                    CallerFlowControl<T> apply = contFunc.apply(args._0);
+                    switch (apply.flowControl) {
+                        case RETURN:
+                            return apply.caller;
+                        case BREAK:
+                            return emptyCase;
+                        default:
+                            return ofWhileLoop(emptyCase, condition, func, contFunc);
+                    }
+
+                });
+
     }
 
     private static <T> T complete(Collection<Caller<T>> s, T value) {
@@ -390,6 +401,10 @@ public class CallerImpl {
                                     waiterAndRunner.run(); // help with progress
                                     waiterAndRunner.get(); // wait for execution
                                 } catch (ExecutionException err) {
+                                    //execution failed at some point, so just cancel everything
+                                    for (Promise pro : array) {
+                                        pro.cancel(true);
+                                    }
                                     while (err.getCause() instanceof ExecutionException) {
                                         err = (ExecutionException) err.getCause();
                                     }

@@ -11,8 +11,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import static lt.lb.commons.caller.Caller.CallerType.SHARED;
-import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
  * Recursion avoiding function modeling.Main purpose: write a recursive
@@ -48,25 +46,36 @@ public class Caller<T> {
     protected AtomicReference<Thread> runner;
     
     /**
-     * Signify {@code for} loop end inside {@code Caller} {@code for} loop.
-     * Equivalent of using return with recursive function call.
+     * Signify {@code for} loop end inside {@code Caller for} loop.
+     * Equivalent of using {@code return} with recursive function call.
      *
      * @param <T>
      * @param next next Caller object
      * @return
      */
-    public static <T> CallerForContinue<T> forEnd(Caller<T> next) {
-        return new CallerForContinue<>(next, true);
+    public static <T> CallerFlowControl<T> flowReturn(Caller<T> next) {
+        return new CallerFlowControl<>(next, CallerFlowControl.CallerForType.RETURN);
     }
-
+    
     /**
-     * Signify {@code for} loop continue inside Caller for loop
+     * Signify {@code for} loop end inside {@code Caller for} loop.
+     * Equivalent of using {@code break}.
      *
      * @param <T>
      * @return
      */
-    public static <T> CallerForContinue<T> forContinue() {
-        return new CallerForContinue<>(null, false);
+    public static <T> CallerFlowControl<T> flowBreak() {
+        return new CallerFlowControl<>(null, CallerFlowControl.CallerForType.BREAK);
+    }
+
+    /**
+     * Signify {@code for} loop continue inside {@code Caller for} loop.
+     *
+     * @param <T>
+     * @return
+     */
+    public static <T> CallerFlowControl<T> flowContinue() {
+        return new CallerFlowControl<>(null, CallerFlowControl.CallerForType.CONTINUE);
     }
 
     /**
@@ -124,19 +133,6 @@ public class Caller<T> {
     }
 
     /**
-     * Iteration builder factory method. Prefer calling using {@code new}
-     * operator for explicit typing.
-     *
-     * @param <T> item type, that function returns
-     * @param <R> item in for loop type
-     * @param iter
-     * @return
-     */
-    public static <T, R> CallerForBuilder<R, T> ofIterationBuilder(ReadOnlyIterator<R> iter) {
-        return new CallerForBuilderMain<>(iter);
-    }
-
-    /**
      * Main constructor
      *
      * @param nextCall
@@ -146,19 +142,19 @@ public class Caller<T> {
         this.value = result;
         this.call = nextCall;
         this.dependencies = dependencies;
-        if(type == SHARED){
+        if(type == CallerType.SHARED){
             this.compl = new CompletableFuture<>();
             this.runner = new AtomicReference<>();
         }
     }
 
     /**
-     * Construct Caller for loop end from this caller
+     * Construct Caller loop end with {@code return} from this caller
      *
      * @return
      */
-    public CallerForContinue<T> toForEnd() {
-        return Caller.forEnd(this);
+    public CallerFlowControl<T> toFlowReturn() {
+        return Caller.flowReturn(this);
     }
 
     /**

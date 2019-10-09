@@ -221,10 +221,7 @@ public abstract class TreeVisitorImpl {
                 return dfs;
             }
         }
-        if (visitor.find(root)) {
-            return Optional.ofNullable(root);
-        }
-        return Optional.empty();
+        return visitor.find(root) ? Optional.ofNullable(root) : Optional.empty();
     }
 
 }

@@ -194,7 +194,7 @@ public class TreeIterationTest {
             }).print(Log::print);
             
             bench.executeBench(times, "DFS cal", () -> {
-                DFSCaller(it, root, Optional.empty(),true).resolve();
+                DFSCaller(it, root, Optional.empty()).resolve();
             }).print(Log::print);
             
             bench.executeBench(times, "Pos rec", () -> {
@@ -206,7 +206,7 @@ public class TreeIterationTest {
             }).print(Log::print);
             
             bench.executeBench(times, "Pos cal", () -> {
-                PostOrderCaller(it, root, Optional.empty(),true).resolve();
+                PostOrderCaller(it, root, Optional.empty()).resolve();
             }).print(Log::print);
         }
 

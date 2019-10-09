@@ -45,7 +45,17 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     }
 
     public static <T> ReadOnlyIterator<T> of(Iterator<T> it) {
+        if (it instanceof ReadOnlyIterator) {
+            return (ReadOnlyIterator<T>) it;
+        }
         return new IteratorROI<>(it);
+    }
+    
+    public static <T> ReadOnlyIterator<T> of(Iterable<T> it){
+        if (it instanceof ReadOnlyIterator) {
+            return (ReadOnlyIterator<T>) it;
+        }
+        return new IteratorROI<>(it.iterator());
     }
 
     public static <T> ReadOnlyIterator<T> composite(ReadOnlyIterator<T>... iters) {
