@@ -21,8 +21,8 @@ import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import org.junit.Test;
-import static regression.core.CallerTest.DFSCaller;
-import static regression.core.CallerTest.PostOrderCaller;
+import static regression.caller.CallerTest.DFSCaller;
+import static regression.caller.CallerTest.PostOrderCaller;
 
 /**
  *

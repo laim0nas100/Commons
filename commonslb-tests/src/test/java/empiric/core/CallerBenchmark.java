@@ -7,12 +7,9 @@ package empiric.core;
 
 import empiric.core.StackOverflowTest.RecursionBuilder;
 import java.math.BigInteger;
-import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.caller.Caller;
-import lt.lb.commons.threads.FastExecutor;
-import lt.lb.commons.threads.FastWaitingExecutor;
 
 /**
  *
@@ -40,10 +37,10 @@ public class CallerBenchmark {
                 RecursionBuilder.fibbCaller(m, n, limit).resolve();
             }).print(Log::print);
             bench.executeBench(times, "Caller fibb2", () -> {
-                RecursionBuilder.fibb2Caller(fibb2).resolveThreaded();
+                RecursionBuilder.fibb2Caller(fibb2).resolve();
             }).print(Log::print);
             bench.executeBench(times, "Caller boi", ()->{
-                RecursionBuilder.recBoiCaller(7).resolveThreaded();
+                RecursionBuilder.recBoiCaller(7,new AtomicLong()).resolveThreaded();
             }).print(Log::print);
             
             bench.executeBench(times, "acker", () -> {
@@ -58,7 +55,7 @@ public class CallerBenchmark {
             }).print(Log::print);
             
             bench.executeBench(times, "boi", ()->{
-                RecursionBuilder.recBoi(7);
+                RecursionBuilder.recBoi(7,new AtomicLong());
             }).print(Log::print);
         }
         Log.close();

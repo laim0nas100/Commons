@@ -1,10 +1,10 @@
 package lt.lb.commons.caller;
 
+import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -25,7 +25,7 @@ import lt.lb.commons.threads.Promise;
  */
 public class CallerImpl {
 
-    private static class StackFrame<T> {
+    private static class StackFrame<T> implements Serializable {
 
         private Caller<T> call;
         private ArrayList<T> args;
@@ -224,7 +224,12 @@ public class CallerImpl {
         s.clear();
         return value;
     }
-    private static CastList emptyArgs = new CastList<>(null);
+
+    private static <T> boolean runnerCAS(Caller<T> caller) {
+        return caller.runner.compareAndSet(null, Thread.currentThread());
+//                || caller.runner.compareAndSet(Thread.currentThread(), Thread.currentThread());
+    }
+    private static final CastList emptyArgs = new CastList<>(null);
 
     private static <T> T resolveThreadedInner(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, int prevStackSize, AtomicLong callNumber, Executor exe) throws InterruptedException, ExecutionException, TimeoutException {
 
@@ -232,7 +237,6 @@ public class CallerImpl {
 
         Deque<Caller<T>> emptyStackShared = new ArrayDeque<>();
 
-        Thread me = Thread.currentThread();
         while (true) {
             if (stack.isEmpty()) {
                 switch (caller.type) {
@@ -242,7 +246,7 @@ public class CallerImpl {
                         if (caller.compl.isDone()) {
                             return complete(emptyStackShared, caller.compl.get());
                         }
-                        if (caller.runner.compareAndSet(null, me) || caller.runner.compareAndSet(me, me)) {
+                        if (runnerCAS(caller)) {
                             if (caller.dependencies == null) {
                                 assertCallLimit(callLimit, callNumber);
                                 emptyStackShared.add(caller);
@@ -275,14 +279,12 @@ public class CallerImpl {
                 caller = frame.call;
                 if (frame.readyArgs(caller)) { //demolish stack, because got all dependecies
                     assertCallLimit(callLimit, callNumber);
-                    if (frame.args == null) {
-                        caller = caller.call.apply(emptyArgs);
-                    } else {
-                        caller = caller.call.apply(new CastList<T>(frame.args)); // last call with dependants
-                    }
+                    caller = caller.call.apply(frame.args == null ? emptyArgs : new CastList(frame.args)); // last call with dependants
                     switch (caller.type) {
                         case SHARED:
-                            if (caller.compl.isDone()) {
+                            if (!caller.compl.isDone() && runnerCAS(caller)) {
+                                stack.getLast().clearWith(caller);
+                            } else { // done or executing on other thread
                                 T v = caller.compl.get();
                                 complete(stack.getLast().sharedStack, v);
                                 stack.pollLast();
@@ -291,29 +293,15 @@ public class CallerImpl {
                                 } else {
                                     stack.getLast().args.add(v);
                                 }
-                            } else {
-                                if (caller.runner.compareAndSet(null, me) || caller.runner.compareAndSet(me, me)) {
-                                    stack.getLast().clearWith(caller);
-                                } else { // executing on other thread
-                                    T v = caller.compl.get();
-                                    complete(stack.getLast().sharedStack, v);
-                                    stack.pollLast();
-                                    if (stack.isEmpty()) {
-                                        return complete(emptyStackShared, v);
-                                    } else {
-                                        stack.getLast().args.add(v);
-                                    }
-                                }
-
                             }
+
                             break;
                         case FUNCTION:
                             stack.getLast().clearWith(caller);
                             break;
 
                         case RESULT:
-                            complete(stack.getLast().sharedStack, caller.value);
-                            stack.pollLast();
+                            complete(stack.pollLast().sharedStack, caller.value);
                             if (stack.isEmpty()) {
                                 return complete(emptyStackShared, caller.value);
                             } else {
@@ -333,11 +321,9 @@ public class CallerImpl {
                             || (caller.type == SHARED && !caller.compl.isDone())) {
 
                         if (caller.dependencies == null) {
-                            boolean sharedOk = caller.type == SHARED && (caller.runner.compareAndSet(null, me) || caller.runner.compareAndSet(me, me));
-                            boolean doId = caller.type == FUNCTION || sharedOk;
 
                             // just call, assume we have expanded stack before
-                            if (doId) {
+                            if (caller.type == FUNCTION || (caller.type == SHARED && runnerCAS(caller))) {
                                 assertCallLimit(callLimit, callNumber);
                                 frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
                             } else {//in another thread
@@ -347,7 +333,7 @@ public class CallerImpl {
 
                         } else { // dep not empty
 
-                            if (branch <= 0 || caller.dependencies == null || caller.dependencies.size() <= 1) {
+                            if (branch <= 0 || caller.dependencies.size() <= 1) {
                                 Caller<T> get = caller.dependencies.get(frame.index);
                                 frame.index++;
                                 switch (get.type) {
@@ -361,7 +347,7 @@ public class CallerImpl {
                                         if (get.compl.isDone()) {
                                             frame.args.add(get.compl.get());
                                         } else {
-                                            if (get.runner.compareAndSet(null, me) || get.runner.compareAndSet(me, me)) {
+                                            if (runnerCAS(get)) {
                                                 stack.addLast(new StackFrame<>(get));
                                             } else {//in another thread
                                                 frame.args.add(get.compl.get());
@@ -378,7 +364,7 @@ public class CallerImpl {
                                 for (Caller<T> c : caller.dependencies) {
                                     switch (c.type) {
                                         case RESULT:
-                                            new Promise<>(() -> c.value).execute(r -> r.run()).collect(array);
+                                            new Promise<>(() -> c.value).collect(array).run();
                                             break;
                                         case FUNCTION:
                                             new Promise<>(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
@@ -387,7 +373,7 @@ public class CallerImpl {
                                             break;
                                         case SHARED:
                                             if (c.compl.isDone()) {
-                                                new Promise(c.compl).execute(r -> r.run()).collect(array);
+                                                new Promise(c.compl).collect(array).run();
                                             } else {
                                                 new Promise(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
                                                     return resolveThreadedInner(c, stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
@@ -416,7 +402,7 @@ public class CallerImpl {
                                 frame.index += array.size();
                             }
                         }
-                    } else { // allready executing in another thread
+                    } else { // allready finished executing in another thread
                         frame.args.add(caller.compl.get());
                     }
                 }

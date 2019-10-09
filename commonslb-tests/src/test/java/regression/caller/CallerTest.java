@@ -1,4 +1,4 @@
-package regression.core;
+package regression.caller;
 
 import empiric.core.StackOverflowTest.RecursionBuilder;
 import java.math.BigInteger;
@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.caller.Caller;
 import lt.lb.commons.caller.CallerForBuilderSimple;
 import lt.lb.commons.graphtheory.GNode;
@@ -36,14 +37,19 @@ public class CallerTest {
         BigInteger n = BigInteger.valueOf(8);
         assertThat(RecursionBuilder.ackermann(m, n))
                 .isEqualTo(RecursionBuilder.ackermannCaller(m, n).resolve());
-        
+
         RandomDistribution rng = RandomDistribution.uniform(new Random());
-        
-        for(int i = 0; i < 50; i++){
+
+        for (int i = 0; i < 50; i++) {
             Long num = rng.nextLong(1000L);
-            assertThat(RecursionBuilder.recBoi(num))
-                    .isEqualTo(RecursionBuilder.recBoiCaller(num).resolve())
-                    .isEqualTo(RecursionBuilder.recBoiCaller(num).resolveThreaded());
+            AtomicLong c1 = new AtomicLong();
+            AtomicLong c2 = new AtomicLong();
+            AtomicLong c3 = new AtomicLong();
+            assertThat(RecursionBuilder.recBoi(num, c1))
+                    .isEqualTo(RecursionBuilder.recBoiCaller(num, c2).resolve())
+                    .isEqualTo(RecursionBuilder.recBoiCaller(num, c3).resolveThreaded());
+
+            assertThat(c1.get()).isEqualTo(c2.get()).isEqualTo(c3.get());
         }
     }
 
@@ -56,7 +62,7 @@ public class CallerTest {
 
         for (int i = 0; i < 200; i++) {
             Integer id = rng.nextInt(10, tree.nodes.size());
-            if(i == 0){
+            if (i == 0) {
                 id = -1;
             }
             TreeVisitor<GNode> it = treeVisitor(tree, id);
@@ -85,7 +91,7 @@ public class CallerTest {
 
         for (int i = 0; i < 200; i++) {
             Integer id = rng.nextInt(1, tree.nodes.size());
-            if(i == 0){
+            if (i == 0) {
                 id = -1;
             }
             List<Long> list_1 = new ArrayList<>();
@@ -103,9 +109,9 @@ public class CallerTest {
                     .isEqualTo(list_4);
         }
         for (int i = 0; i < 200; i++) {
-            
+
             Integer id = rng.nextInt(1, tree.nodes.size());
-            if(i == 0){
+            if (i == 0) {
                 id = -1;
             }
             List<Long> list_1 = new ArrayList<>();

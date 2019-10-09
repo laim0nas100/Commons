@@ -74,10 +74,10 @@ public class StackOverflowTest {
 //            if(rng.nextInt(1000) >=999){
 //                throw new Error("Whoopsie");
 //            }
-            Caller<BigInteger> toResultCall = new CallerBuilder<BigInteger>()
+            Caller<BigInteger> toResultCall = new CallerBuilder<BigInteger>(2)
                     .withDependencyCall(a -> fibb2Caller(seq - 1))
                     .withDependencyCall(a -> fibb2Caller(seq - 2))
-                    .toResultCall(args -> args.get(0).add(args.get(1)));
+                    .toResultCall(args -> args._0.add(args._1));
 
             return toResultCall;
 
@@ -122,7 +122,7 @@ public class StackOverflowTest {
 
                 return new CallerBuilder<BigInteger>()
                         .withDependencyCall(args -> ackermannCaller(m, n.subtract(BigInteger.ONE)))
-                        .toCall(args -> ackermannCaller(m.subtract(BigInteger.ONE), args.get(0)));
+                        .toCall(args -> ackermannCaller(m.subtract(BigInteger.ONE), args._0));
             }
             throw new IllegalStateException();
         }
@@ -140,7 +140,7 @@ public class StackOverflowTest {
 
                 return new CallerBuilder<Long>()
                         .withDependencyCall(args -> ackermannCaller(m, n - 1))
-                        .toCall(args -> ackermannCaller(m - 1, args.get(0)));
+                        .toCall(args -> ackermannCaller(m - 1, args._0));
             }
             throw new IllegalStateException();
         }
@@ -273,15 +273,8 @@ public class StackOverflowTest {
             return new CallerBuilder<Long>().with(toCall, toCall1).toCall(args -> rec2Caller(args.get(0) - args.get(1)));
         }
 
-        /**
-         *
-         * @param number
-         * @return 
-         */
-        public static AtomicLong c1 = new AtomicLong(0);
-        public static AtomicLong c2 = new AtomicLong(0);
-        public static Long recBoi(long number) {
-            c1.incrementAndGet();
+        public static Long recBoi(long number, AtomicLong counter) {
+            counter.incrementAndGet();
             if (number % 4 == 0) {
                 return 0L;
             } else {
@@ -289,16 +282,16 @@ public class StackOverflowTest {
                     return number;
                 } else {
                     safeSleep(number);
-                    long n1 = recBoi(number * 3);
-                    long n2 = recBoi(n1 + 1);
-                    long n3 = recBoi(n1 + 2);
-                    return recBoi(n1 + n2 + n3);
+                    long n1 = recBoi(number * 3, counter);
+                    long n2 = recBoi(n1 + 1, counter);
+                    long n3 = recBoi(n1 + 2, counter);
+                    return recBoi(n1 + n2 + n3, counter);
                 }
             }
         }
 
-        public static Caller<Long> recBoiCaller(long number) {
-            c2.incrementAndGet();
+        public static Caller<Long> recBoiCaller(long number, AtomicLong counter) {
+            counter.incrementAndGet();
             if (number % 4 == 0) {
                 return Caller.ofResult(0L);
             } else {
@@ -306,12 +299,13 @@ public class StackOverflowTest {
                     return Caller.ofResult(number);
                 } else {
                     safeSleep(number);
-                    Caller<Long> n1 = new SharedCallerBuilder<Long>().toCall(a -> recBoiCaller(number * 3));
-                    Caller<Long> n2 = new CallerBuilder<Long>().with(n1).toCall(a -> recBoiCaller(a._0 + 1));
-                    Caller<Long> n3 = new CallerBuilder<Long>().with(n1).toCall(a -> recBoiCaller(a._0 + 2));
+                    Caller<Long> n1 = new SharedCallerBuilder<Long>().toCall(a -> recBoiCaller(number * 3, counter));
+                    CallerBuilder<Long> builder = new CallerBuilder<Long>().with(n1);
+                    Caller<Long> n2 = builder.toCall(a -> recBoiCaller(a._0 + 1, counter));
+                    Caller<Long> n3 = builder.toCall(a -> recBoiCaller(a._0 + 2, counter));
                     return new CallerBuilder<Long>()
                             .with(n1, n2, n3)
-                            .toCall(a -> recBoiCaller(a._0 + a._1 + a._2));
+                            .toCall(a -> recBoiCaller(a._0 + a._1 + a._2, counter));
                 }
             }
         }
@@ -341,9 +335,11 @@ public class StackOverflowTest {
 //        long recursiveCounter2 = recursiveCounterCaller3(a, b, c, "").resolve();
 //        Log.print(callerCounter, callCounter);
 //        Log.print(list1.equals(list2));
-        Log.print(recBoi(3L));
-        Log.print(recBoiCaller(3L).resolveThreaded());
-        Log.print(c1.get(),c2.get());
+        AtomicLong c1 = new AtomicLong();
+        AtomicLong c2 = new AtomicLong();
+        Log.print(recBoi(3L,c1));
+        Log.print(recBoiCaller(3L,c2).resolve());
+        Log.print(c1.get(), c2.get());
         NestedException.nestedThrow(new Error("Quit"));
 //        CallOrResult<Integer> okCall = RecursionBuilder.okCall(1, 200000);
 //        RecursionBuilder.iterative(okCall);
