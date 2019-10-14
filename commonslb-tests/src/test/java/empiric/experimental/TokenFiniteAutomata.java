@@ -174,7 +174,7 @@ public class TokenFiniteAutomata {
 
         @Override
         public boolean matches(Token token) {
-            return this.keyword.equals(token.id);
+            return this.keyword.equals(token.value);
         }
 
     }
@@ -244,7 +244,7 @@ public class TokenFiniteAutomata {
                 resNode.value = lit.value;
                 res.nodeList.add(resNode);
             } else {
-                resNode.value = token.id;
+                resNode.value = token.value;
                 res.nodeList.add(resNode);
             }
 

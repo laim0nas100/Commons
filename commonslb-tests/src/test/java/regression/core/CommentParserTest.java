@@ -16,7 +16,7 @@ import org.junit.Test;
  *
  * @author laim0nas100
  */
-public class Parsing {
+public class CommentParserTest {
 
     
 

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.parsing;
 
 import lt.lb.commons.containers.collections.SelfSortingMap;
@@ -22,22 +17,12 @@ import lt.lb.commons.interfaces.Equator;
 public class Lexer {
 
     /**
-     * Set wether to skip whitespace or include it inside literals.
+     * Set wether to skip white space or include it inside literals.
      *
      * @param skipWhitespace
      */
     public void setSkipWhitespace(boolean skipWhitespace) {
         this.skipWhitespace = skipWhitespace;
-    }
-
-    private enum TokenType {
-        LITERAL("LIT"),
-        STRING("STR");
-        public String type;
-
-        TokenType(String n) {
-            this.type = n;
-        }
     }
 
     public class LexerException extends Exception {
@@ -61,13 +46,21 @@ public class Lexer {
             keyStringEscape;
 
     protected String commentLine, commentStart, commentEnd;
-    protected SelfSortingMap<String, String> keywords;
-    protected SelfSortingMap<String, String> keywordsBreaking;
+    protected SelfSortingMap<String, TokenProducer> keywords;
+    protected SelfSortingMap<String, TokenProducer> keywordsBreaking;
+    protected TokenProducer literalProducer = TokenProducer.DEFAULT_LITERAL_PROD;
+    protected TokenProducer literalStringProducer = TokenProducer.DEFAULT_LITRAL_STRING_PROD;
     protected int linePos, charPos;
     protected String[] lines;
     protected boolean skipWhitespace;
-    //Override for case insensitive keywords
+    /**
+     * Override for case-insensitive keywords
+     */
     public Equator<String> equator = StringOp::equals;
+    /**
+     * Override for case-insensitive keywords
+     */
+    public Equator<String> equatorBreaking = StringOp::equals;
 
     public Lexer() {
         this.keywords = new SelfSortingMap<>(cmp, new HashMap<>());
@@ -75,27 +68,54 @@ public class Lexer {
     }
 
     /**
-     * Keywords can be a part of literals. If for example: 'printing' has
-     * keyword 'int' inside it, but it will not be recognized as such.
+     * Keywords can be a part of literals.If for example: 'printing' has keyword
+     * 'int' inside it, but it will not be recognized as such. With default
+     * token producer.
      *
      * @param keywords
      */
     public void addKeyword(String... keywords) {
         for (String tok : keywords) {
-            this.keywords.put(tok, tok);
+            this.keywords.put(tok, TokenProducer.DEFAULT_TOKEN_PROD);
+        }
+    }
+
+    /**
+     * Keywords can be a part of literals.If for example: 'printing' has keyword
+     * 'int' inside it, but it will not be recognized as such. With custom token
+     * producer.
+     *
+     * @param producer
+     * @param keywords
+     */
+    public void addKeyword(TokenProducer producer, String... keywords) {
+        for (String tok : keywords) {
+            this.keywords.put(tok, producer);
         }
     }
 
     /**
      * Keywords that can't be a part of literals (unless inside in a string).
      * Such keywords will break apart any literals, that has a keyword inside
-     * it.
+     * it. With default token producer.
      *
      * @param keywords
      */
     public void addKeywordBreaking(String... keywords) {
+        addKeywordBreaking(TokenProducer.DEFAULT_TOKEN_PROD, keywords);
+    }
+
+    /**
+     * Keywords that can't be a part of literals (unless inside in a
+     * string).Such keywords will break apart any literals, that has a keyword
+     * inside it. With custom token producer.
+     *
+     * @param producer
+     * @param keywords
+     */
+    public void addKeywordBreaking(TokenProducer producer, String... keywords) {
         for (String tok : keywords) {
-            this.keywordsBreaking.put(tok, tok);
+            this.keywordsBreaking.put(tok, producer);
         }
     }
 
@@ -167,7 +187,6 @@ public class Lexer {
         return StringOp.isNoneBlank(commentStart, commentEnd);
     }
 
-
     /**
      * Prepare for string parsing. Does not support nesting.
      *
@@ -176,9 +195,9 @@ public class Lexer {
      * @param strEsc keyword to escape within string
      */
     public void prepareForStrings(String strBeg, String strEnd, String strEsc) {
-        this.keywords.put(strBeg, strBeg);
-        this.keywords.put(strEnd, strEnd);
-        this.keywords.put(strEsc, strEsc);
+        this.keywords.put(strBeg, TokenProducer.DEFAULT_TOKEN_PROD);
+        this.keywords.put(strEnd, TokenProducer.DEFAULT_TOKEN_PROD);
+        this.keywords.put(strEsc, TokenProducer.DEFAULT_TOKEN_PROD);
         this.keyStringBegin = strBeg;
         this.keyStringEnd = strEnd;
         this.keyStringEscape = strEsc;
@@ -239,7 +258,7 @@ public class Lexer {
             SafeOpt<Character> currentChar = this.getCurrentChar();
             if (!currentChar.isPresent()) {
                 throw new StringNotTerminatedException();
-            } else if (this.tryToMatch(this.keyStringEscape)) {
+            } else if (this.tryToMatch(this.keyStringEscape,equatorBreaking)) {
                 this.advanceByTokenKey(this.keyStringEscape);
                 SafeOpt<Character> currentChar1 = this.getCurrentChar();
                 if (currentChar.isPresent()) {
@@ -250,7 +269,7 @@ public class Lexer {
                 }
 
             }
-            if (this.tryToMatch(this.keyStringEnd)) {
+            if (this.tryToMatch(this.keyStringEnd,equatorBreaking)) {
                 this.advanceByTokenKey(this.keyStringEnd);
                 break;
             }
@@ -262,20 +281,24 @@ public class Lexer {
             this.advance(1);
 
         }
-        return new Literal(TokenType.STRING.type, this.rangeCheck(0), result);
+        return literalStringProducer.produce(result, getCurrentPos());
 
+    }
+
+    public Integer[] getCurrentPos() {
+        return new Integer[]{this.linePos, this.charPos};
     }
 
     protected SafeOpt<Token> breakingKeyword() {
         for (String token : this.keywordsBreaking.getOrderedList()) {
-            if (this.tryToMatch(token)) {
-                return SafeOpt.of(new Token(token, new Integer[]{this.linePos, this.charPos}));
+            if (this.tryToMatch(token,equatorBreaking)) {
+                return SafeOpt.of(keywordsBreaking.get(token)).map(m -> m.produce(token, getCurrentPos()));
             }
         }
         return SafeOpt.empty();
     }
 
-    protected boolean tryToMatch(String explicit) {
+    protected boolean tryToMatch(String explicit, Equator<String> eq) {
         int lenToPeek = explicit.length();
         String readSymbols = "";
         for (int i = 0; i < lenToPeek; i++) {
@@ -286,11 +309,7 @@ public class Lexer {
                 break;
             }
         }
-        return equator.equals(explicit, readSymbols);
-    }
-
-    protected String getTokenID(String key) {
-        return this.keywords.get(key);
+        return eq.equals(explicit, readSymbols);
     }
 
     protected void advanceByTokenKey(String key) {
@@ -300,10 +319,10 @@ public class Lexer {
     protected Token literal(String value, Integer[] pos) {
         for (String token : this.keywords.getOrderedList()) {
             if (equator.equals(value, token)) {
-                return new Token(token, new Integer[]{this.linePos, this.charPos});
+                return keywords.get(token).produce(token, pos);
             }
         }
-        return new Literal(TokenType.LITERAL.type, pos, value);
+        return this.literalProducer.produce(value, pos);
     }
 
     protected SafeOpt<Token> getNextTokenImpl() {
@@ -337,13 +356,13 @@ public class Lexer {
                 }
             }
             if (this.hasStrings()) {
-                if (this.tryToMatch(this.keyStringBegin)) {
+                if (this.tryToMatch(this.keyStringBegin,equatorBreaking)) {
                     this.advanceByTokenKey(this.keyStringBegin);
                     return Optional.of(this.string());
                 }
             }
             if (this.hasLineComment()) {
-                if (this.tryToMatch(this.commentLine)) {
+                if (this.tryToMatch(this.commentLine,equatorBreaking)) {
                     if (buffer.length() > 0) {
                         return Optional.of(this.literal(buffer.toString(), pos));
                     } else {
@@ -355,12 +374,12 @@ public class Lexer {
             }
 
             if (this.hasMultilineComment()) {
-                if (this.tryToMatch(this.commentStart)) {
+                if (this.tryToMatch(this.commentStart,equatorBreaking)) {
                     if (buffer.length() > 0) {
                         return Optional.of(this.literal(buffer.toString(), pos));
                     } else {
                         this.advanceByTokenKey(this.commentStart);
-                        while (!this.tryToMatch(commentEnd)) {
+                        while (!this.tryToMatch(commentEnd,equatorBreaking)) {
                             this.advance(1);
                         }
                         this.advanceByTokenKey(this.commentEnd);
@@ -381,7 +400,7 @@ public class Lexer {
                 token = this.breakingKeyword();
                 if (token.isPresent()) {
                     Token t = token.get();
-                    this.advanceByTokenKey(t.id);
+                    this.advanceByTokenKey(t.value);
                     return Optional.of(t);
 
                 } else {

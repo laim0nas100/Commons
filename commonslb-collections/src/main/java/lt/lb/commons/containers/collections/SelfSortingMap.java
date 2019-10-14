@@ -12,7 +12,7 @@ import lt.lb.commons.F;
  */
 public class SelfSortingMap<K, V> implements Map<K, V> {
 
-    private PriorityQueue<V> list;
+    private PriorityQueue<K> list;
     private Map<K, V> map;
 
     /**
@@ -24,7 +24,7 @@ public class SelfSortingMap<K, V> implements Map<K, V> {
      * @param cmp Comparator to sort items in queue
      * @param map
      */
-    public SelfSortingMap(Comparator<V> cmp, Map<K, V> map) {
+    public SelfSortingMap(Comparator<K> cmp, Map<K, V> map) {
         this.list = new PriorityQueue<>(cmp);
         this.map = map;
     }
@@ -33,10 +33,9 @@ public class SelfSortingMap<K, V> implements Map<K, V> {
     public V put(K k, V v) {
 
         V prevValue = map.put(k, v);
-        if (prevValue != null) {
-            this.list.remove(prevValue);
+        if (prevValue == null) {
+            this.list.add(k);
         }
-        this.list.add(v);
         return prevValue;
     }
 
@@ -61,7 +60,7 @@ public class SelfSortingMap<K, V> implements Map<K, V> {
      *
      * @return
      */
-    public ArrayList<V> getOrderedList() {
+    public ArrayList<K> getOrderedList() {
         return new ArrayList<>(this.list);
     }
 
@@ -93,7 +92,7 @@ public class SelfSortingMap<K, V> implements Map<K, V> {
     @Override
     public V remove(Object key) {
         V remove1 = map.remove(key);
-        list.remove(remove1);
+        list.remove(key);
         return remove1;
     }
 

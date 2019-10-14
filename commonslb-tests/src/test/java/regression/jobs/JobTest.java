@@ -47,6 +47,7 @@ public class JobTest {
         
         jobDepModifier.accept(jobList);
         
+        Thread.sleep(100);
         for(Job job:jobList){
             executor.submit(job);
         }

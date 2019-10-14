@@ -23,7 +23,7 @@ import org.junit.Test;
  */
 public class ArrayTest {
 
-    @Test
+//    @Test
     public void arrayTest() throws InterruptedException, TimeoutException {
         Log.main().async = true;
         Integer[] arr = new Integer[]{1, 2, 3};

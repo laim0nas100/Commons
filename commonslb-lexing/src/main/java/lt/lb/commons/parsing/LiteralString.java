@@ -4,16 +4,17 @@ package lt.lb.commons.parsing;
  *
  * @author laim0nas100
  */
-public class Literal extends Token {
+public class LiteralString extends Literal {
 
-
-    public Literal(String value,Integer[] pos) {
+    public LiteralString(String value, Integer[] pos) {
         super(value, pos);
     }
 
     @Override
     public String toString() {
-        return "Literal "+super.toString();
+        return "String " + super.toString();
     }
+    
+    
 
 }
