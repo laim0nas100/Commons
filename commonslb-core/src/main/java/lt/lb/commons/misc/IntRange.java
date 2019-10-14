@@ -1,9 +1,12 @@
 package lt.lb.commons.misc;
 
 import java.util.Comparator;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 
 /**
  *
+ * Range to check int-based ranges with custom assertions
  * @author laim0nas100
  */
 public class IntRange extends Range<Integer> {
@@ -83,9 +86,29 @@ public class IntRange extends Range<Integer> {
         }
         return this;
     }
+    /**
+     * Custom assert method. Throw IllegalArgumentException if does not satisfy predicate.
+     * @param cons
+     * @return 
+     */
+    public IntRange assertRangeIsValidIf(BiPredicate<Integer,Integer> cons){
+        return assertRangeNotValidIf(cons.negate());
+    }
+    
+    /**
+     * Custom assert method. Throw IllegalArgumentException if does satisfy predicate.
+     * @param cons
+     * @return 
+     */
+    public IntRange assertRangeNotValidIf(BiPredicate<Integer,Integer> cons){
+        if(cons.test(min, max)){
+            throw new IllegalArgumentException("Invalid range (" + min + ":" + max + ")");
+        }
+        return this;
+    }
 
     /**
-     * Check if max >= min and throw IllegalArgumentException if not
+     * Check if max &ge min and throw IllegalArgumentException if not
      *
      * @return
      */

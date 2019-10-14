@@ -3,16 +3,47 @@ package lt.lb.commons;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import lt.lb.commons.misc.IntRange;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
- *
+ * Extension of @{link org.apache.commons.lang3.ArrayUtils}
  * @author laim0nas100
  */
 public class ArrayOp extends ArrayUtils {
 
+    /**
+     * Alternative to using chained &&. Empty/null array results in false.
+     *
+     * @param array
+     * @return
+     */
+    public static boolean all(Boolean... array) {
+        return all(t -> t, array);
+    }
+
+    /**
+     * Alternative to using chained ||. Empty/null array results in false.
+     *
+     * @param array
+     * @return
+     */
+    public static boolean any(Boolean... array) {
+        return any(t -> t, array);
+    }
+
+    /**
+     * Checks wether any on the values satisfies given predicate. Empty/null
+     * array results in false.
+     *
+     * @param <T>
+     * @param test
+     * @param array
+     * @return
+     */
     public static <T> boolean any(Predicate<T> test, T... array) {
-        if (array.length == 0) {
+
+        if (isEmpty(array)) {
             return false;
         }
         for (T t : array) {
@@ -23,29 +54,68 @@ public class ArrayOp extends ArrayUtils {
         return false;
     }
 
+    /**
+     * Checks wether all values satisfies given predicate. Empty/null array
+     * results in false.
+     *
+     * @param <T>
+     * @param test
+     * @param array
+     * @return
+     */
     public static <T> boolean all(Predicate<T> test, T... array) {
-        return (array.length > 0 && !any(test.negate(), array));
+        return (!isEmpty(array) && !any(test.negate(), array));
     }
 
+    /**
+     * Explicit typing for {@link System.arraycopy}
+     *
+     * @param <T>
+     * @param src
+     * @param srcPos
+     * @param dest
+     * @param destPos
+     * @param length
+     */
     public static <T> void arrayCopy(T[] src, int srcPos, T[] dest, int destPos, int length) {
         System.arraycopy(src, srcPos, dest, destPos, length);
     }
 
+    /**
+     * Fully copy source array into a destination array starting at specified
+     * destination position. Uses @{link System.arraycopy}.
+     *
+     * @param <T>
+     * @param src
+     * @param dest
+     * @param destPos
+     */
     public static <T> void arrayCopyFullAt(T[] src, T[] dest, int destPos) {
         System.arraycopy(src, 0, dest, destPos, src.length);
     }
 
+    /**
+     * Use {@link addAll}
+     *
+     * @param <T>
+     * @param one
+     * @param two
+     * @return
+     * @deprecated
+     */
+    @Deprecated
     public static <T> T[] merge(T[] one, T... two) {
-        int size = one.length + two.length;
-        Class<T> componentType = (Class<T>) one.getClass().getComponentType();
-        T[] newArray = ArrayOp.makeArray(size, componentType);
-
-        arrayCopyFullAt(one, newArray, 0);
-        arrayCopyFullAt(two, newArray, one.length);
-        return newArray;
-
+        return ArrayOp.addAll(one, two);
     }
 
+    /**
+     * Merge one or more arrays of same type into a new array
+     *
+     * @param <T>
+     * @param one
+     * @param two
+     * @return
+     */
     public static <T> T[] merge(T[] one, T[]... two) {
         int size = one.length;
         for (T[] t : two) {
@@ -67,6 +137,14 @@ public class ArrayOp extends ArrayUtils {
 
     }
 
+    /**
+     * Cast array into a whole new array
+     *
+     * @param <T>
+     * @param array
+     * @param clz
+     * @return
+     */
     public static <T> T[] castArray(Object[] array, Class<T> clz) {
         T[] a = makeArray(array.length, clz);
         for (int i = 0; i < array.length; i++) {
@@ -75,6 +153,14 @@ public class ArrayOp extends ArrayUtils {
         return a;
     }
 
+    /**
+     * Make new non-primitive type array
+     *
+     * @param <T>
+     * @param size
+     * @param clz
+     * @return
+     */
     public static <T> T[] makeArray(Integer size, Class<T> clz) {
         if (clz.isPrimitive()) {
             throw new IllegalArgumentException("Primitives, like " + clz.getName() + " are not supported, use makePrimitiveArray");
@@ -82,6 +168,13 @@ public class ArrayOp extends ArrayUtils {
         return (T[]) java.lang.reflect.Array.newInstance(clz, size);
     }
 
+    /**
+     * Make new primitive type array (just to separate from non-primitives)
+     *
+     * @param size
+     * @param clz
+     * @return
+     */
     public static Object makePrimitiveArray(Integer size, Class clz) {
         if (clz.isPrimitive()) {
             return java.lang.reflect.Array.newInstance(clz, size);
@@ -90,86 +183,137 @@ public class ArrayOp extends ArrayUtils {
         }
     }
 
+    /**
+     * Make new array from list with explicit class.
+     *
+     * @param <T>
+     * @param list
+     * @param clz
+     * @return
+     */
     public static <T> T[] newArray(List<T> list, Class<T> clz) {
         T[] array = makeArray(list.size(), clz);
         return list.toArray(array);
     }
 
+    /**
+     * Make new array form iterator
+     *
+     * @param <T>
+     * @param it
+     * @param size
+     * @param clz
+     * @return
+     */
     public static <T> T[] newArray(Iterator<T> it, int size, Class<T> clz) {
         T[] array = makeArray(size, clz);
-        F.iterate(it, (i, item) -> {
+        F.find(it, (i, item) -> {
+            if (i >= size) {
+                return true;
+            }
             array[i] = item;
+            return false;
         });
         return array;
     }
 
+    /**
+     *
+     * @param <T>
+     * @param it
+     * @param clz
+     * @return
+     */
     public static <T> T[] newArrayFill(Iterator<T> it, Class<T> clz) {
-        LinkedList<T> list = new LinkedList<>();
+
+        List<T> list = new ArrayList<>();
         it.forEachRemaining(list::add);
         return newArray(list, clz);
     }
 
+    /**
+     *
+     * @param list
+     * @return
+     */
     public static Object[] newArray(List list) {
-        return newArray(list, Object.class);
+        return list.toArray();
     }
 
+    /**
+     * Use {@link removeElements}
+     *
+     * @param <T>
+     * @param one
+     * @param two
+     * @return
+     * @deprecated
+     */
+    @Deprecated
     public static <T> T[] remove(T[] one, T... two) {
-        ArrayList<T> list = new ArrayList<>(one.length);
-        HashSet<T> set = new HashSet<>();
-
-        for (T t : two) {
-            set.add(t);
-        }
-        for (T t : one) {
-            if (!set.contains(t)) {
-                list.add(t);
-            }
-        }
-
-        Class<T> componentType = (Class<T>) one.getClass().getComponentType();
-        return newArray(list, componentType);
+        return ArrayOp.removeElements(one, two);
     }
 
+    /**
+     * Use {@link removeAll}
+     *
+     * @param <T>
+     * @param one
+     * @param two
+     * @return
+     */
     public static <T> T[] removeByIndex(T[] one, Integer... two) {
-        ArrayList<T> list = new ArrayList<>(one.length - two.length);
-        HashSet<Integer> set = new HashSet<>(two.length);
-        for (Integer i : two) {
-            set.add(i);
-        }
-        F.iterate(one, (i, t) -> {
-            if (!set.contains(i)) {
-                list.add(t);
-            }
-        });
-
-        Class<T> componentType = (Class<T>) one.getClass().getComponentType();
-        return newArray(list, componentType);
+        return ArrayOp.removeAll(one, toPrimitive(two));
     }
 
+    /**
+     * Use {@link insert}
+     *
+     * @param <T>
+     * @param one
+     * @param where
+     * @param what
+     * @return
+     */
+    @Deprecated
     public static <T> T[] addAt(T[] one, Integer where, T... what) {
-        int size = one.length + what.length;
-        Class<T> componentType = (Class<T>) one.getClass().getComponentType();
-        T[] newArray = ArrayOp.makeArray(size, componentType);
-
-        ArrayOp.arrayCopy(one, 0, newArray, 0, where); // copy first part
-        ArrayOp.arrayCopyFullAt(what, newArray, where);
-        ArrayOp.arrayCopy(one, where, newArray, where + what.length, one.length - where);
-        return newArray;
-
+        return insert(where, one, what);
     }
 
-    public static <T> T[] removeStrip(T[] one, Integer from, Integer to) {
-
+    /**
+     * Removes a strip specified by indices creating a new array
+     *
+     * @param <T>
+     * @param array
+     * @param from index start (inclusive)
+     * @param to index end (exclusive)
+     * @return
+     */
+    public static <T> T[] removeStrip(T[] array, Integer from, Integer to) {
+        IntRange.of(from, to)
+                .assertRangeIsValid()
+                .assertRangeIsValidIf((mi, mx) -> mi >= 0 && mx < array.length);
         int strip = to - from;
-        int size = one.length - strip;
-        Class<T> componentType = (Class<T>) one.getClass().getComponentType();
+        if (strip == 0) {
+            return array;
+        }
+        int size = array.length - strip;
+        Class<T> componentType = (Class<T>) array.getClass().getComponentType();
         T[] newArray = ArrayOp.makeArray(size, componentType);
 
-        ArrayOp.arrayCopy(one, 0, newArray, 0, from); // copy first part
-        ArrayOp.arrayCopy(one, to, newArray, from, size - from);
+        ArrayOp.arrayCopy(array, 0, newArray, 0, from); // copy first part
+        ArrayOp.arrayCopy(array, to, newArray, from, size - from);
         return newArray;
     }
 
+    /**
+     * Count how many elements predicate satisfies.
+     *
+     * @param <T>
+     * @param test
+     * @param array
+     * @return
+     */
     public static <T> int count(Predicate<T> test, T... array) {
         int count = 0;
         for (T t : array) {
@@ -178,10 +322,25 @@ public class ArrayOp extends ArrayUtils {
         return count;
     }
 
+    /**
+     * For variables to array explicitly
+     *
+     * @param <T>
+     * @param vals
+     * @return
+     */
     public static <T> T[] asArray(T... vals) {
         return vals;
     }
 
+    /**
+     * Make copies of given values specified amount of times
+     *
+     * @param <T>
+     * @param times
+     * @param values
+     * @return
+     */
     public static <T> T[] replicate(Integer times, T... values) {
         int arraySize = times * values.length;
         Class<T> cls = (Class<T>) values.getClass().getComponentType();
@@ -197,6 +356,16 @@ public class ArrayOp extends ArrayUtils {
         return array;
     }
 
+    /**
+     * Make copies of given values specified amount of times using a supplier
+     * array
+     *
+     * @param <T>
+     * @param times
+     * @param baseClass
+     * @param values
+     * @return
+     */
     public static <T> T[] replicate(Integer times, Class<T> baseClass, Supplier<T>... values) {
         int arraySize = times * values.length;
 
@@ -211,68 +380,84 @@ public class ArrayOp extends ArrayUtils {
         return array;
     }
 
+    /**
+     * Explicit method name. Uses {@link toObject}.
+     *
+     * @param arr
+     * @return
+     */
     public static Integer[] mapInt(int... arr) {
-        Integer[] a = new Integer[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            a[i] = arr[i];
-        }
-        return a;
+        return toObject(arr);
     }
 
+    /**
+     * Explicit method name. Uses {@link toObject}.
+     *
+     * @param arr
+     * @return
+     */
     public static Long[] mapLong(long... arr) {
-        Long[] a = new Long[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            a[i] = arr[i];
-        }
-        return a;
+        return toObject(arr);
     }
 
-    public static Short[] mapsShort(short... arr) {
-        Short[] a = new Short[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            a[i] = arr[i];
-        }
-        return a;
+    /**
+     * Explicit method name. Uses {@link toObject}.
+     *
+     * @param arr
+     * @return
+     */
+    public static Short[] mapShort(short... arr) {
+        return toObject(arr);
     }
 
+    /**
+     * Explicit method name. Uses {@link toObject}.
+     *
+     * @param arr
+     * @return
+     */
     public static Byte[] mapByte(byte... arr) {
-        Byte[] a = new Byte[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            a[i] = arr[i];
-        }
-        return a;
+        return toObject(arr);
     }
 
+    /**
+     * Explicit method name. Uses {@link toObject}.
+     *
+     * @param arr
+     * @return
+     */
     public static Double[] mapDouble(double... arr) {
-        Double[] a = new Double[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            a[i] = arr[i];
-        }
-        return a;
+        return toObject(arr);
     }
 
+    /**
+     * Explicit method name. Uses {@link toObject}.
+     *
+     * @param arr
+     * @return
+     */
     public static Float[] mapFloat(float... arr) {
-        Float[] a = new Float[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            a[i] = arr[i];
-        }
-        return a;
+        return toObject(arr);
     }
 
+    /**
+     * Explicit method name. Uses {@link toObject}.
+     *
+     * @param arr
+     * @return
+     */
     public static Boolean[] mapBoolean(boolean... arr) {
-        Boolean[] a = new Boolean[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            a[i] = arr[i];
-        }
-        return a;
+        return toObject(arr);
     }
 
+    /**
+     * Explicit method name. Uses {@link toObject}.
+     *
+     * @param arr
+     * @return
+     */
     public static Character[] mapChar(char... arr) {
-        Character[] a = new Character[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            a[i] = arr[i];
-        }
-        return a;
+        return toObject(arr);
     }
 
 }
