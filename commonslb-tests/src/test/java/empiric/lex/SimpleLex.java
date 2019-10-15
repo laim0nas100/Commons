@@ -10,13 +10,15 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
+import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.io.FileReader;
 import lt.lb.commons.parsing.LexerWithStrings;
+import lt.lb.commons.parsing.Token;
 import org.junit.Test;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class SimpleLex {
 
@@ -26,6 +28,7 @@ public class SimpleLex {
         ArrayList<String> readFrom = FileReader.readFrom(resourceAsStream);
 
         LexerWithStrings lex = new LexerWithStrings();
+        lex.setSaveComments(false);
         String[] symbols = {
             ".", ",", "'", ";", "!", ":", "?", "@",
             "[", "]", "(", ")", "{", "}",
@@ -35,7 +38,7 @@ public class SimpleLex {
             "=+", "=-", "*=", "/=", "%=",
             "~", "^", "|", "&", ">>", "<<", ">>>",
             "~=", "^=", "|=", "&=", ">>=", "<<=", ">>>=",
-            "->","::"
+            "->", "::"
         };
         String[] visibility = {"private", "protected", "public"};
         String[] primitive = {"void", "boolean", "byte", "char", "short", "int", "long", "float", "double"};
@@ -49,9 +52,10 @@ public class SimpleLex {
         lex.addKeyword(merged);
         lex.addKeywordBreaking(symbols);
         lex.prepareForComments("//", "/*", "*/");
-        lex.resetLines(readFrom);
 
-        Log.printLines(lex.getRemainingTokens().stream().map(m -> m.toString()).iterator());
+
+        lex.resetLines(readFrom);
+        Log.printLines(lex.getRemainingTokens());
         Log.await(10, TimeUnit.DAYS);
 
     }

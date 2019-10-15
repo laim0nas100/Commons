@@ -133,8 +133,10 @@ public class ListBench {
         });
         return bank;
     }
-
-    
+/*
+a very long comment
+that lasts in several lines
+*/  
 
     public <T> Supplier<List<T>> makeList(List<T> bank, List<T> newList) {
 
@@ -469,3 +471,9 @@ Benchmark b = new Benchmark();
 //        Log.print("List is valid after random add");
     }
 }
+/*
+
+
+
+
+unfinished comment

@@ -444,12 +444,15 @@ public class Lexer {
                             if (saveComments) {
                                 advance.ifPresent(comment::append);
                             }
+                            if (advance.isEmpty()) {
+                                break;
+                            }
                         }
 
                         this.advanceByTokenKey(this.commentEnd);
-                        comment.removeFromEnd(1);
 
                         if (saveComments) {
+                            comment.removeFromEnd(1);
                             int[] endPos = this.getCurrentPos();
                             return Optional.ofNullable(comment(comment.toString(), startPos, endPos));
                         }
