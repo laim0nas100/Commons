@@ -2,13 +2,12 @@ package lt.lb.commons;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.interfaces.Equator;
-import lt.lb.commons.interfaces.Equator.EqualityHashProxy;
+import lt.lb.commons.interfaces.Equator.EqualityProxy;
 
 /**
  *
@@ -61,10 +60,10 @@ public class Predicates {
      * @param equator on how compare elements
      * @return Predicate to use in a stream
      */
-    public static <T> Predicate<T> filterDistinct(Equator.HashEquator<T> equator) {
+    public static <T> Predicate<T> filterDistinct(Equator<T> equator) {
 
         return new Predicate<T>() {
-            ConcurrentHashMap<EqualityHashProxy<T>, EqualityHashProxy<T>> kept = new ConcurrentHashMap<>();
+            ConcurrentHashMap<EqualityProxy<T>, EqualityProxy<T>> kept = new ConcurrentHashMap<>();
             AtomicBoolean foundNull = new AtomicBoolean(false);
 
             @Override
@@ -74,7 +73,7 @@ public class Predicates {
                 }
 
                 BooleanValue isNew = BooleanValue.FALSE();
-                EqualityHashProxy<T> equalityHashProxy = new EqualityHashProxy<>(t, equator);
+                EqualityProxy<T> equalityHashProxy = new EqualityProxy<>(t, equator);
                 kept.computeIfAbsent(equalityHashProxy, k -> {
                     isNew.set(true);
                     return k;
@@ -85,36 +84,6 @@ public class Predicates {
         };
     }
 
-    /**
-     * Predicate to filter your streams. Supports multiple threads.
-     *
-     * @param <T>
-     * @param equator equality condition
-     * @return Predicate to use in a stream
-     */
-    public static <T> Predicate<T> filterDistinct(Equator<T> equator) {
-
-        return new Predicate<T>() {
-            ConcurrentLinkedDeque<T> kept = new ConcurrentLinkedDeque<>();
-            AtomicBoolean foundNull = new AtomicBoolean(false);
-
-            @Override
-            public boolean test(T t) {
-
-                if (t == null) {
-                    return foundNull.compareAndSet(false, true);
-                }
-                
-                boolean toKeep = !F.find(kept, (i, item) -> equator.equals(t, item)).isPresent();
-
-                if (toKeep) {
-                    kept.add(t);
-                }
-                return toKeep;
-            }
-        };
-    }
-    
     /**
      * Predicate to filter your streams. Supports multiple threads.
      * Hashing and value property are the same.

@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.interfaces.Equator;
-import lt.lb.commons.interfaces.Equator.HashEquator;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.Iter.IterMap;
 import lt.lb.commons.iteration.Iter.IterMapNoStop;
@@ -311,7 +310,7 @@ public class F {
         AtomicInteger satisfiedCount = new AtomicInteger(0);
         ArrayDeque<Promise> deque = new ArrayDeque<>(size);
         F.iterate(col, (i, item) -> {
-            Promise<Void> prom = new Promise(() -> {
+            new Promise(() -> {
                 satisfied[i] = pred.test(item);
                 if (satisfied[i]) {
                     satisfiedCount.incrementAndGet();
@@ -323,17 +322,18 @@ public class F {
         F.unsafeRun(() -> {
             new Promise().waitFor(deque).execute(exe).get();
         });
-        if (size > satisfiedCount.get()) {
-            return removeByConditionIndex(col, satisfied);
+        int remove = size - satisfiedCount.get();
+        if (remove > 0) {
+            return removeByConditionIndex(col, satisfied, remove);
         }
         return new ArrayList<>();
 
     }
 
-    private static <T> ArrayList<T> removeByConditionIndex(Collection<T> col, boolean[] satisfied) {
-        ArrayList<T> removed = new ArrayList<>();
+    private static <T> ArrayList<T> removeByConditionIndex(Collection<T> col, boolean[] satisfied, int removedSize) {
+        ArrayList<T> removed = new ArrayList<>(removedSize);
         if (col instanceof RandomAccess) { // rewrite
-            ArrayList<T> kept = new ArrayList<>(satisfied.length);
+            ArrayList<T> kept = new ArrayList<>(satisfied.length - removedSize);
             F.iterate(col, (i, item) -> {
                 if (satisfied[i]) {
                     kept.add(item);
@@ -383,42 +383,44 @@ public class F {
      * @return
      */
     public static <T> ArrayList<T> intersection(Collection<T> c1, Collection<T> c2, Equator<T> eq) {
-        ArrayList<T> common = new ArrayList<>();
-        HashSet<Long> map = new HashSet<>();
-        long offset = c1.size();
-        F.iterate(c1, (i, obj1) -> {
-            F.iterate(c2, (j, obj2) -> {
-                long k1 = i;
-                long k2 = offset + j;
-                if (eq.equals(obj1, obj2)) {
-                    if (!map.contains(k1)) {
-                        map.add(k1);
-                        common.add(obj1);
-                    }
-                    if (!map.contains(k2)) {
-                        map.add(k2);
-                        common.add(obj2);
-                    }
-                }
-            });
-        });
+
+        LinkedHashSet<Equator.EqualityProxy<T>> m1 = new LinkedHashSet<>();
+        LinkedHashSet<Equator.EqualityProxy<T>> m2 = new LinkedHashSet<>();
+
+        for (T obj1 : c1) {
+            m1.add(new Equator.EqualityProxy<>(obj1, eq));
+        }
+        for (T obj1 : c2) {
+            m2.add(new Equator.EqualityProxy<>(obj1, eq));
+        }
+        m1.retainAll(m2);
+        ArrayList<T> common = new ArrayList<>(m1.size());
+        for (Equator.EqualityProxy<T> pro : m1) {
+            common.add(pro.getValue());
+        }
         return common;
     }
 
-    public static <T> ArrayList<Pair<T>> intersection(Collection<T> c1, Collection<T> c2, HashEquator<T> eq) {
-        ArrayList<Pair<T>> common = new ArrayList<>();
-        LinkedHashMap<Object, T> m1 = new LinkedHashMap<>();
+    public static <T> ArrayList<Pair<T>> intersectionPairs(Collection<T> c1, Collection<T> c2, Equator<T> eq) {
+
+        LinkedHashSet<Equator.EqualityProxy<T>> m1 = new LinkedHashSet<>();
+        LinkedHashSet<Equator.EqualityProxy<T>> m2 = new LinkedHashSet<>();
 
         for (T obj1 : c1) {
-            Object key1 = eq.getHashable(obj1);
-            m1.put(key1, obj1);
+            m1.add(new Equator.EqualityProxy<>(obj1, eq));
         }
         for (T obj1 : c2) {
-            Object key1 = eq.getHashable(obj1);
-            if (m1.containsKey(key1)) {
-                common.add(new Pair<>(m1.get(key1), obj1));
-            }
+            m2.add(new Equator.EqualityProxy<>(obj1, eq));
         }
+        m1.retainAll(m2);
+        m2.retainAll(m1);
+        ArrayList<Pair<T>> common = new ArrayList<>(m1.size());
+        for (Equator.EqualityProxy<T> pro : m1) {
+            common.add(new Pair<>(pro.getValue(), null));
+        }
+        F.iterate(m2, (i, pro) -> {
+            common.get(i).setG2(pro.getValue());
+        });
         return common;
     }
 

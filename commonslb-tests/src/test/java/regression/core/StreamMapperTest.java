@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lt.lb.commons.Log;
 import lt.lb.commons.func.StreamMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
@@ -20,7 +21,7 @@ import org.junit.Test;
 public class StreamMapperTest {
 
     @Test
-    public void testOK() {
+    public void test1() {
 
         List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
 
@@ -42,6 +43,32 @@ public class StreamMapperTest {
         Stream<Double> decorate = combine.decorate(stream);
 
         assertThat(decorate.collect(Collectors.toList())).isEqualTo(Arrays.asList(25.0, 30.0, 35.0, 40.0, 45.0));
+
+    }
+
+    @Test
+    public void test2() {
+
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+
+        StreamMapper<Integer, String> filter = StreamMapper.of(Integer.class)
+                .map(m -> m * 10)
+                .distinct((a, b) -> a % 5 == b % 5) // leave only one number divisable by 5
+                .concat(7)
+                .map(m -> "" + m);
+        StreamMapper<String, Double> sorted = StreamMapper.of(String.class)
+                .flatMap(m -> Stream.of(Integer.parseInt(m), Integer.parseInt(m) - 5))
+                .map(m -> (double) m)
+                .sorted();
+
+        Stream<Integer> stream = list.stream();
+
+        StreamMapper<Integer, Double> combine = filter.thenApply(sorted);
+
+        Stream<Double> decorate = combine.decorate(stream);
+
+        assertThat(decorate.collect(Collectors.toList())).isEqualTo(Arrays.asList(2.0,5.0,7.0,10.0));
+        Log.close();
 
     }
 }

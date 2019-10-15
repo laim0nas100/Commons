@@ -2,8 +2,6 @@ package lt.lb.commons.interfaces;
 
 import java.util.Objects;
 import java.util.function.Function;
-import lt.lb.commons.F;
-import lt.lb.commons.containers.values.BooleanValue;
 
 /**
  *
@@ -12,20 +10,10 @@ import lt.lb.commons.containers.values.BooleanValue;
  */
 public interface Equator<T> {
 
-    public static class EqualityHashProxy<T> extends EqualityProxy<T> {
-
-        public EqualityHashProxy(T value, HashEquator<T> eq) {
-            super(value, eq);
-        }
-
-        @Override
-        public int hashCode() {
-            HashEquator e = F.cast(eq);
-            return Objects.hashCode(e.getHashable(value));
-        }
-
-    }
-
+    /**
+     * Class to redefine objects "equals" and "hashCode" methods, to change what it means to be equal
+     * @param <T> 
+     */
     public static class EqualityProxy<T> {
 
         protected final T value;
@@ -42,7 +30,7 @@ public interface Equator<T> {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(value);
+            return eq.hashCode(value);
         }
 
         @Override
@@ -53,8 +41,12 @@ public interface Equator<T> {
             if (obj == null) {
                 return false;
             }
-            final EqualityProxy<?> other = (EqualityProxy<?>) obj;
-            return eq.genericEquals(this.value, other.value);
+            if(obj instanceof EqualityProxy){
+                final EqualityProxy<T> other = (EqualityProxy<T>) obj;
+                return eq.equals(value, other.value);
+            }else{
+                return false;
+            }
         }
 
     }
@@ -67,31 +59,16 @@ public interface Equator<T> {
      * @return
      */
     public boolean equals(T value1, T value2);
-
-    public default boolean genericEquals(Object v1, Object v2) {
-        if (v1 == v2) {
-            return true;
-        }
-        if ((v1 == null) != (v2 == null)) {
-            return false;
-        }
-        BooleanValue b = BooleanValue.FALSE();
-        F.checkedRun(() -> {
-            b.set(equals(F.cast(v1), F.cast(v2)));
-        });
-        return b.get();
+    
+    /**
+     * Custom hash code (0 by default to all values)
+     * @param value
+     * @return 
+     */
+    public default int hashCode(T value){
+        return 0;
     }
 
-    public interface HashEquator<T> extends Equator<T> {
-
-        /**
-         *
-         * @param val value in question
-         * @return same value or property (i.e. ID) to store in hash for quick
-         * look-up
-         */
-        public Object getHashable(T val);
-    }
 
     /**
      * Value and hashing property are the same
@@ -99,11 +76,11 @@ public interface Equator<T> {
      * @param <T>
      * @return
      */
-    public static <T> HashEquator<T> primitiveHashEquator() {
-        return new HashEquator<T>() {
+    public static <T> Equator<T> primitiveHashEquator() {
+        return new Equator<T>() {
             @Override
-            public Object getHashable(T val) {
-                return val;
+            public int hashCode(T val) {
+                return Objects.hashCode(val);
             }
 
             @Override
@@ -114,7 +91,7 @@ public interface Equator<T> {
     }
 
     /**
-     * Use the Objects.equal
+     * Use the Objects.equal with no hashing
      *
      * @param <T>
      * @return
@@ -143,16 +120,14 @@ public interface Equator<T> {
      * @param resolver
      * @return
      */
-    public static <T, V> HashEquator<T> valueHashEquator(Function<T, V> resolver) {
-        return new HashEquator<T>() {
-            @Override
+    public static <T, V> Equator<T> valueHashEquator(Function<T, V> resolver) {
+        return new Equator<T>() {
             public boolean equals(T value1, T value2) {
                 return Objects.equals(resolver.apply(value1), resolver.apply(value2));
             }
 
-            @Override
-            public Object getHashable(T val) {
-                return resolver.apply(val);
+            public int hashCode(T val) {
+                return Objects.hashCode(val);
             }
         };
     }
