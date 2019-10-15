@@ -157,13 +157,15 @@ public class SafeOpt<T> implements Supplier<T> {
      * otherwise do nothing.
      *
      * @param consumer block to be executed if a value is present
+     * @return this object
      * @throws NullPointerException if value is present and {@code consumer} is
      * null
      */
-    public void ifPresent(Consumer<? super T> consumer) {
+    public SafeOpt<T> ifPresent(Consumer<? super T> consumer) {
         if (val != null) {
             consumer.accept(val);
         }
+        return this;
     }
 
     /**
@@ -173,17 +175,18 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param action the action to be performed, if a value is present
      * @param emptyAction the empty-based action to be performed, if no value is
      * present
+     * @return this object
      * @throws NullPointerException if a value is present and the given action
      * is {@code null}, or no value is present and the given empty-based action
      * is {@code null}.
-     * @since 9
      */
-    public void ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction) {
+    public SafeOpt<T> ifPresentOrElse(Consumer<? super T> action, Runnable emptyAction) {
         if (val != null) {
             action.accept(val);
         } else {
             emptyAction.run();
         }
+        return this;
     }
 
     /**
