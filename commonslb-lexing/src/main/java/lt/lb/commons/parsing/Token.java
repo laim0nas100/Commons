@@ -9,9 +9,9 @@ import java.util.Arrays;
 public class Token {
 
     public final String value;
-    public final Integer[] pos;
+    public final int[] pos;
 
-    public Token(String value, Integer[] pos) {
+    public Token(String value, int[] pos) {
         this.value = value;
         this.pos = pos;
 

@@ -6,7 +6,7 @@ package lt.lb.commons.parsing;
  */
 public class LiteralString extends Literal {
 
-    public LiteralString(String value, Integer[] pos) {
+    public LiteralString(String value, int[] pos) {
         super(value, pos);
     }
 
@@ -14,7 +14,5 @@ public class LiteralString extends Literal {
     public String toString() {
         return "String " + super.toString();
     }
-    
-    
 
 }

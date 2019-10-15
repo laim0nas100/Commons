@@ -1,20 +1,33 @@
 package lt.lb.commons.parsing;
 
+import java.util.ArrayDeque;
 import lt.lb.commons.containers.collections.SelfSortingMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Optional;
 import lt.lb.commons.F;
+import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
  *
  * @author laim0nas100
  */
 public class Lexer {
+
+    /**
+     * Wether to skip white space or include it inside literals
+     *
+     * @return
+     */
+    public boolean isSkipWhitespace() {
+        return skipWhitespace;
+    }
 
     /**
      * Set wether to skip white space or include it inside literals.
@@ -25,10 +38,25 @@ public class Lexer {
         this.skipWhitespace = skipWhitespace;
     }
 
-    public class LexerException extends Exception {
+    /**
+     * Wether to include comments in the token stream.
+     *
+     * @return
+     */
+    public boolean isSaveComments() {
+        return saveComments;
     }
 
-    public class NoSuchLexemeException extends LexerException {
+    /**
+     * Wether to include comments in the token stream.
+     *
+     * @param saveComments
+     */
+    public void setSaveComments(boolean saveComments) {
+        this.saveComments = saveComments;
+    }
+
+    public class LexerException extends Exception {
     }
 
     public class StringNotTerminatedException extends LexerException {
@@ -41,6 +69,15 @@ public class Lexer {
         return len;
     };
 
+    /**
+     * Working variables
+     */
+    protected int linePos, charPos;
+    protected String[] lines;
+
+    /**
+     * parameters
+     */
     protected String keyStringBegin,
             keyStringEnd,
             keyStringEscape;
@@ -50,9 +87,9 @@ public class Lexer {
     protected SelfSortingMap<String, TokenProducer> keywordsBreaking;
     protected TokenProducer literalProducer = TokenProducer.DEFAULT_LITERAL_PROD;
     protected TokenProducer literalStringProducer = TokenProducer.DEFAULT_LITRAL_STRING_PROD;
-    protected int linePos, charPos;
-    protected String[] lines;
-    protected boolean skipWhitespace;
+
+    protected boolean saveComments = false;
+    protected boolean skipWhitespace = true;
     /**
      * Override for case-insensitive keywords
      */
@@ -68,7 +105,7 @@ public class Lexer {
     }
 
     /**
-     * Keywords can be a part of literals.If for example: 'printing' has keyword
+     * Keywords can be a part of literals. For example: 'printing' has keyword
      * 'int' inside it, but it will not be recognized as such. With default
      * token producer.
      *
@@ -81,7 +118,7 @@ public class Lexer {
     }
 
     /**
-     * Keywords can be a part of literals.If for example: 'printing' has keyword
+     * Keywords can be a part of literals. For example: 'printing' has keyword
      * 'int' inside it, but it will not be recognized as such. With custom token
      * producer.
      *
@@ -119,8 +156,16 @@ public class Lexer {
         }
     }
 
+    public void setLiteralProducer(TokenProducer literalProducer) {
+        this.literalProducer = literalProducer;
+    }
+
+    public void setLiteralStringProducer(TokenProducer literalStringProducer) {
+        this.literalStringProducer = literalStringProducer;
+    }
+
     protected SafeOpt<Character> getCurrentChar() {
-        Integer[] pos = new Integer[]{this.linePos, this.charPos};
+        int[] pos = new int[]{this.linePos, this.charPos};
         return this.getByPos(pos);
     }
 
@@ -132,12 +177,12 @@ public class Lexer {
         }
     }
 
-    protected SafeOpt<Character> getByPos(Integer[] pos) {
+    protected SafeOpt<Character> getByPos(int[] pos) {
         return SafeOpt.ofGet(() -> lines[pos[0]].charAt(pos[1]));
     }
 
-    protected Integer[] rangeCheck(Integer shift) {
-        Integer[] pos = new Integer[2];
+    protected int[] rangeCheck(int shift) {
+        int[] pos = new int[2];
         pos[0] = this.linePos;
         pos[1] = this.charPos + shift;
         if (this.currentLineLen() == null) {
@@ -154,16 +199,16 @@ public class Lexer {
         return pos;
     }
 
-    protected SafeOpt<Character> peek(Integer peek) {
-        Integer[] rangeCheck = this.rangeCheck(peek);
+    protected SafeOpt<Character> peek(int peek) {
+        int[] rangeCheck = this.rangeCheck(peek);
         if (rangeCheck[0] != this.lines.length) {
             return this.getByPos(rangeCheck);
         }
         return SafeOpt.empty();
     }
 
-    protected SafeOpt<Character> advance(Integer am) {
-        Integer[] pos;
+    protected SafeOpt<Character> advance(int am) {
+        int[] pos;
         pos = this.rangeCheck(am);
         this.linePos = pos[0];
         this.charPos = pos[1];
@@ -252,13 +297,13 @@ public class Lexer {
 
     }
 
-    protected Token string() throws StringNotTerminatedException, NoSuchLexemeException {
+    protected Token string() throws StringNotTerminatedException {
         String result = "";
         while (true) {
             SafeOpt<Character> currentChar = this.getCurrentChar();
             if (!currentChar.isPresent()) {
                 throw new StringNotTerminatedException();
-            } else if (this.tryToMatch(this.keyStringEscape,equatorBreaking)) {
+            } else if (this.tryToMatch(this.keyStringEscape, equatorBreaking)) {
                 this.advanceByTokenKey(this.keyStringEscape);
                 SafeOpt<Character> currentChar1 = this.getCurrentChar();
                 if (currentChar.isPresent()) {
@@ -269,7 +314,7 @@ public class Lexer {
                 }
 
             }
-            if (this.tryToMatch(this.keyStringEnd,equatorBreaking)) {
+            if (this.tryToMatch(this.keyStringEnd, equatorBreaking)) {
                 this.advanceByTokenKey(this.keyStringEnd);
                 break;
             }
@@ -285,13 +330,13 @@ public class Lexer {
 
     }
 
-    public Integer[] getCurrentPos() {
-        return new Integer[]{this.linePos, this.charPos};
+    public int[] getCurrentPos() {
+        return new int[]{this.linePos, this.charPos};
     }
 
     protected SafeOpt<Token> breakingKeyword() {
         for (String token : this.keywordsBreaking.getOrderedList()) {
-            if (this.tryToMatch(token,equatorBreaking)) {
+            if (this.tryToMatch(token, equatorBreaking)) {
                 return SafeOpt.of(keywordsBreaking.get(token)).map(m -> m.produce(token, getCurrentPos()));
             }
         }
@@ -316,7 +361,11 @@ public class Lexer {
         this.advance(key.length());
     }
 
-    protected Token literal(String value, Integer[] pos) {
+    protected Comment comment(String value, int[] start, int[] end) {
+        return new Comment(value, start, end);
+    }
+
+    protected Token literal(String value, int[] pos) {
         for (String token : this.keywords.getOrderedList()) {
             if (equator.equals(value, token)) {
                 return keywords.get(token).produce(token, pos);
@@ -329,13 +378,13 @@ public class Lexer {
         return SafeOpt.empty();
     }
 
-    public Optional<Token> getNextToken() throws NoSuchLexemeException, StringNotTerminatedException {
+    public Optional<Token> getNextToken() throws StringNotTerminatedException {
         StringBuilder buffer = new StringBuilder();
         SafeOpt<Token> token = getNextTokenImpl();
         if (token.isPresent()) {
             return token.asOptional();
         }
-        Integer[] pos = new Integer[]{this.linePos, this.charPos};
+        int[] pos = new int[]{this.linePos, this.charPos};
 
         while (true) {
             SafeOpt<Character> currentChar = this.getCurrentChar();
@@ -356,33 +405,54 @@ public class Lexer {
                 }
             }
             if (this.hasStrings()) {
-                if (this.tryToMatch(this.keyStringBegin,equatorBreaking)) {
+                if (this.tryToMatch(this.keyStringBegin, equatorBreaking)) {
                     this.advanceByTokenKey(this.keyStringBegin);
                     return Optional.of(this.string());
                 }
             }
             if (this.hasLineComment()) {
-                if (this.tryToMatch(this.commentLine,equatorBreaking)) {
+                if (this.tryToMatch(this.commentLine, equatorBreaking)) {
                     if (buffer.length() > 0) {
                         return Optional.of(this.literal(buffer.toString(), pos));
                     } else {
-                        this.linePos++; // just skip line
-                        this.charPos = 0;
+                        if (this.saveComments) {
+                            String comment = lines[linePos].substring(this.charPos);
+                            Token lineComment = this.comment(comment, getCurrentPos(), new int[]{linePos, this.currentLineLen() - 1});
+                            this.linePos++; // just skip line
+                            this.charPos = 0;
+
+                            return Optional.ofNullable(lineComment);
+                        } else {
+                            this.linePos++; // just skip line
+                            this.charPos = 0;
+                        }
                     }
                     continue;
                 }
             }
 
             if (this.hasMultilineComment()) {
-                if (this.tryToMatch(this.commentStart,equatorBreaking)) {
+                if (this.tryToMatch(this.commentStart, equatorBreaking)) {
                     if (buffer.length() > 0) {
                         return Optional.of(this.literal(buffer.toString(), pos));
                     } else {
                         this.advanceByTokenKey(this.commentStart);
-                        while (!this.tryToMatch(commentEnd,equatorBreaking)) {
-                            this.advance(1);
+                        LineStringBuilder comment = new LineStringBuilder();
+                        int[] startPos = this.getCurrentPos();
+                        while (!this.tryToMatch(commentEnd, equatorBreaking)) {
+                            SafeOpt<Character> advance = this.advance(1);
+                            if (saveComments) {
+                                advance.ifPresent(comment::append);
+                            }
                         }
+
                         this.advanceByTokenKey(this.commentEnd);
+                        comment.removeFromEnd(1);
+
+                        if (saveComments) {
+                            int[] endPos = this.getCurrentPos();
+                            return Optional.ofNullable(comment(comment.toString(), startPos, endPos));
+                        }
                     }
                     continue;
                 }
@@ -414,7 +484,32 @@ public class Lexer {
         return token.asOptional();
     }
 
-    public ArrayList<Token> getRemainingTokens() throws NoSuchLexemeException, StringNotTerminatedException {
+    public ReadOnlyIterator<Token> getTokenIterator() {
+        Lexer me = this;
+        ArrayDeque<Token> tokens = new ArrayDeque<>();
+        F.unsafeRun(() -> {
+            me.getNextToken().ifPresent(tokens::addLast);
+        });
+
+        Iterator<Token> it = new Iterator<Token>() {
+
+            @Override
+            public boolean hasNext() {
+                return !tokens.isEmpty();
+            }
+
+            @Override
+            public Token next() {
+                F.unsafeRun(() -> {
+                    me.getNextToken().ifPresent(tokens::addLast);
+                });
+                return tokens.pollFirst();
+            }
+        };
+        return ReadOnlyIterator.of(it);
+    }
+
+    public ArrayList<Token> getRemainingTokens() throws StringNotTerminatedException {
         ArrayList<Token> remains = new ArrayList<>();
         while (true) {
             Optional<Token> nextToken = this.getNextToken();
