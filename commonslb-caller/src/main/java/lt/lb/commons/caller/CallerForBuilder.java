@@ -15,10 +15,11 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
  */
 public class CallerForBuilder<R, T> {
 
-    private ReadOnlyIterator<R> iter;
-    private BiFunction<Integer, R, Caller<T>> contFunction;
-    private BiFunction<Integer, T, CallerFlowControl<T>> thenFunction;
-    private Caller<T> afterwards;
+    protected boolean threaded = false;
+    protected ReadOnlyIterator<R> iter;
+    protected BiFunction<Integer, R, Caller<T>> contFunction;
+    protected BiFunction<Integer, T, CallerFlowControl<T>> thenFunction;
+    protected Caller<T> afterwards;
 
     public CallerForBuilder() {
     }
@@ -90,7 +91,12 @@ public class CallerForBuilder<R, T> {
         Objects.requireNonNull(iter);
         Objects.requireNonNull(contFunction);
         Objects.requireNonNull(thenFunction);
-        return CallerImpl.ofIteratorLazy(afterwards, iter, contFunction, thenFunction);
+        if(threaded){
+            return CallerImpl.ofIteratorLazyThreaded(afterwards, iter, contFunction, thenFunction);
+        }else{
+            return CallerImpl.ofIteratorLazy(afterwards, iter, contFunction, thenFunction);
+        }
+        
     }
 
     /**

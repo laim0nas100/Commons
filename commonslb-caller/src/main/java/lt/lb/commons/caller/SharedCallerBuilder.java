@@ -1,10 +1,10 @@
 package lt.lb.commons.caller;
 
 /**
- *
+ * @param <T> the main type of Caller product
  * @author laim0nas100
  */
-public class SharedCallerBuilder<T> extends CallerBuilder<T>{
+public class SharedCallerBuilder<T> extends CallerBuilder<T> {
 
     public SharedCallerBuilder(int size) {
         super(size);
@@ -14,5 +14,5 @@ public class SharedCallerBuilder<T> extends CallerBuilder<T>{
     public SharedCallerBuilder() {
         this.sharedMutable = true;
     }
-    
+
 }

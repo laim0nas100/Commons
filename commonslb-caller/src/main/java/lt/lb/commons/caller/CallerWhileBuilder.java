@@ -5,6 +5,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
+ * @{code while} loop caller builder
+ *
  * @param <T> the main type of Caller product
  * @author laim0nas100
  */
@@ -27,12 +29,13 @@ public class CallerWhileBuilder<T> {
         this.afterwards = afterwards;
         return this;
     }
+
     /**
-     * 
+     *
      * @param condition {@code while} loop condition
      * @return builder
      */
-    public CallerWhileBuilder<T> whilst(Supplier<Boolean> condition){
+    public CallerWhileBuilder<T> whilst(Supplier<Boolean> condition) {
         this.condition = condition;
         return this;
     }
