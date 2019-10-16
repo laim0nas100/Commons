@@ -13,10 +13,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import lt.lb.commons.F;
 import static lt.lb.commons.caller.Caller.CallerType.FUNCTION;
 import static lt.lb.commons.caller.Caller.CallerType.RESULT;
 import static lt.lb.commons.caller.Caller.CallerType.SHARED;
+import static lt.lb.commons.caller.CallerFlowControl.CallerForType.*;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.threads.Promise;
@@ -128,16 +128,17 @@ public class CallerImpl {
 
     /**
      * Retrieves items one by one, each time creating new call. Just constructs
-     * appropriate functions for {@link ofWhileLoop}. 
-     * 
-     *  Recommended to not use directly for readability. Use {@link CallerForBuilder}.
+     * appropriate functions for {@link ofWhileLoop}.
+     *
+     * Recommended to not use directly for readability. Use
+     * {@link CallerForBuilder}.
      *
      * @param <T> the main type of Caller product
      * @param <R> type that iteration happens
-     * @param emptyCase Caller when iterator is empty of not terminated anywhere
+     * @param emptyCase Caller when iterator is empty or not terminated anywhere
      * @param iterator ReadOnlyIterator that has items
      * @param func BiFunction that provides Caller that eventually results in T
-     * type of variable. Used to make recursive calls from all items.
+     * type result. Used to make recursive calls from all items.
      * @param contFunc BiFunction that checks wether to end iteration in the
      * middle of it and how
      * @return
@@ -157,10 +158,56 @@ public class CallerImpl {
     }
 
     /**
+     * Retrieves items all at once and creates dependency calls for each item,
+     * which then can be executed in parallel if need be. After all items are
+     * retrieved, executed a regular {@code for} loop with those items.
+     * Recommended to use only if every item need to evaluated anyway and order
+     * of evaluation does not matter.
+     *
+     * Recommended to not use directly for readability. Use
+     * {@link CallerForBuilderThreaded}.
+     *
+     * @param <T> the main type of Caller product
+     * @param <R> type that iteration happens
+     * @param emptyCase Caller when iterator is empty or not terminated anywhere
+     * @param iterator ReadOnlyIterator that has items
+     * @param func BiFunction that provides Caller that eventually results in T
+     * type result. Used to make recursive calls from all items.
+     * @param contFunc BiFunction that checks wether to end iteration in the
+     * middle of it and how
+     * @return
+     */
+    public static <T, R> Caller<T> ofIteratorLazyThreaded(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, R, Caller<T>> func, BiFunction<Integer, T, CallerFlowControl<T>> contFunc) {
+
+        CallerBuilder<T> b = new CallerBuilder<>();
+
+        for (R item : iterator) {
+            b.withDependencyCall(args -> func.apply(iterator.getCurrentIndex(), item));
+        }
+
+        return b.toCall(args -> {
+            for (int i = 0; i < args.parameterCount; i++) {
+                T arg = args.get(i);
+                CallerFlowControl<T> apply = contFunc.apply(i, arg);
+                if (apply.flowControl == RETURN) {
+                    return apply.caller;
+                }
+                if (apply.flowControl == BREAK) {
+                    return emptyCase;
+                }
+
+            }
+            return emptyCase;
+        });
+
+    }
+
+    /**
      * Models do while loop. Just does 1 iteration and then just delegates to
      * {@link ofWhileLoop}.
-     * 
-     * Recommended to not use directly for readability. Use {@link CallerDoWhileBuilder}.
+     *
+     * Recommended to not use directly for readability. Use
+     * {@link CallerDoWhileBuilder}.
      *
      * @param <T> the main type of Caller product
      * @param emptyCase Caller when iterator is empty of not terminated anywhere
