@@ -17,6 +17,7 @@ import static lt.lb.commons.caller.Caller.CallerType.FUNCTION;
 import static lt.lb.commons.caller.Caller.CallerType.RESULT;
 import static lt.lb.commons.caller.Caller.CallerType.SHARED;
 import static lt.lb.commons.caller.CallerFlowControl.CallerForType.*;
+import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.threads.Promise;
@@ -181,8 +182,11 @@ public class CallerImpl {
 
         CallerBuilder<T> b = new CallerBuilder<>();
 
+        
+        IntegerValue index = new IntegerValue(0);
         for (R item : iterator) {
-            b.withDependencyCall(args -> func.apply(iterator.getCurrentIndex(), item));
+            final Integer i = index.getAndIncrement();
+            b.withDependencyCall(args -> func.apply(i, item));
         }
 
         return b.toCall(args -> {
@@ -193,7 +197,7 @@ public class CallerImpl {
                     return apply.caller;
                 }
                 if (apply.flowControl == BREAK) {
-                    return emptyCase;
+                    break;
                 }
 
             }

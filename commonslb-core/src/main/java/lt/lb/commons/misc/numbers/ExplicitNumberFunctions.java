@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.misc.numbers;
 
 /**
@@ -32,7 +27,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (int) (i + n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Integer minus(Integer i, Number n) {
@@ -54,7 +49,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (int) (i - n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Integer multiply(Integer i, Number n) {
@@ -76,7 +71,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (int) (i * n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Integer divide(Integer i, Number n) {
@@ -98,7 +93,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (int) (i / n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Integer mod(Integer i, Number n) {
@@ -120,7 +115,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (int) (i % n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
     }
 
@@ -147,7 +142,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (long) (i + n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Long minus(Long i, Number n) {
@@ -170,7 +165,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (long) (i - n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Long multiply(Long i, Number n) {
@@ -193,7 +188,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (long) (i * n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Long divide(Long i, Number n) {
@@ -217,7 +212,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (long) (i / n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Long mod(Long i, Number n) {
@@ -240,7 +235,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (long) (i % n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
     }
 
@@ -266,7 +261,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (double) (i + n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Double minus(Double i, Number n) {
@@ -289,7 +284,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (double) (i - n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Double multiply(Double i, Number n) {
@@ -312,7 +307,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (double) (i * n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Double divide(Double i, Number n) {
@@ -335,7 +330,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (double) (i / n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Double mod(Double i, Number n) {
@@ -358,7 +353,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (double) (i % n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
     }
 
@@ -384,7 +379,7 @@ public class ExplicitNumberFunctions {
                 return (float) (i + n.doubleValue());
             }
 
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Float minus(Float i, Number n) {
@@ -407,7 +402,7 @@ public class ExplicitNumberFunctions {
                 return (float) (i - n.doubleValue());
             }
 
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Float multiply(Float i, Number n) {
@@ -430,7 +425,7 @@ public class ExplicitNumberFunctions {
                 return (float) (i * n.doubleValue());
             }
 
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Float divide(Float i, Number n) {
@@ -453,7 +448,7 @@ public class ExplicitNumberFunctions {
                 return (float) (i / n.doubleValue());
             }
 
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Float mod(Float i, Number n) {
@@ -476,7 +471,7 @@ public class ExplicitNumberFunctions {
                 return (float) (i % n.doubleValue());
             }
 
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
     }
 
@@ -502,7 +497,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (short) (i + n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Short minus(Short i, Number n) {
@@ -525,7 +520,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (short) (i - n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Short multiply(Short i, Number n) {
@@ -548,7 +543,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (short) (i * n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Short divide(Short i, Number n) {
@@ -571,7 +566,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (short) (i / n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Short mod(Short i, Number n) {
@@ -594,7 +589,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (short) (i % n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
     }
 
@@ -620,7 +615,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (byte) (i + n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Byte minus(Byte i, Number n) {
@@ -643,7 +638,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (byte) (i - n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Byte multiply(Byte i, Number n) {
@@ -666,7 +661,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (byte) (i * n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Byte divide(Byte i, Number n) {
@@ -689,7 +684,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (byte) (i / n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
 
         public static Byte mod(Byte i, Number n) {
@@ -712,7 +707,7 @@ public class ExplicitNumberFunctions {
             if (n instanceof Float) {
                 return (byte) (i % n.floatValue());
             }
-            throw new IllegalArgumentException("Unrecognized number type");
+            throw new IllegalArgumentException("Unrecognized non-basic number type "+ n);
         }
     }
 }
