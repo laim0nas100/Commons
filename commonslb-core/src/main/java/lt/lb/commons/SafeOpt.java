@@ -190,6 +190,23 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
+     * If a value is present, performs the given action with the value,
+     * otherwise performs the same action with the given default value
+     *
+     * @param def default value
+     * @param action the action to be performed
+     * @return this object
+     * @throws NullPointerException if a value is present and the given action
+     * is {@code null}, or no value is present and the given default value
+     * is {@code null}.
+     */
+    public SafeOpt<T> ifPresentOrDefault(T def, Consumer<? super T> action) {
+        Objects.requireNonNull(def, "Default should not be null");
+        action.accept(val != null ? val : def);
+        return this;
+    }
+
+    /**
      * If a value is present, and the value matches the given predicate, return
      * an {@code SafeOpt} describing the value, otherwise return an empty
      * {@code SafeOpt}. If any exception occurs inside predicate, just returns
