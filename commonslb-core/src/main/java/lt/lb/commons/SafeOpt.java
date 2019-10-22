@@ -547,6 +547,41 @@ public class SafeOpt<T> implements Supplier<T> {
         }
         return get();
     }
+    
+    /**
+     * Id error occurred, terminate by throwing such error wrapped in NestedException
+     *
+     * @param supplier the supplying function that produces an {@code SafeOpt}
+     * @return returns an {@code SafeOpt} describing the value of this
+     * {@code SafeOpt}, if a value is present, otherwise an wrapped
+     * {@code SafeOpt} produced by the supplying function.
+     * @throws NullPointerException if the supplying function is {@code null}
+     */
+    public SafeOpt<T> throwIfErrorNested() {
+        if(threw != null){
+           throw NestedException.of(threw);
+        }
+        return this;
+    }
+    
+    /**
+     * Throw matching type of exception if present
+     *
+     *
+     * @param <Ex> Type of the exception to be thrown
+     * @param type
+     * @return this object
+     * @throws Ex if there is such exception
+     */
+    public <Ex extends Throwable> SafeOpt<T> throwIfError(Class<Ex> type) throws Ex {
+        if (threw != null) {
+            Throwable t = NestedException.unwrap(threw);
+            if (Ins.ofNullable(threw).instanceOf(type)) {
+                throw (Ex) t;
+            }
+        }
+        return this;
+    }
 
     @Override
     public boolean equals(Object obj) {
