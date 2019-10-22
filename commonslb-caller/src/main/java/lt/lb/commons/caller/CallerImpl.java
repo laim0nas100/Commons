@@ -77,13 +77,13 @@ public class CallerImpl {
      * @return
      */
     public static <T> T resolve(Caller<T> caller) {
-        return resolve(caller, Optional.empty(), Optional.empty());
+        return resolve(caller, -1, -1L);
     }
 
-    private static void assertCallLimit(Optional<Long> callLimit, AtomicLong current) {
-        if (callLimit.isPresent()) {
+    private static void assertCallLimit(long callLimit, AtomicLong current) {
+        if (callLimit > 0) {
             long lim = current.getAndIncrement();
-            if (lim >= callLimit.get()) {
+            if (lim >= callLimit) {
                 throw new CallerException("Call limit reached " + lim);
             }
         }
@@ -95,12 +95,12 @@ public class CallerImpl {
      * @param <T>
      * @param caller
      * @param stackLimit limit of a stack size (each nested dependency expands
-     * stack by 1). Use Optional.empty to disable limit.
+     * stack by 1). Use non-positive to disable limit.
      * @param callLimit limit of how many calls can be made (useful for endless
-     * recursion detection). Use Optional.empty to disable limit.
+     * recursion detection). Use non-positive to disable limit.
      * @return
      */
-    public static <T> T resolve(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit) {
+    public static <T> T resolve(Caller<T> caller, int stackLimit, long callLimit) {
         return resolveThreaded(caller, stackLimit, callLimit, -1, Runnable::run); // should never throw exceptions related to threading
     }
 
@@ -110,15 +110,15 @@ public class CallerImpl {
      * @param <T>
      * @param caller
      * @param stackLimit limit of a stack size (each nested dependency expands
-     * stack by 1). Use Optional.empty to disable limit.
+     * stack by 1). Use non-positive to disable limit.
      * @param callLimit limit of how many calls can be made (useful for endless
-     * recursion detection). Use Optional.empty to disable limit.
+     * recursion detection). Use non-positive to disable limit.
      * @param branch how many branch levels to allow (uses recursion) amount of
      * forks is determined by {@code Caller} dependencies
      * @param exe executor
      * @return
      */
-    public static <T> T resolveThreaded(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, Executor exe) {
+    public static <T> T resolveThreaded(Caller<T> caller, int stackLimit, long callLimit, int branch, Executor exe) {
         try {
             return resolveThreadedInner(caller, stackLimit, callLimit, branch, 0, new AtomicLong(0), exe);
         } catch (TimeoutException | InterruptedException | ExecutionException ex) {
@@ -182,7 +182,6 @@ public class CallerImpl {
 
         CallerBuilder<T> b = new CallerBuilder<>();
 
-        
         IntegerValue index = new IntegerValue(0);
         for (R item : iterator) {
             final Integer i = index.getAndIncrement();
@@ -293,7 +292,7 @@ public class CallerImpl {
     }
     private static final CastList emptyArgs = new CastList<>(null);
 
-    private static <T> T resolveThreadedInner(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, int prevStackSize, AtomicLong callNumber, Executor exe) throws InterruptedException, ExecutionException, TimeoutException {
+    private static <T> T resolveThreadedInner(Caller<T> caller, long stackLimit, long callLimit, int branch, int prevStackSize, AtomicLong callNumber, Executor exe) throws InterruptedException, ExecutionException, TimeoutException {
 
         Deque<StackFrame<T>> stack = new ArrayDeque<>();
 
@@ -334,7 +333,7 @@ public class CallerImpl {
                         throw new IllegalStateException("No value or call"); // should never happen
                 }
             } else { // in stack
-                if (stackLimit.isPresent() && (prevStackSize + stackLimit.get()) <= stack.size()) {
+                if (stackLimit > 0 && (prevStackSize + stackLimit) <= stack.size()) {
                     throw new IllegalStateException("Stack limit overrun " + stack.size() + prevStackSize);
                 }
                 StackFrame<T> frame = stack.getLast();

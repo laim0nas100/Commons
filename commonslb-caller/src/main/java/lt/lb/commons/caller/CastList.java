@@ -1,9 +1,8 @@
 package lt.lb.commons.caller;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import lt.lb.commons.EmptyImmutableList;
 
 /**
  *
@@ -14,7 +13,6 @@ import java.util.List;
 public class CastList<T> implements Iterable<T> {
 
     private final List<T> args;
-    private static final List emptyArgs = new ArrayList(0);
     /**
      * Amount of parameters passed here
      */
@@ -25,7 +23,7 @@ public class CastList<T> implements Iterable<T> {
     }
 
     public CastList(List<T> list) {
-        this.args = list == null ? emptyArgs : list;
+        this.args = list == null ? EmptyImmutableList.getInstance() : list;
         parameterCount = args.size();
         _0 = assign(0);
         _1 = assign(1);

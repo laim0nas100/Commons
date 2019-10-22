@@ -10,7 +10,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import lt.lb.commons.F;
+import lt.lb.commons.EmptyImmutableList;
 
 /**
  * Recursion avoiding function modeling.Main purpose: write a recursive
@@ -22,32 +22,30 @@ import lt.lb.commons.F;
  * than well-made iterative solution.
  *
  * @author laim0nas100
- * @param <T> Most common type of arguments that this is caller is used to model.
+ * @param <T> Most common type of arguments that this is caller is used to
+ * model.
  */
 public class Caller<T> {
 
     static enum CallerType {
         RESULT, FUNCTION, SHARED
     }
-    
-    private static final List<?> empty = new ArrayList<>(0);
+
     protected final CallerType type;
     protected T value;
     protected String tag;
     protected Function<CastList<T>, Caller<T>> call;
     protected List<Caller<T>> dependencies;
-    
-    
-    
+
     /**
      * Shared thins
      */
     protected CompletableFuture<T> compl;
     protected AtomicReference<Thread> runner;
-    
+
     /**
-     * Signify {@code for} loop end inside {@code Caller for} loop.
-     * Equivalent of using {@code return} with recursive function call.
+     * Signify {@code for} loop end inside {@code Caller for} loop. Equivalent
+     * of using {@code return} with recursive function call.
      *
      * @param <T>
      * @param next next Caller object
@@ -56,10 +54,10 @@ public class Caller<T> {
     public static <T> CallerFlowControl<T> flowReturn(Caller<T> next) {
         return new CallerFlowControl<>(next, CallerFlowControl.CallerForType.RETURN);
     }
-    
+
     /**
-     * Signify {@code for} loop end inside {@code Caller for} loop.
-     * Equivalent of using {@code break}.
+     * Signify {@code for} loop end inside {@code Caller for} loop. Equivalent
+     * of using {@code break}.
      *
      * @param <T>
      * @return
@@ -85,7 +83,7 @@ public class Caller<T> {
      * @return Caller, that has a result
      */
     public static <T> Caller<T> ofResult(T result) {
-        return new Caller<>(CallerType.RESULT, result, null, F.cast(empty));
+        return new Caller<>(CallerType.RESULT, result, null, EmptyImmutableList.getInstance());
     }
 
     /**
@@ -96,7 +94,7 @@ public class Caller<T> {
      */
     public static <T> Caller<T> ofFunction(Function<CastList<T>, Caller<T>> call) {
         Objects.requireNonNull(call);
-        return new Caller<>(CallerType.FUNCTION, null, call, F.cast(empty));
+        return new Caller<>(CallerType.FUNCTION, null, call, EmptyImmutableList.getInstance());
     }
 
     /**
@@ -142,7 +140,7 @@ public class Caller<T> {
         this.value = result;
         this.call = nextCall;
         this.dependencies = dependencies;
-        if(type == CallerType.SHARED){
+        if (type == CallerType.SHARED) {
             this.compl = new CompletableFuture<>();
             this.runner = new AtomicReference<>();
         }
@@ -214,8 +212,14 @@ public class Caller<T> {
         return Caller.resolve(this);
     }
 
+    /**
+     * Resolve value without limits with 10 forks using ForkJoinPool.commonPool
+     * as executor
+     *
+     * @return
+     */
     public T resolveThreaded() {
-        return Caller.resolveThreaded(this, Optional.empty(), Optional.empty(), 10, ForkJoinPool.commonPool());
+        return Caller.resolveThreaded(this, -1, -1L, 10, ForkJoinPool.commonPool());
     }
 
     /**
@@ -226,7 +230,7 @@ public class Caller<T> {
      * @return
      */
     public static <T> T resolve(Caller<T> caller) {
-        return resolve(caller, Optional.empty(), Optional.empty());
+        return resolve(caller, -1, -1L);
     }
 
     /**
@@ -235,12 +239,12 @@ public class Caller<T> {
      * @param <T>
      * @param caller
      * @param stackLimit limit of a stack size (each nested dependency expands
-     * stack by 1). Use Optional.empty to disable limit.
+     * stack by 1). Use non-positive to disable limit.
      * @param callLimit limit of how many calls can be made (useful for endless
-     * recursion detection). Use Optional.empty to disable limit.
+     * recursion detection). Use non-positive to disable limit.
      * @return
      */
-    public static <T> T resolve(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit) {
+    public static <T> T resolve(Caller<T> caller, int stackLimit, long callLimit) {
         return CallerImpl.resolveThreaded(caller, stackLimit, callLimit, -1, Runnable::run); // should never throw exceptions related to threading
 
     }
@@ -259,7 +263,7 @@ public class Caller<T> {
      * @param exe executor
      * @return
      */
-    public static <T> T resolveThreaded(Caller<T> caller, Optional<Integer> stackLimit, Optional<Long> callLimit, int branch, Executor exe) {
+    public static <T> T resolveThreaded(Caller<T> caller, int stackLimit, long callLimit, int branch, Executor exe) {
         return CallerImpl.resolveThreaded(caller, stackLimit, callLimit, branch, exe);
     }
 }
