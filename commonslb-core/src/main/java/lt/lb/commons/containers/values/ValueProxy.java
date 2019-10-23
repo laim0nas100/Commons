@@ -3,6 +3,8 @@ package lt.lb.commons.containers.values;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import lt.lb.commons.SafeOpt;
 
 /**
  *
@@ -76,7 +78,26 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
         return got;
     }
 
+    /**
+     * Construct {@code Optional} with this value
+     * @return constructed Optional
+     */
     public default Optional<T> toOptional() {
         return Optional.ofNullable(get());
+    }
+    
+    /**
+     * Construct {@code SafeOpt} with this value
+     * @return constructed SafeOpt
+     */
+    public default SafeOpt<T> toSafeOpt(){
+        return SafeOpt.ofNullable(get());
+    }
+    /**
+     * Construct {@code SafeOpt} with this value
+     * @return constructed SafeOpt
+     */
+    public default Stream<T> toStream(){
+        return Stream.of(get());
     }
 }

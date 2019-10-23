@@ -15,15 +15,11 @@ public class BooleanValue extends Value<Boolean> {
     }
 
     public BooleanValue() {
-        this(false);
+        super();
     }
 
     public BooleanValue(Boolean bool) {
-        if (bool == null) {
-            this.value = Boolean.FALSE;
-        } else {
-            this.value = bool;
-        }
+        super(bool);
     }
 
     public Boolean not() {
