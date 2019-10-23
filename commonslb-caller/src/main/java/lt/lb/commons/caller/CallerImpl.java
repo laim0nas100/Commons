@@ -5,7 +5,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
@@ -277,12 +276,8 @@ public class CallerImpl {
             return value;
         }
         for (Caller<T> call : s) {
-            if (call.type != SHARED) {
-                throw new IllegalStateException("Non shared in complete");
-            }
             call.compl.complete(value);
         }
-        s.clear();
         return value;
     }
 

@@ -1,9 +1,7 @@
 package lt.lb.commons.caller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -84,6 +82,15 @@ public class Caller<T> {
      */
     public static <T> Caller<T> ofResult(T result) {
         return new Caller<>(CallerType.RESULT, result, null, EmptyImmutableList.getInstance());
+    }
+
+    /**
+     *
+     * @param <T>
+     * @return Caller, that has a result null
+     */
+    public static <T> Caller<T> ofNull() {
+        return ofResult(null);
     }
 
     /**
