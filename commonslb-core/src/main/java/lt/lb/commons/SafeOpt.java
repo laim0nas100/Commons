@@ -304,7 +304,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws NullPointerException if the mapping function is null
      */
     public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
-        Objects.requireNonNull(mapper);
+        Objects.requireNonNull(mapper,"Mapping function was null");
         if (!isPresent()) {
             return SafeOpt.empty(this.threw);
         } else {
@@ -337,7 +337,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws NullPointerException if the mapping function is null
      */
     public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
-        Objects.requireNonNull(mapper);
+        Objects.requireNonNull(mapper,"Mapping function was null");
         if (!isPresent()) {
             return SafeOpt.empty(this.threw);
         } else {
@@ -359,12 +359,12 @@ public class SafeOpt<T> implements Supplier<T> {
      * {@code SafeOpt} produced by the supplying function.
      * @throws NullPointerException if the supplying function is {@code null}
      */
-    public SafeOpt<T> or(Supplier<? extends Optional<? extends T>> supplier) {
-        Objects.requireNonNull(supplier);
+    public SafeOpt<T> or(Supplier<? extends Optional<T>> supplier) {
+        Objects.requireNonNull(supplier,"Supplier was null");
         if (isPresent()) {
             return this;
         } else {
-            return F.cast(SafeOpt.ofOptional(supplier.get()));
+            return SafeOpt.ofOptional(supplier.get());
         }
     }
 
@@ -378,12 +378,12 @@ public class SafeOpt<T> implements Supplier<T> {
      * {@code SafeOpt} produced by the supplying function.
      * @throws NullPointerException if the supplying function is {@code null}
      */
-    public SafeOpt<T> orSafe(Supplier<? extends SafeOpt<? extends T>> supplier) {
-        Objects.requireNonNull(supplier);
+    public SafeOpt<T> orSafe(Supplier<? extends SafeOpt<T>> supplier) {
+        Objects.requireNonNull(supplier,"Supplier was null");
         if (isPresent()) {
             return this;
         } else {
-            return SafeOpt.READY.flatMapOpt(m -> F.cast(supplier.get()));
+            return SafeOpt.READY.flatMap(m -> supplier.get());
         }
     }
 
@@ -549,13 +549,11 @@ public class SafeOpt<T> implements Supplier<T> {
     }
     
     /**
-     * Id error occurred, terminate by throwing such error wrapped in NestedException
+     * If error have occurred, terminate by throwing such error wrapped in NestedException
      *
-     * @param supplier the supplying function that produces an {@code SafeOpt}
      * @return returns an {@code SafeOpt} describing the value of this
-     * {@code SafeOpt}, if a value is present, otherwise an wrapped
-     * {@code SafeOpt} produced by the supplying function.
-     * @throws NullPointerException if the supplying function is {@code null}
+     * {@code SafeOpt}, if a value is present
+     * @throws NestedException if any error was present
      */
     public SafeOpt<T> throwIfErrorNested() {
         if(threw != null){
