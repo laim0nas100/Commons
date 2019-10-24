@@ -88,11 +88,6 @@ public class StreamMapper<T, Z> {
         return stream;
     }
 
-    protected Stream<Z> orEmpty(Optional<Stream<T>> opt) {
-        Stream<T> stream = opt.orElse(Stream.empty());
-        return decorate(stream);
-    }
-
     /**
      * Decorates stream returning decorated empty stream on null
      *
@@ -100,7 +95,7 @@ public class StreamMapper<T, Z> {
      * @return
      */
     public Stream<Z> decorateOrEmpty(Stream<T> stream) {
-        return orEmpty(Optional.ofNullable(stream));
+        return decorate(stream == null ? Stream.empty() : stream);
     }
 
     /**
@@ -110,7 +105,7 @@ public class StreamMapper<T, Z> {
      * @return
      */
     public Stream<Z> decorateOrEmpty(Iterable<T> iterable) {
-        return orEmpty(Optional.ofNullable(iterable).map(s -> s.spliterator()).map(s -> StreamSupport.stream(s, false)));
+        return decorate(fromIterable(iterable));
     }
 
     /**
@@ -120,10 +115,31 @@ public class StreamMapper<T, Z> {
      * @return
      */
     public Stream<Z> decorateOrEmpty(Iterator<T> iterator) {
-        Optional<Stream<T>> map = Optional.ofNullable(iterator)
+        return decorate(fromIterator(iterator));
+    }
+
+    /**
+     * Converts iterable to Stream. If null, return empty stream;
+     *
+     * @param <T>
+     * @param iterable
+     * @return
+     */
+    public static <T> Stream<T> fromIterable(Iterable<T> iterable) {
+        return Optional.ofNullable(iterable).map(s -> s.spliterator()).map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
+    }
+
+    /**
+     * Converts iterator to Stream. If null, return empty stream;
+     *
+     * @param <T>
+     * @param iterator
+     * @return
+     */
+    public static <T> Stream<T> fromIterator(Iterator<T> iterator) {
+        return Optional.ofNullable(iterator)
                 .map(s -> Spliterators.spliteratorUnknownSize(s, 0))
-                .map(s -> StreamSupport.stream(s, false));
-        return orEmpty(map);
+                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
     }
 
     /**
@@ -354,6 +370,26 @@ public class StreamMapper<T, Z> {
         streamDecorator.parent = this;
         return streamDecorator;
 
+    }
+
+    /**
+     * Flatmap decorator from iterable converting null to empty stream
+     * @param <R>
+     * @param mapper
+     * @return 
+     */
+    public <R> StreamMapper<T, R> flatMapIterable(Function<? super Z, ? extends Iterable<? extends R>> mapper) {
+        return flatMap(s -> fromIterable(mapper.apply(s)));
+    }
+    
+    /**
+     * Flatmap decorator from iterator converting null to empty stream
+     * @param <R>
+     * @param mapper
+     * @return 
+     */
+    public <R> StreamMapper<T, R> flatMapIterator(Function<? super Z, ? extends Iterator<? extends R>> mapper) {
+        return flatMap(s -> fromIterator(mapper.apply(s)));
     }
 
     /**
