@@ -89,11 +89,12 @@ public class StreamMapper<T, Z> {
     }
 
     protected Stream<Z> orEmpty(Optional<Stream<T>> opt) {
-        return opt.map(s -> decorate(s)).orElse(Stream.empty());
+        Stream<T> stream = opt.orElse(Stream.empty());
+        return decorate(stream);
     }
 
     /**
-     * Decorates stream returning empty on null
+     * Decorates stream returning decorated empty stream on null
      *
      * @param stream
      * @return
@@ -103,7 +104,7 @@ public class StreamMapper<T, Z> {
     }
 
     /**
-     * Decorates stream returning empty on null from iterable
+     * Decorates stream returning decorated empty stream from iterable
      *
      * @param iterable
      * @return
@@ -113,7 +114,7 @@ public class StreamMapper<T, Z> {
     }
 
     /**
-     * Decorates stream returning empty on null from iterator
+     * Decorates stream returning decorated empty stream from iterator
      *
      * @param iterator
      * @return
