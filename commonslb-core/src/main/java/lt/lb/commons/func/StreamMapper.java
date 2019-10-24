@@ -3,10 +3,17 @@ package lt.lb.commons.func;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import lt.lb.commons.F;
+import lt.lb.commons.Ins;
 import lt.lb.commons.interfaces.Equator;
 
 /**
@@ -51,7 +58,7 @@ public class StreamMapper<T, Z> {
      * @return
      */
     public Stream<Z> decorate(Stream<T> stream) {
-
+        Objects.requireNonNull(stream, "Given stream was null");
         if (parent != null) {
             Stream decorated = parent.decorate(stream);
             if (mapper != null) {
@@ -68,11 +75,54 @@ public class StreamMapper<T, Z> {
 
     }
 
-    protected Stream<Z> applyDecs(Stream<Z> stream) {
+    /**
+     * Only apply decorators
+     *
+     * @param stream
+     * @return
+     */
+    public Stream<Z> applyDecs(Stream<Z> stream) {
         for (Function<Stream<Z>, Stream<Z>> fun : decs) {
             stream = fun.apply(stream);
         }
         return stream;
+    }
+
+    protected Stream<Z> orEmpty(Optional<Stream<T>> opt) {
+        return opt.map(s -> decorate(s)).orElse(Stream.empty());
+    }
+
+    /**
+     * Decorates stream returning empty on null
+     *
+     * @param stream
+     * @return
+     */
+    public Stream<Z> decorateOrEmpty(Stream<T> stream) {
+        return orEmpty(Optional.ofNullable(stream));
+    }
+
+    /**
+     * Decorates stream returning empty on null from iterable
+     *
+     * @param iterable
+     * @return
+     */
+    public Stream<Z> decorateOrEmpty(Iterable<T> iterable) {
+        return orEmpty(Optional.ofNullable(iterable).map(s -> s.spliterator()).map(s -> StreamSupport.stream(s, false)));
+    }
+
+    /**
+     * Decorates stream returning empty on null from iterator
+     *
+     * @param iterator
+     * @return
+     */
+    public Stream<Z> decorateOrEmpty(Iterator<T> iterator) {
+        Optional<Stream<T>> map = Optional.ofNullable(iterator)
+                .map(s -> Spliterators.spliteratorUnknownSize(s, 0))
+                .map(s -> StreamSupport.stream(s, false));
+        return orEmpty(map);
     }
 
     /**
@@ -108,6 +158,7 @@ public class StreamMapper<T, Z> {
     /**
      * Applies sorted decorator with comparator
      *
+     * @param comparator
      * @return
      */
     public StreamMapper<T, Z> sorted(Comparator<? super Z> comparator) {
@@ -180,7 +231,7 @@ public class StreamMapper<T, Z> {
     }
 
     /**
-     * Add elements using {@code Stream.concat} operation
+     * Add elements in the end using {@code Stream.concat} operation
      *
      * @param toAdd
      * @return
@@ -190,7 +241,7 @@ public class StreamMapper<T, Z> {
     }
 
     /**
-     * Add elements using {@code Stream.concat} operation
+     * Add elements in the end using {@code Stream.concat} operation
      *
      * @param toAdd
      * @return
@@ -200,7 +251,36 @@ public class StreamMapper<T, Z> {
     }
 
     /**
-     * Combines filter and map operation to select only specified instances
+     * Add elements in the start using {@code Stream.concat} operation
+     *
+     * @param toAdd
+     * @return
+     */
+    public StreamMapper<T, Z> concatFirst(Z... toAdd) {
+        return then(s -> Stream.concat(Stream.of(toAdd), s));
+    }
+
+    /**
+     * Add elements in the start using {@code Stream.concat} operation
+     *
+     * @param toAdd
+     * @return
+     */
+    public StreamMapper<T, Z> concatFirst(Collection<? extends Z> toAdd) {
+        return then(s -> Stream.concat(toAdd.stream(), s));
+    }
+
+    /**
+     * Adds filtering of null elements
+     *
+     * @return
+     */
+    public StreamMapper<T, Z> noNulls() {
+        return filter(p -> p != null);
+    }
+
+    /**
+     * Combines filter and map operation to select only specified type
      *
      * @param <R>
      * @param cls
@@ -208,6 +288,30 @@ public class StreamMapper<T, Z> {
      */
     public <R> StreamMapper<T, R> select(Class<R> cls) {
         return filter(cls::isInstance).map(m -> (R) m);
+    }
+
+    /**
+     * Filter operation to select only specified types. If array is empty, does
+     * nothing.
+     *
+     * @param cls
+     * @return
+     */
+    public StreamMapper<T, Z> selectTypes(Class... cls) {
+        if (cls.length == 0) {
+            return this;
+        }
+        return filter(s -> Ins.ofNullable(s).instanceOfAny(cls));
+    }
+
+    /**
+     * Replace every null instance with some default value
+     *
+     * @param nullCase default value
+     * @return
+     */
+    public StreamMapper<T, Z> nullWrap(Z nullCase) {
+        return map(s -> F.nullWrap(s, nullCase));
     }
 
     /**
