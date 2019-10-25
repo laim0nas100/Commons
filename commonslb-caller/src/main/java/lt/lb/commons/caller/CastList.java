@@ -6,9 +6,11 @@ import lt.lb.commons.EmptyImmutableList;
 
 /**
  *
- * @author laim0nas100 Supports 7 explicitly defined arguments and much more
- * implicitly defined by lists. By default other parameters are null;
+ * Supports 7 explicitly defined arguments and much more implicitly defined by
+ * lists. By default other parameters are null;
+ *
  * @param <T> base type or arguments
+ * @author laim0nas100
  */
 public class CastList<T> implements Iterable<T> {
 

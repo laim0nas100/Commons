@@ -5,6 +5,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
@@ -32,18 +34,14 @@ public class CallerImpl {
         private Caller<T> call;
         private ArrayList<T> args;
         private Integer index;
-        private Deque<Caller<T>> sharedStack;
+        private Collection<Caller<T>> sharedStack;
 
         public StackFrame(Caller<T> call) {
-            clearWith(call);
+            continueWith(call);
         }
 
-        public final void clearWith(Caller<T> call) {
-            if (call.dependencies == null) {
-                this.args = null;
-            } else {
-                this.args = new ArrayList<>(call.dependencies.size());
-            }
+        public final void continueWith(Caller<T> call) {
+            this.args = call.dependencies == null ? null : new ArrayList<>(call.dependencies.size());
             this.call = call;
             this.index = 0;
             if (call.type == SHARED) {
@@ -68,17 +66,6 @@ public class CallerImpl {
 
     }
 
-    /**
-     * Resolve given caller without limits
-     *
-     * @param <T>
-     * @param caller
-     * @return
-     */
-    public static <T> T resolve(Caller<T> caller) {
-        return resolve(caller, -1, -1L);
-    }
-
     private static void assertCallLimit(long callLimit, AtomicLong current) {
         if (callLimit > 0) {
             long lim = current.getAndIncrement();
@@ -86,21 +73,6 @@ public class CallerImpl {
                 throw new CallerException("Call limit reached " + lim);
             }
         }
-    }
-
-    /**
-     * Resolve function call chain with optional limits
-     *
-     * @param <T>
-     * @param caller
-     * @param stackLimit limit of a stack size (each nested dependency expands
-     * stack by 1). Use non-positive to disable limit.
-     * @param callLimit limit of how many calls can be made (useful for endless
-     * recursion detection). Use non-positive to disable limit.
-     * @return
-     */
-    public static <T> T resolve(Caller<T> caller, int stackLimit, long callLimit) {
-        return resolveThreaded(caller, stackLimit, callLimit, -1, Runnable::run); // should never throw exceptions related to threading
     }
 
     /**
@@ -333,17 +305,16 @@ public class CallerImpl {
                 }
                 StackFrame<T> frame = stack.getLast();
                 caller = frame.call;
-                if (frame.readyArgs(caller)) { //demolish stack, because got all dependecies
+                if (caller.dependencies == null || frame.args == null || caller.dependencies.size() == frame.args.size()) { //demolish stack, because got all dependecies
                     assertCallLimit(callLimit, callNumber);
                     caller = caller.call.apply(frame.args == null ? emptyArgs : new CastList(frame.args)); // last call with dependants
                     switch (caller.type) {
                         case SHARED:
                             if (!caller.compl.isDone() && runnerCAS(caller)) {
-                                stack.getLast().clearWith(caller);
+                                stack.getLast().continueWith(caller);
                             } else { // done or executing on other thread
                                 T v = caller.compl.get();
-                                complete(stack.getLast().sharedStack, v);
-                                stack.pollLast();
+                                complete(stack.pollLast().sharedStack, v);
                                 if (stack.isEmpty()) {
                                     return complete(emptyStackShared, v);
                                 } else {
@@ -353,7 +324,7 @@ public class CallerImpl {
 
                             break;
                         case FUNCTION:
-                            stack.getLast().clearWith(caller);
+                            stack.getLast().continueWith(caller);
                             break;
 
                         case RESULT:
@@ -381,7 +352,7 @@ public class CallerImpl {
                             // just call, assume we have expanded stack before
                             if (caller.type == FUNCTION || (caller.type == SHARED && runnerCAS(caller))) {
                                 assertCallLimit(callLimit, callNumber);
-                                frame.clearWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
+                                frame.continueWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
                             } else {//in another thread
 
                                 frame.args.add(caller.compl.get());
@@ -405,7 +376,7 @@ public class CallerImpl {
                                         } else {
                                             if (runnerCAS(get)) {
                                                 stack.addLast(new StackFrame<>(get));
-                                            } else {//in another thread
+                                            } else {//in another thread so just wait
                                                 frame.args.add(get.compl.get());
                                             }
 

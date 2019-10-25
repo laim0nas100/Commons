@@ -281,7 +281,7 @@ public class StackOverflowTest {
                 if (number > 5000) {
                     return number;
                 } else {
-                    safeSleep(number);
+//                    safeSleep(number);
                     long n1 = recBoi(number * 3, counter);
                     long n2 = recBoi(n1 + 1, counter);
                     long n3 = recBoi(n1 + 2, counter);
@@ -298,7 +298,7 @@ public class StackOverflowTest {
                 if (number > 5000) {
                     return Caller.ofResult(number);
                 } else {
-                    safeSleep(number);
+//                    safeSleep(number);
                     Caller<Long> n1 = new SharedCallerBuilder<Long>().toCall(a -> recBoiCaller(number * 3, counter));
                     CallerBuilder<Long> builder = new CallerBuilder<Long>().with(n1);
                     Caller<Long> n2 = builder.toCall(a -> recBoiCaller(a._0 + 1, counter));

@@ -20,10 +20,14 @@ import lt.lb.commons.EmptyImmutableList;
  * than well-made iterative solution.
  *
  * @author laim0nas100
- * @param <T> Most common type of arguments that this is caller is used to
- * model.
+ * @param <T> Most general type of return result (and arguments) that this
+ * caller is used to model.
  */
 public class Caller<T> {
+    
+    public static final int DISABLED_STACK_LIMIT = -1;
+    public static final long DISABLED_CALL_LIMIT = -1L;
+    public static final int DEFAULT_FORK_COUNT = 10;
 
     static enum CallerType {
         RESULT, FUNCTION, SHARED
@@ -36,7 +40,7 @@ public class Caller<T> {
     protected List<Caller<T>> dependencies;
 
     /**
-     * Shared thins
+     * Shared things
      */
     protected CompletableFuture<T> compl;
     protected AtomicReference<Thread> runner;
@@ -75,6 +79,7 @@ public class Caller<T> {
     }
 
     /**
+     * Create a Caller that has a result (terminating)
      *
      * @param <T>
      * @param result
@@ -85,6 +90,7 @@ public class Caller<T> {
     }
 
     /**
+     * Shorthand for ofResult(null)
      *
      * @param <T>
      * @return Caller, that has a result null
@@ -94,6 +100,7 @@ public class Caller<T> {
     }
 
     /**
+     * Caller modeling a recursive tail-call
      *
      * @param <T>
      * @param call
@@ -105,6 +112,7 @@ public class Caller<T> {
     }
 
     /**
+     * Caller modeling a recursive tail-call wrapping in supplier
      *
      * @param <T>
      * @param call
@@ -116,10 +124,11 @@ public class Caller<T> {
     }
 
     /**
+     * Caller that has a result (terminating) wrapping in supplier
      *
      * @param <T>
      * @param call
-     * @return Caller, with recursive tail call, that ends up as a result
+     * @return Caller that ends up as a result
      */
     public static <T> Caller<T> ofSupplierResult(Supplier<T> call) {
         Objects.requireNonNull(call);
@@ -127,10 +136,11 @@ public class Caller<T> {
     }
 
     /**
+     * Caller that has a result (terminating) after calling a function once
      *
      * @param <T>
      * @param call
-     * @return Caller, with recursive tail call, that ends up as a result
+     * @return Caller that ends up as a result
      */
     public static <T> Caller<T> ofResultCall(Function<CastList<T>, T> call) {
         Objects.requireNonNull(call);
@@ -163,7 +173,7 @@ public class Caller<T> {
     }
 
     /**
-     * Tag of this caller. Default is null. For debugging or saving caller
+     * Tag of this caller. Default is null. For debugging or marking caller
      * instances.
      *
      * @return tag of this caller
@@ -182,7 +192,7 @@ public class Caller<T> {
     }
 
     /**
-     * Replace tab of this caller with a builder pattern
+     * Replace tag of this caller with a builder pattern
      *
      * @param tag
      * @return
@@ -220,31 +230,31 @@ public class Caller<T> {
     }
 
     /**
-     * Resolve value without limits with 10 forks using ForkJoinPool.commonPool
+     * Resolve value without limits with {@link DEFAULT_FORK_COUNT} forks using ForkJoinPool.commonPool
      * as executor
      *
      * @return
      */
     public T resolveThreaded() {
-        return Caller.resolveThreaded(this, -1, -1L, 10, ForkJoinPool.commonPool());
+        return Caller.resolveThreaded(this, DISABLED_STACK_LIMIT, DISABLED_CALL_LIMIT, DEFAULT_FORK_COUNT, ForkJoinPool.commonPool());
     }
 
     /**
      * Resolve given caller without limits
      *
      * @param <T>
-     * @param caller
+     * @param caller root call point
      * @return
      */
     public static <T> T resolve(Caller<T> caller) {
-        return resolve(caller, -1, -1L);
+        return resolve(caller, DISABLED_STACK_LIMIT, DISABLED_CALL_LIMIT);
     }
 
     /**
      * Resolve function call chain with optional limits
      *
      * @param <T>
-     * @param caller
+     * @param caller root call point
      * @param stackLimit limit of a stack size (each nested dependency expands
      * stack by 1). Use non-positive to disable limit.
      * @param callLimit limit of how many calls can be made (useful for endless
@@ -260,7 +270,7 @@ public class Caller<T> {
      * Resolve function call chain with optional limits
      *
      * @param <T>
-     * @param caller
+     * @param caller root call point
      * @param stackLimit limit of a stack size (each nested dependency expands
      * stack by 1). Use Optional.empty to disable limit.
      * @param callLimit limit of how many calls can be made (useful for endless
