@@ -12,9 +12,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import lt.lb.commons.F;
-import lt.lb.commons.Ins;
-import lt.lb.commons.interfaces.Equator;
 
 /**
  *
@@ -143,7 +140,10 @@ public class StreamMapper<T, Z> {
     }
 
     /**
-     * Adds applies onClose decorator
+     * DEFAULT STREAM ACTIONS
+     */
+    /**
+     * Applies onClose decorator
      *
      * @param onClose
      * @return
@@ -248,6 +248,9 @@ public class StreamMapper<T, Z> {
     }
 
     /**
+     * ADDITIONAL ACTIONS
+     */
+    /**
      * Add elements in the end using {@code Stream.concat} operation
      *
      * @param toAdd
@@ -288,59 +291,8 @@ public class StreamMapper<T, Z> {
     }
 
     /**
-     * Adds filtering of null elements
-     *
-     * @return
+     * MAPPING
      */
-    public StreamMapper<T, Z> noNulls() {
-        return filter(p -> p != null);
-    }
-
-    /**
-     * Combines filter and map operation to select only specified type
-     *
-     * @param <R>
-     * @param cls
-     * @return
-     */
-    public <R> StreamMapper<T, R> select(Class<R> cls) {
-        return filter(cls::isInstance).map(m -> (R) m);
-    }
-
-    /**
-     * Filter operation to select only specified types. If array is empty, does
-     * nothing.
-     *
-     * @param cls
-     * @return
-     */
-    public StreamMapper<T, Z> selectTypes(Class... cls) {
-        if (cls.length == 0) {
-            return this;
-        }
-        return filter(s -> Ins.ofNullable(s).instanceOfAny(cls));
-    }
-
-    /**
-     * Replace every null instance with some default value
-     *
-     * @param nullCase default value
-     * @return
-     */
-    public StreamMapper<T, Z> nullWrap(Z nullCase) {
-        return map(s -> F.nullWrap(s, nullCase));
-    }
-
-    /**
-     * Applies distinct decorator based on custom equator
-     *
-     * @param eq
-     * @return
-     */
-    public StreamMapper<T, Z> distinct(Equator<Z> eq) {
-        return map(s -> new Equator.EqualityProxy<>(s, eq)).distinct().map(m -> m.getValue());
-    }
-
     /**
      * Map decorator
      *
@@ -374,19 +326,21 @@ public class StreamMapper<T, Z> {
 
     /**
      * Flatmap decorator from iterable converting null to empty stream
+     *
      * @param <R>
      * @param mapper
-     * @return 
+     * @return
      */
     public <R> StreamMapper<T, R> flatMapIterable(Function<? super Z, ? extends Iterable<? extends R>> mapper) {
         return flatMap(s -> fromIterable(mapper.apply(s)));
     }
-    
+
     /**
      * Flatmap decorator from iterator converting null to empty stream
+     *
      * @param <R>
      * @param mapper
-     * @return 
+     * @return
      */
     public <R> StreamMapper<T, R> flatMapIterator(Function<? super Z, ? extends Iterator<? extends R>> mapper) {
         return flatMap(s -> fromIterator(mapper.apply(s)));
@@ -399,7 +353,7 @@ public class StreamMapper<T, Z> {
      * @param sm
      * @return
      */
-    public <R> StreamMapper<T, R> thenApply(StreamMapper<Z, R> sm) {
+    public <R> StreamMapper<T, R> thenCombine(StreamMapper<Z, R> sm) {
 
         StreamMapper streamDecorator = new StreamMapper();
         streamDecorator.after = sm;
@@ -424,6 +378,58 @@ public class StreamMapper<T, Z> {
         streamDecorator.parent = this.parent;
         streamDecorator.after = this.after;
         return streamDecorator;
+    }
+
+    /**
+     * Apply stream mapper decorator
+     *
+     * @param <R>
+     * @param func
+     * @return
+     */
+    public <R> StreamMapper<T, R> apply(Function<StreamMapper<T, Z>, StreamMapper<T, R>> func) {
+        return func.apply(this);
+    }
+
+    /**
+     * Apply stream mapper decorators
+     *
+     * @param <R1>
+     * @param <R2>
+     * @param func1
+     * @param func2
+     * @return
+     */
+    public <R1, R2> StreamMapper<T, R2> apply(Function<StreamMapper<T, Z>, StreamMapper<T, R1>> func1, Function<StreamMapper<T, R1>, StreamMapper<T, R2>> func2) {
+        return func2.apply(func1.apply(this));
+    }
+
+    /**
+     * Apply stream mapper decorators
+     *
+     * @param <R1>
+     * @param <R2>
+     * @param <R3>
+     * @param func1
+     * @param func2
+     * @param func3
+     * @return
+     */
+    public <R1, R2, R3> StreamMapper<T, R3> apply(Function<StreamMapper<T, Z>, StreamMapper<T, R1>> func1, Function<StreamMapper<T, R1>, StreamMapper<T, R2>> func2, Function<StreamMapper<T, R2>, StreamMapper<T, R3>> func3) {
+        return func3.apply(func2.apply(func1.apply(this)));
+    }
+
+    /**
+     * Apply stream decorator with temporary mapping. Can reuse predicates on
+     * the same type that can be achieved by mapping current type.
+     *
+     * @param <R>
+     * @param mapper
+     * @param predicate
+     * @return
+     */
+    public <R> StreamMapper<T, Z> filterWhen(Function<? super Z, ? extends R> mapper, Predicate<? super R> predicate) {
+        return filter(s -> predicate.test(mapper.apply(s)));
     }
 
 }
