@@ -5,12 +5,15 @@
  */
 package regression.core;
 
+import com.google.common.base.Predicates;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.Log;
 import lt.lb.commons.func.StreamMapper;
+import lt.lb.commons.func.StreamMappers;
+import static lt.lb.commons.func.StreamMappers.distinct;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
@@ -38,7 +41,7 @@ public class StreamMapperTest {
 
         Stream<Integer> stream = list.stream();
 
-        StreamMapper<Integer, Double> combine = filter.thenApply(sorted);
+        StreamMapper<Integer, Double> combine = filter.thenCombine(sorted);
 
         Stream<Double> decorate = combine.decorate(stream);
 
@@ -53,7 +56,7 @@ public class StreamMapperTest {
 
         StreamMapper<Integer, String> filter = StreamMapper.of(Integer.class)
                 .map(m -> m * 10)
-                .distinct((a, b) -> a % 5 == b % 5) // leave only one number divisable by 5
+                .apply(distinct((a, b) -> a % 5 == b % 5)) // leave only one number divisable by 5
                 .concat(7)
                 .map(m -> "" + m);
         StreamMapper<String, Double> sorted = StreamMapper.of(String.class)
@@ -62,8 +65,7 @@ public class StreamMapperTest {
                 .sorted();
 
         Stream<Integer> stream = list.stream();
-
-        StreamMapper<Integer, Double> combine = filter.thenApply(sorted);
+        StreamMapper<Integer, Double> combine = filter.thenCombine(sorted);
 
         Stream<Double> decorate = combine.decorate(stream);
 

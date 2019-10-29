@@ -41,7 +41,7 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
     }
 
     /**
-     * {@code true} if value is null
+     * {@code true} if value is not null
      *
      * @return
      */
@@ -50,7 +50,7 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
     }
 
     /**
-     * {@code true} if value is not null
+     * {@code true} if value is null
      *
      * @return
      */

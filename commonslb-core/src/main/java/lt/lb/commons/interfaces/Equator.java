@@ -127,7 +127,7 @@ public interface Equator<T> {
             }
 
             public int hashCode(T val) {
-                return Objects.hashCode(val);
+                return Objects.hashCode(resolver.apply(val));
             }
         };
     }
