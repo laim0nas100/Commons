@@ -7,9 +7,15 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterators;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -347,6 +353,177 @@ public class StreamMapper<T, Z> {
     }
 
     /**
+     * ENDERS
+     */
+    /**
+     * Produce ender with forEach action
+     *
+     * @param action
+     * @return
+     */
+    public StreamMapperEnder<T, Z, Void> forEach(Consumer<? super Z> action) {
+        return endByVoid(s -> s.forEach(action));
+    }
+
+    /**
+     * Produce ender with forEachOrdered action
+     *
+     * @param action
+     * @return
+     */
+    public StreamMapperEnder<T, Z, Void> forEachOrdered(Consumer<? super Z> action) {
+        return endByVoid(s -> s.forEachOrdered(action));
+    }
+
+    /**
+     * Produce ender with toArray action
+     *
+     * @return
+     */
+    public StreamMapperEnder<T, Z, Object[]> toArray() {
+        return endBy(s -> s.toArray());
+    }
+
+    /**
+     * Produce ender with toArray action that takes array generator function as
+     * a parameter
+     *
+     * @param <A>
+     * @param generator
+     * @return
+     */
+    public <A> StreamMapperEnder<T, Z, A[]> toArray(IntFunction<A[]> generator) {
+        return endBy(s -> s.toArray(generator));
+    }
+
+    /**
+     * Produce ender with reduce action
+     * @param identity
+     * @param accumulator
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Z> reduce(Z identity, BinaryOperator<Z> accumulator) {
+        return endBy(s -> s.reduce(identity, accumulator));
+    }
+
+    /**
+     * Produce ender with reduce action
+     * @param accumulator
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Optional<Z>> reduce(BinaryOperator<Z> accumulator) {
+        return endBy(s -> s.reduce(accumulator));
+    }
+
+    /**
+     * Produce ender with reduce action
+     * @param <U>
+     * @param identity
+     * @param accumulator
+     * @param combiner
+     * @return 
+     */
+    public <U> StreamMapperEnder<T, Z, U> reduce(U identity,
+            BiFunction<U, ? super Z, U> accumulator,
+            BinaryOperator<U> combiner) {
+        return endBy(s -> s.reduce(identity, accumulator, combiner));
+    }
+
+    /**
+     * Produce ender with collect action
+     * @param <R>
+     * @param supplier
+     * @param accumulator
+     * @param combiner
+     * @return 
+     */
+    public <R> StreamMapperEnder<T, Z, R> collect(Supplier<R> supplier,
+            BiConsumer<R, ? super Z> accumulator,
+            BiConsumer<R, R> combiner) {
+        return endBy(s -> s.collect(supplier, accumulator, combiner));
+    }
+
+    /**
+     * Produce ender with collect action
+     * @param <R>
+     * @param <A>
+     * @param collector
+     * @return 
+     */
+    public <R, A> StreamMapperEnder<T, Z, R> collect(Collector<? super Z, A, R> collector) {
+        return endBy(s -> s.collect(collector));
+    }
+
+    /**
+     * Produce ender with min action
+     * @param comparator
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Optional<Z>> min(Comparator<? super Z> comparator) {
+        return endBy(s -> s.min(comparator));
+    }
+
+    /**
+     * Produce ender with max action
+     * @param comparator
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Optional<Z>> max(Comparator<? super Z> comparator) {
+        return endBy(s -> s.max(comparator));
+    }
+
+    /**
+     * Produce ender with count action
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Long> count() {
+        return endBy(s -> s.count());
+    }
+
+    /**
+     * Produce ender with anyMatch action
+     * @param predicate
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Boolean> anyMatch(Predicate<? super Z> predicate) {
+        return endBy(s -> s.anyMatch(predicate));
+    }
+
+    /**
+     * Produce ender with allMatch action
+     * @param predicate
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Boolean> allMatch(Predicate<? super Z> predicate) {
+        return endBy(s -> s.allMatch(predicate));
+    }
+
+    /**
+     * Produce ender with noneMatch action
+     * @param predicate
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Boolean> noneMatch(Predicate<? super Z> predicate) {
+        return endBy(s -> s.noneMatch(predicate));
+    }
+
+    /**
+     * Produce ender with findFirst action
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Optional<Z>> findFirst() {
+        return endBy(s -> s.findFirst());
+    }
+
+    /**
+     * Produce ender with findAny action
+     * @return 
+     */
+    public StreamMapperEnder<T, Z, Optional<Z>> findAny() {
+        return endBy(s -> s.findAny());
+    }
+
+    /**
      * Mapper composition
      *
      * @param <R>
@@ -430,6 +607,31 @@ public class StreamMapper<T, Z> {
      */
     public <R> StreamMapper<T, Z> filterWhen(Function<? super Z, ? extends R> mapper, Predicate<? super R> predicate) {
         return filter(s -> predicate.test(mapper.apply(s)));
+    }
+
+    /**
+     * Create a custom ender
+     *
+     * @param <R>
+     * @param ender
+     * @return
+     */
+    public <R> StreamMapperEnder<T, Z, R> endBy(Function<Stream<Z>, R> ender) {
+        return new StreamMapperEnder<>(this, ender);
+    }
+
+    /**
+     * Create a custom ender with no return value
+     *
+     * @param ender
+     * @return
+     */
+    public StreamMapperEnder<T, Z, Void> endByVoid(Consumer<Stream<Z>> ender) {
+
+        return new StreamMapperEnder<>(this, s -> {
+            ender.accept(s);
+            return null;
+        });
     }
 
 }

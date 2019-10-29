@@ -8,10 +8,12 @@ package regression.core;
 import com.google.common.base.Predicates;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.Log;
 import lt.lb.commons.func.StreamMapper;
+import lt.lb.commons.func.StreamMapperEnder;
 import lt.lb.commons.func.StreamMappers;
 import static lt.lb.commons.func.StreamMappers.distinct;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,13 +41,10 @@ public class StreamMapperTest {
                 .filter(m -> m <= 45.1)
                 .sorted();
 
-        Stream<Integer> stream = list.stream();
 
-        StreamMapper<Integer, Double> combine = filter.thenCombine(sorted);
+        StreamMapperEnder<Integer, Double, List<Double>> collect = filter.thenCombine(sorted).collect(Collectors.toList());
 
-        Stream<Double> decorate = combine.decorate(stream);
-
-        assertThat(decorate.collect(Collectors.toList())).isEqualTo(Arrays.asList(25.0, 30.0, 35.0, 40.0, 45.0));
+        assertThat(collect.startingWithEmpty(list)).isEqualTo(Arrays.asList(25.0, 30.0, 35.0, 40.0, 45.0));
 
     }
 
@@ -69,7 +68,7 @@ public class StreamMapperTest {
 
         Stream<Double> decorate = combine.decorate(stream);
 
-        assertThat(decorate.collect(Collectors.toList())).isEqualTo(Arrays.asList(2.0,5.0,7.0,10.0));
+        assertThat(decorate.collect(Collectors.toList())).isEqualTo(Arrays.asList(2.0, 5.0, 7.0, 10.0));
         Log.close();
 
     }
