@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterators;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -36,6 +37,10 @@ public class StreamMapper<T, Z> {
     protected StreamMapper<T, Object> parent;
 
     public static <E> StreamDecorator<E> of() {
+        return new StreamDecorator<>();
+    }
+
+    public static <E> StreamDecorator<E> of(Iterable<E> iter) {
         return new StreamDecorator<>();
     }
 
@@ -129,7 +134,9 @@ public class StreamMapper<T, Z> {
      * @return
      */
     public static <T> Stream<T> fromIterable(Iterable<T> iterable) {
-        return Optional.ofNullable(iterable).map(s -> s.spliterator()).map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
+        return Optional.ofNullable(iterable)
+                .map(s -> s.spliterator())
+                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
     }
 
     /**
@@ -366,6 +373,22 @@ public class StreamMapper<T, Z> {
     }
 
     /**
+     * Produce ender with forEach action and index
+     *
+     * @param action
+     * @return
+     */
+    public StreamMapperEnder<T, Z, Void> forEach(BiConsumer<Integer, ? super Z> action) {
+        return endByVoid(s -> {
+            AtomicInteger i = new AtomicInteger(0);
+            s.forEach(a -> {
+                action.accept(i.getAndIncrement(), a);
+            });
+
+        });
+    }
+
+    /**
      * Produce ender with forEachOrdered action
      *
      * @param action
@@ -373,6 +396,22 @@ public class StreamMapper<T, Z> {
      */
     public StreamMapperEnder<T, Z, Void> forEachOrdered(Consumer<? super Z> action) {
         return endByVoid(s -> s.forEachOrdered(action));
+    }
+
+    /**
+     * Produce ender with forEachOrdered action and index
+     *
+     * @param action
+     * @return
+     */
+    public StreamMapperEnder<T, Z, Void> forEachOrdered(BiConsumer<Integer, ? super Z> action) {
+        return endByVoid(s -> {
+            AtomicInteger i = new AtomicInteger(0);
+            s.forEachOrdered(a -> {
+                action.accept(i.getAndIncrement(), a);
+            });
+
+        });
     }
 
     /**
@@ -398,9 +437,10 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with reduce action
+     *
      * @param identity
      * @param accumulator
-     * @return 
+     * @return
      */
     public StreamMapperEnder<T, Z, Z> reduce(Z identity, BinaryOperator<Z> accumulator) {
         return endBy(s -> s.reduce(identity, accumulator));
@@ -408,8 +448,9 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with reduce action
+     *
      * @param accumulator
-     * @return 
+     * @return
      */
     public StreamMapperEnder<T, Z, Optional<Z>> reduce(BinaryOperator<Z> accumulator) {
         return endBy(s -> s.reduce(accumulator));
@@ -417,11 +458,12 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with reduce action
+     *
      * @param <U>
      * @param identity
      * @param accumulator
      * @param combiner
-     * @return 
+     * @return
      */
     public <U> StreamMapperEnder<T, Z, U> reduce(U identity,
             BiFunction<U, ? super Z, U> accumulator,
@@ -431,11 +473,12 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with collect action
+     *
      * @param <R>
      * @param supplier
      * @param accumulator
      * @param combiner
-     * @return 
+     * @return
      */
     public <R> StreamMapperEnder<T, Z, R> collect(Supplier<R> supplier,
             BiConsumer<R, ? super Z> accumulator,
@@ -445,10 +488,11 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with collect action
+     *
      * @param <R>
      * @param <A>
      * @param collector
-     * @return 
+     * @return
      */
     public <R, A> StreamMapperEnder<T, Z, R> collect(Collector<? super Z, A, R> collector) {
         return endBy(s -> s.collect(collector));
@@ -456,8 +500,9 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with min action
+     *
      * @param comparator
-     * @return 
+     * @return
      */
     public StreamMapperEnder<T, Z, Optional<Z>> min(Comparator<? super Z> comparator) {
         return endBy(s -> s.min(comparator));
@@ -465,8 +510,9 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with max action
+     *
      * @param comparator
-     * @return 
+     * @return
      */
     public StreamMapperEnder<T, Z, Optional<Z>> max(Comparator<? super Z> comparator) {
         return endBy(s -> s.max(comparator));
@@ -474,7 +520,8 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with count action
-     * @return 
+     *
+     * @return
      */
     public StreamMapperEnder<T, Z, Long> count() {
         return endBy(s -> s.count());
@@ -482,8 +529,9 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with anyMatch action
+     *
      * @param predicate
-     * @return 
+     * @return
      */
     public StreamMapperEnder<T, Z, Boolean> anyMatch(Predicate<? super Z> predicate) {
         return endBy(s -> s.anyMatch(predicate));
@@ -491,8 +539,9 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with allMatch action
+     *
      * @param predicate
-     * @return 
+     * @return
      */
     public StreamMapperEnder<T, Z, Boolean> allMatch(Predicate<? super Z> predicate) {
         return endBy(s -> s.allMatch(predicate));
@@ -500,8 +549,9 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with noneMatch action
+     *
      * @param predicate
-     * @return 
+     * @return
      */
     public StreamMapperEnder<T, Z, Boolean> noneMatch(Predicate<? super Z> predicate) {
         return endBy(s -> s.noneMatch(predicate));
@@ -509,7 +559,8 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with findFirst action
-     * @return 
+     *
+     * @return
      */
     public StreamMapperEnder<T, Z, Optional<Z>> findFirst() {
         return endBy(s -> s.findFirst());
@@ -517,7 +568,8 @@ public class StreamMapper<T, Z> {
 
     /**
      * Produce ender with findAny action
-     * @return 
+     *
+     * @return
      */
     public StreamMapperEnder<T, Z, Optional<Z>> findAny() {
         return endBy(s -> s.findAny());
@@ -569,31 +621,17 @@ public class StreamMapper<T, Z> {
     }
 
     /**
-     * Apply stream mapper decorators
+     * Apply stream mapper decorators without mapping
      *
-     * @param <R1>
-     * @param <R2>
-     * @param func1
-     * @param func2
+     * @param funcs
      * @return
      */
-    public <R1, R2> StreamMapper<T, R2> apply(Function<StreamMapper<T, Z>, StreamMapper<T, R1>> func1, Function<StreamMapper<T, R1>, StreamMapper<T, R2>> func2) {
-        return func2.apply(func1.apply(this));
-    }
-
-    /**
-     * Apply stream mapper decorators
-     *
-     * @param <R1>
-     * @param <R2>
-     * @param <R3>
-     * @param func1
-     * @param func2
-     * @param func3
-     * @return
-     */
-    public <R1, R2, R3> StreamMapper<T, R3> apply(Function<StreamMapper<T, Z>, StreamMapper<T, R1>> func1, Function<StreamMapper<T, R1>, StreamMapper<T, R2>> func2, Function<StreamMapper<T, R2>, StreamMapper<T, R3>> func3) {
-        return func3.apply(func2.apply(func1.apply(this)));
+    public StreamMapper<T, Z> applyAll(Function<StreamMapper<T, Z>, StreamMapper<T, Z>>... funcs) {
+        StreamMapper<T, Z> me = this;
+        for (Function<StreamMapper<T, Z>, StreamMapper<T, Z>> fun : funcs) {
+            me = fun.apply(me);
+        }
+        return me;
     }
 
     /**

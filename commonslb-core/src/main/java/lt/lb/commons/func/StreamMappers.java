@@ -3,6 +3,8 @@ package lt.lb.commons.func;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import lt.lb.commons.Ins;
 import lt.lb.commons.interfaces.Equator;
 
@@ -22,7 +24,7 @@ public abstract class StreamMappers {
      * @return
      */
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterEquals(Z object) {
-        return s -> s.filter(ob -> Objects.equals(ob, object));
+        return filterPredicate(ob -> Objects.equals(ob, object));
     }
 
     /**
@@ -34,7 +36,7 @@ public abstract class StreamMappers {
      * @return
      */
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterNotEquals(Z object) {
-        return s -> s.filter(ob -> !Objects.equals(ob, object));
+        return filterPredicate(ob -> !Objects.equals(ob, object));
     }
 
     /**
@@ -45,7 +47,19 @@ public abstract class StreamMappers {
      * @return
      */
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterNoNulls() {
-        return s -> s.filter(p -> p != null);
+        return filterPredicate(s -> s != null);
+    }
+
+    /**
+     * Adds filtering by given predicate
+     *
+     * @param <T>
+     * @param <Z>
+     * @param predicate
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterPredicate(Predicate<? super Z> predicate) {
+        return s -> s.filter(predicate);
     }
 
     /**
@@ -62,7 +76,7 @@ public abstract class StreamMappers {
     }
 
     /**
-     * Filter operation to select only specified types.If array is empty, does
+     * Filter operation to select only specified types. If array is empty, does
      * nothing.
      *
      * @param <T>
@@ -87,9 +101,9 @@ public abstract class StreamMappers {
      * @param nullCase default value
      * @return
      */
-    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> nullWrap(Z nullCase) {
-        Objects.requireNonNull(nullCase, "nullCase is null");
-        return st -> st.map(s -> s == null ? nullCase : s);
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> nullWrap(Supplier<? extends Z> nullCase) {
+        Objects.requireNonNull(nullCase, "nullCase is null"); //probably not what you want instead of a null is another null
+        return st -> st.map(s -> s == null ? nullCase.get() : s);
     }
 
     /**
@@ -101,6 +115,7 @@ public abstract class StreamMappers {
      * @return
      */
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> distinct(Equator<Z> eq) {
+        Objects.requireNonNull(eq, "Equator is null");
         return st -> st.map(s -> new Equator.EqualityProxy<>(s, eq)).distinct().map(m -> m.getValue());
     }
 
@@ -115,7 +130,7 @@ public abstract class StreamMappers {
      */
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterIn(Collection<? extends Z> target) {
         Objects.requireNonNull(target, "Collection is null");
-        return st -> st.filter(s -> target.contains(s));
+        return filterPredicate(s -> target.contains(s));
     }
 
     /**
@@ -129,6 +144,6 @@ public abstract class StreamMappers {
      */
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterNotIn(Collection<? extends Z> target) {
         Objects.requireNonNull(target, "Collection is null");
-        return st -> st.filter(s -> !target.contains(s));
+        return filterPredicate(s -> !target.contains(s));
     }
 }
