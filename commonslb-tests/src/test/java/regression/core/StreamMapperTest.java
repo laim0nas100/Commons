@@ -44,7 +44,7 @@ public class StreamMapperTest {
 
         StreamMapperEnder<Integer, Double, List<Double>> collect = filter.thenCombine(sorted).collect(Collectors.toList());
 
-        assertThat(collect.startingWithEmpty(list)).isEqualTo(Arrays.asList(25.0, 30.0, 35.0, 40.0, 45.0));
+        assertThat(collect.startingWithOpt(list)).isEqualTo(Arrays.asList(25.0, 30.0, 35.0, 40.0, 45.0));
 
     }
 

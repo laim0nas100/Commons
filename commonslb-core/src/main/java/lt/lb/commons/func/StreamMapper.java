@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -18,7 +17,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  *
@@ -28,7 +26,7 @@ import java.util.stream.StreamSupport;
  * @param <T> source type
  * @param <Z> result type
  */
-public class StreamMapper<T, Z> {
+public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
 
     protected ArrayList<Function<Stream<Z>, Stream<Z>>> decs;
     protected Function<Object, Z> mapper;
@@ -46,6 +44,11 @@ public class StreamMapper<T, Z> {
 
     public static <E> StreamDecorator<E> of(Class<E> cls) {
         return new StreamDecorator<>();
+    }
+
+    @Override
+    public Stream<Z> startingWith(Stream<T> stream) {
+        return decorate(stream);
     }
 
     public static class StreamDecorator<E> extends StreamMapper<E, E> {
@@ -94,62 +97,6 @@ public class StreamMapper<T, Z> {
             stream = fun.apply(stream);
         }
         return stream;
-    }
-
-    /**
-     * Decorates stream returning decorated empty stream on null
-     *
-     * @param stream
-     * @return
-     */
-    public Stream<Z> decorateOrEmpty(Stream<T> stream) {
-        return decorate(stream == null ? Stream.empty() : stream);
-    }
-
-    /**
-     * Decorates stream returning decorated empty stream from iterable
-     *
-     * @param iterable
-     * @return
-     */
-    public Stream<Z> decorateOrEmpty(Iterable<T> iterable) {
-        return decorate(fromIterable(iterable));
-    }
-
-    /**
-     * Decorates stream returning decorated empty stream from iterator
-     *
-     * @param iterator
-     * @return
-     */
-    public Stream<Z> decorateOrEmpty(Iterator<T> iterator) {
-        return decorate(fromIterator(iterator));
-    }
-
-    /**
-     * Converts iterable to Stream. If null, return empty stream;
-     *
-     * @param <T>
-     * @param iterable
-     * @return
-     */
-    public static <T> Stream<T> fromIterable(Iterable<T> iterable) {
-        return Optional.ofNullable(iterable)
-                .map(s -> s.spliterator())
-                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
-    }
-
-    /**
-     * Converts iterator to Stream. If null, return empty stream;
-     *
-     * @param <T>
-     * @param iterator
-     * @return
-     */
-    public static <T> Stream<T> fromIterator(Iterator<T> iterator) {
-        return Optional.ofNullable(iterator)
-                .map(s -> Spliterators.spliteratorUnknownSize(s, 0))
-                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
     }
 
     /**
@@ -345,7 +292,7 @@ public class StreamMapper<T, Z> {
      * @return
      */
     public <R> StreamMapper<T, R> flatMapIterable(Function<? super Z, ? extends Iterable<? extends R>> mapper) {
-        return flatMap(s -> fromIterable(mapper.apply(s)));
+        return flatMap(s -> StreamMappers.fromIterable(mapper.apply(s)));
     }
 
     /**
@@ -356,7 +303,7 @@ public class StreamMapper<T, Z> {
      * @return
      */
     public <R> StreamMapper<T, R> flatMapIterator(Function<? super Z, ? extends Iterator<? extends R>> mapper) {
-        return flatMap(s -> fromIterator(mapper.apply(s)));
+        return flatMap(s -> StreamMappers.fromIterator(mapper.apply(s)));
     }
 
     /**

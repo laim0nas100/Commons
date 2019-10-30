@@ -1,10 +1,15 @@
 package lt.lb.commons.func;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Spliterators;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import lt.lb.commons.Ins;
 import lt.lb.commons.interfaces.Equator;
 
@@ -14,6 +19,32 @@ import lt.lb.commons.interfaces.Equator;
  * @author laim0nas100
  */
 public abstract class StreamMappers {
+    
+    /**
+     * Converts iterable to Stream. If null, return empty stream;
+     *
+     * @param <T>
+     * @param iterable
+     * @return
+     */
+    public static <T> Stream<T> fromIterable(Iterable<T> iterable) {
+        return Optional.ofNullable(iterable)
+                .map(s -> s.spliterator())
+                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
+    }
+
+    /**
+     * Converts iterator to Stream. If null, return empty stream;
+     *
+     * @param <T>
+     * @param iterator
+     * @return
+     */
+    public static <T> Stream<T> fromIterator(Iterator<T> iterator) {
+        return Optional.ofNullable(iterator)
+                .map(s -> Spliterators.spliteratorUnknownSize(s, 0))
+                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
+    }
 
     /**
      * Applies filter functor

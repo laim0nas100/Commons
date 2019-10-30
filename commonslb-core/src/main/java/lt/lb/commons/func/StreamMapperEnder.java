@@ -1,11 +1,8 @@
 package lt.lb.commons.func;
 
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import static lt.lb.commons.func.StreamMapper.fromIterable;
-import static lt.lb.commons.func.StreamMapper.fromIterator;
 
 /**
  *
@@ -16,7 +13,7 @@ import static lt.lb.commons.func.StreamMapper.fromIterator;
  * @param <Z> stream result type
  * @param <R> result
  */
-public class StreamMapperEnder<T, Z, R> {
+public class StreamMapperEnder<T, Z, R> extends StreamMapperAbstr<T, Z, R> {
     
     protected final StreamMapper<T, Z> mapper;
     protected final Function<Stream<Z>, R> ender;
@@ -44,36 +41,6 @@ public class StreamMapperEnder<T, Z, R> {
         Objects.requireNonNull(stream, "Given stream was null");
         return ender.apply(mapper.decorate(stream));
 
-    }
-
-    /**
-     * Decorates stream returning decorated empty stream on null
-     *
-     * @param stream
-     * @return
-     */
-    public R startingWithEmpty(Stream<T> stream) {
-        return startingWith(stream == null ? Stream.empty() : stream);
-    }
-
-    /**
-     * Decorates stream returning decorated empty stream from iterable
-     *
-     * @param iterable
-     * @return
-     */
-    public R startingWithEmpty(Iterable<T> iterable) {
-        return startingWith(fromIterable(iterable));
-    }
-
-    /**
-     * Decorates stream returning decorated empty stream from iterator
-     *
-     * @param iterator
-     * @return
-     */
-    public R startingWithEmpty(Iterator<T> iterator) {
-        return startingWith(fromIterator(iterator));
     }
 
 }
