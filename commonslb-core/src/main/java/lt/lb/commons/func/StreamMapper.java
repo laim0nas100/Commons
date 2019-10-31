@@ -217,6 +217,9 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public StreamMapper<T, Z> concat(Z... toAdd) {
+        if(toAdd.length == 0){
+            return this;
+        }
         return then(s -> Stream.concat(s, Stream.of(toAdd)));
     }
 
@@ -227,6 +230,9 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public StreamMapper<T, Z> concat(Collection<? extends Z> toAdd) {
+        if(toAdd.isEmpty()){
+            return this;
+        }
         return then(s -> Stream.concat(s, toAdd.stream()));
     }
 
@@ -237,6 +243,9 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public StreamMapper<T, Z> concatFirst(Z... toAdd) {
+        if(toAdd.length == 0){
+            return this;
+        }
         return then(s -> Stream.concat(Stream.of(toAdd), s));
     }
 
@@ -247,6 +256,9 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public StreamMapper<T, Z> concatFirst(Collection<? extends Z> toAdd) {
+        if(toAdd.isEmpty()){
+            return this;
+        }
         return then(s -> Stream.concat(toAdd.stream(), s));
     }
 
