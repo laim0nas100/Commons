@@ -21,32 +21,6 @@ import lt.lb.commons.interfaces.Equator;
 public abstract class StreamMappers {
     
     /**
-     * Converts iterable to Stream. If null, return empty stream;
-     *
-     * @param <T>
-     * @param iterable
-     * @return
-     */
-    public static <T> Stream<T> fromIterable(Iterable<T> iterable) {
-        return Optional.ofNullable(iterable)
-                .map(s -> s.spliterator())
-                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
-    }
-
-    /**
-     * Converts iterator to Stream. If null, return empty stream;
-     *
-     * @param <T>
-     * @param iterator
-     * @return
-     */
-    public static <T> Stream<T> fromIterator(Iterator<T> iterator) {
-        return Optional.ofNullable(iterator)
-                .map(s -> Spliterators.spliteratorUnknownSize(s, 0))
-                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
-    }
-
-    /**
      * Applies filter functor
      *
      * @param <T>

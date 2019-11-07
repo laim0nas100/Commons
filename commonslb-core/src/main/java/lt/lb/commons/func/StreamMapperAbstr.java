@@ -33,7 +33,7 @@ public abstract class StreamMapperAbstr<T,Z,R> {
      * @return
      */
     public R startingWithOpt(Iterable<T> iterable) {
-        return startingWith(StreamMappers.fromIterable(iterable));
+        return startingWith(StreamMapper.fromIterable(iterable));
     }
 
     /**
@@ -43,7 +43,7 @@ public abstract class StreamMapperAbstr<T,Z,R> {
      * @return
      */
     public R startingWithOpt(Iterator<T> iterator) {
-        return startingWith(StreamMappers.fromIterator(iterator));
+        return startingWith(StreamMapper.fromIterator(iterator));
     }
     
     /**

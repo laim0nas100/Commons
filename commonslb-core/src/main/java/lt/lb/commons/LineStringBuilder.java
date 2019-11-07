@@ -24,6 +24,12 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         this(UNIX_LINE_END);
     }
 
+    /**
+     * Appends objects and then adds a line ending
+     *
+     * @param objects
+     * @return this
+     */
     @Override
     public LineStringBuilder appendLine(Object... objects) {
         this.append(objects);
@@ -31,6 +37,12 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         return this;
     }
 
+    /**
+     * Appends objects
+     *
+     * @param objects
+     * @return this
+     */
     @Override
     public LineStringBuilder append(Object... objects) {
         for (Object ob : objects) {
@@ -39,31 +51,62 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         return this;
     }
 
+    /**
+     *
+     * @throws IndexOutOfBoundsException {@inheritDoc}
+     */
     @Override
     public LineStringBuilder append(CharSequence s, int start, int end) {
         sb.append(s, start, end);
         return this;
     }
 
+    /**
+     *
+     * @param str the characters to be appended.
+     * @param offset the index of the first {@code char} to append.
+     * @param len the number of {@code char}s to append.
+     * @return a reference to this object.
+     * @throws IndexOutOfBoundsException if {@code offset < 0} or
+     * {@code len < 0} or {@code offset+len > str.length}
+     */
     public LineStringBuilder append(char[] str, int offset, int len) {
         sb.append(str, offset, len);
         return this;
     }
 
+    /**
+     * Appends objects at given offset.
+     *
+     * @param offset the index of the first {@code char} to append.
+     * @param objects objects to append
+     * @return
+     */
     @Override
     public LineStringBuilder insert(int offset, Object... objects) {
-        StringBuilder temp = createBuilderOf(objects);
-        sb.insert(offset, temp.toString());
+        sb.insert(offset, createBuilderOf(objects).toString());
         return this;
     }
 
+    /**
+     * Appends objects and a new line at given offset.
+     *
+     * @param offset the index of the first {@code char} to append.
+     * @param objects objects to append
+     * @return
+     */
     @Override
     public LineStringBuilder insertLine(int offset, Object... objects) {
-        StringBuilder temp = createBuilderOf(objects).append(lineEnding);
-        sb.insert(offset, temp.toString());
+        sb.insert(offset, createBuilderOf(objects).append(lineEnding).toString());
         return this;
     }
 
+    /**
+     * Prepends objects.
+     *
+     * @param objects objects to prepend
+     * @return
+     */
     @Override
     public LineStringBuilder prepend(Object... objects) {
         StringBuilder temp = createBuilderOf(objects);
@@ -71,6 +114,12 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         return this;
     }
 
+    /**
+     * Prepends objects and a new line.
+     *
+     * @param objects objects to prepend
+     * @return
+     */
     @Override
     public LineStringBuilder prependLine(Object... objects) {
         StringBuilder temp = createBuilderOf(objects).append(lineEnding);
@@ -78,46 +127,110 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         return this;
     }
 
+    /**
+     * Delete characters in the interval [from,to)
+     *
+     * @param from index inclusive
+     * @param to index exclusive
+     * @return
+     */
     public LineStringBuilder delete(int from, int to) {
         sb.delete(from, to);
         return this;
     }
 
+    /**
+     * Deletes a single {@code char} at a given index
+     *
+     * @param at index to delete char from
+     * @return
+     */
     public LineStringBuilder deleteCharAt(int at) {
         sb.deleteCharAt(at);
         return this;
     }
 
+    /**
+     * Finds first appearance of given substring
+     *
+     * @param str
+     * @return
+     */
     public int indexOf(String str) {
         return sb.indexOf(str);
     }
 
+    /**
+     * Finds first appearance of given substring with a given starting index
+     *
+     * @param str
+     * @param fromIndex starting index
+     * @return
+     */
     public int indexOf(String str, int fromIndex) {
         return sb.indexOf(str, fromIndex);
     }
 
+    /**
+     * Finds last appearance of given substring
+     *
+     * @param str
+     * @return
+     */
     public int lastIndexOf(String str) {
         return sb.lastIndexOf(str);
     }
 
+    /**
+     * Finds last appearance of given substring with a given starting index
+     *
+     * @param str
+     * @return
+     */
     public int lastIndexOf(String str, int fromIndex) {
         return sb.lastIndexOf(str, fromIndex);
     }
 
+    /**
+     * Reverse the character array
+     *
+     * @return
+     */
     public LineStringBuilder reverse() {
         sb.reverse();
         return this;
     }
 
+    /**
+     * Delete characters within specified interval and insert a given string
+     *
+     * @param from
+     * @param to
+     * @param str
+     * @return
+     */
     public LineStringBuilder replace(int from, int to, String str) {
         sb.replace(from, to, str);
         return this;
     }
 
+    /**
+     * Replace the whole thing with a given string
+     *
+     * @param str
+     * @return
+     */
     public LineStringBuilder replace(String str) {
         return this.replace(0, length(), str);
     }
 
+    /**
+     * Replace characters starting at specific index
+     *
+     * @param index
+     * @param chars
+     * @return
+     */
     public LineStringBuilder setCharAt(int index, Character... chars) {
         for (int i = index; i < chars.length; i++) {
             sb.setCharAt(i, chars[i]);
@@ -125,52 +238,87 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         return this;
     }
 
+    /**
+     * {@link StringBuilder#length}
+     */
     @Override
     public int length() {
         return sb.length();
     }
 
+    /**
+     * {@link StringBuilder#appendCodePoint}
+     */
     public LineStringBuilder appendCodePoint(int codePoint) {
         sb.appendCodePoint(codePoint);
         return this;
     }
 
+    /**
+     * {@link StringBuilder#codePointAt}
+     */
     public int codePointAt(int index) {
         return sb.codePointAt(index);
     }
 
+    /**
+     * {@link StringBuilder#codePointBefore}
+     */
     public int codePointBefore(int index) {
         return sb.codePointBefore(index);
     }
 
+    /**
+     * {@link StringBuilder#codePointCount}
+     */
     public int codePointCount(int begin, int end) {
         return sb.codePointCount(begin, end);
     }
 
+    /**
+     * {@link StringBuilder#offsetByCodePoints}
+     */
     public int offsetByCodePoints(int index, int codePointOffset) {
         return sb.offsetByCodePoints(index, codePointOffset);
     }
 
+    /**
+     * {@link StringBuilder#getChars}
+     */
     public void getChars(int srcBegin, int srcEnd, char[] chars, int destBegin) {
         sb.getChars(srcBegin, srcEnd, chars, destBegin);
     }
 
+    /**
+     * Deletes everything and returns what was before deletion.
+     *
+     * @return
+     */
     public String clear() {
         String value = toString();
         delete(0, length());
         return value;
     }
 
+    /**
+     * {@link StringBuilder#charAt}
+     */
     @Override
     public char charAt(int index) {
         return sb.charAt(index);
     }
 
+    /**
+     * {@link StringBuilder#subSequence}
+     */
     @Override
     public CharSequence subSequence(int start, int end) {
         return sb.subSequence(start, end);
     }
 
+    /**
+     * {@link StringBuilder#trimToSize}
+     */
     public void trimToSize() {
         sb.trimToSize();
     }
@@ -191,31 +339,61 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         return temp;
     }
 
+    /**
+     * Creates a {@code String} from collected characters.
+     * {@link StringBuilder#toString}
+     *
+     * @return
+     */
     @Override
     public String toString() {
         return sb.toString();
     }
 
+    /**
+     * Delete given amount of characters from the start
+     *
+     * @param length
+     * @return
+     */
     public LineStringBuilder removeFromStart(int length) {
         return delete(0, length);
     }
 
+    /**
+     * Delete given amount of characters from the end
+     *
+     * @param length
+     * @return
+     */
     public LineStringBuilder removeFromEnd(int length) {
         int lastChar = this.length();
         int firstChar = lastChar - length;
         return delete(firstChar, lastChar);
     }
 
+    /**
+     * Appends a character sequence
+     *
+     * @param arg0
+     * @return
+     */
     @Override
     public LineStringBuilder append(CharSequence arg0) {
         sb.append(arg0);
         return this;
     }
 
+    /**
+     * Appends a character
+     *
+     * @param arg0
+     * @return
+     */
     @Override
     public LineStringBuilder append(char arg0) {
         sb.append(arg0);
         return this;
     }
-    
+
 }

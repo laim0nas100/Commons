@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -16,7 +19,9 @@ import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  *
@@ -304,7 +309,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public <R> StreamMapper<T, R> flatMapIterable(Function<? super Z, ? extends Iterable<? extends R>> mapper) {
-        return flatMap(s -> StreamMappers.fromIterable(mapper.apply(s)));
+        return flatMap(s -> fromIterable(mapper.apply(s)));
     }
 
     /**
@@ -315,7 +320,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public <R> StreamMapper<T, R> flatMapIterator(Function<? super Z, ? extends Iterator<? extends R>> mapper) {
-        return flatMap(s -> StreamMappers.fromIterator(mapper.apply(s)));
+        return flatMap(s -> fromIterator(mapper.apply(s)));
     }
 
     /**
@@ -455,6 +460,27 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      */
     public <R, A> StreamMapperEnder<T, Z, R> collect(Collector<? super Z, A, R> collector) {
         return endBy(s -> s.collect(collector));
+    }
+    
+    /**
+     * Produce ender with collect to {@code List} action
+     *
+     * @param <A>
+     * @return
+     */
+    public <A> StreamMapperEnder<T, Z, List<Z>> collectToList() {
+        return endBy(s -> s.collect(Collectors.toList()));
+    }
+    
+    
+    /**
+     * Produce ender with collect to {@code Set} action
+     *
+     * @param <A>
+     * @return
+     */
+    public <A> StreamMapperEnder<T, Z, Set<Z>> collectToSet() {
+        return endBy(s -> s.collect(Collectors.toSet()));
     }
 
     /**
@@ -629,6 +655,33 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
             ender.accept(s);
             return null;
         });
+    }
+    
+    
+    /**
+     * Converts iterable to Stream. If null, return empty stream;
+     *
+     * @param <T>
+     * @param iterable
+     * @return
+     */
+    public static <T> Stream<T> fromIterable(Iterable<T> iterable) {
+        return Optional.ofNullable(iterable)
+                .map(s -> s.spliterator())
+                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
+    }
+
+    /**
+     * Converts iterator to Stream. If null, return empty stream;
+     *
+     * @param <T>
+     * @param iterator
+     * @return
+     */
+    public static <T> Stream<T> fromIterator(Iterator<T> iterator) {
+        return Optional.ofNullable(iterator)
+                .map(s -> Spliterators.spliteratorUnknownSize(s, 0))
+                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
     }
 
 }

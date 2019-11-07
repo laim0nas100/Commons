@@ -387,7 +387,7 @@ public class SafeOpt<T> implements Supplier<T> {
 
     /**
      * If both values are present (in this {@code SafeOpt} and provided
-     * {@code SafeOpt with} object, then proceed with combining those values in
+     * {@code SafeOpt with} object), then proceed with combining those values in
      * a safe manner, capturing any exceptions. With and mapper must be
      * explicitly not null.
      *

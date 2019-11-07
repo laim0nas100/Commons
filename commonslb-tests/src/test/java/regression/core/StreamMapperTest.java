@@ -55,6 +55,7 @@ public class StreamMapperTest {
 
         StreamMapper<Integer, String> filter = StreamMapper.of(Integer.class)
                 .map(m -> m * 10)
+                .map(m->m)
                 .apply(distinct((a, b) -> a % 5 == b % 5)) // leave only one number divisable by 5
                 .concat(7)
                 .map(m -> "" + m);
@@ -69,7 +70,28 @@ public class StreamMapperTest {
         Stream<Double> decorate = combine.decorate(stream);
 
         assertThat(decorate.collect(Collectors.toList())).isEqualTo(Arrays.asList(2.0, 5.0, 7.0, 10.0));
-        Log.close();
 
+    }
+    
+    @Test
+    public void test3(){
+        StreamMapper<Integer, String> filter = StreamMapper.of(Integer.class)
+                .concat(1,2,3,4,5)
+                .map(m -> m * 10)
+                
+                .apply(distinct((a, b) -> a % 5 == b % 5)) // leave only one number divisable by 5
+                .concat(7)
+                .map(m -> "" + m);
+        StreamMapper<String, Double> sorted = StreamMapper.of(String.class)
+                .flatMap(m -> Stream.of(Integer.parseInt(m), Integer.parseInt(m) - 5))
+                .map(m -> (double) m)
+                .sorted();
+
+        StreamMapper<Integer, Double> combine = filter.thenCombine(sorted);
+
+        List l = null;
+        List<Double> startingWith = combine.collect(Collectors.toList()).startingWithOpt(l);
+
+        assertThat(startingWith).isEqualTo(Arrays.asList(2.0, 5.0, 7.0, 10.0));
     }
 }
