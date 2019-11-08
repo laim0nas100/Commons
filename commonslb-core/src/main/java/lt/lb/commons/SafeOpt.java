@@ -285,6 +285,17 @@ public class SafeOpt<T> implements Supplier<T> {
         return filter(clazz::isInstance).map(t -> (U) t);
     }
 
+    
+    /**
+     * Analogous to flatMap, but with explicit exception ignoring
+     * @param <U>
+     * @param mapper
+     * @return 
+     */
+    public <U> SafeOpt<U> flatMap(UnsafeFunction<? super T, SafeOpt<U>> mapper) {
+        return flatMap((Function<? super T, SafeOpt<U>>)mapper);
+    }
+    
     /**
      * If a value is present, apply the provided {@code SafeOpt}-bearing mapping
      * function to it, return that result, otherwise return an empty
@@ -345,6 +356,16 @@ public class SafeOpt<T> implements Supplier<T> {
                 return SafeOpt.empty(t);
             }
         }
+    }
+    
+    /**
+     * Analogous to flatMapOpt, but with explicit exception ignoring
+     * @param <U>
+     * @param mapper
+     * @return 
+     */
+    public <U> SafeOpt<U> flatMapOpt(UnsafeFunction<? super T, Optional<U>> mapper) {
+        return flatMapOpt((Function<? super T, Optional<U>>)mapper);
     }
 
     /**
