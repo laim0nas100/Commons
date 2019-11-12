@@ -253,6 +253,7 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T>, Serializabl
     
     /**
      * Create ExtComparator with proper handling of null values.
+     * This should be the last comparator builder call.
      *
      * @param nullFirst null order policy
      * @return
