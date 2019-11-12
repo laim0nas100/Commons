@@ -1,6 +1,8 @@
 package lt.lb.commons;
 
 import java.util.Objects;
+import lt.lb.commons.misc.ExtComparable;
+import lt.lb.commons.misc.ExtComparator;
 
 /**
  *
@@ -10,13 +12,25 @@ import java.util.Objects;
  */
 public class Ins<T> {
 
-    public static class InsCl<T> extends Ins<T> {
+    public static class InsCl<T> extends Ins<T> implements ExtComparable<Class> {
 
         private InsCl(Class<T> cl, T ob) {
             super(cl, ob);
             if (cl == null) {
                 throw new IllegalArgumentException("Class must be provided");
             }
+
+        }
+
+        
+        @Override
+        public int compareTo(Class o) {
+            return Ins.typeComparator.compare(clazz, o);
+        }
+
+        @Override
+        public Class get() {
+            return clazz;
         }
 
         /**
@@ -28,7 +42,7 @@ public class Ins<T> {
         public boolean superClassOf(Class cls) {
             return superClassOfAll(cls);
         }
-        
+
         /**
          * Delegates to {@link #superClassOfAll(InsCl)},
          *
@@ -59,7 +73,7 @@ public class Ins<T> {
             }
 
             for (Object c : objs) {
-                if(!Ins.instanceOf(c, clazz)){
+                if (!Ins.instanceOf(c, clazz)) {
                     return false;
                 }
             }
@@ -86,7 +100,7 @@ public class Ins<T> {
             }
 
             for (Object c : objs) {
-                if(Ins.instanceOf(c, clazz)){
+                if (Ins.instanceOf(c, clazz)) {
                     return true;
                 }
             }
@@ -121,8 +135,8 @@ public class Ins<T> {
         }
 
         /**
-         * Checks whether contained class are an superClass of any given classes.
-         * Accepts null. Empty array results in {@code false}
+         * Checks whether contained class are an superClass of any given
+         * classes. Accepts null. Empty array results in {@code false}
          *
          * @param cls
          * @return
@@ -253,6 +267,30 @@ public class Ins<T> {
 
     }
 
+    /**
+     * Test to match type exactly
+     *
+     * @param cls
+     * @return
+     */
+    public boolean exactly(Class cls) {
+        if (cls == null) {
+            return isNull;
+        }
+
+        if (isNull) {
+            return false;
+        }
+        if (clazz == null) {
+            return object.getClass().equals(cls);
+        } else {
+            return clazz.equals(cls);
+        }
+
+    }
+    
+    
+
     protected boolean instanceOf0(Class c) {
         if (clazz == null) {
             return instanceOf(object, c);
@@ -333,5 +371,34 @@ public class Ins<T> {
         }
         return false;
     }
+
+    /**
+     * Comparator of types. Broader types (like {@code Object}) come first. Null
+     * parameters comes first.
+     */
+    public static final ExtComparator<Class> typeComparator = new ExtComparator<Class>() {
+        @Override
+        public int compare(Class o1, Class o2) {
+            if(o1 == null || o2 == null){
+                if(o1 == null && o2 == null){
+                    return 0;
+                }
+                return o1 == null ? -1 : 1;
+            }
+            boolean i_1 = instanceOfClass(o1, o2);
+            boolean i_2 = instanceOfClass(o2, o1);
+            if (i_1 && !i_2) {
+                return 1;
+            }
+            if (!i_1 && i_2) {
+                return -1;
+            }
+            
+            
+            return 0;
+        }
+        
+        
+    };
 
 }
