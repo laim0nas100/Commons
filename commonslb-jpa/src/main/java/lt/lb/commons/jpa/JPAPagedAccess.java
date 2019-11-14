@@ -53,7 +53,7 @@ public class JPAPagedAccess<T> implements PagedIteration<Integer, T>{
 
     @Override
     public boolean hasNextPage(Integer info) {
-        return info <= count;
+        return info < count;
     }
     
 }
