@@ -37,6 +37,51 @@ public interface PagedIteration<PageInfo, T> {
 
     public boolean hasNextPage(PageInfo info);
 
+    /**
+     * Construct iterator of pages, if such need arises
+     * @return
+     */
+    public default Iterator<Iterator<T>> toPagedIterators() {
+        return new Iterator<Iterator<T>>() {
+            PageInfo lastPage = null;
+            boolean lastPageUsed = false;
+            boolean firstGot = false;
+
+            @Override
+            public boolean hasNext() {
+                if (!firstGot) {
+
+                    lastPage = getFirstPage();
+                    firstGot = true;
+                    return true;
+                }
+                return !lastPageUsed || hasNextPage(lastPage);
+            }
+
+            @Override
+            public Iterator<T> next() {
+
+                if (hasNext()) {
+                    if (!lastPageUsed) {
+                        Iterator<T> items = getItems(lastPage);
+                        lastPageUsed = true;
+                        return items;
+                    } else {
+                        lastPage = getNextPage(lastPage);
+                        lastPageUsed = true;
+                        return getItems(lastPage);
+                    }
+                } else {
+                    throw new NoSuchElementException("No next value");
+                }
+            }
+        };
+    }
+
+    /**
+     * Contruct iterator of items based on this paged access
+     * @return 
+     */
     public default Iterator<T> toIterator() {
 
         return new Iterator<T>() {
