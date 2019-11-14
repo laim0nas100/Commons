@@ -37,6 +37,14 @@ public class PagedList<T> implements List<T> {
         public String toString() {
             return "PageNO:" + pageNo + " :" + index;
         }
+        
+        public D get(){
+            return page.items.get(index);
+        }
+        
+        public D set(D item){
+            return page.items.set(index, item);
+        }
     }
 
     private static class Page<E> {
@@ -254,14 +262,12 @@ public class PagedList<T> implements List<T> {
 //        }else if(this.cachedList != null){
 //            cachedList = null;
 //        }
-        PageAccess<T> pageAccess = this.getPageAccess(index);
-        return pageAccess.page.items.get(pageAccess.index);
+        return getPageAccess(index).get();
     }
 
     @Override
     public T set(int index, T element) {
-        PageAccess<T> pageAccess = this.getPageAccess(index);
-        return pageAccess.page.items.set(pageAccess.index, element);
+        return getPageAccess(index).set(element);
     }
 
     @Override

@@ -15,7 +15,7 @@ public abstract class StreamMapperAbstr<T,Z,R> {
      * @return
      */
     public abstract R startingWith(Stream<T> stream);
-
+    
     /**
      * Decorates stream returning decorated empty stream on null
      *

@@ -1,6 +1,7 @@
 package lt.lb.commons.func;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -668,7 +669,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
     public static <T> Stream<T> fromIterable(Iterable<T> iterable) {
         return Optional.ofNullable(iterable)
                 .map(s -> s.spliterator())
-                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
+                .map(s -> StreamSupport.stream(s, false)).orElseGet(Stream::empty);
     }
 
     /**
@@ -681,7 +682,19 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
     public static <T> Stream<T> fromIterator(Iterator<T> iterator) {
         return Optional.ofNullable(iterator)
                 .map(s -> Spliterators.spliteratorUnknownSize(s, 0))
-                .map(s -> StreamSupport.stream(s, false)).orElse(Stream.empty());
+                .map(s -> StreamSupport.stream(s, false)).orElseGet(Stream::empty);
     }
+    
+    /**
+     * Converts array to Stream. If null, return empty stream;
+     *
+     * @param <T>
+     * @param array
+     * @return
+     */
+    public static <T> Stream<T> fromArray(T[] array) {
+        return Optional.ofNullable(array)
+                .map(s -> Arrays.stream(s)).orElseGet(Stream::empty);
+    } 
 
 }
