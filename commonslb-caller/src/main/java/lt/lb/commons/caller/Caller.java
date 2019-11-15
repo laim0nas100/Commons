@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -29,6 +30,7 @@ public class Caller<T> {
     public static final long DISABLED_CALL_LIMIT = -1L;
     public static final int DEFAULT_FORK_COUNT = 10;
 
+    private static final AtomicLong ID_COUNTER = new AtomicLong(0);
     private static final Caller<?> emptyResultCaller = new Caller<>(CallerType.RESULT, null, null, EmptyImmutableList.getInstance());
 
     public static enum CallerType {
@@ -36,8 +38,8 @@ public class Caller<T> {
     }
 
     public final CallerType type;
+    public final long id;
     protected T value;
-    protected String tag;
     protected Function<CastList<T>, Caller<T>> call;
     protected List<Caller<T>> dependencies;
 
@@ -113,7 +115,7 @@ public class Caller<T> {
         Objects.requireNonNull(call);
         return new Caller<>(CallerType.FUNCTION, null, call, EmptyImmutableList.getInstance());
     }
-    
+
     /**
      * Caller modeling a recursive tail-call wrapping in supplier
      *
@@ -164,6 +166,7 @@ public class Caller<T> {
             this.compl = new CompletableFuture<>();
             this.runner = new AtomicReference<>();
         }
+        this.id = ID_COUNTER.getAndIncrement();
     }
 
     /**
@@ -175,35 +178,6 @@ public class Caller<T> {
         return Caller.flowReturn(this);
     }
 
-    /**
-     * Tag of this caller. Default is null. For debugging or marking caller
-     * instances.
-     *
-     * @return tag of this caller
-     */
-    public String getTag() {
-        return tag;
-    }
-
-    /**
-     * Replace tag of this caller
-     *
-     * @param tag
-     */
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    /**
-     * Replace tag of this caller with a builder pattern
-     *
-     * @param tag
-     * @return
-     */
-    public Caller<T> withTag(String tag) {
-        this.tag = tag;
-        return this;
-    }
 
     /**
      * Construct CallerBuilder with this caller as first dependency

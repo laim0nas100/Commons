@@ -30,29 +30,29 @@ public class CallerBenchmark {
         long fibb2 = 25;
 
         for (int i = 0; i < 5; i++) {
-//            bench.executeBench(times, "Caller acker", () -> {
-//                RecursionBuilder.ackermannCaller(m, n).resolve();
-//            }).print(Log::print);
-//            bench.executeBench(times, "Caller fibb1", () -> {
-//                RecursionBuilder.fibbCaller(m, n, limit).resolve();
-//            }).print(Log::print);
-//            bench.executeBench(times, "Caller fibb2", () -> {
-//                RecursionBuilder.fibb2Caller(fibb2).resolve();
-//            }).print(Log::print);
+            bench.executeBench(times, "Caller acker", () -> {
+                RecursionBuilder.ackermannCaller(m, n).resolve();
+            }).print(Log::print);
+            bench.executeBench(times, "Caller fibb1", () -> {
+                RecursionBuilder.fibbCaller(m, n, limit).resolve();
+            }).print(Log::print);
+            bench.executeBench(times, "Caller fibb2", () -> {
+                RecursionBuilder.fibb2Caller(fibb2).resolve();
+            }).print(Log::print);
             bench.executeBench(times, "Caller boi", ()->{
                 RecursionBuilder.recBoiCaller(7,new AtomicLong()).resolveThreaded();
             }).print(Log::print);
             
-//            bench.executeBench(times, "acker", () -> {
-//                RecursionBuilder.ackermann(m, n);
-//            }).print(Log::print);
-//            bench.executeBench(times, "fibb", () -> {
-//                RecursionBuilder.fibb(m, n, limit);
-//            }).print(Log::print);
-//
-//            bench.executeBench(times, "fibb2", () -> {
-//                RecursionBuilder.fibb2(fibb2);
-//            }).print(Log::print);
+            bench.executeBench(times, "acker", () -> {
+                RecursionBuilder.ackermann(m, n);
+            }).print(Log::print);
+            bench.executeBench(times, "fibb", () -> {
+                RecursionBuilder.fibb(m, n, limit);
+            }).print(Log::print);
+
+            bench.executeBench(times, "fibb2", () -> {
+                RecursionBuilder.fibb2(fibb2);
+            }).print(Log::print);
             
             bench.executeBench(times, "boi", ()->{
                 RecursionBuilder.recBoi(7,new AtomicLong());
