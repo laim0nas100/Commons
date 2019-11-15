@@ -24,16 +24,18 @@ import lt.lb.commons.EmptyImmutableList;
  * caller is used to model.
  */
 public class Caller<T> {
-    
+
     public static final int DISABLED_STACK_LIMIT = -1;
     public static final long DISABLED_CALL_LIMIT = -1L;
     public static final int DEFAULT_FORK_COUNT = 10;
 
-    static enum CallerType {
+    private static final Caller<?> emptyResultCaller = new Caller<>(CallerType.RESULT, null, null, EmptyImmutableList.getInstance());
+
+    public static enum CallerType {
         RESULT, FUNCTION, SHARED
     }
 
-    protected final CallerType type;
+    public final CallerType type;
     protected T value;
     protected String tag;
     protected Function<CastList<T>, Caller<T>> call;
@@ -86,17 +88,18 @@ public class Caller<T> {
      * @return Caller, that has a result
      */
     public static <T> Caller<T> ofResult(T result) {
+        if (result == null) {
+            return (Caller<T>) emptyResultCaller;
+        }
         return new Caller<>(CallerType.RESULT, result, null, EmptyImmutableList.getInstance());
     }
 
     /**
-     * Shorthand for ofResult(null)
-     *
      * @param <T>
      * @return Caller, that has a result null
      */
     public static <T> Caller<T> ofNull() {
-        return ofResult(null);
+        return (Caller<T>) emptyResultCaller;
     }
 
     /**
@@ -110,7 +113,7 @@ public class Caller<T> {
         Objects.requireNonNull(call);
         return new Caller<>(CallerType.FUNCTION, null, call, EmptyImmutableList.getInstance());
     }
-
+    
     /**
      * Caller modeling a recursive tail-call wrapping in supplier
      *
@@ -230,8 +233,8 @@ public class Caller<T> {
     }
 
     /**
-     * Resolve value without limits with {@link DEFAULT_FORK_COUNT} forks using ForkJoinPool.commonPool
-     * as executor
+     * Resolve value without limits with {@link DEFAULT_FORK_COUNT} forks using
+     * ForkJoinPool.commonPool as executor
      *
      * @return
      */
