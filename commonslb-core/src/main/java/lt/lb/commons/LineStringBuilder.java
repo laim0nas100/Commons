@@ -38,6 +38,19 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
     }
 
     /**
+     * Appends each object followed by a line ending
+     *
+     * @param objects
+     * @return
+     */
+    public LineStringBuilder appendAsLines(Object... objects) {
+        for (Object ob : objects) {
+            sb.append(ob).append(lineEnding);
+        }
+        return this;
+    }
+
+    /**
      * Appends objects
      *
      * @param objects

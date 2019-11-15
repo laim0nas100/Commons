@@ -23,6 +23,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
  *
@@ -32,7 +33,7 @@ import java.util.stream.StreamSupport;
  * @param <T> source type
  * @param <Z> result type
  */
-public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
+public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
 
     protected ArrayList<Function<Stream<Z>, Stream<Z>>> decs;
     protected Function<Object, Z> mapper;
@@ -223,7 +224,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public StreamMapper<T, Z> concat(Z... toAdd) {
-        if(toAdd.length == 0){
+        if (toAdd.length == 0) {
             return this;
         }
         return then(s -> Stream.concat(s, Stream.of(toAdd)));
@@ -236,7 +237,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public StreamMapper<T, Z> concat(Collection<? extends Z> toAdd) {
-        if(toAdd.isEmpty()){
+        if (toAdd.isEmpty()) {
             return this;
         }
         return then(s -> Stream.concat(s, toAdd.stream()));
@@ -249,7 +250,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public StreamMapper<T, Z> concatFirst(Z... toAdd) {
-        if(toAdd.length == 0){
+        if (toAdd.length == 0) {
             return this;
         }
         return then(s -> Stream.concat(Stream.of(toAdd), s));
@@ -262,7 +263,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
      * @return
      */
     public StreamMapper<T, Z> concatFirst(Collection<? extends Z> toAdd) {
-        if(toAdd.isEmpty()){
+        if (toAdd.isEmpty()) {
             return this;
         }
         return then(s -> Stream.concat(toAdd.stream(), s));
@@ -462,7 +463,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
     public <R, A> StreamMapperEnder<T, Z, R> collect(Collector<? super Z, A, R> collector) {
         return endBy(s -> s.collect(collector));
     }
-    
+
     /**
      * Produce ender with collect to {@code List} action
      *
@@ -472,8 +473,27 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
     public <A> StreamMapperEnder<T, Z, List<Z>> collectToList() {
         return endBy(s -> s.collect(Collectors.toList()));
     }
-    
-    
+
+    /**
+     * Produce ender with transform to {@code Iterator} action
+     *
+     * @param <A>
+     * @return
+     */
+    public <A> StreamMapperEnder<T, Z, Iterator<Z>> toIterator() {
+        return endBy(s -> s.iterator());
+    }
+
+    /**
+     * Produce ender with transform to {@code Iterator} action
+     *
+     * @param <A>
+     * @return
+     */
+    public <A> StreamMapperEnder<T, Z, ReadOnlyIterator<Z>> toReadOnlyIterator() {
+        return endBy(s -> ReadOnlyIterator.of(s));
+    }
+
     /**
      * Produce ender with collect to {@code Set} action
      *
@@ -657,8 +677,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
             return null;
         });
     }
-    
-    
+
     /**
      * Converts iterable to Stream. If null, return empty stream;
      *
@@ -684,7 +703,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
                 .map(s -> Spliterators.spliteratorUnknownSize(s, 0))
                 .map(s -> StreamSupport.stream(s, false)).orElseGet(Stream::empty);
     }
-    
+
     /**
      * Converts array to Stream. If null, return empty stream;
      *
@@ -695,6 +714,6 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>>{
     public static <T> Stream<T> fromArray(T[] array) {
         return Optional.ofNullable(array)
                 .map(s -> Arrays.stream(s)).orElseGet(Stream::empty);
-    } 
+    }
 
 }
