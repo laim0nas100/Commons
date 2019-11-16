@@ -79,7 +79,7 @@ public interface PagedIteration<PageInfo, T> {
     }
 
     /**
-     * Contruct iterator of items based on this paged access
+     * Construct iterator of items based on this paged access
      * @return 
      */
     public default Iterator<T> toIterator() {

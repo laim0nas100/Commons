@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import lt.lb.commons.EmptyImmutableList;
 import lt.lb.commons.containers.ForwardingStream;
 import lt.lb.commons.iteration.impl.EmptyROI;
 import lt.lb.commons.iteration.impl.ListROI;
@@ -39,7 +40,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
 
     public static <T> ReadOnlyBidirectionalIterator<T> of(T... array) {
         if (array.length == 0) {
-            return new EmptyROI<>();
+            return EmptyImmutableList.emptyIterator();
         }
         return new ArrayROI<>(array);
     }
@@ -60,14 +61,14 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
 
     public static <T> ReadOnlyIterator<T> composite(ReadOnlyIterator<T>... iters) {
         if (iters.length == 0) {
-            return new EmptyROI<>();
+            return EmptyImmutableList.emptyIterator();
         }
         return new CompositeROI<>(of(iters));
     }
 
     public static <T> ReadOnlyIterator<T> composite(Collection<ReadOnlyIterator<T>> iters) {
         if (iters.isEmpty()) {
-            return new EmptyROI<>();
+            return EmptyImmutableList.emptyIterator();
         }
         return new CompositeROI<>(of(iters));
     }

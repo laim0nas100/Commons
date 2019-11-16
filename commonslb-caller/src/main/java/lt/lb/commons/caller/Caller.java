@@ -20,6 +20,8 @@ import lt.lb.commons.EmptyImmutableList;
  * Performance and memory penalties are self-evident. Is not likely to be faster
  * than well-made iterative solution.
  *
+ * This class is immutable.
+ *
  * @author laim0nas100
  * @param <T> Most general type of return result (and arguments) that this
  * caller is used to model.
@@ -39,15 +41,16 @@ public class Caller<T> {
 
     public final CallerType type;
     public final long id;
-    protected T value;
-    protected Function<CastList<T>, Caller<T>> call;
-    protected List<Caller<T>> dependencies;
+    protected final T value;
+    protected final Function<CastList<T>, Caller<T>> call;
+    protected final List<Caller<T>> dependencies;
 
     /**
-     * Shared things
+     * Shared things. This actually stores a value and a caller object, but the
+     * value is stored as a result of a future.
      */
-    protected CompletableFuture<T> compl;
-    protected AtomicReference<Thread> runner;
+    protected final CompletableFuture<T> compl;
+    protected final AtomicReference<Thread> runner;
 
     /**
      * Signify {@code for} loop end inside {@code Caller for} loop. Equivalent
@@ -165,6 +168,9 @@ public class Caller<T> {
         if (type == CallerType.SHARED) {
             this.compl = new CompletableFuture<>();
             this.runner = new AtomicReference<>();
+        } else {
+            this.compl = null;
+            this.runner = null;
         }
         this.id = ID_COUNTER.getAndIncrement();
     }
@@ -177,7 +183,6 @@ public class Caller<T> {
     public CallerFlowControl<T> toFlowReturn() {
         return Caller.flowReturn(this);
     }
-
 
     /**
      * Construct CallerBuilder with this caller as first dependency

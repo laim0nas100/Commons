@@ -1,5 +1,6 @@
 package lt.lb.commons.iteration.impl;
 
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
 
@@ -7,7 +8,7 @@ import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
  *
  * @author laim0nas100
  */
-public class EmptyROI<T> implements ReadOnlyBidirectionalIterator<T>{
+public class EmptyROI<T> implements ReadOnlyBidirectionalIterator<T>, ListIterator<T> {
 
     @Override
     public boolean hasNext() {
@@ -38,5 +39,30 @@ public class EmptyROI<T> implements ReadOnlyBidirectionalIterator<T>{
     public T previous() {
         throw new NoSuchElementException("No previous value");
     }
-    
+
+    @Override
+    public int nextIndex() {
+        return -1;
+    }
+
+    @Override
+    public int previousIndex() {
+        return -1;
+    }
+
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    public void set(Object e) {
+        throw new UnsupportedOperationException("Not supported.");
+    }
+
+    @Override
+    public void add(Object e) {
+        throw new UnsupportedOperationException("Not supported.");
+    }
+
 }

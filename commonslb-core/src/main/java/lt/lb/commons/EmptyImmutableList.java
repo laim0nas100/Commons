@@ -4,14 +4,14 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import org.apache.commons.collections4.iterators.EmptyListIterator;
+import lt.lb.commons.iteration.impl.EmptyROI;
 
 /**
  * Does what it says in the name.
  * @author laim0nas100
  */
 public class EmptyImmutableList<T> implements List<T> {
-    
+    private static final EmptyROI emptyROI = new EmptyROI();
     private static final EmptyImmutableList empty = new EmptyImmutableList();
     
     /**
@@ -21,6 +21,10 @@ public class EmptyImmutableList<T> implements List<T> {
      */
     public static <T> EmptyImmutableList<T> getInstance(){
         return empty;
+    }
+    
+    public static <T> EmptyROI emptyIterator(){
+        return emptyROI;
     }
 
     @Override
@@ -84,7 +88,7 @@ public class EmptyImmutableList<T> implements List<T> {
 
     @Override
     public ListIterator<T> listIterator() {
-        return EmptyListIterator.emptyListIterator();
+        return emptyIterator();
 
     }
 

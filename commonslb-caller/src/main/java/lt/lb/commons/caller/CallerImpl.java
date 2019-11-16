@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import lt.lb.commons.F;
 import static lt.lb.commons.caller.Caller.CallerType.FUNCTION;
 import static lt.lb.commons.caller.Caller.CallerType.RESULT;
 import static lt.lb.commons.caller.Caller.CallerType.SHARED;
@@ -149,26 +150,28 @@ public class CallerImpl {
      * middle of it and how
      * @return
      */
-    public static <T, R> Caller<T> ofIteratorLazyThreaded(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, R, Caller<T>> func, BiFunction<Integer, T, CallerFlowControl<T>> contFunc) {
+    public static <T, R> Caller<T> ofIteratorLazyBulk(Caller<T> emptyCase, ReadOnlyIterator<R> iterator, BiFunction<Integer, R, Caller<T>> func, BiFunction<Integer, T, CallerFlowControl<T>> contFunc) {
 
         CallerBuilder<T> b = new CallerBuilder<>();
 
-        IntegerValue index = new IntegerValue(0);
-        for (R item : iterator) {
-            final Integer i = index.getAndIncrement();
+        F.iterate(iterator, (i, item) -> {
             b.withDependencyCall(args -> func.apply(i, item));
-        }
+        });
 
         return b.toCall(args -> {
             for (int i = 0; i < args.parameterCount; i++) {
                 T arg = args.get(i);
                 CallerFlowControl<T> apply = contFunc.apply(i, arg);
+                if (apply.flowControl == CONTINUE) { // assume this to be the must common response
+                    continue;
+                }
                 if (apply.flowControl == RETURN) {
                     return apply.caller;
                 }
                 if (apply.flowControl == BREAK) {
                     break;
                 }
+                throw new IllegalStateException("Unregocnized flow control statement " + apply.flowControl);
 
             }
             return emptyCase;
@@ -193,20 +196,21 @@ public class CallerImpl {
     public static <T> Caller<T> ofDoWhileLoop(Caller<T> emptyCase, Supplier<Boolean> condition, Supplier<Caller<T>> func, Function<T, CallerFlowControl<T>> contFunc) {
         return new CallerBuilder<T>(1)
                 .withDependencySupp(func)
-                .toCall(args -> {
+                .toCall(args -> flowControlSwitch(contFunc.apply(args._0), emptyCase, condition, func, contFunc));
 
-                    CallerFlowControl<T> apply = contFunc.apply(args._0);
-                    switch (apply.flowControl) {
-                        case RETURN:
-                            return apply.caller;
-                        case BREAK:
-                            return emptyCase;
-                        default:
-                            return ofWhileLoop(emptyCase, condition, func, contFunc);
-                    }
+    }
 
-                });
-
+    private static <T> Caller<T> flowControlSwitch(CallerFlowControl<T> apply, Caller<T> emptyCase, Supplier<Boolean> condition, Supplier<Caller<T>> func, Function<T, CallerFlowControl<T>> contFunc) {
+        switch (apply.flowControl) {
+            case RETURN:
+                return apply.caller;
+            case BREAK:
+                return emptyCase;
+            case CONTINUE:
+                return ofWhileLoop(emptyCase, condition, func, contFunc);
+            default:
+                throw new IllegalStateException("Unregocnized flow control statement " + apply.flowControl);
+        }
     }
 
     /**
@@ -227,19 +231,7 @@ public class CallerImpl {
 
         return new CallerBuilder<T>(1)
                 .withDependencySupp(func)
-                .toCall(args -> {
-
-                    CallerFlowControl<T> apply = contFunc.apply(args._0);
-                    switch (apply.flowControl) {
-                        case RETURN:
-                            return apply.caller;
-                        case BREAK:
-                            return emptyCase;
-                        default:
-                            return ofWhileLoop(emptyCase, condition, func, contFunc);
-                    }
-
-                });
+                .toCall(args -> flowControlSwitch(contFunc.apply(args._0), emptyCase, condition, func, contFunc));
 
     }
 
