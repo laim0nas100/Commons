@@ -60,28 +60,17 @@ public abstract class ListIterators {
             }
         };
     }
-
-    public static final class SkippingListIterator<T> implements ListIterator<T> {
-
-        protected boolean nextCalled = false;
+    
+    public static final class RandomAcessListIterator<T> implements ListIterator<T> {
+        protected Integer lastReturned = null;
         protected int cursor = -1;
         protected boolean directionForward;
-        protected Predicate<T> notNull;
         protected List<T> list;
 
-        public SkippingListIterator(int i, Predicate<T> nullCheck, List<T> list) {
-            this.list = list;
-            this.notNull = nullCheck.negate();
-            this.cursor = i-1;
-//            if (i > 0) {
-//                while (i > cursor) {
-//                    next();
-//                }
-//            }
-        }
 
-        public SkippingListIterator(int i, List<T> list) {
-            this(i, (T t) -> false, list);
+        public RandomAcessListIterator(int i, List<T> list) {
+            this.list = list;
+            this.cursor = i-1;
         }
 
         @Override
@@ -93,6 +82,7 @@ public abstract class ListIterators {
         public T next() {
             this.directionForward = true;
             cursor = this.find(1, cursor + 1);
+            lastReturned = cursor;
             return checkedGet(cursor);
 
         }
@@ -110,6 +100,126 @@ public abstract class ListIterators {
             T get = checkedGet(find(-1, cursor));
             this.directionForward = false;
             cursor = this.find(-1, cursor - 1);
+            lastReturned = cursor;
+            return get;
+        }
+
+        public int find(int inc, int i) {
+            if (inc < 0 && i >= list.size()) {
+                return list.size() - 1;
+            } else if (inc > 0 && i < 0) {
+                return 0;
+            } else if (inc == 0) {
+                throw new IllegalArgumentException();
+            }else if(i < list.size() && i >= 0){
+                return i;
+            }else{
+                return -1;
+            }
+
+        }
+
+        protected boolean inRange(int i) {
+            return i >= 0 && i < list.size();
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return inRange(this.previousIndex());
+        }
+
+        @Override
+        public int nextIndex() {
+            int find = this.find(1, cursor + 1);
+            if (inRange(find)) {
+                return find;
+            } else {
+                return list.size();
+            }
+        }
+
+        @Override
+        public int previousIndex() {
+            return this.find(-1, cursor);
+        }
+
+        @Override
+        public void remove() {
+            if(lastReturned == null){
+                throw new IllegalStateException();
+            }
+            list.remove((int)lastReturned);
+            lastReturned = null;
+
+        }
+
+        @Override
+        public void set(T e) {
+            if(lastReturned == null){
+                throw new IllegalStateException();
+            }
+            list.set(lastReturned, e);
+            lastReturned = null;
+            
+
+        }
+
+        @Override
+        public void add(T e) {
+            if(lastReturned == null){
+                throw new IllegalStateException();
+            }
+            list.add(lastReturned, e);
+            lastReturned = null;
+        }
+    }
+
+    public static final class SkippingListIterator<T> implements ListIterator<T> {
+
+        protected Integer lastReturned = null;
+        protected int cursor = -1;
+        protected boolean directionForward;
+        protected Predicate<T> notNull;
+        protected List<T> list;
+
+        public SkippingListIterator(int i, Predicate<T> nullCheck, List<T> list) {
+            this.list = list;
+            this.notNull = nullCheck.negate();
+            this.cursor = i-1;
+        }
+
+        public SkippingListIterator(int i, List<T> list) {
+            this(i, (T t) -> false, list);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return inRange(this.nextIndex());
+        }
+
+        @Override
+        public T next() {
+            this.directionForward = true;
+            cursor = this.find(1, cursor + 1);
+            lastReturned = cursor;
+            return checkedGet(cursor);
+
+        }
+
+        public T checkedGet(int i) {
+            if (inRange(i)) {
+                return list.get(i);
+            } else {
+                throw new NoSuchElementException("Index:" + i + " size:" + list.size());
+            }
+        }
+
+        @Override
+        public T previous() {
+            T get = checkedGet(find(-1, cursor));
+            this.directionForward = false;
+            cursor = this.find(-1, cursor - 1);
+            lastReturned = cursor;
             return get;
         }
 
@@ -158,38 +268,32 @@ public abstract class ListIterators {
 
         @Override
         public void remove() {
-            if (inRange(this.cursor)) {
-                list.remove(this.cursor);
-                if (!inRange(this.cursor)) {
-                    cursor = this.find(-1, cursor);
-                }
-            } else {
+            if(lastReturned == null){
                 throw new IllegalStateException();
             }
+            list.remove((int)lastReturned);
+            lastReturned = null;
 
         }
 
         @Override
         public void set(T e) {
-            int i = this.cursor;
-            if (!this.directionForward) {
-                i = this.nextIndex();
-            }
-            if (inRange(i)) {
-                list.set(i, e);
-            } else {
+            if(lastReturned == null){
                 throw new IllegalStateException();
             }
+            list.set(lastReturned, e);
+            lastReturned = null;
+            
 
         }
 
         @Override
         public void add(T e) {
-            if (inRange(this.nextIndex())) {
-                list.add(this.nextIndex(), e);
-            } else {
+            if(lastReturned == null){
                 throw new IllegalStateException();
             }
+            list.add(lastReturned, e);
+            lastReturned = null;
         }
 
     }

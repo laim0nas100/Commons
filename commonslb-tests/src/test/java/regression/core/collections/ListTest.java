@@ -7,6 +7,7 @@ package regression.core.collections;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -14,6 +15,7 @@ import java.util.Objects;
 import java.util.Random;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
+import lt.lb.commons.Java;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Log;
 import lt.lb.commons.containers.collections.ListDeque;
@@ -131,6 +133,14 @@ public class ListTest {
                 list.addAll(r.nextInt(list.size()), bulkAdd);
             }
         };
+        
+        public static ListOp sort =(List list, int rngSeed, int size) -> {
+            Collections.sort(list);
+        };
+        
+        public static ListOp shuffle =(List list, int rngSeed, int size) -> {
+            Collections.shuffle(list, new Random(rngSeed));
+        };
     }
 
     public void listBehaviourTest(List<Long> toTest, List<Long> safeList, int rndSeed, int size) {
@@ -165,6 +175,15 @@ public class ListTest {
         ListOp.randomAddAll.d(safeList, rndSeed, size);
         ListOp.randomAddAll.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
+        
+        ListOp.sort.d(safeList, rndSeed, size);
+        ListOp.sort.d(toTest, rndSeed, size);
+        listEquals(safeList, toTest);
+        
+        ListOp.shuffle.d(safeList, rndSeed, size);
+        ListOp.shuffle.d(toTest, rndSeed, size);
+        listEquals(safeList, toTest);
+        
         safeList.clear();
         toTest.clear();
         toTest.add(0L);
@@ -188,9 +207,9 @@ public class ListTest {
         );
 
         for (int i = 0; i < 100; i++) {
-            RandomDistribution rng = RandomDistribution.uniform(new Random());
+            RandomDistribution rng = RandomDistribution.uniform(new Random(Java.getCurrentTimeMillis()));
             Integer seed = rng.nextInt();
-            Integer size = rng.nextInt(10, 2000);
+            Integer size = rng.nextInt(50,100);
             for (List<Long> list : toTest) {
                 listBehaviourTest(list, safe, seed, size);
             }
