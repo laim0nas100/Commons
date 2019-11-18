@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
+import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.benchmarking.BenchmarkResult;
@@ -229,10 +230,10 @@ public class ListBench {
 //        Class<List>[] lists = new Class[]{BigList.class};
         Log.print("Waiting for input");
         Log.print("Start " + System.in.read());
-        benchBatch(size / 10, iterations, seed,lists);
-        benchBatch(size, iterations, seed,lists);
+        benchBatch(size / 10, iterations, seed, lists);
+        benchBatch(size, iterations, seed, lists);
         benchBatch(size * 10, iterations, seed, lists);
-        benchBatch(size * 100, iterations, seed,lists);
+        benchBatch(size * 100, iterations, seed, lists);
         benchBatch(size * 1000, iterations, seed, lists);
 //        benchBatch(size*5000, iterations, seed, lists);
 //        benchBatch(size*30000, iterations, seed, lists);
@@ -243,7 +244,6 @@ public class ListBench {
 //        Log.print(b.executeBench(150, "BigList read", makeBenchRead(makeList(bank, new BigList<>(1000)), new Random(seed), iterations)));
 //        Log.print(b.executeBench(150, "PagedHashedList read", makeBenchRead(makeList(bank, new PagedHashList<>()), new Random(seed), iterations)));
 //        Log.print(b.executeBench(150, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
-
     }
 
     @Ignore
@@ -359,6 +359,31 @@ public class ListBench {
                 throw new IllegalStateException("Not equal at index " + i + " list1:" + l1.get(i) + " list2:" + l2.get(i));
             }
         }
+        F.unsafeRun(() -> {
+            ListIterator listIterator = l1.listIterator();
+            ListIterator listIterator1 = l2.listIterator();
+            int i = 0;
+            while (listIterator.hasNext() || listIterator1.hasNext()) {
+                Object next = listIterator.next();
+                Object next1 = listIterator1.next();
+                if (!Objects.equals(next, next1)) {
+                    throw new IllegalStateException("Not equal at index " + i + " list1:" + next + " list2:" + next1);
+                }
+            }
+        });
+
+        F.unsafeRun(() -> {
+            ListIterator listIterator = l1.listIterator(size);
+            ListIterator listIterator1 = l2.listIterator(size);
+            int i = 0;
+            while (listIterator.hasPrevious()|| listIterator1.hasPrevious()) {
+                Object next = listIterator.previous();
+                Object next1 = listIterator1.previous();
+                if (!Objects.equals(next, next1)) {
+                    throw new IllegalStateException("Not equal at index " + i + " list1:" + next + " list2:" + next1);
+                }
+            }
+        });
     }
 
     static interface ListOp {
@@ -383,7 +408,7 @@ public class ListBench {
         public static ListOp remove = (List list, int rngSeed, int size) -> {
             Random r = new Random(rngSeed);
             for (int i = 0; i < size; i++) {
-                list.remove(0);
+                list.remove(r.nextInt(list.size()));
             }
         };
 
@@ -429,13 +454,13 @@ public class ListBench {
         ListOp.add.d(toTest, rndSeed, size);
 
         this.listEquals(safeList, toTest);
-        Log.print("List is valid after add");
+//        Log.print("List is valid after add");
 
         ListOp.remove.d(safeList, rndSeed, size);
         ListOp.remove.d(toTest, rndSeed, size);
 
         this.listEquals(safeList, toTest);
-        Log.print("List is valid after remove");
+//        Log.print("List is valid after remove");
 
         ListOp.add.d(safeList, rndSeed, size);
         ListOp.add.d(toTest, rndSeed, size);
@@ -444,12 +469,12 @@ public class ListBench {
         ListOp.randomRemove.d(toTest, rndSeed, size / 2);
 
         this.listEquals(safeList, toTest);
-        Log.print("List is valid after random remove");
+//        Log.print("List is valid after random remove");
         ListOp.addAll.d(safeList, rndSeed, size);
         ListOp.addAll.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
 
-        Log.print("List is valid after add all");
+//        Log.print("List is valid after add all");
         safeList.clear();
         toTest.clear();
         toTest.add(0L);
@@ -459,15 +484,15 @@ public class ListBench {
         ListOp.randomAddAll.d(safeList, rndSeed, size);
         ListOp.randomAddAll.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
-        Log.print("List is valid after random add all");
+//        Log.print("List is valid after random add all");
 
         ListOp.randomAdd.d(safeList, rndSeed, size);
         ListOp.randomAdd.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
 
-        Log.print("List is valid after random add");
-
-        Log.print("Validation test passed");
+//        Log.print("List is valid after random add");
+//
+//        Log.print("Validation test passed");
 
 //        ListOp.randomRemove.d(safeList, rndSeed, size);
 //        ListOp.randomRemove.d(toTest, rndSeed, size);

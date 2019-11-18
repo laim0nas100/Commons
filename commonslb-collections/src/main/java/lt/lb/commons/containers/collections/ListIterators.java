@@ -72,11 +72,12 @@ public abstract class ListIterators {
         public SkippingListIterator(int i, Predicate<T> nullCheck, List<T> list) {
             this.list = list;
             this.notNull = nullCheck.negate();
-            if (i > 0) {
-                while (i > cursor) {
-                    next();
-                }
-            }
+            this.cursor = i-1;
+//            if (i > 0) {
+//                while (i > cursor) {
+//                    next();
+//                }
+//            }
         }
 
         public SkippingListIterator(int i, List<T> list) {
