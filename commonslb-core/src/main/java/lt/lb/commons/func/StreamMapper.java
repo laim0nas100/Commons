@@ -2,7 +2,6 @@ package lt.lb.commons.func;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -212,61 +211,6 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      */
     public StreamMapper<T, Z> skip(long n) {
         return then(s -> s.skip(n));
-    }
-
-    /**
-     * ADDITIONAL ACTIONS
-     */
-    /**
-     * Add elements in the end using {@code Stream.concat} operation
-     *
-     * @param toAdd
-     * @return
-     */
-    public StreamMapper<T, Z> concat(Z... toAdd) {
-        if (toAdd.length == 0) {
-            return this;
-        }
-        return then(s -> Stream.concat(s, Stream.of(toAdd)));
-    }
-
-    /**
-     * Add elements in the end using {@code Stream.concat} operation
-     *
-     * @param toAdd
-     * @return
-     */
-    public StreamMapper<T, Z> concat(Collection<? extends Z> toAdd) {
-        if (toAdd.isEmpty()) {
-            return this;
-        }
-        return then(s -> Stream.concat(s, toAdd.stream()));
-    }
-
-    /**
-     * Add elements in the start using {@code Stream.concat} operation
-     *
-     * @param toAdd
-     * @return
-     */
-    public StreamMapper<T, Z> concatFirst(Z... toAdd) {
-        if (toAdd.length == 0) {
-            return this;
-        }
-        return then(s -> Stream.concat(Stream.of(toAdd), s));
-    }
-
-    /**
-     * Add elements in the start using {@code Stream.concat} operation
-     *
-     * @param toAdd
-     * @return
-     */
-    public StreamMapper<T, Z> concatFirst(Collection<? extends Z> toAdd) {
-        if (toAdd.isEmpty()) {
-            return this;
-        }
-        return then(s -> Stream.concat(toAdd.stream(), s));
     }
 
     /**
@@ -485,7 +429,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
     }
 
     /**
-     * Produce ender with transform to {@code Iterator} action
+     * Produce ender with transform to {@code lt.lb.commons.iteraton.ReadOnlyIterator} action
      *
      * @param <A>
      * @return

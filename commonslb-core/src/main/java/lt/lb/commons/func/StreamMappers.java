@@ -1,15 +1,11 @@
 package lt.lb.commons.func;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Spliterators;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import lt.lb.commons.Ins;
 import lt.lb.commons.interfaces.Equator;
 
@@ -19,7 +15,7 @@ import lt.lb.commons.interfaces.Equator;
  * @author laim0nas100
  */
 public abstract class StreamMappers {
-    
+
     /**
      * Applies filter functor
      *
@@ -76,7 +72,7 @@ public abstract class StreamMappers {
      * @param cls
      * @return
      */
-    public static <T, Z, R> Function<StreamMapper<T, Z>, StreamMapper<T, R>> select(Class<Z> cls) {
+    public static <T, Z, R> Function<StreamMapper<T, Z>, StreamMapper<T, R>> select(Class<R> cls) {
         return s -> s.filter(cls::isInstance).map(m -> (R) m);
     }
 
@@ -122,6 +118,58 @@ public abstract class StreamMappers {
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> distinct(Equator<Z> eq) {
         Objects.requireNonNull(eq, "Equator is null");
         return st -> st.map(s -> new Equator.EqualityProxy<>(s, eq)).distinct().map(m -> m.getValue());
+    }
+
+    /**
+     * Applies concat functor with given iterable appending the stream
+     *
+     * @param <T>
+     * @param <Z>
+     * @param it iterable
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> concat(Iterable<Z> it) {
+        Objects.requireNonNull(it, "Iterable is null");
+        return st -> st.then(s -> Stream.concat(s, StreamMapper.fromIterable(it)));
+    }
+
+    /**
+     * Applies concat functor with given iterable prepending the stream
+     *
+     * @param <T>
+     * @param <Z>
+     * @param it iterable
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> concatFirst(Iterable<Z> it) {
+        Objects.requireNonNull(it, "Iterable is null");
+        return st -> st.then(s -> Stream.concat(StreamMapper.fromIterable(it), s));
+    }
+
+    /**
+     * Applies concat functor with given array appending the stream
+     *
+     * @param <T>
+     * @param <Z>
+     * @param it iterable
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> concat(Z... it) {
+        Objects.requireNonNull(it, "Iterable is null");
+        return st -> st.then(s -> Stream.concat(s, StreamMapper.fromArray(it)));
+    }
+
+    /**
+     * Applies concat functor with given array prepending the stream
+     *
+     * @param <T>
+     * @param <Z>
+     * @param it iterable
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> concatFirst(Z... it) {
+        Objects.requireNonNull(it, "Iterable is null");
+        return st -> st.then(s -> Stream.concat(StreamMapper.fromArray(it), s));
     }
 
     /**

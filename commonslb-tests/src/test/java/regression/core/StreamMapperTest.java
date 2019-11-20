@@ -1,20 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package regression.core;
 
-import com.google.common.base.Predicates;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.Log;
 import lt.lb.commons.func.StreamMapper;
 import lt.lb.commons.func.StreamMapperEnder;
-import lt.lb.commons.func.StreamMappers;
+import static lt.lb.commons.func.StreamMappers.concat;
 import static lt.lb.commons.func.StreamMappers.distinct;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
@@ -56,8 +48,8 @@ public class StreamMapperTest {
         StreamMapper<Integer, String> filter = StreamMapper.of(Integer.class)
                 .map(m -> m * 10)
                 .map(m->m)
-                .apply(distinct((a, b) -> a % 5 == b % 5)) // leave only one number divisable by 5
-                .concat(7)
+                .apply(distinct((a, b) -> a % 5 == b % 5)) // dsitinct by equality modulo 5
+                .apply(concat(7))
                 .map(m -> "" + m);
         StreamMapper<String, Double> sorted = StreamMapper.of(String.class)
                 .flatMap(m -> Stream.of(Integer.parseInt(m), Integer.parseInt(m) - 5))
@@ -76,11 +68,11 @@ public class StreamMapperTest {
     @Test
     public void test3(){
         StreamMapper<Integer, String> filter = StreamMapper.of(Integer.class)
-                .concat(1,2,3,4,5)
+                .apply(concat(1,2,3,4,5))
                 .map(m -> m * 10)
                 
-                .apply(distinct((a, b) -> a % 5 == b % 5)) // leave only one number divisable by 5
-                .concat(7)
+                .apply(distinct((a, b) -> a % 5 == b % 5)) // dsitinct by equality modulo 5
+                .apply(concat(7))
                 .map(m -> "" + m);
         StreamMapper<String, Double> sorted = StreamMapper.of(String.class)
                 .flatMap(m -> Stream.of(Integer.parseInt(m), Integer.parseInt(m) - 5))
