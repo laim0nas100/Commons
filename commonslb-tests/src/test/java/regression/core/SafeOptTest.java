@@ -19,6 +19,10 @@ public class SafeOptTest {
 
     @Test
     public void test() {
+        SafeOpt<Number> num = SafeOpt.of(10L).select(Long.class);
+        
+        assertThat(num.isPresent());
+        
         SafeOpt<Integer> map = SafeOpt.of(10).map(m -> m * 10);
         Integer expected = 10 * 10;
         assertThat(map.get()).isEqualTo(expected);

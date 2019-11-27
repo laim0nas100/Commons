@@ -3,6 +3,7 @@ package lt.lb.commons.jpa.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -21,7 +22,7 @@ import lt.lb.commons.jpa.decorators.OrderSort;
  * @author laim0nas100
  */
 public class ExtQueryImpl<X> implements ExtQuery<X> {
-
+    
     private final EntityManager em;
     private final CriteriaBuilder cb;
     private final CriteriaQuery<X> q;
@@ -29,19 +30,19 @@ public class ExtQueryImpl<X> implements ExtQuery<X> {
     private int pageSize = -1;
     private List<Predicate> staticPredicates = new ArrayList<>();
     private List<Order> order = new ArrayList<>();
-
+    
     public ExtQueryImpl(EntityManager manager, CriteriaBuilder builder, CriteriaQuery<X> q, Root<X> root, IQueryDecorator<X>... decorators) {
         em = manager;
         cb = builder;
         this.q = q;
-
+        
         List<OrderSort> cool = new ArrayList<>();
-
+        
         for (IQueryDecorator dec : decorators) {
             if (dec instanceof IPredicateMaker) {
                 Predicate make = ((IPredicateMaker) dec).make(cb, root);
                 this.staticPredicates.add(make);
-
+                
             } else if (dec instanceof IOrderMaker) {
                 IOrderMaker maker = (IOrderMaker) dec;
                 cool.add(maker.getOrderSort(root));
@@ -51,34 +52,23 @@ public class ExtQueryImpl<X> implements ExtQuery<X> {
         }
         Collections.sort(cool, (OrderSort o1, OrderSort o2) -> {
             return o1.getQueueOrder() - o2.getQueueOrder();
-
+            
         });
         for (OrderSort sort : cool) {
             order.add(sort.construct(em, q, cb));
         }
-
+        
     }
-
+    
     private Predicate[] getPred(List<Predicate>... lists) {
-        int size = 0;
-        for (List l : lists) {
-            size += l.size();
-        }
-        Predicate[] preds = new Predicate[size];
-        int i = 0;
-        for (List<Predicate> l : lists) {
-            for (Predicate p : l) {
-                preds[i++] = p;
-            }
-        }
-        return preds;
+        return Stream.of(lists).flatMap(l -> l.stream()).toArray(s -> new Predicate[s]);
     }
-
+    
     @Override
     public List<X> getResultList() {
         q.orderBy(this.order);
         TypedQuery<X> finalQuery = em.createQuery(q.where(this.getPred(staticPredicates)));
-
+        
         if (first > 0) {
             finalQuery = finalQuery.setFirstResult(first);
         }
@@ -86,25 +76,25 @@ public class ExtQueryImpl<X> implements ExtQuery<X> {
             finalQuery = finalQuery.setMaxResults(pageSize);
         }
         return finalQuery.getResultList();
-
+        
     }
-
+    
     @Override
     public X getSingleResult() {
         CriteriaQuery<X> where = q.where(this.getPred(staticPredicates));
         return em.createQuery(where).getSingleResult();
     }
-
+    
     @Override
     public ExtQuery<X> setMaxResults(int max) {
         this.pageSize = max;
         return this;
     }
-
+    
     @Override
     public ExtQuery<X> setFirstResult(int first) {
         this.first = first;
         return this;
     }
-
+    
 };
