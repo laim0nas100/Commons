@@ -1,5 +1,6 @@
 package lt.lb.commons.iteration;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
@@ -36,7 +37,7 @@ public interface ChildrenIteratorProvider<T> {
      * @param set
      * @return
      */
-    public default ReadOnlyIterator<T> BFSiterator(T root, Set<T> set) {
+    public default ReadOnlyIterator<T> BFSiterator(T root, Collection<T> set) {
         return TreeVisitorImpl.BFSIterator(this, root, Optional.of(set));
     }
 
@@ -58,7 +59,7 @@ public interface ChildrenIteratorProvider<T> {
      * @param set
      * @return
      */
-    public default ReadOnlyIterator<T> DFSiterator(T root, Set<T> set) {
+    public default ReadOnlyIterator<T> DFSiterator(T root,Collection<T> set) {
         return TreeVisitorImpl.DFSIterator(this, root, Optional.of(set));
     }
     
@@ -81,7 +82,7 @@ public interface ChildrenIteratorProvider<T> {
      * @param set
      * @return
      */
-    public default ReadOnlyIterator<T> PostOrderIterator(T root, Set<T> set) {
+    public default ReadOnlyIterator<T> PostOrderIterator(T root, Collection<T> set) {
         return TreeVisitorImpl.PostOrderIterator(this, root, Optional.of(set));
     }
     

@@ -1,9 +1,7 @@
 package lt.lb.commons.iteration;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
@@ -54,7 +52,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
      * @param set
      * @return
      */
-    public default Optional<T> DFS(T root, Set<T> set) {
+    public default Optional<T> DFS(T root, Collection<T> set) {
         return TreeVisitorImpl.DFS(this, root, Optional.ofNullable(set));
     }
 
