@@ -2,11 +2,13 @@ package lt.lb.commons.func;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.Ins;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.interfaces.Equator;
 
 /**
@@ -199,4 +201,29 @@ public abstract class StreamMappers {
         Objects.requireNonNull(target, "Collection is null");
         return filterPredicate(s -> !target.contains(s));
     }
+
+    /**
+     * Applies functor that adds a filter that all values in a stream must be
+     * present
+     *
+     * @param <T>
+     * @param <Z>
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Optional<Z>>, StreamMapper<T, Z>> filterPresentOptional() {
+        return st -> st.filter(Optional::isPresent).map(Optional::get);
+    }
+
+    /**
+     * Applies functor that adds a filter that all values in a stream must be
+     * present
+     *
+     * @param <T>
+     * @param <Z>
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, SafeOpt<Z>>, StreamMapper<T, Z>> filterPresentSafeOpt() {
+        return st -> st.filter(SafeOpt::isPresent).map(SafeOpt::get);
+    }
+
 }
