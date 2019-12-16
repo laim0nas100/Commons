@@ -11,6 +11,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.func.StreamMapper;
+import lt.lb.commons.func.StreamMapper.StreamDecorator;
+import lt.lb.commons.func.StreamMappers;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.Iter.IterMap;
@@ -421,7 +424,36 @@ public class F {
         F.iterate(m2, (i, pro) -> {
             common.get(i).setG2(pro.getValue());
         });
+        
         return common;
+    }
+    
+    public static <T> ArrayList<Pair<T>> disjunctionPairs(Collection<T> c1, Collection<T> c2, Equator<T> eq) {
+
+        LinkedHashSet<Equator.EqualityProxy<T>> m1 = new LinkedHashSet<>();
+        LinkedHashSet<Equator.EqualityProxy<T>> m2 = new LinkedHashSet<>();
+
+        for (T obj1 : c1) {
+            m1.add(new Equator.EqualityProxy<>(obj1, eq));
+        }
+        for (T obj1 : c2) {
+            m2.add(new Equator.EqualityProxy<>(obj1, eq));
+        }
+        m1.retainAll(m2);
+        m2.retainAll(m1);
+        ArrayList<Pair<T>> disjunct = new ArrayList<>();
+        
+        StreamMapper<T, T> map = new StreamDecorator<T>()
+                .map(m-> new Equator.EqualityProxy<>(m, eq))
+                .apply(StreamMappers.filterIn(m2))
+                .map(m->m.getValue());
+        
+        List<Pair<T>> opt1 = map.map(m-> new Pair<>(m,null)).collectToList().startingWithOpt(c1);
+        List<Pair<T>> opt2 = map.map(m-> new Pair<>(null,m)).collectToList().startingWithOpt(c1);
+                
+        disjunct.addAll(opt1);
+        disjunct.addAll(opt2);
+        return disjunct;
     }
 
     /**
