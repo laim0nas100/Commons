@@ -37,6 +37,7 @@ public class StreamMapperEnder<T, Z, R> extends StreamMapperAbstr<T, Z, R> {
      * @param stream
      * @return
      */
+    @Override
     public R startingWith(Stream<T> stream) {
         Objects.requireNonNull(stream, "Given stream was null");
         return ender.apply(mapper.decorate(stream));

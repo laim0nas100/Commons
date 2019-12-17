@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import lt.lb.commons.EmptyImmutableList;
 import lt.lb.commons.containers.ForwardingStream;
-import lt.lb.commons.iteration.impl.EmptyROI;
 import lt.lb.commons.iteration.impl.ListROI;
 
 /**
@@ -196,7 +195,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     }
 
     /**
-     * Appends close operation, even when not int try-with-resources block
+     * Appends close operation, even when not in try-with-resources block
      *
      * @param run
      * @return

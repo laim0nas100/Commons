@@ -105,7 +105,7 @@ public abstract class StreamMappers {
      * @return
      */
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> nullWrap(Supplier<? extends Z> nullCase) {
-        Objects.requireNonNull(nullCase, "nullCase is null"); //probably not what you want instead of a null is another null
+        Objects.requireNonNull(nullCase, "nullCase is null");
         return st -> st.map(s -> s == null ? nullCase.get() : s);
     }
 
