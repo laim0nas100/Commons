@@ -17,6 +17,16 @@ public interface StringProducer<T> extends Function<T, String> {
     public static <T> StringProducer<T> ofConstant(String s) {
         return ctx -> s;
     }
+    
+    /**
+     * StringProducer of functor. For one-liner decoration.
+     * @param <T>
+     * @param f
+     * @return 
+     */
+    public static <T> StringProducer<T> ofFormat(Function<T,String> f) {
+        return ctx -> f.apply(ctx);
+    }
 
     /**
      * Cumulative StringProducer of all provided producers
