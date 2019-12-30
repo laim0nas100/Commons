@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  *
@@ -154,7 +153,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         Set<Integer> set = new HashSet<>();
         for (int i = 0; i < data.length; i++) {
             T t = unwrap(data[i]);
-            if (t != OBJECT_NULL) {
+            if (t != null) {
                 set.add(i);
             }
         }
@@ -164,8 +163,8 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     @Override
     public Collection<T> values() {
         return Stream.of(data)
-                .map(m -> unwrap(m))
                 .filter(t -> t != OBJECT_NULL)
+                .map(m -> unwrap(m))
                 .collect(Collectors.toList());
 
     }
@@ -176,11 +175,10 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         PrefillArrayMap2 me = this;
 
         for (int i = 0; i < data.length; i++) {
-            T item = unwrap(data[i]);
-
-            if (item != OBJECT_NULL) {
-                set.add(MapEntries.byKey(me, i));
+            if(data[i] == OBJECT_NULL){
+                continue;
             }
+            set.add(MapEntries.byKey(me, i));
 
         }
         return set;
