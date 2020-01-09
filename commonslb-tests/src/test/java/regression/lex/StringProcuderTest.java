@@ -18,6 +18,10 @@ public class StringProcuderTest {
         Date now = new Date();
     }
     
+    public static class FullCtx extends SimpleCtx{
+        String ok;
+    }
+    
     @Test
     public void test() throws Exception {
         SimpleCtx context = new SimpleCtx();

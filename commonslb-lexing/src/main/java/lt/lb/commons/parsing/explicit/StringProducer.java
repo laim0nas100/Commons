@@ -34,10 +34,10 @@ public interface StringProducer<T> extends Function<T, String> {
      * @param prods
      * @return 
      */
-    public static <T> StringProducer<T> ofAll(StringProducer<T>... prods) {
+    public static <T> StringProducer<T> ofAll(StringProducer<? super T>... prods) {
         return ctx -> {
             StringBuilder sb = new StringBuilder();
-            for (StringProducer<T> prod : prods) {
+            for (StringProducer<? super T> prod : prods) {
                 sb.append(prod.apply(ctx));
             }
             return sb.toString();
@@ -50,10 +50,10 @@ public interface StringProducer<T> extends Function<T, String> {
      * @param prods
      * @return 
      */
-    public static <T> StringProducer<T> ofAll(Iterable<StringProducer<T>> prods) {
+    public static <T> StringProducer<T> ofAll(Iterable<StringProducer<? super T>> prods) {
         return ctx -> {
             StringBuilder sb = new StringBuilder();
-            for (StringProducer<T> prod : prods) {
+            for (StringProducer<? super T> prod : prods) {
                 sb.append(prod.apply(ctx));
             }
             return sb.toString();
