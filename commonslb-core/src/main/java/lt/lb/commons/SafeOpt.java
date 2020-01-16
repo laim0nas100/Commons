@@ -491,6 +491,7 @@ public class SafeOpt<T> implements Supplier<T> {
      *
      * @see SafeOpt#isPresent()
      */
+    @Override
     public T get() {
         if (isPresent()) {
             return val;
@@ -598,6 +599,15 @@ public class SafeOpt<T> implements Supplier<T> {
             }
         }
         return this;
+    }
+    
+    /**
+     * Shorthand for filter and isPresent operation
+     * @param predicate
+     * @return 
+     */
+    public boolean isPresentWhen(Predicate<? super T> predicate){
+        return this.filter(predicate).isPresent();
     }
 
     @Override
