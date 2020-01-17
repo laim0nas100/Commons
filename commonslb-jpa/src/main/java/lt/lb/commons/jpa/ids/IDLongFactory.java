@@ -7,6 +7,16 @@ package lt.lb.commons.jpa.ids;
 public class IDLongFactory implements IDFactory<Long> {
 
     @Override
+    public <T, P> IDLong<P> cast(ID<T, Long> id) {
+        return ofId(id.id);
+    }
+
+    @Override
+    public <T, P extends T, O extends T> IDLong<P> polyCast(ID<O, Long> id) {
+        return cast(id);
+    }
+
+    @Override
     public <T> IDLong<T> of(T object) {
         return new IDLong(IDFactory.super.of(object));
     }

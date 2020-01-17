@@ -20,7 +20,7 @@ public class ID<T, I> {
     public ID(ID<? extends T,? extends I> other){
         this(other.id);
     }
-
+    
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
