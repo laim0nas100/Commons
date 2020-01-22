@@ -219,7 +219,7 @@ public class SafeOpt<T> implements Supplier<T> {
     public SafeOpt<T> filter(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate, "Null predicate");
         if (!isPresent()) {
-            return SafeOpt.empty(this.threw);
+            return SafeOpt.empty(threw);
         } else {
             try {
                 return predicate.test(val) ? this : empty();
@@ -245,7 +245,7 @@ public class SafeOpt<T> implements Supplier<T> {
     public <U> SafeOpt<U> map(Function<? super T, ? extends U> mapper) {
         Objects.requireNonNull(mapper, "Null map function");
         if (!isPresent()) {
-            return SafeOpt.empty(this.threw);
+            return SafeOpt.empty(threw);
         } else {
             try {
                 return SafeOpt.ofNullable(mapper.apply(val));
@@ -315,7 +315,7 @@ public class SafeOpt<T> implements Supplier<T> {
     public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
         Objects.requireNonNull(mapper,"Mapping function was null");
         if (!isPresent()) {
-            return SafeOpt.empty(this.threw);
+            return SafeOpt.empty(threw);
         } else {
             try {
                 SafeOpt<U> apply = mapper.apply(val);
@@ -348,7 +348,7 @@ public class SafeOpt<T> implements Supplier<T> {
     public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
         Objects.requireNonNull(mapper,"Mapping function was null");
         if (!isPresent()) {
-            return SafeOpt.empty(this.threw);
+            return SafeOpt.empty(threw);
         } else {
             try {
                 return SafeOpt.ofOptional(mapper.apply(val));
@@ -439,12 +439,12 @@ public class SafeOpt<T> implements Supplier<T> {
         Objects.requireNonNull(mapper, "Null map function");
 
         if (!isPresent()) {
-            return SafeOpt.empty(this.threw);
+            return SafeOpt.empty(threw);
         } else if (!with.isPresent()) {
             return SafeOpt.empty(with.threw);
         } else {
             try {
-                return SafeOpt.ofNullable(mapper.apply(this.val, with.val));
+                return SafeOpt.ofNullable(mapper.apply(val, with.val));
             } catch (Throwable t) {
                 return SafeOpt.empty(NestedException.unwrap(t));
             }
@@ -607,7 +607,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @return 
      */
     public boolean isPresentWhen(Predicate<? super T> predicate){
-        return this.filter(predicate).isPresent();
+        return filter(predicate).isPresent();
     }
 
     @Override
@@ -626,7 +626,7 @@ public class SafeOpt<T> implements Supplier<T> {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.val);
+        return Objects.hashCode(val);
     }
 
     @Override

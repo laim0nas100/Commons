@@ -11,6 +11,7 @@ public interface ExtComparable<T> extends Comparable<T>, Supplier<T> {
 
     @Override
     public int compareTo(T o);
+
     /**
      * @param o1
      * @return o1 &lt me
@@ -52,6 +53,14 @@ public interface ExtComparable<T> extends Comparable<T>, Supplier<T> {
     }
 
     /**
+     * @param o1
+     * @return o1 &eq me
+     */
+    public default boolean exactly(T o1) {
+        return this.compareTo(o1) == 0;
+    }
+
+    /**
      *
      * @param o1
      * @return bigger value by this comparator and this value
@@ -68,8 +77,8 @@ public interface ExtComparable<T> extends Comparable<T>, Supplier<T> {
     public default T min(T o1) {
         return this.lessThanOrEq(o1) ? o1 : get();
     }
-    
-    public static <T> ExtComparable<T> fromSupplier(Comparator<T> cmp, Supplier<T> proxy){
+
+    public static <T> ExtComparable<T> fromSupplier(Comparator<T> cmp, Supplier<T> proxy) {
         return new ExtComparable<T>() {
             @Override
             public int compareTo(T o) {
@@ -83,8 +92,8 @@ public interface ExtComparable<T> extends Comparable<T>, Supplier<T> {
 
         };
     }
-    
-    public static <T> ExtComparable<T> from(Comparator<T> cmp, T val){
+
+    public static <T> ExtComparable<T> from(Comparator<T> cmp, T val) {
         return new ExtComparable<T>() {
             @Override
             public int compareTo(T o) {
@@ -98,6 +107,5 @@ public interface ExtComparable<T> extends Comparable<T>, Supplier<T> {
 
         };
     }
-    
-    
+
 }
