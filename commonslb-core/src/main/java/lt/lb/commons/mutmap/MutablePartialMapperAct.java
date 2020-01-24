@@ -1,4 +1,4 @@
-package lt.lb.commons.copy;
+package lt.lb.commons.mutmap;
 
 /**
  * Mutable mapper interface

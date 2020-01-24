@@ -1,17 +1,20 @@
-package lt.lb.commons.copy;
+package lt.lb.commons.mutmap;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lt.lb.commons.Ins;
 import lt.lb.commons.PosEq;
 import lt.lb.commons.parsing.StringOp;
 
 /**
  *
- * Mutable copy framework. Define how to map each object to other object.
- * Doesn't have to
+ * Mutable mapper framework. Define how to map each object to another object.
+ * Goes down the Object hierarchy applying different mappers and creating the
+ * final object. No reflection is used.
  *
  * @author laim0nas100
  */
@@ -83,32 +86,40 @@ public class MutablePartialMapper {
 
     }
 
-    private Map<MutableMapOrder, MutablePartialMapperAct> mapperMap = new HashMap<>();
+    private final Map<MutableMapOrder, MutablePartialMapperAct> mapperMap = new HashMap<>();
 
-    public void map(Object from, Object to, Predicate<String> namePredicate) {
+    public <From, To> MutableMapList<From, To> map(From from, To to, Predicate<String> namePredicate) {
 
         Class clsFrom = from.getClass();
         Class clsTo = to.getClass();
 
-        mapperMap.entrySet()
+        List<MutablePartialMapperAct> collect = mapperMap.entrySet()
                 .stream()
                 .filter(entry -> {
-                    return entry.getKey().applicable(clsFrom, clsTo) && namePredicate.test(entry.getKey().name);
+                    return namePredicate.test(entry.getKey().name) && entry.getKey().applicable(clsFrom, clsTo);
                 })
                 .sorted((e1, e2) -> {
-                    return Integer.compare(e1.getKey().order, e2.getKey().order);
+                    MutableMapOrder k1 = e1.getKey();
+                    MutableMapOrder k2 = e2.getKey();
+                    int cmp = Ins.typeComparator.compare(k1.from, k2.from);
+                    if (cmp != 0) {
+                        return Integer.compare(k1.order, k2.order);
+                    } else {
+                        return cmp;
+                    }
                 })
                 .map(m -> m.getValue())
-                .forEach(mapper -> mapper.doMapping(from, to));
+                .collect(Collectors.toList());
+        return new MutableMapList<>(from, to, collect);
 
     }
 
-    public void map(Object from, Object to, String nameToMatch) {
-        map(from, to, n -> StringOp.equals(n, nameToMatch));
+    public <From, To> MutableMapList<From, To> map(From from, To to, String nameToMatch) {
+        return map(from, to, n -> StringOp.equals(n, nameToMatch));
     }
 
-    public void map(Object from, Object to) {
-        map(from, to, n -> true);
+    public <From, To> MutableMapList<From, To> map(From from, To to) {
+        return map(from, to, n -> true);
     }
 
     public <From, To> void addMapper(Class<From> from, Class<To> to, int order, String name, MutablePartialMapperAct<From, To> mapper) {
@@ -132,8 +143,13 @@ public class MutablePartialMapper {
                 .stream()
                 .filter(m -> m.match(from, to, name))
                 .mapToInt(m -> m.order + 1)
-                .max().orElse(0);
+                .max()
+                .orElse(0);
         addMapper(from, to, max, name, mapper);
     }
+    public <From, To> void addMapper(Class<From> from, Class<To> to, MutablePartialMapperAct<From, To> mapper) {
+        addMapper(from, to, "", mapper);
+    }
+    
 
 }

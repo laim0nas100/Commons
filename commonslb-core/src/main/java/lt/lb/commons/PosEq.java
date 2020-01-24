@@ -10,7 +10,7 @@ import java.util.stream.Stream;
  */
 public class PosEq {
 
-    private Object[] objs;
+    public final Object[] objs;
 
     private PosEq(Object[] objs) {
         this.objs = objs;
@@ -43,10 +43,20 @@ public class PosEq {
         return true;
     }
 
+    /**
+     * Every object is equal to this object at respected position in the array
+     * @param objs
+     * @return 
+     */
     public boolean eq(Object... objs) {
         return this.equals(PosEq.of(objs));
     }
 
+    /**
+     * Some object is not equal to this object at respected position in the array
+     * @param objs
+     * @return 
+     */
     public boolean neq(Object... objs) {
         return !eq(objs);
     }
@@ -102,6 +112,11 @@ public class PosEq {
         return Stream.of(objs).allMatch(ob -> ob == null);
     }
 
+    /**
+     * Construct array-based parameter comparator with inner elements.
+     * @param objs
+     * @return 
+     */
     public static PosEq of(Object... objs) {
         return new PosEq(objs);
     }
