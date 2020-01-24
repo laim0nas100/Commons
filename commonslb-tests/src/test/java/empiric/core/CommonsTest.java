@@ -28,6 +28,8 @@ import lt.lb.commons.Predicates;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.Lambda;
+import lt.lb.commons.func.StreamMapper.StreamDecorator;
+import lt.lb.commons.func.StreamMappers;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
@@ -107,8 +109,11 @@ public class CommonsTest {
         List<Integer> filterParallel = F.filterParallel(collection, n -> n % 2 == 0, new FastExecutor(4));
         Log.print("Removed after filter", filterParallel);
         Log.print("Left after filter", collection);
-        Predicate<Integer> pred = Predicates.filterDistinct(Equator.primitiveHashEquator());
-        List<Integer> filterDistinct = collection.stream().parallel().filter(pred).collect(Collectors.toList());
+        List<Integer> filterDistinct = StreamDecorator.of(Integer.class)
+                .parallel()
+                .apply(StreamMappers.distinct(Equator.primitiveHashEquator()))
+                .collectToList()
+                .startingWithOpt(collection);
 
         Log.print("Filtered distinct", filterDistinct);
         F.checkedRun(() -> {

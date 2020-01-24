@@ -9,18 +9,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
-import lt.lb.commons.Predicates;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.datafill.NumberFill;
+import lt.lb.commons.func.StreamMapper.StreamDecorator;
+import lt.lb.commons.func.StreamMappers;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.rng.RandomDistribution;
-import lt.lb.commons.threads.FastExecutor;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
@@ -122,17 +123,17 @@ public class FTest {
         for (Integer toFind : array) {
             toFindNoBackwards(toFind, array);
         }
-        Integer[] distinctArray = Stream.of(array)
-                .filter(Predicates.filterDistinct(Equator.primitiveEquator()))
-                .toArray(s -> new Integer[s]);
+        Integer[] distinctArray = StreamDecorator.of(Integer.class)
+                .apply(StreamMappers.distinct(Equator.primitiveEquator()))
+                .toArray(s -> new Integer[s])
+                .startingWith(array);
         for (Integer toFind : distinctArray) {
             toFindNoBackwards(toFind, distinctArray);
             toFind(toFind, distinctArray);
         }
     }
 
-    @Test
-    public void testFilter() {
+    public void testFilter(Predicate<Integer> filter, Predicate<Integer> filter2) {
         RandomDistribution rng = RandomDistribution.uniform(new Random());
 
         Integer[] array = NumberFill.fillArray(133, rng.getIntegerSupplier(10), Integer.class);
@@ -144,12 +145,9 @@ public class FTest {
         List<Integer> list = Arrays.asList(array);
 
         for (int i = 0; i < 10; i++) {
-            List<Integer> dis1 = list.stream().parallel().sorted(ExtComparator.ofComparable(true)).filter(Predicates.filterDistinct(Equator.primitiveHashEquator())).collect(Collectors.toList());
-            List<Integer> dis2 = list.stream().parallel().sorted(ExtComparator.ofComparable(true)).distinct().collect(Collectors.toList());
-            List<Integer> collect = list.stream().sorted(ExtComparator.ofComparable(true)).collect(Collectors.toList());
-            F.filterParallel(collect, Predicates.filterDistinct(Equator.primitiveHashEquator()), new FastExecutor(4));
-            assertThat(collect)
-                    .isEqualTo(dis1)
+            List<Integer> dis1 = list.stream().parallel().sorted(ExtComparator.ofComparable(true)).filter(filter).collect(Collectors.toList());
+            List<Integer> dis2 = list.stream().parallel().sorted(ExtComparator.ofComparable(true)).filter(filter2).collect(Collectors.toList());
+            assertThat(dis1)
                     .isEqualTo(dis2);
         }
     }

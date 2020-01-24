@@ -3,9 +3,11 @@ package lt.lb.commons.threads.sync;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 import lt.lb.commons.F;
-import lt.lb.commons.Predicates;
+import lt.lb.commons.func.StreamMapper;
+import lt.lb.commons.func.StreamMapper.StreamDecorator;
+import lt.lb.commons.func.StreamMapperEnder;
+import lt.lb.commons.func.StreamMappers;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.misc.Range;
 
@@ -49,12 +51,16 @@ public class ThreadBoundedState {
     public void setAlias(String alias, int stateIndex) {
 
         //unique check
-        int count = (int) Stream.of(states).filter(Predicates.filterDistinct(Equator.valueEquator(st -> st.name))).count();
+        int count = stateInfoMapper.startingWith(states).intValue();
         if (alias == null || count != states.length) {
             throw new IllegalArgumentException("Illegal name for state" + alias);
         }
         states[stateIndex].name = alias;
     }
+    private static final StreamMapperEnder<StateInfo, StateInfo, Long> stateInfoMapper = 
+            new StreamDecorator<StateInfo>()
+            .apply(StreamMappers.distinct(Equator.valueEquator(st -> st.name)))
+            .count();
 
     /**
      * set thread bound of a state
@@ -168,7 +174,7 @@ public class ThreadBoundedState {
     public boolean transition(int from, int to) {
         Range<Integer> range = Range.of(0, states.length);
         if ((!range.inRangeIncExc(from) || !range.inRangeIncExc(to)) || from == to) {
-            throw new IllegalArgumentException("Expected different arguments in range " + range.toString()+" got "+from+" "+to);
+            throw new IllegalArgumentException("Expected different arguments in range " + range.toString() + " got " + from + " " + to);
         }
         StateInfo stateFrom = states[from];
         StateInfo stateTo = states[to];
