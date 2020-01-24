@@ -39,7 +39,7 @@ public class CommentParser {
      */
     public static ReadOnlyIterator<String> parseAllComments(ReadOnlyIterator<String> lines, String lineComment, String commentStart, String commentEnd) {
         final boolean scanLine = !nullOrEmpty(lineComment);
-        final boolean scanComment = !(nullOrEmpty(commentStart) || nullOrEmpty(commentEnd));
+        final boolean scanComment = !nullOrEmpty(commentStart) && !nullOrEmpty(commentEnd);
         final int lenS = scanComment ? commentStart.length() : 0;
         final int lenE = scanComment ? commentEnd.length() : 0;
 

@@ -115,6 +115,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapper<T, Z> onClose(Runnable onClose) {
+        Objects.requireNonNull(onClose);
         return then(s -> s.onClose(onClose));
     }
 
@@ -125,6 +126,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapper<T, Z> peek(Consumer<? super Z> action) {
+        Objects.requireNonNull(action);
         return then(s -> s.peek(action));
     }
 
@@ -135,6 +137,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapper<T, Z> filter(Predicate<? super Z> predicate) {
+        Objects.requireNonNull(predicate);
         return then(s -> s.filter(predicate));
     }
 
@@ -145,6 +148,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapper<T, Z> sorted(Comparator<? super Z> comparator) {
+        Objects.requireNonNull(comparator);
         return then(s -> s.sorted(comparator));
     }
 
@@ -224,7 +228,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public <R> StreamMapper<T, R> map(Function<? super Z, ? extends R> mapper) {
-
+        Objects.requireNonNull(mapper);
         StreamMapper streamDecorator = new StreamMapper();
         streamDecorator.mapper = mapper;
         streamDecorator.parent = this;
@@ -240,6 +244,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      */
     public <R> StreamMapper<T, R> flatMap(Function<? super Z, ? extends Stream<? extends R>> mapper) {
 
+        Objects.requireNonNull(mapper);
         StreamMapper streamDecorator = new StreamMapper();
         streamDecorator.flatmapper = mapper;
         streamDecorator.parent = this;
@@ -248,25 +253,41 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
     }
 
     /**
-     * Flatmap decorator from iterable converting null to empty stream
+     * Flatmap decorator from iterable optionally converting null to empty
+     * stream
      *
      * @param <R>
      * @param mapper
      * @return
      */
     public <R> StreamMapper<T, R> flatMapIterable(Function<? super Z, ? extends Iterable<? extends R>> mapper) {
+        Objects.requireNonNull(mapper);
         return flatMap(s -> fromIterable(mapper.apply(s)));
     }
 
     /**
-     * Flatmap decorator from iterator converting null to empty stream
+     * Flatmap decorator from iterator optionally converting null to empty
+     * stream
      *
      * @param <R>
      * @param mapper
      * @return
      */
     public <R> StreamMapper<T, R> flatMapIterator(Function<? super Z, ? extends Iterator<? extends R>> mapper) {
+        Objects.requireNonNull(mapper);
         return flatMap(s -> fromIterator(mapper.apply(s)));
+    }
+
+    /**
+     * Flatmap decorator from array optionally converting null to empty stream
+     *
+     * @param <R>
+     * @param mapper
+     * @return
+     */
+    public <R> StreamMapper<T, R> flatMapArray(Function<? super Z, ? extends R[]> mapper) {
+        Objects.requireNonNull(mapper);
+        return flatMap(s -> fromArray(mapper.apply(s)));
     }
 
     /**
@@ -279,6 +300,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Void> forEach(Consumer<? super Z> action) {
+        Objects.requireNonNull(action);
         return endByVoid(s -> s.forEach(action));
     }
 
@@ -289,6 +311,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Void> forEach(BiConsumer<Integer, ? super Z> action) {
+        Objects.requireNonNull(action);
         return endByVoid(s -> {
             AtomicInteger i = new AtomicInteger(0);
             s.forEach(a -> {
@@ -305,6 +328,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Void> forEachOrdered(Consumer<? super Z> action) {
+        Objects.requireNonNull(action);
         return endByVoid(s -> s.forEachOrdered(action));
     }
 
@@ -315,6 +339,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Void> forEachOrdered(BiConsumer<Integer, ? super Z> action) {
+        Objects.requireNonNull(action);
         return endByVoid(s -> {
             AtomicInteger i = new AtomicInteger(0);
             s.forEachOrdered(a -> {
@@ -342,6 +367,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public <A> StreamMapperEnder<T, Z, A[]> toArray(IntFunction<A[]> generator) {
+        Objects.requireNonNull(generator);
         return endBy(s -> s.toArray(generator));
     }
 
@@ -353,6 +379,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Z> reduce(Z identity, BinaryOperator<Z> accumulator) {
+        Objects.requireNonNull(accumulator);
         return endBy(s -> s.reduce(identity, accumulator));
     }
 
@@ -363,6 +390,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Optional<Z>> reduce(BinaryOperator<Z> accumulator) {
+        Objects.requireNonNull(accumulator);
         return endBy(s -> s.reduce(accumulator));
     }
 
@@ -378,6 +406,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
     public <U> StreamMapperEnder<T, Z, U> reduce(U identity,
             BiFunction<U, ? super Z, U> accumulator,
             BinaryOperator<U> combiner) {
+        Objects.requireNonNull(accumulator);
         return endBy(s -> s.reduce(identity, accumulator, combiner));
     }
 
@@ -393,6 +422,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
     public <R> StreamMapperEnder<T, Z, R> collect(Supplier<R> supplier,
             BiConsumer<R, ? super Z> accumulator,
             BiConsumer<R, R> combiner) {
+        Objects.requireNonNull(accumulator);
         return endBy(s -> s.collect(supplier, accumulator, combiner));
     }
 
@@ -405,6 +435,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public <R, A> StreamMapperEnder<T, Z, R> collect(Collector<? super Z, A, R> collector) {
+        Objects.requireNonNull(collector);
         return endBy(s -> s.collect(collector));
     }
 
@@ -429,7 +460,8 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
     }
 
     /**
-     * Produce ender with transform to {@code lt.lb.commons.iteraton.ReadOnlyIterator} action
+     * Produce ender with transform to
+     * {@code lt.lb.commons.iteraton.ReadOnlyIterator} action
      *
      * @param <A>
      * @return
@@ -455,6 +487,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Optional<Z>> min(Comparator<? super Z> comparator) {
+        Objects.requireNonNull(comparator);
         return endBy(s -> s.min(comparator));
     }
 
@@ -465,6 +498,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Optional<Z>> max(Comparator<? super Z> comparator) {
+        Objects.requireNonNull(comparator);
         return endBy(s -> s.max(comparator));
     }
 
@@ -484,6 +518,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Boolean> anyMatch(Predicate<? super Z> predicate) {
+        Objects.requireNonNull(predicate);
         return endBy(s -> s.anyMatch(predicate));
     }
 
@@ -494,6 +529,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Boolean> allMatch(Predicate<? super Z> predicate) {
+        Objects.requireNonNull(predicate);
         return endBy(s -> s.allMatch(predicate));
     }
 
@@ -504,6 +540,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapperEnder<T, Z, Boolean> noneMatch(Predicate<? super Z> predicate) {
+        Objects.requireNonNull(predicate);
         return endBy(s -> s.noneMatch(predicate));
     }
 
@@ -533,6 +570,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public <R> StreamMapper<T, R> thenCombine(StreamMapper<Z, R> sm) {
+        Objects.requireNonNull(sm);
 
         StreamMapper streamDecorator = new StreamMapper();
         streamDecorator.after = sm;
@@ -548,6 +586,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public StreamMapper<T, Z> then(Function<Stream<Z>, Stream<Z>> fun) {
+        Objects.requireNonNull(fun);
 
         StreamMapper streamDecorator = new StreamMapper(this.decs.size() + 1);
         streamDecorator.decs.addAll(this.decs);
@@ -594,6 +633,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public <R> StreamMapper<T, Z> filterWhen(Function<? super Z, ? extends R> mapper, Predicate<? super R> predicate) {
+        Objects.requireNonNull(predicate);
         return filter(s -> predicate.test(mapper.apply(s)));
     }
 
@@ -605,6 +645,7 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @return
      */
     public <R> StreamMapperEnder<T, Z, R> endBy(Function<Stream<Z>, R> ender) {
+        Objects.requireNonNull(ender);
         return new StreamMapperEnder<>(this, ender);
     }
 
@@ -614,12 +655,9 @@ public class StreamMapper<T, Z> extends StreamMapperAbstr<T, Z, Stream<Z>> {
      * @param ender
      * @return
      */
-    public StreamMapperEnder<T, Z, Void> endByVoid(Consumer<Stream<Z>> ender) {
-
-        return new StreamMapperEnder<>(this, s -> {
-            ender.accept(s);
-            return null;
-        });
+    public StreamMapperEnderVoid<T, Z> endByVoid(Consumer<Stream<Z>> ender) {
+        Objects.requireNonNull(ender);
+        return new StreamMapperEnderVoid<>(this, ender);
     }
 
     /**

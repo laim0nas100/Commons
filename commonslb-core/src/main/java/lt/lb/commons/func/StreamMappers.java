@@ -54,7 +54,7 @@ public abstract class StreamMappers {
     }
 
     /**
-     * Adds filtering by given predicate
+     * Adds filtering by given predicate 
      *
      * @param <T>
      * @param <Z>
@@ -62,7 +62,22 @@ public abstract class StreamMappers {
      * @return
      */
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterPredicate(Predicate<? super Z> predicate) {
+        Objects.requireNonNull(predicate);
         return s -> s.filter(predicate);
+    }
+    
+    /**
+     * Adds filtering by given predicate which was negated
+     *
+     * @param <T>
+     * @param <Z>
+     * @param predicate
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterNotPredicate(Predicate<? super Z> predicate) {
+        Objects.requireNonNull(predicate);
+        Predicate<? super Z> negate = predicate.negate();
+        return s -> s.filter(negate);
     }
 
     /**

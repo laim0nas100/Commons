@@ -7,7 +7,8 @@ import java.util.stream.Stream;
  *
  * @author laim0nas100
  */
-public abstract class StreamMapperAbstr<T,Z,R> {
+public abstract class StreamMapperAbstr<T, Z, R> {
+
     /**
      * Decorate and map a stream with decorators within this object
      *
@@ -15,7 +16,7 @@ public abstract class StreamMapperAbstr<T,Z,R> {
      * @return
      */
     public abstract R startingWith(Stream<T> stream);
-    
+
     /**
      * Decorates stream returning decorated empty stream on null
      *
@@ -45,12 +46,22 @@ public abstract class StreamMapperAbstr<T,Z,R> {
     public R startingWithOpt(Iterator<T> iterator) {
         return startingWith(StreamMapper.fromIterator(iterator));
     }
-    
+
+    public R startingWithOpt(T[] array) {
+        return startingWith(StreamMapper.fromArray(array));
+    }
+
     /**
-     * Decorates empty stream. Relevant if mapper has concat operations.
-     * @return 
+     * Decorates empty stream.Relevant if mapper has concat operations.
+     *
+     * @param values
+     * @return
      */
-    public R startingWithOpt(){
-        return startingWith(null);
+    public R startingWith(T... values) {
+        if (values.length == 0) {
+            return startingWith(Stream.empty());
+        } else {
+            return startingWith(StreamMapper.fromArray(values));
+        }
     }
 }
