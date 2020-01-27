@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 /**
  *
  * @author laim0nas100
+ * @param <Type>
  */
 public class Pair<Type> extends Tuple<Type, Type> {
 

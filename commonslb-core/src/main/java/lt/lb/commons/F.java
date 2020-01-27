@@ -10,6 +10,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.containers.tuples.Pair;
+import lt.lb.commons.containers.tuples.PairLeft;
+import lt.lb.commons.containers.tuples.PairRight;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.func.StreamMapper;
 import lt.lb.commons.func.StreamMapper.StreamDecorator;
@@ -416,7 +418,7 @@ public class F {
             m2.add(new Equator.EqualityProxy<>(obj1, eq));
         }
         m1.retainAll(m2);
-        m2.retainAll(m1);
+        m2.retainAll(m1);//should be the same (based on equator) element set, but in optionally different order
         ArrayList<Pair<T>> common = new ArrayList<>(m1.size());
         for (Equator.EqualityProxy<T> pro : m1) {
             common.add(new Pair<>(pro.getValue(), null));
@@ -424,36 +426,44 @@ public class F {
         F.iterate(m2, (i, pro) -> {
             common.get(i).setG2(pro.getValue());
         });
-        
+
         return common;
     }
-    
-    public static <T> ArrayList<Pair<T>> disjunctionPairs(Collection<T> c1, Collection<T> c2, Equator<T> eq) {
+
+    /**
+     * Return disjoint sets with their respective position as origin. For example [1,3,5,7,8,9]
+     * [1,2,5,6,7,8] will return [3,9] and [2,6]
+     *
+     * @param <T>
+     * @param left
+     * @param right
+     * @param eq
+     * @return
+     */
+    public static <T> ArrayList<Pair<T>> disjointPairs(Collection<T> left, Collection<T> right, Equator<T> eq) {
 
         LinkedHashSet<Equator.EqualityProxy<T>> m1 = new LinkedHashSet<>();
         LinkedHashSet<Equator.EqualityProxy<T>> m2 = new LinkedHashSet<>();
 
-        for (T obj1 : c1) {
+        for (T obj1 : left) {
             m1.add(new Equator.EqualityProxy<>(obj1, eq));
         }
-        for (T obj1 : c2) {
+        for (T obj1 : right) {
             m2.add(new Equator.EqualityProxy<>(obj1, eq));
         }
         m1.retainAll(m2);
-        m2.retainAll(m1);
-        ArrayList<Pair<T>> disjunct = new ArrayList<>();
-        
+        m2.retainAll(m1); // get union
+        ArrayList<Pair<T>> disjoined = new ArrayList<>();
+
         StreamMapper<T, T> map = new StreamDecorator<T>()
-                .map(m-> new Equator.EqualityProxy<>(m, eq))
-                .apply(StreamMappers.filterIn(m2))
-                .map(m->m.getValue());
-        
-        List<Pair<T>> opt1 = map.map(m-> new Pair<>(m,null)).collectToList().startingWithOpt(c1);
-        List<Pair<T>> opt2 = map.map(m-> new Pair<>(null,m)).collectToList().startingWithOpt(c1);
-                
-        disjunct.addAll(opt1);
-        disjunct.addAll(opt2);
-        return disjunct;
+                .map(m -> new Equator.EqualityProxy<>(m, eq))
+                .apply(StreamMappers.filterNotIn(m2))
+                .map(m -> m.getValue());
+
+        map.map(m -> new PairLeft<>(m)).forEach(item -> disjoined.add(item)).startingWithOpt(left);
+        map.map(m -> new PairRight<>(m)).forEach(item -> disjoined.add(item)).startingWithOpt(right);
+
+        return disjoined;
     }
 
     /**
