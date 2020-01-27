@@ -5,6 +5,7 @@
  */
 package regression.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -14,15 +15,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
+import lt.lb.commons.Log;
+import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.datafill.NumberFill;
+import lt.lb.commons.func.StreamMapper;
 import lt.lb.commons.func.StreamMapper.StreamDecorator;
+import lt.lb.commons.func.StreamMapperEnder;
 import lt.lb.commons.func.StreamMappers;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.util.Lists;
 import org.junit.Test;
 
 /**
@@ -131,6 +137,59 @@ public class FTest {
             toFindNoBackwards(toFind, distinctArray);
             toFind(toFind, distinctArray);
         }
+    }
+
+    public static void main(String[] args) {
+        List<Integer> list1 = Lists.newArrayList(1, 3, 5, 7, 8, 9);
+        List<Integer> list2 = Lists.newArrayList(1, 2, 5, 6, 9, 7, 8, 10);
+
+        Equator<Integer> mod3 = (a, b) -> a % 3 == b % 3;
+
+        Log.println("Disjunction");
+        Log.printLines(F.disjointPairs(list1, list2, Equator.primitiveHashEquator()));
+
+        Log.println("Intersection");
+        Log.printLines(F.intersectionPairs(list1, list2, Equator.primitiveHashEquator()));
+
+        Log.println("Disjunction");
+        Log.printLines(F.disjointPairs(list1, list2, mod3));
+
+        Log.println("Intersection");
+        ArrayList<Pair<Integer>> intersectionPairs = F.intersectionPairs(list1, list2, mod3);
+        Log.printLines(intersectionPairs);
+
+        Log.close();
+    }
+
+    @Test
+    public void disjuctionTest() {
+        List<Integer> list1 = Lists.newArrayList(1, 3, 5, 7, 8, 9);
+        List<Integer> list2 = Lists.newArrayList(1, 2, 5, 6, 9, 7, 8, 10);
+
+        Equator<Integer> mod3 = (a, b) -> a % 3 == b % 3;
+
+        StreamMapperEnder<Pair<Integer>, Integer, List<Integer>> left = new StreamDecorator<Pair<Integer>>().filter(m -> m.g1 != null).map(m -> m.g1).collectToList();
+        StreamMapperEnder<Pair<Integer>, Integer, List<Integer>> right = new StreamDecorator<Pair<Integer>>().filter(m -> m.g2 != null).map(m -> m.g2).collectToList();
+
+        ArrayList<Pair<Integer>> disjointPairs1 = F.disjointPairs(list1, list2, Equator.primitiveHashEquator());
+
+        assertThat(Lists.newArrayList(3)).containsOnlyElementsOf(left.startingWithOpt(disjointPairs1));
+        assertThat(Lists.newArrayList(2, 6, 10)).containsOnlyElementsOf(right.startingWithOpt(disjointPairs1));
+
+        ArrayList<Pair<Integer>> intersectionPairs1 = F.intersectionPairs(list1, list2, Equator.primitiveHashEquator());
+
+        assertThat(Lists.newArrayList(1, 5, 7, 8, 9)).containsExactlyElementsOf(left.startingWithOpt(intersectionPairs1));
+        assertThat(Lists.newArrayList(1, 5, 9, 7, 8)).containsExactlyElementsOf(right.startingWithOpt(intersectionPairs1));
+
+        ArrayList<Pair<Integer>> disjointPairs2 = F.disjointPairs(list1, list2, mod3);
+
+        assertThat(disjointPairs2).isEmpty();
+
+        ArrayList<Pair<Integer>> intersectionPairs2 = F.intersectionPairs(list1, list2, mod3);
+
+        assertThat(Lists.newArrayList(1, 3, 5)).containsExactlyElementsOf(left.startingWithOpt(intersectionPairs2));
+        assertThat(Lists.newArrayList(1, 2, 6)).containsExactlyElementsOf(right.startingWithOpt(intersectionPairs2));
+
     }
 
     public void testFilter(Predicate<Integer> filter, Predicate<Integer> filter2) {
