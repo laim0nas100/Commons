@@ -11,7 +11,6 @@ import java.util.Objects;
 import java.util.RandomAccess;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.collections.ListIterators.SkippingListIterator;
 import lt.lb.commons.containers.values.Value;
 
 /**

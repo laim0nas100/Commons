@@ -195,6 +195,9 @@ public class ReflectionUtils {
     }
 
     private static String format(Object ob) {
+        if(ob == null){
+            return "null";
+        }
         if(ob instanceof Long){
             return ob+"L";
         }
@@ -316,5 +319,5 @@ public class ReflectionUtils {
         return pairsToString(fields, current);
 
     }
-
+    
 }

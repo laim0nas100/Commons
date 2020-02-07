@@ -16,7 +16,7 @@ public class Pair<Type> extends Tuple<Type, Type> {
     public Pair() {
 
     }
-
+    
     public Type getRandomPreferNotNull(Supplier<Boolean> rnd) {
         if (full()) {
             return rnd.get() ? g1 : g2;

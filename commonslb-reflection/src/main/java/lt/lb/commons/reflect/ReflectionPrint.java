@@ -1,16 +1,21 @@
 package lt.lb.commons.reflect;
 
+import java.lang.reflect.Field;
 import lt.lb.commons.reflect.nodes.ReflectNode;
 import lt.lb.commons.reflect.nodes.FinalReflectNode;
 import lt.lb.commons.reflect.nodes.RepeatedReflectNode;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.interfaces.StringBuilderActions;
 import lt.lb.commons.F;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -66,13 +71,13 @@ public class ReflectionPrint {
     }
 
     public String dump(Object ob) {
-        
+
         return keepPrinting(fac.newReflectNode(ob));
     }
 
     private String keepPrinting(ReflectNode node) {
         LineStringBuilder sb = new LineStringBuilder();
-        StringBuilderActions.ILineAppender ap = new StringBuilderActions.ILineAppender(){
+        StringBuilderActions.ILineAppender ap = new StringBuilderActions.ILineAppender() {
             @Override
             public ILineAppender appendLine(Object... objs) {
                 sb.appendLine(objs);
@@ -80,7 +85,7 @@ public class ReflectionPrint {
                 return this;
             }
         };
-        
+
         ap.appendLine("<root>");
         keepPrinting(node, "", ap, new ReferenceCounter<>());
         ap.appendLine("</root>");
@@ -157,5 +162,38 @@ public class ReflectionPrint {
             sb.appendLine(indent + node.getName() + " </c>");
         }
     }
+
+    public String allFieldsToString(Object obj) throws IllegalArgumentException, IllegalAccessException {
+        if (obj == null) {
+            return "null";
+        }
+        LineStringBuilder sb = new LineStringBuilder();
+
+        Class cls = obj.getClass();
+        LinkedList<Field> fieldsOf = Refl.getFieldsOf(cls, f -> true);
+        sb.append(cls.getSimpleName()).append("{");
+        for (Field field : fieldsOf) {
+            try {
+                sb.append(field.getName()).append("=").append(", ");
+                sb.append(Refl.fieldAccessableGet(field, obj));
+            } catch (Throwable ex) {
+                if (ex instanceof IllegalAccessException) {
+                    throw (IllegalAccessException) ex;
+                }
+                if (ex instanceof IllegalArgumentException) {
+                    throw (IllegalArgumentException) ex;
+                }
+                throw NestedException.of(ex);
+
+            }
+        }
+
+        if (!fieldsOf.isEmpty()) {
+            sb.removeFromEnd(2);
+        }
+        return sb.append("}").toString();
+
+    }
+
 
 }

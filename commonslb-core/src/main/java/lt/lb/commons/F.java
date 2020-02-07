@@ -31,6 +31,16 @@ import lt.lb.commons.func.unchecked.UnsafeSupplier;
  * @author laim0nas100
  */
 public class F {
+    
+    /**
+     * De facto empty object to be used instead of null, so that null becomes available as a value.
+     */
+    public static final Object EMPTY_OBJECT = new Object(){
+        @Override
+        public String toString() {
+            return "Empty object";
+        }
+    };
 
     /**
      * Convenience wrapped null check instead of ? operator avoid duplication of

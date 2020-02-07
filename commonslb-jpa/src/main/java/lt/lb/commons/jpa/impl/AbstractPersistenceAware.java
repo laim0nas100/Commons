@@ -56,7 +56,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
         Root<T> from = query.from(cls);
         CriteriaQuery<T> select = query.select(from);
         TypedQuery<T> createQuery = getEntityManager().createQuery(select);
-        return createQuery.getResultList().stream();
+        return createQuery.getResultStream();
     }
 
     @Override

@@ -15,17 +15,15 @@ import lt.lb.commons.F;
  */
 class PrefillArrayMap2<T> implements Map<Integer, T> {
 
-    private final Object OBJECT_NULL = new Object();
-
     private int size = 0;
     private int prefSize = 10;
 
-    private Object[] data = ArrayOp.replicate(10, OBJECT_NULL);
+    private Object[] data = ArrayOp.replicate(10, F.EMPTY_OBJECT);
 
     public PrefillArrayMap2(int preferedSize) {
         this.prefSize = preferedSize;
         data = new Object[prefSize];
-        Arrays.fill(data, OBJECT_NULL);
+        Arrays.fill(data, F.EMPTY_OBJECT);
     }
 
     public PrefillArrayMap2() {
@@ -46,7 +44,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     }
 
     private T unwrap(Object ob) {
-        if (ob == OBJECT_NULL) {
+        if (ob == F.EMPTY_OBJECT) {
             return null;
         }
         return F.cast(ob);
@@ -55,7 +53,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     @Override
     public boolean containsKey(Object key) {
         int k = (int) key;
-        return (data.length > k) && data[k] != OBJECT_NULL;
+        return (data.length > k) && data[k] != F.EMPTY_OBJECT;
     }
 
     @Override
@@ -82,7 +80,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         int newCap = (int) Math.max(Math.ceil(oldCap * 1.1), to); // increase by 10%
 
         data = Arrays.copyOf(data, newCap);
-        Arrays.fill(data, oldCap, newCap, OBJECT_NULL);
+        Arrays.fill(data, oldCap, newCap, F.EMPTY_OBJECT);
 
     }
 
@@ -92,8 +90,8 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         int k = key;
         if (data.length > k) {
             Object prev = data[k];
-            boolean valNull = val == OBJECT_NULL;
-            boolean itemNull = prev == OBJECT_NULL;
+            boolean valNull = val == F.EMPTY_OBJECT;
+            boolean itemNull = prev == F.EMPTY_OBJECT;
 
             if (itemNull && !valNull) {
                 size++;
@@ -116,7 +114,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
 
     @Override
     public T remove(Object key) {
-        return put((int) key, (T) OBJECT_NULL);
+        return put((int) key, (T) F.EMPTY_OBJECT);
     }
 
     @Override
@@ -145,7 +143,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     public void clear() {
         size = 0;
         data = new Object[prefSize];
-        Arrays.fill(data, OBJECT_NULL);
+        Arrays.fill(data, F.EMPTY_OBJECT);
     }
 
     @Override
@@ -163,7 +161,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     @Override
     public Collection<T> values() {
         return Stream.of(data)
-                .filter(t -> t != OBJECT_NULL)
+                .filter(t -> t != F.EMPTY_OBJECT)
                 .map(m -> unwrap(m))
                 .collect(Collectors.toList());
 
@@ -175,7 +173,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
         PrefillArrayMap2 me = this;
 
         for (int i = 0; i < data.length; i++) {
-            if(data[i] == OBJECT_NULL){
+            if(data[i] == F.EMPTY_OBJECT){
                 continue;
             }
             set.add(MapEntries.byKey(me, i));
