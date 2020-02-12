@@ -51,12 +51,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
 
     @Override
     public <T> Stream<T> getAllStream(Class<T> cls) {
-        CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<T> query = criteriaBuilder.createQuery(cls);
-        Root<T> from = query.from(cls);
-        CriteriaQuery<T> select = query.select(from);
-        TypedQuery<T> createQuery = getEntityManager().createQuery(select);
-        return createQuery.getResultStream();
+        return getAll(cls).stream();
     }
 
     @Override
