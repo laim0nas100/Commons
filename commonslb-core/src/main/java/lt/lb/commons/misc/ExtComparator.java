@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
@@ -209,6 +210,27 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T>, Serializabl
         return ExtComparator.of((v1, v2) -> cmp.compare(func.apply(v1), func.apply(v2)));
     }
 
+    public static <T, V > ExtComparator<T> ofOptional(Function<? super T, Optional<? extends V>> func,Comparator<? super V> cmp, boolean emptyFirst) {
+        return (v1, v2) -> {
+            Optional<? extends V> apply1 = func.apply(v1);
+            Optional<? extends V> apply2 = func.apply(v2);
+
+            if (apply1.isPresent()) {
+                if (apply2.isPresent()) {
+                    return cmp.compare(apply1.get(), apply2.get());
+                } else {
+                    return emptyFirst ? -1 : 1;
+                }
+            }else{
+                if(apply2.isPresent()){
+                    return emptyFirst ? 1 : -1;
+                }else{
+                    return 0;
+                }
+            }
+        };
+    }
+
     /**
      * Create ExtComparator using known Comparable class as basis of order.
      *
@@ -250,21 +272,21 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T>, Serializabl
         };
 
     }
-    
+
     /**
-     * Create ExtComparator with proper handling of null values.
-     * This should be the last comparator builder call.
+     * Create ExtComparator with proper handling of null values. This should be
+     * the last comparator builder call.
      *
      * @param nullFirst null order policy
      * @return
      */
-    public default ExtComparator<T> withNulls(boolean nullFirst){
+    public default ExtComparator<T> withNulls(boolean nullFirst) {
         ExtComparator<T> real = this;
-        return (T a, T b) ->{
+        return (T a, T b) -> {
             if (a == null) {
                 return (b == null) ? 0 : (nullFirst ? -1 : 1);
             } else if (b == null) {
-                return nullFirst ? 1: -1;
+                return nullFirst ? 1 : -1;
             } else {
                 return (real == null) ? 0 : real.compare(a, b);
             }
