@@ -219,11 +219,11 @@ public interface ExtComparator<T> extends Comparator<T>, Equator<T>, Serializabl
                 if (apply2.isPresent()) {
                     return cmp.compare(apply1.get(), apply2.get());
                 } else {
-                    return emptyFirst ? -1 : 1;
+                    return emptyFirst ? 1 : -1; // second argument is empty
                 }
             }else{
                 if(apply2.isPresent()){
-                    return emptyFirst ? 1 : -1;
+                    return emptyFirst ? -1 : 1; // first argument is empty
                 }else{
                     return 0;
                 }

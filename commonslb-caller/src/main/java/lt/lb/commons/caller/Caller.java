@@ -28,8 +28,17 @@ import lt.lb.commons.EmptyImmutableList;
  */
 public class Caller<T> {
 
+    /**
+     * What to put if stack limit is disabled
+     */
     public static final int DISABLED_STACK_LIMIT = -1;
+    /**
+     * What to put if call limit is disabled
+     */
     public static final long DISABLED_CALL_LIMIT = -1L;
+    /**
+     * DEFAULT fork count
+     */
     public static final int DEFAULT_FORK_COUNT = 10;
 
     private static final AtomicLong ID_COUNTER = new AtomicLong(0);
