@@ -31,11 +31,12 @@ import lt.lb.commons.func.unchecked.UnsafeSupplier;
  * @author laim0nas100
  */
 public class F {
-    
+
     /**
-     * De facto empty object to be used instead of null, so that null becomes available as a value.
+     * De facto empty object to be used instead of null, so that null becomes
+     * available as a value.
      */
-    public static final Object EMPTY_OBJECT = new Object(){
+    public static final Object EMPTY_OBJECT = new Object() {
         @Override
         public String toString() {
             return "Empty object";
@@ -211,6 +212,17 @@ public class F {
         } catch (Throwable t) {
             return Optional.of(t).map(m -> NestedException.unwrap(m));
         }
+    }
+
+    /**
+     * Call and catch any possible error alongside with optional error. Null
+     * values are treated as not present.
+     *
+     * @param call
+     * @return
+     */
+    public static <T> SafeOpt<T> checkedCall(UnsafeSupplier<T> call) {
+        return SafeOpt.ofGet(call);
     }
 
     /**
@@ -441,8 +453,8 @@ public class F {
     }
 
     /**
-     * Return disjoint sets with their respective position as origin. For example [1,3,5,7,8,9]
-     * [1,2,5,6,7,8] will return [3,9] and [2,6]
+     * Return disjoint sets with their respective position as origin. For
+     * example [1,3,5,7,8,9] [1,2,5,6,7,8] will return [3,9] and [2,6]
      *
      * @param <T>
      * @param left
@@ -532,7 +544,7 @@ public class F {
     }
 
     public static <T> Optional<Tuple<Integer, T>> findBackwards(T[] array, Integer from, Iter<T> iter) {
-        from = Math.max(from, array.length - 1);
+        from = Math.min(from, array.length - 1);
         for (int i = from; i >= 0; i--) {
             if (iter.visit(i, array[i])) {
                 return Optional.of(new Tuple<>(i, array[i]));

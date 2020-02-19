@@ -636,8 +636,8 @@ public class SafeOpt<T> implements Supplier<T> {
                 : "SafeOpt.empty";
     }
 
-    public Optional<Throwable> getError() {
-        return Optional.ofNullable(threw);
+    public SafeOpt<Throwable> getError() {
+        return SafeOpt.ofNullable(threw);
     }
 
 }
