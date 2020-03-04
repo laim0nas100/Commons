@@ -50,7 +50,7 @@ public interface CloneSupport<T> extends Cloneable {
      * @param collectionSupplier new collection supplier
      * @return
      */
-    public static <A extends CloneSupport<A>, C extends Collection<A>> C cloneColletion(Iterable<A> iter, Supplier<? extends C> collectionSupplier) {
+    public static <A extends CloneSupport<A>, C extends Collection<A>> C cloneCollection(Iterable<A> iter, Supplier<? extends C> collectionSupplier) {
         return cloneAll(iter, collectionSupplier, (item, sink) -> sink.add(item), CloneSupport::clone);
     }
 
