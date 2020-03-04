@@ -29,6 +29,20 @@ public interface CloneSupport<T> extends Cloneable {
     }
 
     /**
+     * Analogous to cloneOrNull. Also performs a cast.
+     * Implies that the cloning function returns correct type. No explicit
+     * compile-time type checking.
+     *
+     * @param <A> item type
+     * @param obj object to be cloned
+     * @param cloningFunction cloning function
+     * @return cloned object or null
+     */
+    public static <A extends Cloneable> A cloneOrNullCast(A obj, Function<? super A, Object> cloningFunction) {
+        return obj == null ? null : (A) cloningFunction.apply(obj);
+    }
+
+    /**
      * Clone using provided function or juts return a null. Useful when objects
      * have non-standard way of cloning themselves.
      *
@@ -107,7 +121,7 @@ public interface CloneSupport<T> extends Cloneable {
     public static <K, A extends CloneSupport<A>, C extends Map<K, A>> C cloneMapImmutableSupported(Map<K, A> map, Supplier<? extends C> collectionSupplier) {
         return cloneMap(map, collectionSupplier, k -> k, CloneSupport::clone);
     }
-    
+
     /**
      * Clones a map with immutable keys and CloneSupport type values and keys.
      *
