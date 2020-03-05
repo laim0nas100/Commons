@@ -5,22 +5,17 @@
  */
 package empiric.threading;
 
-import java.io.ByteArrayInputStream;
 import java.util.Random;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.misc.rng.RandomDistribution;
-import lt.lb.commons.threads.FastExecutor;
 import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.RunnableDecorators;
 import lt.lb.commons.threads.sync.WaitTime;
-import org.junit.Test;
 
 /**
  *

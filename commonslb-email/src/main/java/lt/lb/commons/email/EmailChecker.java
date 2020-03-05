@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.email;
 
 import java.util.List;
@@ -12,7 +7,7 @@ import javax.mail.internet.MimeMessage;
 import lt.lb.commons.email.props.IMAPOrPOP3Props;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.F;
-import lt.lb.commons.threads.ScheduledDispatchExecutor;
+import lt.lb.commons.threads.executors.ScheduledDispatchExecutor;
 
 /**
  *

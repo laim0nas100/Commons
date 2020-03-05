@@ -1,4 +1,4 @@
-package lt.lb.commons.threads;
+package lt.lb.commons.threads.executors;
 
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Predicate;

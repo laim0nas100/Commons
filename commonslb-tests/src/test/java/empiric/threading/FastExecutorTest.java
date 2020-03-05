@@ -5,21 +5,16 @@
  */
 package empiric.threading;
 
-import java.util.Optional;
-import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Log;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.Range;
-import lt.lb.commons.threads.FastExecutor;
-import lt.lb.commons.threads.FastExecutor1;
-import lt.lb.commons.threads.FastWaitingExecutor;
+import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.Futures;
-import lt.lb.commons.threads.PriorityFastWaitingExecutor;
+import lt.lb.commons.threads.executors.PriorityFastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
 import lt.lb.commons.threads.sync.WaitTime;
-import org.junit.Test;
 
 /**
  *

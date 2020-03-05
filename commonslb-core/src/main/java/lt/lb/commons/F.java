@@ -3,6 +3,8 @@ package lt.lb.commons;
 import java.io.Closeable;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,7 +24,6 @@ import lt.lb.commons.iteration.Iter.IterMap;
 import lt.lb.commons.iteration.Iter.IterMapNoStop;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
-import lt.lb.commons.threads.Promise;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.func.unchecked.UnsafeSupplier;
 
@@ -335,19 +336,24 @@ public class F {
         boolean[] satisfied = new boolean[size];
 
         AtomicInteger satisfiedCount = new AtomicInteger(0);
-        ArrayDeque<Promise> deque = new ArrayDeque<>(size);
+        ArrayDeque<Future> deque = new ArrayDeque<>(size);
         F.iterate(col, (i, item) -> {
-            new Promise(() -> {
+            FutureTask<Void> task = new FutureTask<>(() -> {
                 satisfied[i] = pred.test(item);
                 if (satisfied[i]) {
                     satisfiedCount.incrementAndGet();
                 }
+                return null;
 
-            }).collect(deque).execute(exe);
+            });
+            deque.add(task);
+            exe.execute(task);
         });
 
         F.unsafeRun(() -> {
-            new Promise().waitFor(deque).execute(exe).get();
+            for(Future future:deque){
+                future.get();
+            }
         });
         int remove = size - satisfiedCount.get();
         if (remove > 0) {

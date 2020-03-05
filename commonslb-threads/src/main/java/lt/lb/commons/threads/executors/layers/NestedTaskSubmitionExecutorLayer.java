@@ -1,4 +1,4 @@
-package lt.lb.commons.threads.sync;
+package lt.lb.commons.threads.executors.layers;
 
 import java.util.concurrent.Executor;
 import lt.lb.commons.F;

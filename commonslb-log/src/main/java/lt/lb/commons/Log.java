@@ -12,8 +12,8 @@ import java.util.function.Supplier;
 import lt.lb.commons.containers.values.StringValue;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.threads.CloseableExecutor;
-import lt.lb.commons.threads.FastWaitingExecutor;
+import lt.lb.commons.threads.executors.CloseableExecutor;
+import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.sync.WaitTime;
 

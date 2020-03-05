@@ -10,7 +10,7 @@ import lt.lb.commons.jobs.JobExecutor;
 import lt.lb.commons.jobs.Jobs;
 import lt.lb.commons.misc.rng.FastRandom;
 import lt.lb.commons.misc.rng.RandomDistribution;
-import lt.lb.commons.threads.FastWaitingExecutor;
+import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +47,7 @@ public class JobTest {
         
         jobDepModifier.accept(jobList);
         
-        Thread.sleep(100);
+//        Thread.sleep(100);
         for(Job job:jobList){
             executor.submit(job);
         }

@@ -1,6 +1,5 @@
-package lt.lb.commons.threads.sync;
+package lt.lb.commons.threads.executors.layers;
 
-import lt.lb.commons.threads.sync.NestedTaskSubmitionExecutorLayer;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;

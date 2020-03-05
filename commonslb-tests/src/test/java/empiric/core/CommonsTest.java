@@ -17,14 +17,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import lt.lb.commons.ArrayBasedCounter;
 import lt.lb.commons.Log;
 import lt.lb.commons.io.FileReader;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.F;
-import lt.lb.commons.Predicates;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.Lambda;
@@ -35,9 +32,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.Memoized;
 import lt.lb.commons.parsing.CommentParser;
-import lt.lb.commons.threads.FastExecutor;
-import org.apache.commons.lang3.concurrent.Computable;
-import org.apache.commons.lang3.concurrent.Memoizer;
+import lt.lb.commons.threads.executors.FastExecutor;
 import org.junit.*;
 
 /**

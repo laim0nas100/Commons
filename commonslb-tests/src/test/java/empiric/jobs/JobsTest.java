@@ -10,7 +10,7 @@ import lt.lb.commons.jobs.Job;
 import lt.lb.commons.jobs.JobEvent;
 import lt.lb.commons.jobs.JobExecutor;
 import lt.lb.commons.misc.rng.RandomDistribution;
-import lt.lb.commons.threads.FastExecutor;
+import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
 import org.junit.Test;
 

@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.concurrent.*;
 import lt.lb.commons.F;
 import lt.lb.commons.Timer;
-import lt.lb.commons.threads.Promise;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.threads.Promise;
 
 /**
  *

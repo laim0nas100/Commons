@@ -1,4 +1,4 @@
-package lt.lb.commons.threads;
+package lt.lb.commons.threads.executors;
 
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
