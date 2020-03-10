@@ -69,6 +69,9 @@ public interface CloneSupport<T> extends Cloneable {
      * @return
      */
     public static <A, D extends CloneSupport<A>, C extends Collection<A>> C cloneCollection(Iterable<D> iter, Supplier<? extends C> collectionSupplier) {
+        if (iter == null) {
+            return null;
+        }
         return cloneAll(iter, collectionSupplier, (item, sink) -> sink.add(item), CloneSupport::clone);
     }
 
@@ -88,6 +91,9 @@ public interface CloneSupport<T> extends Cloneable {
      * @return
      */
     public static <K, KK, A, AA, C extends Map<K, A>, CC extends Map<KK, AA>> C cloneMap(CC map, Supplier<? extends C> collectionSupplier, Function<KK, K> keyCloningFuncion, Function<AA, A> cloningFuncion) {
+        if (map == null) {
+            return null;
+        }
 
         C cloned = collectionSupplier.get();
 
@@ -112,6 +118,9 @@ public interface CloneSupport<T> extends Cloneable {
      * @return
      */
     public static <K, A, C extends Map<K, A>> C cloneMapImmutableKeys(Map<K, A> map, Supplier<? extends C> collectionSupplier, Function<A, A> cloningFuncion) {
+        if (map == null) {
+            return null;
+        }
         return cloneMap(map, collectionSupplier, k -> k, cloningFuncion);
     }
 
@@ -127,6 +136,9 @@ public interface CloneSupport<T> extends Cloneable {
      * @return
      */
     public static <K, A, AA extends CloneSupport<A>, C extends Map<K, A>> C cloneMapImmutableSupported(Map<K, AA> map, Supplier<? extends C> collectionSupplier) {
+        if (map == null) {
+            return null;
+        }
         return cloneMap(map, collectionSupplier, k -> k, CloneSupport::clone);
     }
 
@@ -143,6 +155,9 @@ public interface CloneSupport<T> extends Cloneable {
      * @return
      */
     public static <K, KK extends CloneSupport<K>, A, AA extends CloneSupport<A>, C extends Map<K, A>> C cloneMapSupported(Map<KK, AA> map, Supplier<? extends C> collectionSupplier) {
+        if (map == null) {
+            return null;
+        }
         return cloneMap(map, collectionSupplier, CloneSupport::clone, CloneSupport::clone);
     }
 
@@ -156,6 +171,9 @@ public interface CloneSupport<T> extends Cloneable {
      * @return
      */
     public static <A, D extends CloneSupport<A>> A[] cloneArray(D[] iter, Supplier<A[]> arraySupplier) {
+        if (iter == null) {
+            return null;
+        }
         IntegerValue i = new IntegerValue(0);
         return cloneAll(ReadOnlyIterator.of(iter), arraySupplier, (item, sink) -> sink[i.getAndIncrement()] = item, CloneSupport::clone);
 
@@ -174,6 +192,9 @@ public interface CloneSupport<T> extends Cloneable {
      * @return
      */
     public static <A, D extends CloneSupport<A>, C> C cloneAll(Iterable<D> iter, Supplier<C> sinkSupplier, BiConsumer<A, C> consumer, Function<D, A> cloningFuncion) {
+        if (iter == null) {
+            return null;
+        }
         C get = sinkSupplier.get();
         iter.forEach(item -> {
             consumer.accept(CloneSupport.cloneOrNull(item, cloningFuncion), get);
