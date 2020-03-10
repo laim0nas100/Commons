@@ -19,6 +19,15 @@ public interface CloneSupport<T> extends Cloneable {
 
     public T clone();
 
+    public static <T,C extends Collection<T>> C cloneShallowCollection(C iter, Supplier<? extends C> collectionSupplier){
+        if (iter == null) {
+            return null;
+        }
+        C get = collectionSupplier.get();
+        get.addAll(iter);
+        return get;
+    }
+    
     /**
      * Clone or return a null
      *
