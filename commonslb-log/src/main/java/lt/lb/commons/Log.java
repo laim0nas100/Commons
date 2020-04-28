@@ -9,7 +9,6 @@ import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import lt.lb.commons.containers.values.StringValue;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.threads.executors.CloseableExecutor;
@@ -18,6 +17,7 @@ import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
+ * Simple logger oriented to debuging.
  *
  * @author laim0nas100
  */
@@ -72,6 +72,11 @@ public class Log {
      * Used in printIter
      */
     public Lambda.L1R<Iterator, Supplier<String>> printIterDecorator = DefaultLogDecorators.printIterDecorator();
+    
+    /**
+     * Used in printStackStrace
+     */
+    public Lambda.L3R<Throwable,Integer,Integer,Supplier<String>> printStackDecorator = DefaultLogDecorators.stackTraceFullSupplier();
 
     public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -247,21 +252,50 @@ public class Log {
         println(main(), objects);
     }
 
+    public static void printStackTrace() {
+        printStackTrace(main(), -1, 0, new Throwable());
+    }
+
+    public static void printStackTrace(Log log) {
+        printStackTrace(log, -1, 0, new Throwable());
+    }
+
+    public static void printStackTrace(Log log, int depth) {
+        printStackTrace(log, depth, 0, new Throwable());
+    }
+
+    public static void printStackTrace(Log log, int depth, Throwable th) {
+        printStackTrace(log, depth, 0, th);
+    }
+    
+    public static void printStackTrace(Log log, int depth, int reduceBy, Throwable th) {
+        long millis = System.currentTimeMillis();
+        final String threadName = Thread.currentThread().getName();
+        Supplier<String> supplier = log.printStackDecorator.apply(th, depth, reduceBy);
+        if(log.override.isPresent()){
+            log.override.get().accept(supplier);
+            return;
+        }
+
+        if (log.async) {
+            log.exe.execute(() -> logThis(log, log.finalPrintDecorator.apply(log, "", threadName, millis, supplier.get())));
+        } else {
+            logThis(log, log.finalPrintDecorator.apply(log, "", threadName, millis, supplier.get()));
+        }
+
+    }
+
     private static void processString(Log log, Supplier<String> string) {
         if (!log.override.isPresent()) {
             long millis = System.currentTimeMillis();
             final String threadName = Thread.currentThread().getName();
 
-            StringValue trace = new StringValue("");
-            if (log.stackTrace) {
-                Throwable th = new Throwable();
-                trace.set(log.stackTraceSupplier.apply(th).get());
-            }
+            final String trace = log.stackTrace ? log.stackTraceSupplier.apply(new Throwable()).get() : "";
 
             if (log.async) {
-                log.exe.execute(() -> logThis(log, log.finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get())));
+                log.exe.execute(() -> logThis(log, log.finalPrintDecorator.apply(log, trace, threadName, millis, string.get())));
             } else {
-                logThis(log, log.finalPrintDecorator.apply(log, trace.get(), threadName, millis, string.get()));
+                logThis(log, log.finalPrintDecorator.apply(log, trace, threadName, millis, string.get()));
             }
 
         } else {

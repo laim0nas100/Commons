@@ -126,4 +126,25 @@ public class DefaultLogDecorators {
     public static Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier() {
         return (th) -> () -> th.getStackTrace()[3].toString().replace(".java", "");
     }
+
+    public static Lambda.L3R<Throwable, Integer, Integer, Supplier<String>> stackTraceFullSupplier() {
+
+        return (th, depth, reduceBy) -> {
+            StackTraceElement[] stack = th.getStackTrace();
+            int preFinal = depth < 0 ? 1000 : depth;
+
+            final int maxDepth = Math.min(preFinal, stack.length);
+
+            Supplier<String> string = () -> {
+                StringBuilder b = new StringBuilder("Stack trace:");
+                for (int i = reduceBy; i < maxDepth; i++) {
+                    b.append("\n\t").append(stack[i]);
+                }
+                return b.toString();
+            };
+            
+            return string;
+        };
+
+    }
 }
