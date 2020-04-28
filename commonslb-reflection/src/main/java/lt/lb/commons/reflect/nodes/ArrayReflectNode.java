@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.reflect.nodes;
 
 import java.lang.reflect.Array;
@@ -46,10 +41,10 @@ public class ArrayReflectNode extends ReflectNode {
         Class realComponentClass = null;
         for (int i = 0; i < length; i++) {
             Object get = Array.get(this.getValue(), i);
-            if(get == null){
-                ReflectNode node = new FinalReflectNode(factory,this.getName() + ":" + i, null, get, componentType, this.references);
+            if (get == null) {
+                ReflectNode node = new FinalReflectNode(factory, this.getName() + ":" + i, null, get, componentType, this.references);
                 node.parent = this;
-                map.put(""+i, node);
+                map.put("" + i, node);
                 continue;
             }
             if (realComponentClass == null) {
@@ -58,7 +53,7 @@ public class ArrayReflectNode extends ReflectNode {
 
             ReflectNode node;
             if (factory.isImmutable(realComponentClass)) { // found common type
-                node = new FinalReflectNode(factory,this.getName() + ":" + i, null, get, realComponentClass, this.references);
+                node = new FinalReflectNode(factory, this.getName() + ":" + i, null, get, realComponentClass, this.references);
             } else {
                 node = new ReflectNode(factory, this.getName() + ":" + i, null, get, realComponentClass, this.references);
             }
@@ -71,27 +66,29 @@ public class ArrayReflectNode extends ReflectNode {
     public Class getComponentType() {
         return this.componentType;
     }
-    
-    public Collection<String> getAllValuesKeys(){
+
+    @Override
+    public Collection<String> getAllValuesKeys() {
         ArrayList<String> list = new ArrayList<>();
         list.addAll(super.getAllValuesKeys());
-        Collections.sort(list, (s1,s2)->{
+        Collections.sort(list, (s1, s2) -> {
             int i1 = Integer.parseInt(s1);
             int i2 = Integer.parseInt(s2);
             return i1 - i2;
-            
+
         });
         return list;
     }
-    
-     public Collection<String> getAllChildrenKeys(){
+
+    @Override
+    public Collection<String> getAllChildrenKeys() {
         ArrayList<String> list = new ArrayList<>();
         list.addAll(super.getAllChildrenKeys());
-        Collections.sort(list, (s1,s2)->{
+        Collections.sort(list, (s1, s2) -> {
             int i1 = Integer.parseInt(s1);
             int i2 = Integer.parseInt(s2);
             return i1 - i2;
-            
+
         });
         return list;
     }

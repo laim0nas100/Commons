@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.interfaces.StringBuilderActions;
 import lt.lb.commons.F;
@@ -98,6 +96,7 @@ public class ReflectionPrint {
             return;
         }
 
+        final String newIndent = indent + indentAppend;
         Map<String, ReflectNode> allValues = node.getAllValues();
 
         if (allValues.isEmpty()) {
@@ -107,7 +106,7 @@ public class ReflectionPrint {
 
             F.iterate(node.getAllValuesKeys(), (i, key) -> {
                 ReflectNode value = allValues.get(key);
-                sb.appendLine(indent + indentAppend + formatValue(value));
+                sb.appendLine(newIndent + formatValue(value));
             });
 
             sb.appendLine(indent + node.getName() + " </v>");
@@ -139,7 +138,7 @@ public class ReflectionPrint {
 
                     keepOnPrinting = false;
                 } else if (childNode instanceof FinalReflectNode) {
-                    sb.appendLine(indent + indentAppend + formatValue(childNode));
+                    sb.appendLine(newIndent + formatValue(childNode));
                     return false;
                 }
 
@@ -155,7 +154,7 @@ public class ReflectionPrint {
                 }
                 sb.appendLine(indent + childNode.getName() + suff);
                 if (keepOnPrinting) {
-                    keepPrinting(childNode, indent + indentAppend, sb, refCounter);
+                    keepPrinting(childNode, newIndent, sb, refCounter);
                 }
                 return false;
             });

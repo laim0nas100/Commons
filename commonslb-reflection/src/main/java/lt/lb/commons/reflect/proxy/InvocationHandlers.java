@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class InvocationHandlers {
     

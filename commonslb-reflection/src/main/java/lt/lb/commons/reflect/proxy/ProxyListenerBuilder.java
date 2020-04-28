@@ -8,13 +8,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import lt.lb.commons.ArrayOp;
+import lt.lb.commons.interfaces.CloneSupport;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  * add method listeners
  */
-public class ProxyListenerBuilder implements Cloneable{
+public class ProxyListenerBuilder implements CloneSupport<ProxyListenerBuilder>{
 
     private InvocationHandler getObjectInvocationHandler(Object obj) {
         InvocationHandler nullInvocationHandler = getNullInvocationHandler();

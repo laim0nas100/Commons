@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.F;
+import lt.lb.commons.PosEq;
 
 /**
  *
@@ -32,13 +33,14 @@ public abstract class FieldFactory {
     public static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class};
     public static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class};
     public static final Class[] OTHER_IMMUTABLE_TYPES = {String.class, UUID.class, Pattern.class, BigDecimal.class, BigInteger.class};
-    public static final Class[] WRAPPER_TYPES = ArrayOp.merge(NUMBER_TYPES, Boolean.class, Character.class);
+    public static final Class[] WRAPPER_TYPES = ArrayOp.addAll(NUMBER_TYPES, Boolean.class, Character.class);
     public static final Class[] JVM_IMMUTABLE_TYPES = ArrayOp.merge(WRAPPER_TYPES, OTHER_IMMUTABLE_TYPES, DATE_TYPES);
     private static final HashSet<Class> JVM_IMMUTABLE_SET = new HashSet<>(Arrays.asList(JVM_IMMUTABLE_TYPES));
     public static final Predicate<Class> isJVMImmutable = (Class cls) -> {
-//        return cls.isPrimitive() || JVM_IMMUTABLE_SET.contains(cls);
-
-        return cls.isPrimitive() || ArrayOp.any(Predicate.isEqual(cls), JVM_IMMUTABLE_TYPES);
+        if (cls.isPrimitive()) {
+            return true;
+        }
+        return ArrayOp.contains(JVM_IMMUTABLE_TYPES, cls);
     };
 
     protected IFieldResolver makeImmutableFieldResolver(Field f) {
@@ -55,12 +57,7 @@ public abstract class FieldFactory {
                 f.set(parentObject, refCounter.get(sourceArray));
             } else {
                 int length = Array.getLength(sourceArray);
-                Object array = null;
-                if (compType.isPrimitive()) {
-                    array = ArrayOp.makePrimitiveArray(length, compType);
-                } else {
-                    array = ArrayOp.makeArray(length, compType);
-                }
+                Object array = java.lang.reflect.Array.newInstance(compType, length);
 
                 System.arraycopy(sourceArray, 0, array, 0, length);
                 f.set(parentObject, array);
@@ -89,16 +86,9 @@ public abstract class FieldFactory {
                 return;
             }
             Class realFieldType = get.getClass();
-            IFieldResolver refinedResolver;
-//            if (this.useCache) {
-//                refinedResolver = this.cacheOfFieldResolvers.get(realFieldType, k -> getResolverByField(k, f, false));
-//            } else {
-//                refinedResolver = getResolverByField(realFieldType, f, false);
-//            }
+            IFieldResolver refinedResolver = getResolverByField(realFieldType, f, false);
 
-            refinedResolver = getResolverByField(realFieldType, f, false);
 //            log.appendLine("Got instance", get, realFieldType);
-
             refinedResolver.cloneField(sourceObject, parentObject, refCounter);
         };
     }
@@ -119,7 +109,7 @@ public abstract class FieldFactory {
                 int length = Array.getLength(sourceArray);
                 Object[] newArray = ArrayOp.makeArray(length, compType);
 
-                final boolean isInitializable = isInitializable(compType);
+                final boolean isInitializable = isInitializableMutable(compType);
 
                 for (int i = 0; i < length; i++) {
                     Object sourceInstance = sourceArray[i];
@@ -170,13 +160,7 @@ public abstract class FieldFactory {
         while (currentClass != null) {
             FieldHolder holder = this.getFieldHolder(currentClass);
             F.iterate(holder.getFields(), (k, v) -> {
-                if (fields.containsKey(k)) {
-                    fields.get(k).add(v);
-                } else {
-                    LinkedList<Field> list = new LinkedList<>();
-                    list.add(v);
-                    fields.put(k, list);
-                }
+                fields.computeIfAbsent(k, key -> new LinkedList<>()).add(v);
             });
             currentClass = currentClass.getSuperclass();
         }
@@ -210,7 +194,7 @@ public abstract class FieldFactory {
 //                    log.appendLine("Basic clone ", f);
                     Class realClass = fieldType;
 
-                    if (!isInitializable(realClass)) {
+                    if (!isInitializableMutable(realClass)) {
                         realClass = sourceObject.getClass();
                     }
                     Object newInstance = createNewInstance(realClass);
@@ -252,15 +236,14 @@ public abstract class FieldFactory {
                 return 0D;
             }
             if (Character.TYPE.equals(cls)) {
-                char c = 0;
-                return c;
+                return (char) 0;
             }
             return null;
         }
     }
 
     public static Object defaultPrimitiveWrapper(Class cls) {
-        if (ArrayOp.count(Predicate.isEqual(cls), WRAPPER_TYPES) >= 1) {
+        if (ArrayOp.contains(WRAPPER_TYPES, cls)) {
             if (Byte.class.equals(cls)) {
                 return (byte) 0x00;
             }
@@ -320,7 +303,7 @@ public abstract class FieldFactory {
             throw new IllegalArgumentException("Can't initialize an enum " + cls.getName());
         }
         if (cls.isArray()) {
-            throw new IllegalArgumentException("Can't initialize an array " + cls.getName() +" consider using Array::newInstance");
+            throw new IllegalArgumentException("Can't initialize an array " + cls.getName() + " consider using Array::newInstance");
         }
         Object newInstance = null;
 
@@ -387,7 +370,7 @@ public abstract class FieldFactory {
         throw new IllegalStateException("Failed to instantiate class " + cls.getName() + " consider adding IClassConstructor");
     }
 
-    public boolean isInitializable(Class cls) {
+    public boolean isInitializableMutable(Class cls) {
         if (cls.isEnum() || cls.isInterface() || cls.isPrimitive() || cls.isArray()) {
             return false;
         }
@@ -423,7 +406,7 @@ public abstract class FieldFactory {
                 } else if (defer) {
 //                    log.appendLine("Explicit defer");
                     fr = makeDeferedFieldResolver(f);
-                } else if (this.isInitializable(fieldType)) {
+                } else if (this.isInitializableMutable(fieldType)) {
 //                    log.appendLine("is composite", f);
                     fr = this.makeCompositeFieldResolver(fieldType, f);
 //                maybeAddToCache(fieldType,f,fr);

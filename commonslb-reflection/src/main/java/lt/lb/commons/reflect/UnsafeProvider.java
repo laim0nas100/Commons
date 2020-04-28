@@ -3,13 +3,12 @@ package lt.lb.commons.reflect;
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.values.Value;
 import sun.misc.Unsafe;
 
 /**
  *
  * Utility to get Unsafe class
- * 
+ *
  * @author laim0nas100
  */
 public class UnsafeProvider {
@@ -31,10 +30,6 @@ public class UnsafeProvider {
     }
 
     public static <T> Function<Class, T> getUnsafeAllocator() {
-        return cls -> {
-            Value<T> instance = new Value<>();
-            F.unsafeRun(() -> instance.accept(F.cast(getUnsafe().allocateInstance(cls))));
-            return instance.get();
-        };
+        return cls -> F.unsafeCall(() -> F.cast(getUnsafe().allocateInstance(cls)));
     }
 }
