@@ -15,11 +15,16 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
  * @param <T>
  */
 @FunctionalInterface
-public interface CloneSupport<T> extends Cloneable {
+public interface CloneSupport<T> extends Cloneable, Supplier<T> {
 
     public T clone();
 
-    public static <T,C extends Collection<T>> C cloneShallowCollection(C iter, Supplier<? extends C> collectionSupplier){
+    @Override
+    public default T get() {
+        return clone();
+    }
+
+    public static <T, C extends Collection<T>> C cloneShallowCollection(C iter, Supplier<? extends C> collectionSupplier) {
         if (iter == null) {
             return null;
         }
@@ -27,7 +32,7 @@ public interface CloneSupport<T> extends Cloneable {
         get.addAll(iter);
         return get;
     }
-    
+
     /**
      * Clone or return a null
      *
@@ -41,8 +46,9 @@ public interface CloneSupport<T> extends Cloneable {
     }
 
     /**
-     * Analogous to cloneOrNull. Also performs a cast. Implies that the cloning
-     * function returns correct type. No explicit compile-time type checking.
+     * Analogous to cloneOrNull but also performs a cast. Implies that the
+     * cloning function returns correct type. No explicit compile-time type
+     * checking.
      *
      * @param <A> item type
      * @param obj object to be cloned
