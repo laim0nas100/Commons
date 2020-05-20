@@ -3,9 +3,12 @@ package lt.lb.commons.func;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.Ins;
 import lt.lb.commons.SafeOpt;
@@ -54,7 +57,7 @@ public abstract class StreamMappers {
     }
 
     /**
-     * Adds filtering by given predicate 
+     * Adds filtering by given predicate
      *
      * @param <T>
      * @param <Z>
@@ -65,7 +68,7 @@ public abstract class StreamMappers {
         Objects.requireNonNull(predicate);
         return s -> s.filter(predicate);
     }
-    
+
     /**
      * Adds filtering by given predicate which was negated
      *
@@ -215,6 +218,104 @@ public abstract class StreamMappers {
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterNotIn(Collection<? extends Z> target) {
         Objects.requireNonNull(target, "Collection is null");
         return filterPredicate(s -> !target.contains(s));
+    }
+
+    /**
+     * Applies functor that adds a filter that all values in a stream must be
+     * inside given collection with compliance to the given equator
+     *
+     * @param <T>
+     * @param <Z>
+     * @param target
+     * @param eq
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterIn(Collection<? extends Z> target, Equator<Z> eq) {
+
+        Objects.requireNonNull(target, "Collection is null");
+        Objects.requireNonNull(eq, "Equator is null");
+
+        return doWithEqualityProxyIterable(target, eq, (set, st) -> {
+            Set<Equator.EqualityProxy<Z>> collect = set.collect(Collectors.toSet());
+            return st.filter(item -> collect.contains(item));
+        });
+
+    }
+
+    /**
+     * Applies functor that adds a filter that all values in a stream must NOT
+     * be inside given collection with compliance to the given equator
+     *
+     * @param <T>
+     * @param <Z>
+     * @param target
+     * @param eq
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> filterNotIn(Collection<? extends Z> target, Equator<Z> eq) {
+
+        Objects.requireNonNull(target, "Collection is null");
+        Objects.requireNonNull(eq, "Equator is null");
+
+        return doWithEqualityProxyIterable(target, eq, (set, st) -> {
+            Set<Equator.EqualityProxy<Z>> collect = set.collect(Collectors.toSet());
+            return st.filter(item -> !collect.contains(item));
+        });
+
+    }
+
+    /**
+     * Applies functor that creates an equality proxy and do something with proxied stream and iterable
+     *
+     * @param <T>
+     * @param <Z>
+     * @param target
+     * @param eq
+     * @param decorator
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> doWithEqualityProxyIterable(
+            Iterable<? extends Z> target,
+            Equator<Z> eq,
+            BiFunction<Stream<Equator.EqualityProxy<Z>>, StreamMapper<T, Equator.EqualityProxy<Z>>, StreamMapper<T, Equator.EqualityProxy<Z>>> decorator
+    ) {
+
+        Objects.requireNonNull(target, "Collection is null");
+        Objects.requireNonNull(eq, "Equator is null");
+        Objects.requireNonNull(decorator, "decorator is null");
+
+        return doWithProxy(s -> new Equator.EqualityProxy<>(s, eq), m -> m.getValue(), st -> {
+            Stream<Equator.EqualityProxy<Z>> proxyStream = StreamMapper.fromIterable(target)
+                    .map(s -> new Equator.EqualityProxy<>(s, eq));
+            return decorator.apply(proxyStream, st);
+        });
+
+    }
+
+    /**
+     * Applies a functor that creates a proxy type and do something with it and then return to the
+     * original type
+     *
+     * @param <T>
+     * @param <Z>
+     * @param <P>
+     * @param toProxy
+     * @param fromProxy
+     * @param decorator
+     * @return
+     */
+    public static <T, Z, P> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> doWithProxy(
+            Function<Z, P> toProxy,
+            Function<P, Z> fromProxy,
+            Function<StreamMapper<T, P>, StreamMapper<T, P>> decorator
+    ) {
+
+        Objects.requireNonNull(toProxy, "toProxy is null");
+        Objects.requireNonNull(fromProxy, "froProxy is null");
+        Objects.requireNonNull(decorator, "decorator is null");
+
+        return st -> st.map(toProxy).apply(decorator).map(fromProxy);
+
     }
 
     /**
