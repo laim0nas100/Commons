@@ -61,7 +61,13 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
 
     @Override
     public <T> boolean delete(T item) {
+        
+        
         if (item != null) {
+            if(!getEntityManager().contains(item)){
+               item =  update(item);
+            }
+            
             getEntityManager().remove(item);
             return true;
         }
@@ -114,7 +120,9 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
         if (em.contains(item)) {
             return item;
         } else {
-            throw new IllegalArgumentException("Can't resolve state of " + item);
+            //with ID but not in base??
+//            return em.merge(item);
+            throw new IllegalArgumentException("Trying to save removed item, " + item);
         }
     }
 

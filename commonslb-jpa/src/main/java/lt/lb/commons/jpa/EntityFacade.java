@@ -27,7 +27,7 @@ public interface EntityFacade {
 
     public <T> SafeOpt<T> find(Class<T> cls, Object key);
     
-    public default <T> SafeOpt<T> find(Class<T> cls, ID<? extends T, ?> key) {
+    public default <T> SafeOpt<T> findID(Class<T> cls, ID<? extends T, ?> key) {
         return find(cls, key.id);
     }
 
