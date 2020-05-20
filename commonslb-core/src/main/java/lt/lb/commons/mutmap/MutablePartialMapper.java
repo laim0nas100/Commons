@@ -1,5 +1,6 @@
 package lt.lb.commons.mutmap;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,66 @@ import lt.lb.commons.parsing.StringOp;
  * @author laim0nas100
  */
 public class MutablePartialMapper {
+
+    /**
+     * Immutable
+     */
+    public static class MutablePartialMapperBuilder {
+
+        private Class from;
+        private Class to;
+        private List<String> name;
+        private Integer order;
+        private List<MutablePartialMapperAct> acts;
+
+        public MutablePartialMapperBuilder() {
+            acts = new ArrayList<>(0);
+            name = new ArrayList<>(0);
+        }
+
+        private MutablePartialMapperBuilder(Class from, Class to, List<String> name, Integer order, List<MutablePartialMapperAct> acts) {
+            this.from = from;
+            this.to = to;
+            this.name = name;
+            this.order = order;
+            this.acts = new ArrayList<>(acts);
+            this.name = new ArrayList<>(name);
+        }
+
+        public MutablePartialMapperBuilder withSameType(Class type) {
+            return new MutablePartialMapperBuilder(type, type, name, order, acts);
+        }
+
+        public MutablePartialMapperBuilder withOrder(int order) {
+            return new MutablePartialMapperBuilder(from, to, name, order, acts);
+        }
+
+        public MutablePartialMapperBuilder withTypeTo(Class type) {
+            return new MutablePartialMapperBuilder(from, type, name, order, acts);
+        }
+
+        public MutablePartialMapperBuilder withTypeFrom(Class type) {
+            return new MutablePartialMapperBuilder(type, to, name, order, acts);
+        }
+
+        public MutablePartialMapperBuilder withNames(String... names) {
+            ArrayList<String> list = new ArrayList<>(names.length);
+            for (String n : names) {
+                list.add(n);
+            }
+            return new MutablePartialMapperBuilder(from, to, list, order, acts);
+        }
+
+        public MutablePartialMapperBuilder withAdditionalNames(String... names) {
+            ArrayList<String> list = new ArrayList<>(names.length);
+            for (String n : names) {
+                list.add(n);
+            }
+            name.stream().distinct().forEach(list::add);
+            return new MutablePartialMapperBuilder(from, to, list, order, acts);
+        }
+
+    }
 
     private static class MutableMapOrder {
 
@@ -134,6 +195,20 @@ public class MutablePartialMapper {
         this.addMapper(cls, cls, order, name, mapper);
     }
 
+    public <From, To> void addMapper(MutablePartialMapperBuilder builder, MutablePartialMapperAct<From, To> mapper) {
+        
+        if (builder.order == null) {
+            for (String name : builder.name) {
+                addMapper(builder.from, builder.to, name, mapper);
+            }
+        } else {
+            for (String name : builder.name) {
+                addMapper(builder.from, builder.to, builder.order, name, mapper);
+            }
+        }
+
+    }
+
     public <T> void addMapper(Class<T> cls, String name, MutablePartialMapperAct<T, T> mapper) {
         this.addMapper(cls, cls, name, mapper);
     }
@@ -147,9 +222,9 @@ public class MutablePartialMapper {
                 .orElse(0);
         addMapper(from, to, max, name, mapper);
     }
+
     public <From, To> void addMapper(Class<From> from, Class<To> to, MutablePartialMapperAct<From, To> mapper) {
         addMapper(from, to, "", mapper);
     }
-    
 
 }
