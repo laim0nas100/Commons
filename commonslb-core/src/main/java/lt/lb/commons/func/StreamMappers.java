@@ -265,7 +265,8 @@ public abstract class StreamMappers {
     }
 
     /**
-     * Applies functor that creates an equality proxy and do something with proxied stream and iterable
+     * Applies functor that creates an equality proxy and do something with
+     * proxied stream and iterable
      *
      * @param <T>
      * @param <Z>
@@ -283,18 +284,21 @@ public abstract class StreamMappers {
         Objects.requireNonNull(target, "Collection is null");
         Objects.requireNonNull(eq, "Equator is null");
         Objects.requireNonNull(decorator, "decorator is null");
+        Function<Z, Equator.EqualityProxy<Z>> toProxy = s -> new Equator.EqualityProxy<>(s, eq);
+        Function<Equator.EqualityProxy<Z>, Z> fromProxy = s -> s.getValue();
 
-        return doWithProxy(s -> new Equator.EqualityProxy<>(s, eq), m -> m.getValue(), st -> {
+        Function<StreamMapper<T, Equator.EqualityProxy<Z>>, StreamMapper<T, Equator.EqualityProxy<Z>>> dec = st -> {
             Stream<Equator.EqualityProxy<Z>> proxyStream = StreamMapper.fromIterable(target)
                     .map(s -> new Equator.EqualityProxy<>(s, eq));
             return decorator.apply(proxyStream, st);
-        });
+        };
 
+        return doWithProxy(toProxy, fromProxy, dec);
     }
 
     /**
-     * Applies a functor that creates a proxy type and do something with it and then return to the
-     * original type
+     * Applies a functor that creates a proxy type and do something with it and
+     * then return to the original type
      *
      * @param <T>
      * @param <Z>
