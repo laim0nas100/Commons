@@ -4,9 +4,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
-import lt.lb.commons.containers.values.IntegerValue;
-import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
  * Interface for cloning, explicitly declaring clone method publicly.
@@ -73,6 +72,19 @@ public interface CloneSupport<T> extends Cloneable, Supplier<T> {
         return obj == null ? null : cloningFunction.apply(obj);
     }
 
+    public static <D extends A, A extends CloneSupport<A>, C extends Collection<D>> C cloneCollectionCast(Iterable<D> iter, Supplier<? extends C> collectionSupplier) {
+        if (iter == null) {
+            return null;
+        }
+        C collection = collectionSupplier.get();
+        for (D item : iter) {
+            D cloneOrNull = (D) CloneSupport.cloneOrNull(item);
+            collection.add(cloneOrNull);
+        }
+
+        return collection;
+    }
+
     /**
      * Clones an iterable to a collection.
      *
@@ -87,7 +99,13 @@ public interface CloneSupport<T> extends Cloneable, Supplier<T> {
         if (iter == null) {
             return null;
         }
-        return cloneAll(iter, collectionSupplier, (item, sink) -> sink.add(item), CloneSupport::clone);
+        C collection = collectionSupplier.get();
+        for (D item : iter) {
+            A cloneOrNull = CloneSupport.cloneOrNull(item);
+            collection.add(cloneOrNull);
+        }
+
+        return collection;
     }
 
     /**
@@ -185,12 +203,40 @@ public interface CloneSupport<T> extends Cloneable, Supplier<T> {
      * @param arraySupplier array maker
      * @return
      */
-    public static <A, D extends CloneSupport<A>> A[] cloneArray(D[] iter, Supplier<A[]> arraySupplier) {
+    public static <D extends A, A extends CloneSupport<A>> A[] cloneArray(D[] iter, IntFunction<A[]> arraySupplier) {
         if (iter == null) {
             return null;
         }
-        IntegerValue i = new IntegerValue(0);
-        return cloneAll(ReadOnlyIterator.of(iter), arraySupplier, (item, sink) -> sink[i.getAndIncrement()] = item, CloneSupport::clone);
+        final int size = iter.length;
+        A[] array = arraySupplier.apply(size);
+        for(int i = 0; i < iter.length; i++){
+            A cloneOrNull = CloneSupport.cloneOrNull(iter[i]);
+            array[i] = cloneOrNull;
+        }
+        return array;
+
+    }
+    
+    /**
+     * Clones an array with specific type hierarchy and casts the result.
+     *
+     * @param <A> item that supports clone type
+     * @param <D> expected clone result type
+     * @param iter array with items
+     * @param arraySupplier array maker
+     * @return
+     */
+    public static <D extends A, A extends CloneSupport<A>> D[] cloneArrayCast(D[] iter, IntFunction<D[]> arraySupplier) {
+        if (iter == null) {
+            return null;
+        }
+        final int size = iter.length;
+        D[] array = arraySupplier.apply(size);
+        for(int i = 0; i < iter.length; i++){
+            D cloneOrNull = (D) CloneSupport.cloneOrNull(iter[i]);
+            array[i] = cloneOrNull;
+        }
+        return array;
 
     }
 
@@ -206,15 +252,16 @@ public interface CloneSupport<T> extends Cloneable, Supplier<T> {
      * @param cloningFuncion how to clone item
      * @return
      */
-    public static <A, D extends CloneSupport<A>, C> C cloneAll(Iterable<D> iter, Supplier<C> sinkSupplier, BiConsumer<A, C> consumer, Function<D, A> cloningFuncion) {
+    public static <A, D extends A, C> C cloneAll(Iterable<D> iter, Supplier<C> sinkSupplier, BiConsumer<A, C> consumer, Function<D, A> cloningFuncion) {
         if (iter == null) {
             return null;
         }
-        C get = sinkSupplier.get();
-        iter.forEach(item -> {
-            consumer.accept(CloneSupport.cloneOrNull(item, cloningFuncion), get);
-        });
+        C collection = sinkSupplier.get();
 
-        return get;
+        for (D item : iter) {
+            consumer.accept(CloneSupport.cloneOrNull(item, cloningFuncion), collection);
+        }
+
+        return collection;
     }
 }

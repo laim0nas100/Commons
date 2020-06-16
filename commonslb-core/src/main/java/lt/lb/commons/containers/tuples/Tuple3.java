@@ -10,6 +10,9 @@ import java.util.Objects;
 /**
  *
  * @author laim0nas100
+ * @param <Type1>
+ * @param <Type2>
+ * @param <Type3>
  */
 public class Tuple3<Type1, Type2, Type3> extends Tuple<Type1, Type2> {
 

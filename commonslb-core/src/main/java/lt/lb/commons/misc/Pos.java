@@ -5,10 +5,11 @@ import java.util.Arrays;
 /**
  *
  * @author laim0nas100
+ * Immutable
  */
 public class Pos {
 
-    private Double[] vector;
+    private final Double[] vector;
 
     public Pos(Number... coordinates) {
         vector = new Double[coordinates.length];

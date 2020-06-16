@@ -1,7 +1,7 @@
 package lt.lb.commons.misc;
 
-import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -14,10 +14,16 @@ import java.util.function.Function;
  */
 public class ComparatorBuilder<T> {
 
-    private ArrayList<Comparator<? super T>> comparators = new ArrayList<>();
+    private LinkedList<Comparator<? super T>> comparators = new LinkedList<>();
+    private boolean globalReverse;
 
     public ComparatorBuilder() {
 
+    }
+
+    private ComparatorBuilder(List<Comparator<? super T>> comps, boolean globalReverse) {
+        comparators.addAll(comps);
+        this.globalReverse = globalReverse;
     }
 
     private ComparatorBuilder(List<Comparator<? super T>> comps, Comparator<? super T> comparator) {
@@ -38,7 +44,12 @@ public class ComparatorBuilder<T> {
         if (comparators.isEmpty()) {
             return ComparatorBuilder.empty();
         } else {
-            return this::compareArgs;
+            Comparator<T> cmp = this::compareArgs;
+            if (globalReverse) {
+                cmp = cmp.reversed();
+            }
+            return cmp;
+
         }
     }
 
@@ -79,6 +90,34 @@ public class ComparatorBuilder<T> {
      */
     public ComparatorBuilder<T> thenComparing(Comparator<? super T> other) {
         return new ComparatorBuilder<>(comparators, other);
+    }
+
+    /**
+     * Add global reverse. Will be applied after build.
+     *
+     * @return
+     */
+    public ComparatorBuilder<T> reverseAll() {
+        return new ComparatorBuilder<>(comparators, true);
+    }
+
+    /**
+     * Add reverse to only the last comparator.
+     *
+     * @return
+     *
+     * @exception if comparator list is empty
+     */
+    public ComparatorBuilder<T> reverse() {
+        if (comparators.isEmpty()) {
+            throw new IllegalStateException("Comparator list is empty, can't reverse last one");
+        }
+
+        ComparatorBuilder<T> comparatorBuilder = new ComparatorBuilder<>();
+        comparatorBuilder.comparators.addAll(comparators);
+        Comparator<? super T> reversed = comparatorBuilder.comparators.pollLast().reversed();
+        comparatorBuilder.comparators.addLast(reversed);
+        return comparatorBuilder;
     }
 
     /**
@@ -141,7 +180,7 @@ public class ComparatorBuilder<T> {
                 }
             }
         };
-        
+
         return thenComparing(comp);
 
     }

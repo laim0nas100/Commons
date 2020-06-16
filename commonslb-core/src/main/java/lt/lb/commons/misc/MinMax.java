@@ -3,6 +3,7 @@ package lt.lb.commons.misc;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public class MinMax<T> {
 

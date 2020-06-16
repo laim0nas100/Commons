@@ -94,7 +94,7 @@ public class EmptyImmutableList<T> implements List<T> {
 
     @Override
     public ListIterator<T> listIterator(int index) {
-        return listIterator();
+        throw new IndexOutOfBoundsException("This list is empty");
     }
 
     @Override

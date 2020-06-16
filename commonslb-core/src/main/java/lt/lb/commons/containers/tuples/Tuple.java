@@ -5,6 +5,8 @@ import java.util.Objects;
 /**
  *
  * @author laim0nas100
+ * @param <Type1>
+ * @param <Type2>
  */
 public class Tuple<Type1, Type2> {
 
