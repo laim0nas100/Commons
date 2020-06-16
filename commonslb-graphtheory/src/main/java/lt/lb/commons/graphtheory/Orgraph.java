@@ -160,10 +160,7 @@ public class Orgraph {
     public List<GLink> resolveLinkedTo(GNode node, Predicate<Long> includeCondition) {
         ArrayList<GLink> list = new ArrayList<>();
         node.linksTo.stream().filter(includeCondition).forEach(linkTo -> {
-            Optional<GLink> link = this.getLink(node.ID, linkTo);
-            if (link.isPresent()) {
-                list.add(link.get());
-            }
+            this.getLink(node.ID, linkTo).ifPresent(list::add);
         });
         return list;
     }
@@ -171,10 +168,7 @@ public class Orgraph {
     public List<GLink> resolveLinkedFrom(GNode node, Predicate<Long> includeCondition) {
         ArrayList<GLink> list = new ArrayList<>();
         node.linkedFrom.stream().filter(includeCondition).forEach(linkFrom -> {
-            Optional<GLink> link = this.getLink(linkFrom, node.ID);
-            if (link.isPresent()) {
-                list.add(link.get());
-            }
+            this.getLink(node.ID, linkFrom).ifPresent(list::add);
         });
         return list;
     }

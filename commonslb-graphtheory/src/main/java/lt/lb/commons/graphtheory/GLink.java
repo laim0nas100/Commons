@@ -8,7 +8,7 @@ import lt.lb.commons.containers.tuples.Pair;
  *
  * @author laim0nas100
  */
-public class GLink implements Cloneable{
+public class GLink implements Cloneable {
 
     public static class Cmp {
 
@@ -30,7 +30,7 @@ public class GLink implements Cloneable{
             };
 
         }
-        
+
     }
 
     public GLink(long nodeFrom, long nodeTo, double w) {
@@ -58,21 +58,19 @@ public class GLink implements Cloneable{
 //        Double h = 0.5;
 //        return (long) (h * (nodeFrom + nodeTo) * (nodeFrom + nodeTo + 1) + nodeTo);
     }
-    
+
     @Override
-    public Object clone() throws CloneNotSupportedException{
+    public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
-    
-    public static boolean equalNodes(GLink link1, GLink link2){
+
+    public static boolean equalNodes(GLink link1, GLink link2) {
         return link1.nodeFrom == link2.nodeFrom && link1.nodeTo == link2.nodeTo;
     }
-    
-    public static boolean equalNodesBidirectional(GLink link1, GLink link2){
-        return equalNodes(link1,link2) || equalNodes(link1.reverse(),link2);
+
+    public static boolean equalNodesBidirectional(GLink link1, GLink link2) {
+        return equalNodes(link1, link2) || equalNodes(link1.reverse(), link2);
     }
-    
-    
 
     @Override
     public String toString() {

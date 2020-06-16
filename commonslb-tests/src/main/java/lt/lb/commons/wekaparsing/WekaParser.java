@@ -2,9 +2,9 @@ package lt.lb.commons.wekaparsing;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +26,10 @@ public class WekaParser<T> {
     protected HashMap<Class, WekaTransformer> printers = new HashMap<>();
     protected Class<T> cls;
     protected String className;
+    
+    protected int typeInfoLengthMin = 30;
+    protected int fieldNameLengthMin = 30;
+    protected int spaceLength = 3;
 
     public WekaParser(Class<T> cls, String className, String dateFormat) {
         printers.put(Boolean.class, WekaDefaultParsers.defaultBoolean);
@@ -72,7 +76,7 @@ public class WekaParser<T> {
         return ensureWekaPrinter(attr.getClass()).asString(attr);
     }
 
-    public ArrayList<Field> getFields() {
+    public ArrayList<Field> getFieldsSorted() {
         Field[] fields = cls.getFields();
         Value<Field> classField = new Value<>();
         ArrayList<Field> arr = new ArrayList<>();
@@ -86,7 +90,7 @@ public class WekaParser<T> {
         });
         ExtComparator<Field> ofFieldName = ExtComparator.ofValue(Field::getName, String.CASE_INSENSITIVE_ORDER);
         Collections.sort(arr, ofFieldName);
-        if (classField.get() != null) {
+        if (classField.get() != null) { // importat to be last
             arr.add(classField.get());
         }
         return arr;
@@ -97,25 +101,29 @@ public class WekaParser<T> {
      * @return attribute part of a .arff file
      */
     public ArrayList<String> wekaReadyAttributes() {
-        ArrayList<Field> arr = this.getFields();
+        ArrayList<Field> arr = this.getFieldsSorted();
         ArrayList<String> str = new ArrayList<>(arr.size());
-        int maxFieldLength = arr.stream().map(f -> f.getName().length()).max(ExtComparator.ofComparable()).orElse(30) + 3;
-        int maxTypeLength = arr.stream().map(f -> f.getType()).map(f -> ensureWekaPrinter(f).typeInfo().length()).max(ExtComparator.ofComparable()).orElse(30) + 3;
+        int maxFieldLength = arr.stream().map(f -> f.getName().length())
+                .max(Comparator.naturalOrder()).orElse(fieldNameLengthMin) + spaceLength;
+        int maxTypeLength = arr.stream().map(f -> f.getType())
+                .map(f -> ensureWekaPrinter(f).typeInfo().length())
+                .max(Comparator.naturalOrder()).orElse(fieldNameLengthMin) + spaceLength;
         final String format = "@ATTRIBUTE %-" + maxFieldLength + "s %-" + maxTypeLength + "s %s";
         F.iterate(arr, (i, field) -> {
-            Optional<String> map = F.find(field.getAnnotations(), (j, a) -> a instanceof Comment)
+            String mapped = F.find(field.getAnnotations(), (j, a) -> a instanceof Comment)
                     .map(m -> {
                         Comment com = F.cast(m.g2);
                         return com.value();
-                    }).map(m -> " % " + m);
-            str.add(String.format(format, field.getName(), ensureWekaPrinter(field.getType()).typeInfo(), map.orElse("")));
+                    }).map(m -> " % " + m).orElse("");
+            String typeInfo = ensureWekaPrinter(field.getType()).typeInfo();
+            str.add(String.format(format, field.getName(), typeInfo, mapped));
         });
         return str;
     }
 
     /**
      * Create an object form attributes. Order is very important. Override
-     * method getFields if you want a specific order.
+     * method getFieldsSorted if you want a specific order.
      *
      * @param attributes
      * @return
@@ -123,7 +131,7 @@ public class WekaParser<T> {
      */
     public T objectFromAttributes(List<String> attributes) throws Exception {
         T newInstance = this.cls.getDeclaredConstructor().newInstance();
-        ArrayList<Field> fields = this.getFields();
+        ArrayList<Field> fields = this.getFieldsSorted();
 
         if (attributes.size() > fields.size()) {
             throw new IllegalArgumentException("Class field count:" + fields.size() + " attribute count:" + attributes.size());
@@ -148,7 +156,7 @@ public class WekaParser<T> {
     public ArrayList<String> wekaReadyDataLines(Collection<T> col) {
         ArrayList<String> wekaReady = new ArrayList<>(col.size() + 2);
 
-        ArrayList<Field> fields = this.getFields();
+        ArrayList<Field> fields = this.getFieldsSorted();
         if (fields.isEmpty()) {
             return wekaReady;
         }
@@ -179,8 +187,6 @@ public class WekaParser<T> {
     public ArrayList<String> wekaReadyLines(String relationName, Collection<T> col) throws Exception {
         ArrayList<String> wekaReadyAttributes = this.wekaReadyAttributes();
         ArrayList<String> wekaReady = new ArrayList<>();
-//        wekaReady.addAll(this.wekaReadyComments());
-//        wekaReady.add("");
         wekaReady.add("@Relation " + relationName);
 
         wekaReady.add("");
