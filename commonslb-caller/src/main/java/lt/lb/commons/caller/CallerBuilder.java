@@ -1,5 +1,6 @@
 package lt.lb.commons.caller;
 
+import lt.lb.commons.containers.CastList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;

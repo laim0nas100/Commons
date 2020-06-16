@@ -1,5 +1,6 @@
 package lt.lb.commons.caller;
 
+import lt.lb.commons.containers.CastList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -265,7 +266,7 @@ public class Caller<T> {
      * @param stackLimit limit of a stack size (each nested dependency expands
      * stack by 1). Use Optional.empty to disable limit.
      * @param callLimit limit of how many calls can be made (useful for endless
-     * recursion detection). Use Optional.empty to disable limit.
+     * recursion detection). Use non-positive to disable limit.
      * @param branch how many branch levels to allow (uses recursion) amount of
      * forks is determined by {@code Caller} dependencies
      * @param exe executor
