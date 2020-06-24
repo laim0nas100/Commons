@@ -23,11 +23,11 @@ import lt.lb.commons.threads.Futures;
  * @param <T>
  */
 public class Job<T> implements Future<T> {
-
+    
     Collection<Dependency> doBefore = new HashSet<>();
     Collection<Job> doAfter = new HashSet<>();
     final String uuid;
-
+    
     Map<String, Collection<JobEventListener>> listeners = new HashMap<>();
     EnumMap<SystemJobEventName, Collection<JobEventListener>> systemListeners = new EnumMap<>(SystemJobEventName.class);
     AtomicBoolean cancelled = new AtomicBoolean(false);
@@ -37,49 +37,49 @@ public class Job<T> implements Future<T> {
     AtomicBoolean scheduled = new AtomicBoolean(false);
     AtomicBoolean discarded = new AtomicBoolean(false);
     AtomicBoolean running = new AtomicBoolean(false);
-
+    
     Job canceledParent;
     Job canceledRoot;
-
+    
     final FutureTask<T> task;
-
+    
     public Job(String uuid, UnsafeConsumer<? super Job<T>> call) {
         this.uuid = uuid;
         task = new FutureTask<>(() -> call.accept(this), null);
     }
-
+    
     public Job(String uuid, UnsafeFunction<? super Job<T>, ? extends T> call) {
         this.uuid = uuid;
         UnsafeSupplier<T> sup = () -> call.applyUnsafe(this);
         task = Futures.ofCallable(sup);
-
+        
     }
-
+    
     public Job(UnsafeConsumer<? super Job<T>> call) {
         this(UUID.randomUUID().toString(), call);
     }
-
+    
     public Job(UnsafeFunction<? super Job<T>, ? extends T> call) {
         this(UUID.randomUUID().toString(), call);
     }
-
+    
     @Override
     public T get() throws InterruptedException, ExecutionException {
         return task.get();
     }
-
+    
     @Override
     public T get(long time, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return task.get(time, unit);
     }
-
+    
     @Override
     public int hashCode() {
         int hash = 3;
         hash = 67 * hash + uuid.hashCode();
         return hash;
     }
-
+    
     @Override
     public boolean equals(Object o) {
         if (o == null) {
@@ -91,44 +91,44 @@ public class Job<T> implements Future<T> {
         }
         return false;
     }
-
+    
     public String getUUID() {
         return this.uuid;
     }
-
+    
     public void cancel() {
         this.cancel(true, true);
     }
-
+    
     public boolean cancel(boolean interrupt, boolean propogate) {
         return cancelInner(interrupt, propogate, this);
     }
-
+    
     private boolean cancelInner(boolean interrupt, boolean propogate, Job root) {
-
+        
         if (!cancelled.compareAndSet(false, true)) {
             return false;
         }
-        this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_CANCEL, this));
+        this.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_CANCEL, this));
         boolean ok = task.cancel(interrupt);
         if (propogate) {
             for (Job j : this.doAfter) {
                 j.canceledRoot = root;
                 j.canceledParent = this;
                 j.cancelInner(interrupt, propogate, root);
-
+                
             }
         }
         return ok;
     }
-
+    
     @Override
     public boolean cancel(boolean interrupt) {
         return this.cancel(interrupt, true);
     }
-
+    
     public boolean canRun() {
-
+        
         if (this.isDone()) {
             return false;
         }
@@ -139,38 +139,38 @@ public class Job<T> implements Future<T> {
         }
         return true;
     }
-
+    
     @Override
     public boolean isCancelled() {
         return cancelled.get();
     }
-
+    
     public boolean isSuccessfull() {
         return successfull;
     }
-
+    
     public boolean isFailed() {
         return failed;
     }
-
+    
     public boolean isDiscarded() {
         return discarded.get();
     }
-
+    
     public boolean isRunning() {
         return running.get();
     }
-
+    
     public boolean isScheduled() {
         return scheduled.get();
     }
-
+    
     public int getFailedToStart() {
         return this.failedToStart.get();
     }
-
+    
     public List<Job> getCanceledChain() {
-
+        
         LinkedList<Job> chain = new LinkedList<>();
         if (!isCancelled()) {
             return chain;
@@ -181,20 +181,20 @@ public class Job<T> implements Future<T> {
             chain.addAll(canceledParent.getCanceledChain());
         }
         return chain;
-
+        
     }
-
+    
     public Optional<Job> getCanceledRoot() {
         return Optional.ofNullable(this.canceledRoot);
     }
-
+    
     @Override
     public boolean isDone() {
         return (isCancelled() || isFailed() || isSuccessfull());
     }
     
-    public boolean isExecuted(){
-        return (isRunning()|| isFailed() || isSuccessfull());
+    public boolean isExecuted() {
+        return (isRunning() || isFailed() || isSuccessfull());
     }
 
     /**
@@ -256,7 +256,8 @@ public class Job<T> implements Future<T> {
     }
 
     /**
-     * Add job, that can be canceled via propagation, if this job were to be canceled.
+     * Add job, that can be canceled via propagation, if this job were to be
+     * canceled.
      *
      * @param dep
      * @return
@@ -272,14 +273,14 @@ public class Job<T> implements Future<T> {
      */
     public void run() {
         if (!this.canRun()) {
-            this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_FAILED_TO_START, this));
+            this.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_FAILED_TO_START, this));
             this.failedToStart.incrementAndGet();
             this.scheduled.set(false);
             return;
         }
         if (this.running.compareAndSet(false, true)) { // ensure only one running instance
 
-            this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_EXECUTE, this));
+            this.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_EXECUTE, this));
             task.run();
             Optional<Throwable> error = F.checkedRun(task::get);
             if (error.isPresent()) {
@@ -288,19 +289,19 @@ public class Job<T> implements Future<T> {
                 this.successfull = true;
             }
             if (isSuccessfull()) {
-                this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_SUCCESSFUL, this));
+                this.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_SUCCESSFUL, this));
             }
             if (isFailed() && error.isPresent()) {
-                this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_FAILED, this, error.get()));
+                this.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_FAILED, this, error.get()));
             }
-            this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_DONE, this));
-
+            this.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_DONE, this));
+            
             if (!this.running.compareAndSet(true, false)) {
                 throw new IllegalStateException("After job:" + this.getUUID() + " ran, property running was set to false");
             }
-
+            
         }
-
+        
     }
 
     /**
@@ -324,23 +325,31 @@ public class Job<T> implements Future<T> {
         assertNoChange("systemListeners");
         systemListeners.computeIfAbsent(name, n -> new LinkedList<>()).add(listener);
     }
-
+    
     private void assertNoChange(String msg) {
         if (this.isScheduled()) {
             throw new IllegalStateException("Job has been scheduled, " + msg + " should not change");
         }
     }
-
+    
     public void fireEvent(JobEvent event) {
-
+        
         Objects.requireNonNull(event);
-        Collection<JobEventListener> collection;
         if (event instanceof SystemJobEvent) {
-            SystemJobEvent sysEvent = (SystemJobEvent) event;
-            collection = this.systemListeners.getOrDefault(sysEvent.enumName, EmptyImmutableList.getInstance());
+            fireSystemEvent(F.cast(event));
         } else {
-            collection = this.listeners.getOrDefault(event.getEventName(), EmptyImmutableList.getInstance());
+            fireEvent(event, listeners.getOrDefault(event.getEventName(), EmptyImmutableList.getInstance()));
         }
+        
+    }
+    
+    public final void fireSystemEvent(SystemJobEvent event) {
+        
+        Objects.requireNonNull(event);
+        fireEvent(event, systemListeners.getOrDefault(event.enumName, EmptyImmutableList.getInstance()));
+    }
+    
+    protected void fireEvent(JobEvent event, Collection<JobEventListener> collection) {
         for (JobEventListener listener : collection) {
             F.checkedRun(() -> {
                 listener.onEvent(event);
@@ -349,7 +358,7 @@ public class Job<T> implements Future<T> {
 
         }
     }
-
+    
     public Runnable asRunnable() {
         return this::run;
     }

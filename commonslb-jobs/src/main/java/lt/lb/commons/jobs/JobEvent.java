@@ -6,12 +6,13 @@ import java.util.Optional;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
-public class JobEvent {
+public class JobEvent<T> {
 
     private final String eventName;
     private final Job createdBy;
-    private Optional<Object> data;
+    private Optional<T> data;
 
     public String getEventName() {
         return eventName;
@@ -21,7 +22,7 @@ public class JobEvent {
         return this.createdBy;
     }
 
-    public Optional<Object> getData() {
+    public Optional<T> getData() {
         return data;
     }
 
@@ -29,7 +30,7 @@ public class JobEvent {
         this(eventName, source, null);
     }
 
-    public JobEvent(String eventName, Job source, Object data) {
+    public JobEvent(String eventName, Job source, T data) {
         this.eventName = Objects.requireNonNull(eventName);
         this.createdBy = Objects.requireNonNull(source);
         this.data = Optional.ofNullable(data);

@@ -81,12 +81,12 @@ public class JobExecutor {
             }
             if (job.isDone()) {
                 if (job.discarded.compareAndSet(false, true)) {
-                    job.fireEvent(new SystemJobEvent(SystemJobEventName.ON_DISCARDED, job));
+                    job.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_DISCARDED, job));
                     iterator.remove();
                 }
             } else if (job.canRun()) {
                 if (job.scheduled.compareAndSet(false, true)) {
-                    job.fireEvent(new SystemJobEvent(SystemJobEventName.ON_SCHEDULED, job));
+                    job.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_SCHEDULED, job));
                     try {
                         //we dont control executor, so just in case it is bad
                         exe.execute(job.asRunnable());

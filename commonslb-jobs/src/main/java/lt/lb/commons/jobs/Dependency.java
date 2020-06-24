@@ -6,11 +6,6 @@ package lt.lb.commons.jobs;
  */
 public interface Dependency {
 
-    @Override
-    public boolean equals(Object o);
-
-    @Override
-    public int hashCode();
 
     /**
      * Wether dependency is satisfied

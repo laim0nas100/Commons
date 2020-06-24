@@ -46,7 +46,7 @@ public abstract class AbstractJobDependency implements JobDependency {
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 83 * hash + this.job.hashCode();
+        hash = 83 * hash + Objects.hashCode(this.job);
         hash = 83 * hash + Objects.hashCode(this.onEvent);
         return hash;
     }
