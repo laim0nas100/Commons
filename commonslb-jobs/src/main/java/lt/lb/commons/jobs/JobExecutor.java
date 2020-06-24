@@ -74,7 +74,6 @@ public class JobExecutor {
     private void rescanJobs0() {
 
         Iterator<Job> iterator = jobs.iterator();
-        System.out.println("Rescanning jobs");
         while (iterator.hasNext()) {
             Job job = iterator.next();
             if (job == null) {
