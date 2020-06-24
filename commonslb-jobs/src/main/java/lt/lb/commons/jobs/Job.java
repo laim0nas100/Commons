@@ -252,7 +252,7 @@ public class Job<T> implements Future<T> {
     }
 
     /**
-     * Add job, that can be canceled via propogation, if this job is canceled
+     * Add job, that can be canceled via propagation, if this job were to be canceled.
      *
      * @param dep
      * @return
