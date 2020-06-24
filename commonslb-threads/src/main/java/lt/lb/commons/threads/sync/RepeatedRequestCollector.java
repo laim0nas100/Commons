@@ -56,7 +56,7 @@ public class RepeatedRequestCollector {
 
     /**
      * Add request and execute it if it does not exceed already running requests
-     * threshold. Makes sure, that lastest future was started after this method
+     * threshold. Makes sure, that latest future was started after this method
      * was called
      *
      * @return last started future,

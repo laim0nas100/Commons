@@ -53,5 +53,11 @@ public class IMAPEmailProps extends IMAPOrPOP3Props {
         public String getStore() {
             return super.getStore() + "s";
         }
+
+        @Override
+        public void populate() {
+            super.populate(); //To change body of generated methods, choose Tools | Templates.
+        }
+        
     }
 }

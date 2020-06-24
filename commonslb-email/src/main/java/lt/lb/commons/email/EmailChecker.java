@@ -29,12 +29,12 @@ public class EmailChecker extends ScheduledDispatchExecutor {
 
             F.unsafeRunWithHandler(channels.errorChannel, () -> {
                 Session emailSession = Session.getInstance(p);
-                debug.appendLine("Session == null ?" + (emailSession == null), " ", emailSession.getClass().getName());
+                debug.appendLine("Session == null ? " + (emailSession == null), " ", emailSession.getClass().getName());
                 debug.appendLine("Try get store " + p.getStore());
                 Store store = emailSession.getStore(p.getStore());
-                debug.appendLine("Store == null ?" + (store == null), " ", store.getClass().getName());
+                debug.appendLine("Store == null ? " + (store == null), " ", store.getClass().getName());
                 debug.appendLine("Try connect to store");
-                store.connect(p.host, p.username, p.password);
+                store.connect(p.host, p.port, p.username, p.password);
                 debug.appendLine("Try open folder " + p.folderName + " mode:" + p.getFolderOpenMode());
                 Folder emailFolder = store.getFolder(p.folderName);
                 emailFolder.open(p.getFolderOpenMode());

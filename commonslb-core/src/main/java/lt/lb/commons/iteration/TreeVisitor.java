@@ -23,7 +23,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
     }
 
     /**
-     * Depth-first search iterative. Same as preorder traversal. With element
+     * Depth-first search iterative. Same as preorder traversal. With optional element
      * collection hence cycle prevention.
      *
      * @param root
@@ -45,7 +45,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
     }
 
     /**
-     * Depth-first search recursive. Same as preorder traversal. With element
+     * Depth-first search recursive. Same as preorder traversal. With optional element
      * collection hence cycle prevention.
      *
      * @param root
@@ -57,7 +57,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
     }
 
     /**
-     * Breath-first search. With element collection hence cycle prevention.
+     * Breath-first search. No cycle prevention.
      *
      * @param root
      * @return
@@ -67,7 +67,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
     }
 
     /**
-     * Breath-first search. With element collection hence cycle prevention.
+     * Breath-first search. With optional element collection hence cycle prevention.
      *
      * @param root
      * @param set
@@ -88,7 +88,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
     }
 
     /**
-     * PosOrder search (Children first). Recursive. With element collection
+     * PosOrder search (Children first). Recursive. With optional element collection
      * hence cycle prevention.
      *
      * @param root
@@ -110,7 +110,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
     }
 
     /**
-     * PosOrder search (Children first). Iterative. With element collection
+     * PosOrder search (Children first). Iterative. With optional element collection
      * hence cycle prevention.
      *
      * @param root
