@@ -11,8 +11,7 @@ import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  * Job executor with provided base executor. No cleanup is necessary. Job
- * scheduling is performed in the same executor as job execution and is also
- * multi-threaded.
+ * scheduling is is also multi-threaded.
  *
  * @author laim0nas100
  */
@@ -28,12 +27,16 @@ public class JobExecutor {
     protected volatile CompletableFuture awaitJobEmpty = new CompletableFuture();
 
     public JobExecutor(Executor exe) {
+        this(2, exe, exe);
+    }
+
+    public JobExecutor(int rescanThrottle, Executor exe, Executor rescanExecutor) {
         this.exe = exe;
-        this.rrc = new RepeatedRequestCollector(3, () -> rescanJobs0(), exe);
+        this.rrc = new RepeatedRequestCollector(rescanThrottle, () -> rescanJobs0(), rescanExecutor);
     }
 
     /**
-     * Add job in job list. Not necessary becomes scheduled instantly.
+     * Add job in job list. Does not become scheduled instantly.
      *
      * @param job
      */
@@ -41,8 +44,10 @@ public class JobExecutor {
         if (isShutdown) {
             throw new IllegalStateException("Shutdown was called");
         }
+        job.addListener(SystemJobEventName.ON_DONE, rescanJobs);
+        job.addListener(SystemJobEventName.ON_FAILED_TO_START, rescanJobs);
         jobs.add(job);
-        job.addListener(JobEvent.ON_DONE, rescanJobs);
+
         addScanRequest();
     }
 
@@ -51,8 +56,14 @@ public class JobExecutor {
     }
 
     /**
-     * Re-scan jobs. Schedule ready jobs and discard discardable. If no more
-     * jobs are left, completes emptiness waiter.
+     * Rescans after a job becomes done or a new job is submitted. Schedule
+     * ready jobs and discard discardable. If no more jobs are left, completes
+     * emptiness waiter.
+     *
+     * Doesn't run automatically. If you are using special dependencies, for
+     * example "run only if current day is Christmas", it will not check every
+     * day. It's the responsibility of the user to rescan periodically if such
+     * dependencies are used.
      */
     public void rescanJobs() {
         this.addScanRequest();
@@ -63,6 +74,7 @@ public class JobExecutor {
     private void rescanJobs0() {
 
         Iterator<Job> iterator = jobs.iterator();
+        System.out.println("Rescanning jobs");
         while (iterator.hasNext()) {
             Job job = iterator.next();
             if (job == null) {
@@ -70,11 +82,12 @@ public class JobExecutor {
             }
             if (job.isDone()) {
                 if (job.discarded.compareAndSet(false, true)) {
+                    job.fireEvent(new SystemJobEvent(SystemJobEventName.ON_DISCARDED, job));
                     iterator.remove();
                 }
             } else if (job.canRun()) {
                 if (job.scheduled.compareAndSet(false, true)) {
-                    job.fireEvent(new JobEvent(JobEvent.ON_SCHEDULED, job));
+                    job.fireEvent(new SystemJobEvent(SystemJobEventName.ON_SCHEDULED, job));
                     try {
                         //we dont control executor, so just in case it is bad
                         exe.execute(job.asRunnable());
@@ -127,8 +140,7 @@ public class JobExecutor {
         }
         try {
             this.awaitJobEmpty.get(time.time, time.unit);
-        } catch (ExecutionException ex) {
-        } catch (TimeoutException ex) {
+        } catch (ExecutionException | TimeoutException ex) {
             return false;
         }
         return true;

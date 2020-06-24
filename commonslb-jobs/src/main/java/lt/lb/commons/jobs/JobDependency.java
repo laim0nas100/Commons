@@ -5,7 +5,7 @@ package lt.lb.commons.jobs;
  * Dependency with explicit job association. 
  * @author laim0nas100
  */
-public interface JobDependency<T> extends Dependency{
+public interface JobDependency<T> extends Dependency {
 
     
 

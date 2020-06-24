@@ -8,7 +8,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import lt.lb.commons.EmptyImmutableList;
 import lt.lb.commons.F;
+import lt.lb.commons.func.unchecked.UnsafeConsumer;
 import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.func.unchecked.UnsafeSupplier;
 import lt.lb.commons.threads.Futures;
@@ -18,45 +20,46 @@ import lt.lb.commons.threads.Futures;
  *
  *
  * @author laim0nas100
+ * @param <T>
  */
-public final class Job<T> implements Future<T> {
+public class Job<T> implements Future<T> {
 
     Collection<Dependency> doBefore = new HashSet<>();
     Collection<Job> doAfter = new HashSet<>();
-    private final String uuid;
+    final String uuid;
 
     Map<String, Collection<JobEventListener>> listeners = new HashMap<>();
-
+    EnumMap<SystemJobEventName, Collection<JobEventListener>> systemListeners = new EnumMap<>(SystemJobEventName.class);
     AtomicBoolean cancelled = new AtomicBoolean(false);
-    private boolean failed = false;
-    private boolean successfull = false;
+    boolean failed = false;
+    boolean successfull = false;
     AtomicInteger failedToStart = new AtomicInteger(0);
     AtomicBoolean scheduled = new AtomicBoolean(false);
     AtomicBoolean discarded = new AtomicBoolean(false);
     AtomicBoolean running = new AtomicBoolean(false);
 
-    private Job canceledParent;
-    private Job canceledRoot;
+    Job canceledParent;
+    Job canceledRoot;
 
-    private final FutureTask<T> task;
+    final FutureTask<T> task;
 
-    public Job(String uuid, UnsafeSupplier<T> call) {
+    public Job(String uuid, UnsafeConsumer<? super Job<T>> call) {
         this.uuid = uuid;
-        task = Futures.ofCallable(call);
+        task = new FutureTask<>(() -> call.accept(this), null);
     }
 
-    public Job(String uuid, UnsafeFunction<Job<T>, T> call) {
+    public Job(String uuid, UnsafeFunction<? super Job<T>, ? extends T> call) {
         this.uuid = uuid;
         UnsafeSupplier<T> sup = () -> call.applyUnsafe(this);
         task = Futures.ofCallable(sup);
 
     }
 
-    public Job(UnsafeSupplier<T> call) {
+    public Job(UnsafeConsumer<? super Job<T>> call) {
         this(UUID.randomUUID().toString(), call);
     }
 
-    public Job(UnsafeFunction<Job<T>, T> call) {
+    public Job(UnsafeFunction<? super Job<T>, ? extends T> call) {
         this(UUID.randomUUID().toString(), call);
     }
 
@@ -106,7 +109,7 @@ public final class Job<T> implements Future<T> {
         if (!cancelled.compareAndSet(false, true)) {
             return false;
         }
-        this.fireEvent(new JobEvent(JobEvent.ON_CANCEL, this));
+        this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_CANCEL, this));
         boolean ok = task.cancel(interrupt);
         if (propogate) {
             for (Job j : this.doAfter) {
@@ -119,6 +122,7 @@ public final class Job<T> implements Future<T> {
         return ok;
     }
 
+    @Override
     public boolean cancel(boolean interrupt) {
         return this.cancel(interrupt, true);
     }
@@ -184,6 +188,7 @@ public final class Job<T> implements Future<T> {
         return Optional.ofNullable(this.canceledRoot);
     }
 
+    @Override
     public boolean isDone() {
         return ((isCancelled() || isFailed()) || isSuccessfull());
     }
@@ -195,9 +200,9 @@ public final class Job<T> implements Future<T> {
      * @param job
      * @return
      */
-    public Job chainBackward(String onEvent, Job job) {
+    public Job chainBackward(SystemJobEventName onEvent, Job job) {
         job.addAfter(this);
-        this.addDependency(new DefaultJobDependency(job, onEvent));
+        this.addDependency(new SystemJobDependency(job, onEvent));
         return this;
     }
 
@@ -208,9 +213,9 @@ public final class Job<T> implements Future<T> {
      * @param job
      * @return
      */
-    public Job chainForward(String onEvent, Job job) {
+    public Job chainForward(SystemJobEventName onEvent, Job job) {
         this.addAfter(job);
-        job.addDependency(new DefaultJobDependency(this, onEvent));
+        job.addDependency(new SystemJobDependency(this, onEvent));
         return this;
     }
 
@@ -221,7 +226,7 @@ public final class Job<T> implements Future<T> {
      * @return
      */
     public Job chainBackward(Job job) {
-        return this.chainBackward(JobEvent.ON_SUCCEEDED, job);
+        return this.chainBackward(SystemJobEventName.ON_SUCCESSFUL, job);
     }
 
     /**
@@ -231,7 +236,7 @@ public final class Job<T> implements Future<T> {
      * @return
      */
     public Job chainForward(Job job) {
-        return this.chainForward(JobEvent.ON_SUCCEEDED, job);
+        return this.chainForward(SystemJobEventName.ON_SUCCESSFUL, job);
     }
 
     /**
@@ -247,7 +252,7 @@ public final class Job<T> implements Future<T> {
     }
 
     /**
-     * Add job, that can be canceled, if this is canceled
+     * Add job, that can be canceled via propogation, if this job is canceled
      *
      * @param dep
      * @return
@@ -263,14 +268,14 @@ public final class Job<T> implements Future<T> {
      */
     public void run() {
         if (!this.canRun()) {
-            this.fireEvent(new JobEvent(JobEvent.ON_FAILED_TO_START, this));
+            this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_FAILED_TO_START, this));
             this.failedToStart.incrementAndGet();
             this.scheduled.set(false);
             return;
         }
         if (this.running.compareAndSet(false, true)) { // ensure only one running instance
 
-            this.fireEvent(new JobEvent(JobEvent.ON_EXECUTE, this));
+            this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_EXECUTE, this));
             task.run();
             Optional<Throwable> error = F.checkedRun(task::get);
             if (error.isPresent()) {
@@ -279,12 +284,12 @@ public final class Job<T> implements Future<T> {
                 this.successfull = true;
             }
             if (isSuccessfull()) {
-                this.fireEvent(new JobEvent(JobEvent.ON_SUCCEEDED, this));
+                this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_SUCCESSFUL, this));
             }
             if (isFailed() && error.isPresent()) {
-                this.fireEvent(new JobEvent(JobEvent.ON_FAILED, this, error.get()));
+                this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_FAILED, this, error.get()));
             }
-            this.fireEvent(new JobEvent(JobEvent.ON_DONE, this));
+            this.fireEvent(new SystemJobEvent(SystemJobEventName.ON_DONE, this));
 
             if (!this.running.compareAndSet(true, false)) {
                 throw new IllegalStateException("After job:" + this.getUUID() + " ran, property running was set to false");
@@ -295,7 +300,7 @@ public final class Job<T> implements Future<T> {
     }
 
     /**
-     * Add job listener that
+     * Add custom job listener
      *
      * @param name
      * @param listener
@@ -305,20 +310,38 @@ public final class Job<T> implements Future<T> {
         listeners.computeIfAbsent(name, n -> new LinkedList<>()).add(listener);
     }
 
+    /**
+     * Add system job listener
+     *
+     * @param name
+     * @param listener
+     */
+    public void addListener(SystemJobEventName name, JobEventListener listener) {
+        assertNoChange("systemListeners");
+        systemListeners.computeIfAbsent(name, n -> new LinkedList<>()).add(listener);
+    }
+
     private void assertNoChange(String msg) {
         if (this.isScheduled()) {
             throw new IllegalStateException("Job has been scheduled, " + msg + " should not change");
         }
     }
 
-    private static final ArrayList<JobEventListener> empty = new ArrayList<>(0);
-
     public void fireEvent(JobEvent event) {
-        for (JobEventListener listener : this.listeners.getOrDefault(event.getEventName(), empty)) {
+
+        Objects.requireNonNull(event);
+        Collection<JobEventListener> collection;
+        if (event instanceof SystemJobEvent) {
+            SystemJobEvent sysEvent = (SystemJobEvent) event;
+            collection = this.systemListeners.getOrDefault(sysEvent.enumName, EmptyImmutableList.getInstance());
+        } else {
+            collection = this.listeners.getOrDefault(event.getEventName(), EmptyImmutableList.getInstance());
+        }
+        for (JobEventListener listener : collection) {
             F.checkedRun(() -> {
                 listener.onEvent(event);
             });
-            //ignore exceptions
+            //ignore exceptions, because those should've been handled inside event listeners
 
         }
     }
