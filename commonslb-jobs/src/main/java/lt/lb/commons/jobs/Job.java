@@ -190,7 +190,11 @@ public class Job<T> implements Future<T> {
 
     @Override
     public boolean isDone() {
-        return ((isCancelled() || isFailed()) || isSuccessfull());
+        return (isCancelled() || isFailed() || isSuccessfull());
+    }
+    
+    public boolean isExecuted(){
+        return (isRunning()|| isFailed() || isSuccessfull());
     }
 
     /**

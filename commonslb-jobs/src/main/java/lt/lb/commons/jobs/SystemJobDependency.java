@@ -3,7 +3,8 @@ package lt.lb.commons.jobs;
 import java.util.function.Supplier;
 
 /**
- * System job dependency support all system events defined in SystemJobEventName.
+ * System job dependency support all system events defined in
+ * SystemJobEventName.
  *
  * @author laim0nas100
  */
@@ -26,7 +27,7 @@ public class SystemJobDependency extends AbstractJobDependency {
             }
 
             case ON_EXECUTE: {
-                completedSupplier = () -> job.isRunning() || job.isDone();
+                completedSupplier = () -> job.isExecuted();
                 break;
             }
 
