@@ -81,7 +81,11 @@ public class RepeatedRequestCollector {
     private TimeAwareFutureTask executeRequest() {
         TimeAwareFutureTask timeAwareFutureTask = new TimeAwareFutureTask(task);
         lastCommitTask.set(timeAwareFutureTask);
-        commitExecutor.execute(timeAwareFutureTask);
+        try {
+            commitExecutor.execute(timeAwareFutureTask);
+        } catch(Throwable ignore) {
+
+        }
 
         return timeAwareFutureTask;
     }
