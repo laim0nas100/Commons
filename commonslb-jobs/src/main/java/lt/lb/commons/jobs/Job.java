@@ -46,10 +46,10 @@ public class Job<T> implements RunnableFuture<T> {
     Map<String, Collection<JobEventListener>> listeners = new HashMap<>();
     EnumMap<SystemJobEventName, Collection<JobEventListener>> systemListeners = new EnumMap<>(SystemJobEventName.class);
     AtomicBoolean cancelled = new AtomicBoolean(false);
-    boolean exceptional = false;
-    boolean successfull = false;
-    boolean interupted = false;
-    boolean exceptionalEvent = false;
+    volatile boolean exceptional = false;
+    volatile boolean successfull = false;
+    volatile boolean interupted = false;
+    volatile boolean exceptionalEvent = false;
     AtomicInteger failedToStart = new AtomicInteger(0);
     AtomicBoolean scheduled = new AtomicBoolean(false);
     AtomicBoolean discarded = new AtomicBoolean(false);
@@ -356,12 +356,13 @@ public class Job<T> implements RunnableFuture<T> {
 
         return isScheduled() && (isRunning() || isDone());
     }
+
     /**
      * {@link lt.lb.commons.jobs.events.SystemJobEventName#ON_EXCEPTIONAL_EVENT}
      *
      * @return
      */
-    public boolean isExceptionalEvent(){
+    public boolean isExceptionalEvent() {
         return exceptionalEvent;
     }
 
@@ -445,8 +446,8 @@ public class Job<T> implements RunnableFuture<T> {
             return;
         }
         if (!this.canRun()) {
-            this.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_FAILED_TO_START, this));
             this.failedToStart.incrementAndGet();
+            this.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_FAILED_TO_START, this));
             this.scheduled.set(false);
             return;
         }
@@ -548,14 +549,14 @@ public class Job<T> implements RunnableFuture<T> {
      */
     protected void fireEvent(JobEvent event, Collection<JobEventListener> collection, boolean ignore) {
         for (JobEventListener listener : collection) {
-
             try {
                 listener.onEvent(event);
             } catch (Throwable th) {
                 if (!ignore) {
+                    Collection<JobEventListener> onExcpetionalEvent = systemListeners.getOrDefault(SystemJobEventName.ON_EXCEPTIONAL_EVENT, EmptyImmutableList.getInstance());
                     exceptionalEvent = true;
                     SystemJobEvent systemJobEvent = new SystemJobEvent(SystemJobEventName.ON_EXCEPTIONAL_EVENT, event.getCreator(), th);
-                    fireEvent(systemJobEvent, systemListeners.getOrDefault(SystemJobEventName.ON_EXCEPTIONAL_EVENT, EmptyImmutableList.getInstance()), true);
+                    fireEvent(systemJobEvent, onExcpetionalEvent, true);
                 }
             }
         }

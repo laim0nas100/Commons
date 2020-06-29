@@ -93,8 +93,9 @@ public class JobExecutor {
             }
             if (job.isDone()) {
                 if (job.discarded.compareAndSet(false, true)) {
-                    job.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_DISCARDED, job));
                     iterator.remove();
+                    job.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_DISCARDED, job));
+                    
                 }
             } else if (!job.isScheduled() && job.canRun()) {
                 if (job.scheduled.compareAndSet(false, true)) {
