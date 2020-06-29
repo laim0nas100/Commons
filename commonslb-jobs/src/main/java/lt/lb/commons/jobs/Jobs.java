@@ -1,5 +1,7 @@
 package lt.lb.commons.jobs;
 
+import lt.lb.commons.jobs.dependency.Dependency;
+import lt.lb.commons.jobs.dependency.JobDependency;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

@@ -1,6 +1,7 @@
-package lt.lb.commons.jobs;
+package lt.lb.commons.jobs.dependency;
 
 import java.util.Objects;
+import lt.lb.commons.jobs.Job;
 
 /**
  * @author laim0nas100

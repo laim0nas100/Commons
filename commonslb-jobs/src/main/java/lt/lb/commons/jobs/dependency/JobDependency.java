@@ -1,4 +1,6 @@
-package lt.lb.commons.jobs;
+package lt.lb.commons.jobs.dependency;
+
+import lt.lb.commons.jobs.Job;
 
 /**
  *

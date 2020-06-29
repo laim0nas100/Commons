@@ -1,5 +1,8 @@
 package lt.lb.commons.jobs;
 
+import lt.lb.commons.jobs.events.JobEventListener;
+import lt.lb.commons.jobs.events.SystemJobEvent;
+import lt.lb.commons.jobs.events.SystemJobEventName;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -11,7 +14,8 @@ import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  * Job executor with provided base executor. No cleanup is necessary. Job
- * scheduling is is also multi-threaded.
+ * scheduling uses same provided executor (usually the same work thread after
+ * job was finished).
  *
  * @author laim0nas100
  */
@@ -26,13 +30,22 @@ public class JobExecutor {
 
     protected volatile CompletableFuture awaitJobEmpty = new CompletableFuture();
 
+    /**
+     *
+     * @param exe Main executor
+     */
     public JobExecutor(Executor exe) {
-        this(2, exe, exe);
+        this(2, exe);
     }
 
-    public JobExecutor(int rescanThrottle, Executor exe, Executor rescanExecutor) {
+    /**
+     *
+     * @param rescanThrottle how many concurrent rescan jobs can be happening (2 by default)
+     * @param exe Main executor
+     */
+    public JobExecutor(int rescanThrottle, Executor exe) {
         this.exe = exe;
-        this.rrc = new RepeatedRequestCollector(rescanThrottle, () -> rescanJobs0(), rescanExecutor);
+        this.rrc = new RepeatedRequestCollector(rescanThrottle, () -> rescanJobs0(), exe);
     }
 
     /**
@@ -89,7 +102,7 @@ public class JobExecutor {
                     job.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_SCHEDULED, job));
                     try {
                         //we dont control executor, so just in case it is bad
-                        exe.execute(job.asRunnable());
+                        exe.execute(job);
                     } catch (Throwable t) {
                     }
                 }

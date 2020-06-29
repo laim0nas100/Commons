@@ -11,9 +11,10 @@ import lt.lb.commons.Log;
 import lt.lb.commons.jobs.Dependencies;
 import lt.lb.commons.jobs.Jobs;
 import lt.lb.commons.jobs.Job;
-import lt.lb.commons.jobs.JobEvent;
+import lt.lb.commons.jobs.events.JobEvent;
 import lt.lb.commons.jobs.JobExecutor;
-import lt.lb.commons.jobs.SystemJobEventName;
+import lt.lb.commons.jobs.ScheduledJobExecutor;
+import lt.lb.commons.jobs.events.SystemJobEventName;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
@@ -56,7 +57,7 @@ public class JobsTest {
         job.addListener(SystemJobEventName.ON_SUCCESSFUL, e -> {
             Log.print("Success", txt);
         });
-        job.addListener(SystemJobEventName.ON_FAILED, e -> {
+        job.addListener(SystemJobEventName.ON_EXCEPTIONAL, e -> {
             Log.print("Failed, cancelling", txt);
             e.getCreator().cancel();
         });
@@ -76,9 +77,8 @@ public class JobsTest {
 
     public static void main(String... args) throws Exception {
         Log.main().async = false;
-        ScheduledExecutorService sched = Executors.newSingleThreadScheduledExecutor();
         FastExecutor executor = new FastExecutor(8);
-        JobExecutor exe = new JobExecutor(5, executor, executor);
+        JobExecutor exe = new ScheduledJobExecutor(executor);
         List<Job> jobs = new ArrayList<>();
 
         Job j0 = makeJob("0", jobs);
@@ -95,11 +95,6 @@ public class JobsTest {
         j2.chainForward(j6);
         j3.chainForward(j7);
 
-        sched.scheduleAtFixedRate(() -> {
-            System.out.print("Scheduler: ");
-            exe.rescanJobs();
-
-        }, 0, 1, TimeUnit.SECONDS);
 
 //        Job f = makeJob("Final", new ArrayList<>());
 //        Jobs.chainBackward(f, JobEvent.ON_DONE, Jobs.resolveChildLeafs(j0));
@@ -108,7 +103,6 @@ public class JobsTest {
 
         exe.shutdown();
         exe.awaitTermination(WaitTime.ofDays(1));
-        sched.shutdown();
         Log.close();
 
     }

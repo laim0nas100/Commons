@@ -1,8 +1,11 @@
-package lt.lb.commons.jobs;
+package lt.lb.commons.jobs.events;
+
+import lt.lb.commons.jobs.Job;
 
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public final class SystemJobEvent<T> extends JobEvent<T> {
 

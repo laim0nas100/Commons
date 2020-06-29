@@ -1,4 +1,4 @@
-package lt.lb.commons.jobs;
+package lt.lb.commons.jobs.events;
 
 /**
  *
