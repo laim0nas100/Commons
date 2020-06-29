@@ -33,6 +33,7 @@ import lt.lb.commons.Predicates;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.email.props.IMAPEmailProps;
 import lt.lb.commons.io.FileReader;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
@@ -86,12 +87,22 @@ public class JavaMailTest {
     public void ok() throws Exception {
 
         EmailChecker checker = new EmailChecker();
-        POP3EmailProps props = new POP3EmailProps.POP3SEmailProps();
+        IMAPEmailProps.IMAPSEmailProps props = new IMAPEmailProps.IMAPSEmailProps() {
+            @Override
+            public void populate() {
+                this.setProperty("mail.imaps.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+                this.setProperty("mail.imaps.socketFactory.fallback", "false");
+                this.setProperty("mail.imaps.port", "993");
+                this.setProperty("mail.imaps.socketFactory.port", "993");
+                this.setProperty( "mail.store.protocol", "imaps");
+
+            }
+        };
         props.host = host;
         props.password = pass;
         props.port = 993;
         props.username = user;
-        props.setFolderOpenMode(Folder.READ_WRITE);
+        props.setFolderOpenMode(Folder.READ_ONLY);
 
         EmailChannels channels = new EmailChannels();
         Consumer<Throwable> errChannel = (e -> e.printStackTrace());
@@ -120,7 +131,7 @@ public class JavaMailTest {
             Log.print(objs);
             return checker.debug;
         };
-        String taskID = checker.addSchedulingTask(new FastExecutor(1), createPop3Poller, TimeUnit.SECONDS, 20);
+        String taskID = checker.addSchedulingTask(new FastExecutor(1), createPop3Poller, TimeUnit.SECONDS, 10);
         int i = 1;
         boolean enabled = true;
         while (true) {
@@ -136,7 +147,8 @@ public class JavaMailTest {
 
     public static void main(String[] args) throws Exception {
         JavaMailTest t = new JavaMailTest();
-        t.wekaParseEmails();
+//        t.wekaParseEmails();
+        t.ok();
     }
 
     public void other() {
@@ -210,7 +222,7 @@ public class JavaMailTest {
 
         @Comment("Capital characters count / char count")
         public Double capitalCharTotal;
-        
+
         @Comment("Capital character word count / word count")
         public Double capitalRunTotal;
 
@@ -275,12 +287,12 @@ public class JavaMailTest {
         }
         return counter;
     }
-    
-    public Long countWordsOfLength(Stream<String> stream, int length){
+
+    public Long countWordsOfLength(Stream<String> stream, int length) {
         return countWords(stream, s -> s.length() == length);
     }
-    
-    public Long countWords(Stream<String> coll, Predicate<String> str){
+
+    public Long countWords(Stream<String> coll, Predicate<String> str) {
         return coll.filter(str).count();
     }
 
@@ -352,10 +364,10 @@ public class JavaMailTest {
                 capitalChars.incrementAndGet(count.get() * w.length());
                 capitalWords.incrementAndGet(count.get());
             });
-            
+
             wordCount.incrementAndGet(capitalChars.get());
             wordLengthTotal.incrementAndGet(capitalChars.get());
-            
+
             ArrayList<String> distinctWords = new ArrayList<>();
             distinctWords.addAll(map.keySet());
 
@@ -373,8 +385,6 @@ public class JavaMailTest {
             em.whiteSpaceCount = countMatcher("\\p{Space}", all).doubleValue() / charCount;
             em.averageWordLengh = wordLengthTotal.get() / wordCount.get();
 
-            
-
             ArrayList<String> distinctCapitalWords = new ArrayList<>();
             distinctCapitalWords.addAll(capMap.keySet());
 
@@ -383,17 +393,16 @@ public class JavaMailTest {
 
             em.capitalRunTotal = (double) capitalChars.get() / wordCount.get();
             em.capitalCharTotal = capitalChars.get() / charCount;
-          
-            
-            em.charSeq1 = countWordsOfLength(map.keySet().stream(),1) / wordCount.get();
-            em.charSeq2 = countWordsOfLength(map.keySet().stream(),2) / wordCount.get();
-            em.charSeq3 = countWordsOfLength(map.keySet().stream(),3) / wordCount.get();
-            em.charSeq4 = countWordsOfLength(map.keySet().stream(),4) / wordCount.get();
-            em.charSeq5 = countWordsOfLength(map.keySet().stream(),5) / wordCount.get();
-            em.charSeq6 = countWordsOfLength(map.keySet().stream(),6) / wordCount.get();
-            em.charSeq7 = countWordsOfLength(map.keySet().stream(),7) / wordCount.get();
-            em.charSeq8 = countWordsOfLength(map.keySet().stream(),8) / wordCount.get();
-            em.charSeq9 = countWordsOfLength(map.keySet().stream(),9) / wordCount.get();
+
+            em.charSeq1 = countWordsOfLength(map.keySet().stream(), 1) / wordCount.get();
+            em.charSeq2 = countWordsOfLength(map.keySet().stream(), 2) / wordCount.get();
+            em.charSeq3 = countWordsOfLength(map.keySet().stream(), 3) / wordCount.get();
+            em.charSeq4 = countWordsOfLength(map.keySet().stream(), 4) / wordCount.get();
+            em.charSeq5 = countWordsOfLength(map.keySet().stream(), 5) / wordCount.get();
+            em.charSeq6 = countWordsOfLength(map.keySet().stream(), 6) / wordCount.get();
+            em.charSeq7 = countWordsOfLength(map.keySet().stream(), 7) / wordCount.get();
+            em.charSeq8 = countWordsOfLength(map.keySet().stream(), 8) / wordCount.get();
+            em.charSeq9 = countWordsOfLength(map.keySet().stream(), 9) / wordCount.get();
 
             em.maxRepeatedCapitalWordCount = distinctCapitalWords.stream().sorted(ExtComparator.ofValue(f -> capMap.get(f).get()).reversed()).findFirst().get().length();
             em.maxRepeatedWordCount = distinctWords.stream().sorted(ExtComparator.ofValue(f -> map.get(f).get()).reversed()).findFirst().get().length();
@@ -408,7 +417,7 @@ public class JavaMailTest {
         DirectoryStream<Path> spamStream = Files.newDirectoryStream(Paths.get("E:\\University\\MIF_Master_Informatics_Semester1\\Data Analysis\\cp\\pratybos\\03\\enron1\\spam"));
         ConcurrentLinkedDeque<EmailAttributes> deque = new ConcurrentLinkedDeque<>();
 
-        TaskBatcher batcher = new TaskBatcher(new FastWaitingExecutor(8,WaitTime.ofSeconds(2)));
+        TaskBatcher batcher = new TaskBatcher(new FastWaitingExecutor(8, WaitTime.ofSeconds(2)));
 
         spamStream.forEach(es -> {
             batcher.execute(() -> {
@@ -434,8 +443,3 @@ public class JavaMailTest {
 
     }
 }
-
-
-
-
-

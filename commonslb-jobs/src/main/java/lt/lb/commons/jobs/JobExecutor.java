@@ -29,6 +29,7 @@ public class JobExecutor {
     protected final JobEventListener rescanJobs = l -> addScanRequest();
 
     protected volatile CompletableFuture awaitJobEmpty = new CompletableFuture();
+    protected RepeatedRequestCollector rrc;
 
     /**
      *
@@ -82,8 +83,6 @@ public class JobExecutor {
         this.addScanRequest();
     }
 
-    private RepeatedRequestCollector rrc;
-
     private void rescanJobs0() {
 
         Iterator<Job> iterator = jobs.iterator();
@@ -97,7 +96,7 @@ public class JobExecutor {
                     job.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_DISCARDED, job));
                     iterator.remove();
                 }
-            } else if (job.canRun()) {
+            } else if (!job.isScheduled() && job.canRun()) {
                 if (job.scheduled.compareAndSet(false, true)) {
                     job.fireSystemEvent(new SystemJobEvent(SystemJobEventName.ON_SCHEDULED, job));
                     try {
