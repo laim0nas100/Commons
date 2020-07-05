@@ -24,7 +24,6 @@
         <module>commonslb-javafx</module>
         <module>commonslb-threads</module>
         <module>commonslb-io</module>
-        <module>commonslb-jobs</module>
         <module>commonslb-graphtheory</module>
         <module>commonslb-jpa</module>
         <module>commonslb-reflection</module>
