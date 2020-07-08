@@ -42,7 +42,6 @@ public class FileUtils {
 
     public static void setAttributes(Path dest, Map<String, Object> attributeMap) throws IOException {
         for (String key : attributeMap.keySet()) {
-            System.out.println(key);
             Files.setAttribute(dest, key, attributeMap.get(key));
         }
     }
