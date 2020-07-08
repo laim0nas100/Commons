@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.JFXPanel;
@@ -31,15 +32,15 @@ public class MultiStageManager {
     public HashMap<String, PosProperty> positionMemoryMap = new HashMap<>();
     public HashMap<String, Frame> frames = new HashMap<>();
 
-    public Frame newFrame(URL resource, String title) throws FrameException, InterruptedException, ExecutionException {
-        return newFrame(resource, title, title, true);
+    public <T extends BaseController> Frame newFrame(URL resource, String title,Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
+        return newFrame(resource, title, title, true, cons);
     }
 
     public URL getResource(String path) {
         return getClass().getResource(path);
     }
     
-    public Frame newFrame(URL resource, String ID, String title, boolean singleton) throws FrameException, InterruptedException, ExecutionException {
+    public <T extends BaseController> Frame newFrame(URL resource, String ID, String title, boolean singleton, Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
         if (!singleton) {
             int index = findSmallestAvailable(frames, ID);
             ID += index;
@@ -61,20 +62,22 @@ public class MultiStageManager {
 
             stage.setOnCloseRequest((WindowEvent we) -> {
                 controller.exit();
-                this.closeFrame(finalID);
             });
 
             String type = resource.toString();
             Frame frame = new Frame(stage, controller, type, finalID);
             frames.put(finalID, frame);
 
-            PosProperty pp = new PosProperty(0,0);
+            PosProperty pp;
             if (!positionMemoryMap.containsKey(type)) {
-                pp.setPos(stage.getX(), stage.getY());
+                pp = new PosProperty(stage.getX(), stage.getY());
                 positionMemoryMap.put(type, pp);
+            }else{
+                pp = positionMemoryMap.get(type);
             }
-            pp.setPos(positionMemoryMap.get(type));
+            
             ChangeListener listenerY = (ObservableValue observable, Object oldValue, Object newValue) -> {
+                System.out.println(observable+" "+oldValue+" "+newValue);
                 pp.y.set(F.cast(newValue));
             };
             ChangeListener listenerX = (ObservableValue observable, Object oldValue, Object newValue) -> {
@@ -93,7 +96,7 @@ public class MultiStageManager {
                 InjectableController inj = F.cast(controller);
                 inj.inject(frame, resource, loader.getResources());
             }
-            controller.initialize();
+            controller.initialize(cons);
             
             return frame;
         };
@@ -117,15 +120,12 @@ public class MultiStageManager {
 
     }
 
-    private int findSmallestAvailable(Map<String, Frame> map, String title) {
+    public static int findSmallestAvailable(Map<String, Frame> map, String title) {
         int i = 1;
-        while (true) {
-            if (map.containsKey(title + i)) {
-                i++;
-            } else {
-                return i;
-            }
+        while (map.containsKey(title + i)) {
+            i++;
         }
+        return i;
     }
 
 }
