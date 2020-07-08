@@ -15,6 +15,9 @@ public interface BaseController<T extends BaseController> extends Initializable 
     public default void initialize(URL url, ResourceBundle rb) {
     }
 
+    /**
+     * Default implementation doesn't call close on the MultiStageManager
+     */
     public default void exit() {
     }
 

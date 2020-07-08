@@ -1,6 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement;
 
-import javafx.beans.value.ChangeListener;
+import java.net.URL;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -17,17 +17,17 @@ public class Frame {
         }
     }
 
-    ChangeListener listenerX, listenerY;
     private final Stage stage;
     private final BaseController controller;
-    private final String frameType;
+    private final URL resource;
     private final String ID;
 
-    public Frame(Stage stage, BaseController controller, String frameType, String ID) {
+    public Frame(Stage stage, BaseController controller, URL resource, String ID) {
         this.stage = stage;
         this.controller = controller;
-        this.frameType = frameType;
+        this.resource = resource;
         this.ID = ID;
+
     }
 
     public <T extends BaseController> T getController() {
@@ -50,7 +50,7 @@ public class Frame {
         return this.ID;
     }
 
-    public String getFrameTitle() {
-        return this.frameType;
+    public URL getFrameResource() {
+        return this.resource;
     }
 }

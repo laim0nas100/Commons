@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,6 +14,10 @@ import javafx.stage.WindowEvent;
 import lt.lb.commons.F;
 import lt.lb.commons.javafx.FX;
 import lt.lb.commons.javafx.scenemanagement.Frame.FrameException;
+import lt.lb.commons.javafx.scenemanagement.frameDecoration.FrameDecorate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  *
@@ -23,23 +25,27 @@ import lt.lb.commons.javafx.scenemanagement.Frame.FrameException;
  */
 public class MultiStageManager {
 
-    public MultiStageManager() {
+    public List<FrameDecorate> decorators = new ArrayList<>();
+
+    public MultiStageManager(FrameDecorate...decs) {
         //initialize FX toolkit
         new JFXPanel();
+        for(FrameDecorate d:decs){
+            decorators.add(d);
+        }
 
     }
 
-    public HashMap<String, PosProperty> positionMemoryMap = new HashMap<>();
     public HashMap<String, Frame> frames = new HashMap<>();
 
-    public <T extends BaseController> Frame newFrame(URL resource, String title,Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
+    public <T extends BaseController> Frame newFrame(URL resource, String title, Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
         return newFrame(resource, title, title, true, cons);
     }
 
     public URL getResource(String path) {
-        return getClass().getResource(path);
+        return getClass().getClassLoader().getResource(path);
     }
-    
+
     public <T extends BaseController> Frame newFrame(URL resource, String ID, String title, boolean singleton, Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
         if (!singleton) {
             int index = findSmallestAvailable(frames, ID);
@@ -51,11 +57,10 @@ public class MultiStageManager {
         final String finalID = ID;
         Callable<Frame> call = () -> {
             FXMLLoader loader = new FXMLLoader(resource);
-            loader.getResources();
+            ResourceBundle rb = loader.getResources();
             Parent root = loader.load();
             Stage stage = new Stage();
 
-            
             stage.setTitle(title);
             stage.setScene(new Scene(root));
             BaseController controller = loader.getController();
@@ -64,40 +69,20 @@ public class MultiStageManager {
                 controller.exit();
             });
 
-            String type = resource.toString();
-            Frame frame = new Frame(stage, controller, type, finalID);
+            Frame frame = new Frame(stage, controller, resource, finalID);
             frames.put(finalID, frame);
 
-            PosProperty pp;
-            if (!positionMemoryMap.containsKey(type)) {
-                pp = new PosProperty(stage.getX(), stage.getY());
-                positionMemoryMap.put(type, pp);
-            }else{
-                pp = positionMemoryMap.get(type);
-            }
-            
-            ChangeListener listenerY = (ObservableValue observable, Object oldValue, Object newValue) -> {
-                System.out.println(observable+" "+oldValue+" "+newValue);
-                pp.y.set(F.cast(newValue));
-            };
-            ChangeListener listenerX = (ObservableValue observable, Object oldValue, Object newValue) -> {
-                pp.x.set(F.cast(newValue));
-            };
-
-            stage.setX(pp.x.get());
-            stage.setY(pp.y.get());
-            frame.listenerX = listenerX;
-            frame.listenerY = listenerY;
-            stage.xProperty().addListener(listenerX);
-            stage.yProperty().addListener(listenerY);
-            
             // optional inject
             if (controller instanceof InjectableController) {
                 InjectableController inj = F.cast(controller);
-                inj.inject(frame, resource, loader.getResources());
+                inj.inject(frame, resource, rb);
+            }
+
+            for (FrameDecorate fdec : decorators) {
+                fdec.applyOnCreate(frame);
             }
             controller.initialize(cons);
-            
+
             return frame;
         };
         FutureTask<Frame> ftask = new FutureTask<>(call);
@@ -108,13 +93,14 @@ public class MultiStageManager {
 
     public boolean closeFrame(String ID) {
         Frame frame = frames.remove(ID);
-        
-        if(frame == null){
+
+        if (frame == null) {
             return false;
         }
+        for (FrameDecorate fdec : decorators) {
+            fdec.applyOnClose(frame);
+        }
         Stage stage = frame.getStage();
-        stage.xProperty().removeListener(frame.listenerX);
-        stage.yProperty().removeListener(frame.listenerY);
         stage.close();
         return true;
 
