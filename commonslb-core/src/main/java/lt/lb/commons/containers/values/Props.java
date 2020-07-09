@@ -2,6 +2,7 @@ package lt.lb.commons.containers.values;
 
 import java.util.HashMap;
 import java.util.Objects;
+import lt.lb.commons.UUIDgenerator;
 
 /**
  * Property class that stores any value (including null).
@@ -9,6 +10,8 @@ import java.util.Objects;
  * @author laim0nas100
  */
 public class Props extends HashMap<String, Value> {
+    
+    public static final String UUID_PREFIX = "Props";
 
     /**
      * Explicit typing and property key information. Designed to be used with
@@ -107,6 +110,19 @@ public class Props extends HashMap<String, Value> {
         Value<T> val = new Value<>(value);
         this.put(key, val);
         return val;
+    }
+    
+    /**
+     * Inserts value with generated UUID and returns key specification.
+     * @param <T>
+     * @param value
+     * @return 
+     */
+    public <T> PropGet<T> insertAny(T value){
+        String key = UUIDgenerator.nextUUID(UUID_PREFIX);
+        insert(key, value);
+        return new PropGet<>(key);
+        
     }
 
     /**
