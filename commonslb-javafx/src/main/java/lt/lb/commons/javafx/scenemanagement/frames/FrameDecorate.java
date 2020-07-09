@@ -1,4 +1,4 @@
-package lt.lb.commons.javafx.scenemanagement.frameDecoration;
+package lt.lb.commons.javafx.scenemanagement.frames;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +23,14 @@ public class FrameDecorate {
 
     public Props getFrameProps(Frame frame) {
         return frameProps.computeIfAbsent(frame.getID(), k -> new Props());
+    }
+    
+    public Props removeFrameProps(Frame frame){
+        if(frameProps.containsKey(frame.getID())){
+            return frameProps.remove(frame.getID());
+        }else{
+            return new Props();
+        }
     }
     
     public void clearProps(){

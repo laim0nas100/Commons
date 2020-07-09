@@ -1,4 +1,4 @@
-package lt.lb.commons.javafx.scenemanagement.frameDecoration;
+package lt.lb.commons.javafx.scenemanagement.frames;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -67,7 +67,7 @@ public class WithFrameTypeMemorySize extends FrameDecorate {
     }
 
     public void decorateClose(Frame frame) {
-        Props props = getFrameProps(frame);
+        Props props = removeFrameProps(frame);
         Stage stage = frame.getStage();
         stage.widthProperty().removeListener(prop_width_listen.get(props));
         stage.heightProperty().removeListener(prop_height_listen.get(props));

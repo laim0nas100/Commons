@@ -1,4 +1,4 @@
-package lt.lb.commons.javafx.scenemanagement.frameDecoration;
+package lt.lb.commons.javafx.scenemanagement.frames;
 
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -18,7 +18,6 @@ public class WithIcon extends FrameDecorate {
         this.icon = icon;
         this.onCreate.add(frame -> {
             Stage stage = frame.getStage();
-            stage.getIcons().add(icon);
             stage.getIcons().add(icon);
         });
     }

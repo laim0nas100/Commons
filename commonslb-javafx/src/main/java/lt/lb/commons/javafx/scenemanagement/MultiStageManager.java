@@ -14,7 +14,7 @@ import javafx.stage.WindowEvent;
 import lt.lb.commons.F;
 import lt.lb.commons.javafx.FX;
 import lt.lb.commons.javafx.scenemanagement.Frame.FrameException;
-import lt.lb.commons.javafx.scenemanagement.frameDecoration.FrameDecorate;
+import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;

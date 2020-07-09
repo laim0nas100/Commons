@@ -1,4 +1,4 @@
-package lt.lb.commons.javafx.scenemanagement.frameDecoration;
+package lt.lb.commons.javafx.scenemanagement.frames;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -68,7 +68,7 @@ public class WithFrameTypeMemoryPosition extends FrameDecorate {
     }
 
     public void decorateClose(Frame frame) {
-        Props props = getFrameProps(frame);
+        Props props = removeFrameProps(frame);
         Stage stage = frame.getStage();
         stage.xProperty().removeListener(prop_x_listen.get(props));
         stage.yProperty().removeListener(prop_y_listen.get(props));
