@@ -3,9 +3,7 @@ package lt.lb.commons.javafx.scenemanagement.frames;
 import java.net.URL;
 import java.util.HashMap;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.stage.Stage;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Props;
 import lt.lb.commons.containers.values.Props.PropGet;
 import lt.lb.commons.containers.values.Value;
@@ -48,29 +46,21 @@ public class WithFrameTypeMemorySize extends FrameDecorate {
         Value<Double> height = prop_height.getAsValue(memoryProp);
         Value<Double> width = prop_width.getAsValue(memoryProp);
 
-        ChangeListener listenerHeight = (ObservableValue observable, Object oldValue, Object newValue) -> {
-            height.set(F.cast(newValue));
-        };
-        ChangeListener listenerWidth = (ObservableValue observable, Object oldValue, Object newValue) -> {
-            width.set(F.cast(newValue));
-        };
-
         stage.setHeight(height.get());
         stage.setWidth(width.get());
 
         Props props = getFrameProps(frame);
-        prop_height_listen.insert(props, listenerHeight);
-        prop_width_listen.insert(props, listenerWidth);
 
-        stage.heightProperty().addListener(listenerHeight);
-        stage.widthProperty().addListener(listenerWidth);
+        stage.heightProperty().addListener(prop_height_listen.insertGet(props, listenerUpdating(height)));
+        stage.heightProperty().addListener(prop_width_listen.insertGet(props, listenerUpdating(width)));
+
     }
 
     public void decorateClose(Frame frame) {
         Props props = removeFrameProps(frame);
         Stage stage = frame.getStage();
-        stage.widthProperty().removeListener(prop_width_listen.get(props));
-        stage.heightProperty().removeListener(prop_height_listen.get(props));
+        stage.widthProperty().removeListener(prop_width_listen.removeGet(props));
+        stage.heightProperty().removeListener(prop_height_listen.removeGet(props));
     }
 
     @Override
