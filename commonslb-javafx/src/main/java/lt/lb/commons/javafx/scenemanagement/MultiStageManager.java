@@ -16,6 +16,7 @@ import lt.lb.commons.javafx.FX;
 import lt.lb.commons.javafx.scenemanagement.Frame.FrameException;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -27,12 +28,10 @@ public class MultiStageManager {
 
     public List<FrameDecorate> decorators = new ArrayList<>();
 
-    public MultiStageManager(FrameDecorate...decs) {
+    public MultiStageManager(FrameDecorate... decs) {
         //initialize FX toolkit
         new JFXPanel();
-        for(FrameDecorate d:decs){
-            decorators.add(d);
-        }
+        decorators.addAll(Arrays.asList(decs));
 
     }
 
@@ -79,7 +78,7 @@ public class MultiStageManager {
             }
 
             for (FrameDecorate fdec : decorators) {
-                fdec.applyOnCreate(frame);
+                fdec.applyDecorators(FrameDecorate.FrameState.CREATE, frame);
             }
             controller.initialize(cons);
 
@@ -98,7 +97,7 @@ public class MultiStageManager {
             return false;
         }
         for (FrameDecorate fdec : decorators) {
-            fdec.applyOnClose(frame);
+            fdec.applyDecorators(FrameDecorate.FrameState.CLOSE, frame);
         }
         Stage stage = frame.getStage();
         stage.close();
@@ -106,7 +105,7 @@ public class MultiStageManager {
 
     }
 
-    public static int findSmallestAvailable(Map<String, Frame> map, String title) {
+    private static int findSmallestAvailable(Map<String, Frame> map, String title) {
         int i = 1;
         while (map.containsKey(title + i)) {
             i++;

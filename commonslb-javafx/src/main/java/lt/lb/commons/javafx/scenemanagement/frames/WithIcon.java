@@ -16,7 +16,7 @@ public class WithIcon extends FrameDecorate {
 
     public WithIcon(Image icon) {
         this.icon = icon;
-        this.onCreate.add(frame -> {
+        addFrameDecorator(FrameState.CREATE, frame -> {
             Stage stage = frame.getStage();
             stage.getIcons().add(icon);
         });

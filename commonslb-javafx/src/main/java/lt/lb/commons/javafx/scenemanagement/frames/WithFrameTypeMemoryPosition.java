@@ -8,6 +8,7 @@ import lt.lb.commons.containers.values.Props;
 import lt.lb.commons.containers.values.Props.PropGet;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.javafx.scenemanagement.Frame;
+import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
 
 /**
  *
@@ -25,13 +26,8 @@ public class WithFrameTypeMemoryPosition extends FrameDecorate {
     public static final PropGet<ChangeListener> prop_x_listen = PropGet.of("x_listen");
 
     public WithFrameTypeMemoryPosition() {
-        this.onCreate.add(frame -> {
-            decorateCreate(frame);
-        });
-        this.onClose.add(frame -> {
-            decorateClose(frame);
-        });
-
+        addFrameDecorator(FrameState.CREATE, this::decorateCreate);
+        addFrameDecorator(FrameState.CLOSE, this::decorateClose);
     }
 
     public void decorateCreate(Frame frame) {

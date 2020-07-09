@@ -8,10 +8,7 @@ public class FrameDecorateCompose extends FrameDecorate {
 
     public FrameDecorateCompose(FrameDecorate... decs) {
         for (FrameDecorate d : decs) {
-            this.onClose.addAll(d.onClose);
-            this.onCreate.addAll(d.onCreate);
+            this.decorators.putAll(d.decorators);
         }
-
     }
-
 }
