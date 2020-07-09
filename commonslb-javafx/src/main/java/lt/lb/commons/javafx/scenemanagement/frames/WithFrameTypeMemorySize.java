@@ -48,8 +48,9 @@ public class WithFrameTypeMemorySize extends FrameDecorate {
 
         Props props = getFrameProps(frame);
 
-        stage.widthProperty().addListener(prop_height_listen.insertGet(props, listenerUpdating(height)));
-        stage.heightProperty().addListener(prop_width_listen.insertGet(props, listenerUpdating(width)));
+        stage.widthProperty().addListener(prop_width_listen.insertGet(props, listenerUpdating(width)));
+        stage.heightProperty().addListener(prop_height_listen.insertGet(props, listenerUpdating(height)));
+        
 
     }
 
