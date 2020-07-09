@@ -16,8 +16,6 @@
     
     <properties>
         <apache.commons.version>3.8.1</apache.commons.version>
-        
-        
     </properties>
     
     
