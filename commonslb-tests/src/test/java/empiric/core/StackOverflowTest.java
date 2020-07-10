@@ -228,19 +228,32 @@ public class StackOverflowTest {
 
             final long fc1 = c1;
             final long fc2 = c2;
-            Caller<Long> call_2 = new SharedCallerBuilder<Long>().withDependencyResult(0L).toCall(args -> {
-                Log.print("Caller 1", args);
-                return recursiveCounterCaller3(fc1, fc2, args.get(0), st + ".");
-            });
-            Caller<Long> call_3 = new SharedCallerBuilder<Long>().with(Caller.ofResult(0L), call_2).toCall(args -> {
-                Log.print("Caller 2", args);
-                return recursiveCounterCaller3(fc1, args.get(0), args.get(1), st + ".");
-            });
+            final long fc3 = 0L;
+            Caller<Long> call_2 = new SharedCallerBuilder<Long>().with(
+                    Caller.ofResult(fc1),
+                    Caller.ofResult(fc2),
+                    Caller.ofResult(fc3)
+            )
+                    .toCall(a -> {
+                        Log.print("Caller 1", a);
+                        return recursiveCounterCaller3(a._0, a._1, a._2, st + ".");
+                    });
+            Caller<Long> call_1 = new SharedCallerBuilder<Long>()
+                    .with(
+                            Caller.ofResult(fc1),
+                            call_2,
+                            Caller.ofResult(fc3)
+                    )
+                    .toCall(a -> {
+                        Log.print("Caller 2", a);
+                        return recursiveCounterCaller3(a._0, a._1, a._2, st + ".");
+                    });
 
-            return new CallerBuilder<Long>().with(Caller.ofResult(0L), call_2, call_3).toCall(args -> {
-                Log.print("Caller 3", args);
-                return recursiveCounterCaller3(args.get(0), args.get(1), args.get(2), st + ".");
-            });
+            return new CallerBuilder<Long>().with(call_1, call_2, Caller.ofResult(fc3))
+                    .toCall(a -> {
+                        Log.print("Caller 3", a);
+                        return recursiveCounterCaller3(a._0, a._1, a._2, st + ".");
+                    });
 
         }
 
@@ -341,7 +354,7 @@ public class StackOverflowTest {
         Log.print(recBoi(3L, c1));
         Log.print(recBoiCaller(3L, c2).resolve());
         Log.print(c1.get(), c2.get());
-        NestedException.nestedThrow(new Error("Quit"));
+//        NestedException.nestedThrow(new Error("Quit"));
 //        CallOrResult<Integer> okCall = RecursionBuilder.okCall(1, 200000);
 //        RecursionBuilder.iterative(okCall);
         BigInteger big = BigInteger.valueOf(100000000);

@@ -6,8 +6,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
@@ -20,7 +18,6 @@ import static lt.lb.commons.caller.Caller.CallerType.FUNCTION;
 import static lt.lb.commons.caller.Caller.CallerType.RESULT;
 import static lt.lb.commons.caller.Caller.CallerType.SHARED;
 import static lt.lb.commons.caller.CallerFlowControl.CallerForType.*;
-import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.threads.Promise;
@@ -35,7 +32,7 @@ public class CallerImpl {
 
         private Caller<T> call;
         private ArrayList<T> args;
-        private Integer index;
+        private int index;
         private Collection<Caller<T>> sharedStack;
 
         public StackFrame(Caller<T> call) {
@@ -55,10 +52,7 @@ public class CallerImpl {
         }
 
         public boolean readyArgs(Caller<T> c) {
-            if (args == null || c.dependencies == null) {
-                return true;
-            }
-            return this.args.size() == c.dependencies.size();
+            return args == null || c.dependencies == null || this.args.size() == c.dependencies.size();
         }
 
         @Override
@@ -203,12 +197,12 @@ public class CallerImpl {
 
     private static <T> Caller<T> flowControlSwitch(CallerFlowControl<T> apply, Caller<T> emptyCase, Supplier<Boolean> condition, Supplier<Caller<T>> func, Function<T, CallerFlowControl<T>> contFunc) {
         switch (apply.flowControl) {
+            case CONTINUE: // this should be the most common
+                return ofWhileLoop(emptyCase, condition, func, contFunc);
             case RETURN:
                 return apply.caller;
             case BREAK:
                 return emptyCase;
-            case CONTINUE:
-                return ofWhileLoop(emptyCase, condition, func, contFunc);
             default:
                 throw new IllegalStateException("Unregocnized flow control statement " + apply.flowControl);
         }
@@ -247,9 +241,9 @@ public class CallerImpl {
     }
 
     private static <T> boolean runnerCAS(Caller<T> caller) {
-        return caller.runner.compareAndSet(null, Thread.currentThread());
-//                || caller.runner.compareAndSet(Thread.currentThread(), Thread.currentThread());
+        return caller.isSharedNotDone() && caller.runner.compareAndSet(null, Thread.currentThread());
     }
+
     private static final CastList emptyArgs = new CastList<>(null);
 
     private static <T> T resolveThreadedInner(Caller<T> caller, long stackLimit, long callLimit, int branch, int prevStackSize, AtomicLong callNumber, Executor exe) throws InterruptedException, ExecutionException, TimeoutException {
@@ -264,9 +258,7 @@ public class CallerImpl {
                     case RESULT:
                         return complete(emptyStackShared, caller.value);
                     case SHARED:
-                        if (caller.compl.isDone()) {
-                            return complete(emptyStackShared, caller.compl.get());
-                        }
+
                         if (runnerCAS(caller)) {
                             if (caller.dependencies == null) {
                                 assertCallLimit(callLimit, callNumber);
@@ -275,11 +267,10 @@ public class CallerImpl {
                             } else {
                                 stack.addLast(new StackFrame<>(caller));
                             }
+                            break;
                         } else {
                             return complete(emptyStackShared, caller.compl.get());
                         }
-
-                        break;
                     case FUNCTION:
                         if (caller.dependencies == null) {
                             assertCallLimit(callLimit, callNumber);
@@ -292,145 +283,143 @@ public class CallerImpl {
                     default:
                         throw new IllegalStateException("No value or call"); // should never happen
                 }
-            } else { // in stack
-                if (stackLimit > 0 && (prevStackSize + stackLimit) <= stack.size()) {
-                    throw new IllegalStateException("Stack limit overrun " + stack.size() + prevStackSize);
-                }
-                StackFrame<T> frame = stack.getLast();
-                caller = frame.call;
-                if (caller.dependencies == null || frame.args == null || caller.dependencies.size() == frame.args.size()) { //demolish stack, because got all dependecies
-                    assertCallLimit(callLimit, callNumber);
-                    caller = caller.call.apply(frame.args == null ? emptyArgs : new CastList(frame.args)); // last call with dependants
-                    switch (caller.type) {
-                        case SHARED:
-                            if (!caller.compl.isDone() && runnerCAS(caller)) {
-                                stack.getLast().continueWith(caller);
-                            } else { // done or executing on other thread
-                                T v = caller.compl.get();
-                                complete(stack.pollLast().sharedStack, v);
-                                if (stack.isEmpty()) {
-                                    return complete(emptyStackShared, v);
-                                } else {
-                                    stack.getLast().args.add(v);
-                                }
-                            }
+                continue;
+            }
+            // in stack
+            if (stackLimit > 0 && (prevStackSize + stackLimit) <= stack.size()) {
+                throw new IllegalStateException("Stack limit overrun " + stack.size() + prevStackSize);
+            }
+            StackFrame<T> frame = stack.getLast();
+            caller = frame.call;
+            if (frame.readyArgs(caller)) { //demolish stack, because got all dependecies
+                assertCallLimit(callLimit, callNumber);
+                caller = caller.call.apply(frame.args == null ? emptyArgs : new CastList(frame.args)); // last call with dependants
+                switch (caller.type) {
+                    case SHARED:
 
-                            break;
-                        case FUNCTION:
+                        if (runnerCAS(caller)) {
                             stack.getLast().continueWith(caller);
-                            break;
-
-                        case RESULT:
-                            complete(stack.pollLast().sharedStack, caller.value);
+                        } else {// done or executing on other thread
+                            T v = caller.compl.get();
+                            complete(stack.pollLast().sharedStack, v);
                             if (stack.isEmpty()) {
-                                return complete(emptyStackShared, caller.value);
+                                return complete(emptyStackShared, v);
                             } else {
-                                stack.getLast().args.add(caller.value);
-                            }
-                            break;
-
-                        default:
-                            throw new IllegalStateException("No value or call"); // should never happen
-                    }
-                } else { // not demolish stack
-                    if (caller.type == RESULT) {
-                        frame.args.add(caller.value);
-                    } else if (caller.type == SHARED && caller.compl.isDone()) {
-                        frame.args.add(caller.compl.get());
-                    } else if (caller.type == FUNCTION
-                            || (caller.type == SHARED && !caller.compl.isDone())) {
-
-                        if (caller.dependencies == null) {
-
-                            // just call, assume we have expanded stack before
-                            if (caller.type == FUNCTION || (caller.type == SHARED && runnerCAS(caller))) {
-                                assertCallLimit(callLimit, callNumber);
-                                frame.continueWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
-                            } else {//in another thread
-
-                                frame.args.add(caller.compl.get());
-                            }
-
-                        } else { // dep not empty
-
-                            if (branch <= 0 || caller.dependencies.size() <= 1) {
-                                Caller<T> get = caller.dependencies.get(frame.index);
-                                frame.index++;
-                                switch (get.type) {
-                                    case RESULT:
-                                        frame.args.add(get.value);
-                                        break;
-                                    case FUNCTION:
-                                        stack.addLast(new StackFrame<>(get));
-                                        break;
-                                    case SHARED:
-                                        if (get.compl.isDone()) {
-                                            frame.args.add(get.compl.get());
-                                        } else {
-                                            if (runnerCAS(get)) {
-                                                stack.addLast(new StackFrame<>(get));
-                                            } else {//in another thread so just wait
-                                                frame.args.add(get.compl.get());
-                                            }
-
-                                        }
-                                        break;
-                                    default:
-                                        throw new IllegalStateException("Unknown caller state" + get);
-                                }
-                            } else { // use threading with dependencies 
-                                ArrayList<Promise<T>> array = new ArrayList<>(caller.dependencies.size());
-                                int stackSize = stack.size() + prevStackSize;
-                                for (Caller<T> c : caller.dependencies) {
-                                    switch (c.type) {
-                                        case RESULT:
-                                            new Promise<>(() -> c.value).collect(array).run();
-                                            break;
-                                        case FUNCTION:
-                                            new Promise<>(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
-                                                return resolveThreadedInner(c, stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
-                                            }).execute(exe).collect(array);
-                                            break;
-                                        case SHARED:
-                                            if (c.compl.isDone()) {
-                                                new Promise(c.compl).collect(array).run();
-                                            } else {
-                                                new Promise(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
-                                                    return resolveThreadedInner(c, stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
-                                                }).execute(exe).collect(array);
-                                            }
-                                            break;
-                                        default:
-                                            throw new IllegalStateException("Unknown caller state" + c);
-                                    }
-                                }
-                                Promise waiterAndRunner = new Promise(array);
-
-                                try {
-                                    waiterAndRunner.run(); // help with progress
-                                    waiterAndRunner.get(); // wait for execution
-                                } catch (ExecutionException err) {
-                                    //execution failed at some point, so just cancel everything
-                                    for (Promise pro : array) {
-                                        pro.cancel(true);
-                                    }
-                                    while (err.getCause() instanceof ExecutionException) {
-                                        err = (ExecutionException) err.getCause();
-                                    }
-                                    throw err;
-
-                                }
-                                for (Promise pro : array) {
-                                    frame.args.add((T) pro.get());
-                                }
-                                frame.index += array.size();
+                                stack.getLast().args.add(v);
                             }
                         }
-                    } else { // allready finished executing in another thread
+                        break;
+                    case FUNCTION:
+                        stack.getLast().continueWith(caller);
+                        break;
+
+                    case RESULT:
+                        complete(stack.pollLast().sharedStack, caller.value);
+                        if (stack.isEmpty()) {
+                            return complete(emptyStackShared, caller.value);
+                        } else {
+                            stack.getLast().args.add(caller.value);
+                        }
+                        break;
+
+                    default:
+                        throw new IllegalStateException("No value or call"); // should never happen
+                    }
+                continue;
+            }
+            // not demolish stack
+            if (caller.type == RESULT) {
+                frame.args.add(caller.value);
+                continue;
+            }
+            if (caller.isSharedDone()) {
+                frame.args.add(caller.compl.get());
+                continue;
+            }
+            if (caller.type == FUNCTION || caller.isSharedNotDone()) {
+                if (caller.dependencies == null) { // dependencies empty
+                    // just call, assume we have expanded stack before
+                    if (caller.type == FUNCTION || runnerCAS(caller)) {
+                        assertCallLimit(callLimit, callNumber);
+                        frame.continueWith(caller.call.apply(emptyArgs)); // replace current frame, because of simple tail recursion
+                    } else {//in another thread
                         frame.args.add(caller.compl.get());
                     }
+                    continue;
                 }
+                // dep not empty and no threading
+                if (branch <= 0 || caller.dependencies.size() <= 1) {
+                    Caller<T> get = caller.dependencies.get(frame.index);
+                    frame.index++;
+                    switch (get.type) {
+                        case RESULT:
+                            frame.args.add(get.value);
+                            break;
+                        case FUNCTION:
+                            stack.addLast(new StackFrame<>(get));
+                            break;
+                        case SHARED:
+                            if (runnerCAS(get)) {
+                                stack.addLast(new StackFrame<>(get));
+                            } else {//in another thread so just wait
+                                frame.args.add(get.compl.get());
+                            }
+                            break;
+                        default:
+                            throw new IllegalStateException("Unknown caller state" + get);
+                    }
+                    continue;
+                }
+
+                // use threading with dependencies 
+                ArrayList<Promise<T>> array = new ArrayList<>(caller.dependencies.size());
+                int stackSize = stack.size() + prevStackSize;
+                for (Caller<T> c : caller.dependencies) {
+                    switch (c.type) {
+                        case RESULT:
+                            new Promise<>(() -> c.value).collect(array).run();
+                            break;
+                        case FUNCTION:
+                            new Promise<>(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
+                                return resolveThreadedInner(c, stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
+                            }).execute(exe).collect(array);
+                            break;
+                        case SHARED:
+                            if (c.isSharedDone()) {
+                                new Promise(c.compl).collect(array).run();
+                            } else {
+                                new Promise(() -> { // actually use recursion, because localizing is hard, and has to be fast, so just limit branching size
+                                    return resolveThreadedInner(c, stackLimit, callLimit, branch - 1, stackSize, callNumber, exe);
+                                }).execute(exe).collect(array);
+                            }
+                            break;
+                        default:
+                            throw new IllegalStateException("Unknown caller state" + c);
+                    }
+                }
+                Promise waiterAndRunner = new Promise(array);
+
+                try {
+                    waiterAndRunner.run(); // help with progress
+                    waiterAndRunner.get(); // wait for execution
+                } catch (ExecutionException err) {
+                    //execution failed at some point, so just cancel everything
+                    for (Promise pro : array) {
+                        pro.cancel(true);
+                    }
+                    while (err.getCause() instanceof ExecutionException) {
+                        err = (ExecutionException) err.getCause();
+                    }
+                    throw err;
+
+                }
+                for (Promise pro : array) {
+                    frame.args.add((T) pro.get());
+                }
+                frame.index += array.size();
+                continue;
             }
+            throw new IllegalStateException("Reached illegal caller state " + caller + " exiting");
         }
     }
 }

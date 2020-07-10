@@ -192,7 +192,7 @@ public class CallerTest {
         }
         return new CallerForBuilder<T, Optional<T>>().with(visitor.getChildrenIterator(root))
                 .forEachCall(item -> PostOrderCaller(visitor, item, visited))
-                .evaluate(item -> item.isPresent() ? Caller.ofResult(item).toFlowReturn() : Caller.flowContinue())
+                .evaluate(item -> item.isPresent() ? Caller.flowReturn(item) : Caller.flowContinue())
                 .afterwards(Caller.ofSupplierResult(() -> visitor.find(root) ? Optional.ofNullable(root) : Optional.empty()))
                 .build();
     }
@@ -209,7 +209,7 @@ public class CallerTest {
             return new CallerForBuilder<T, Optional<T>>()
                     .with(visitor.getChildrenIterator(root))
                     .forEachCall((i, item) -> DFSCaller(visitor, item, visited))
-                    .evaluate(item -> item.isPresent() ? Caller.ofResult(item).toFlowReturn() : Caller.flowContinue())
+                    .evaluate(item -> item.isPresent() ? Caller.flowReturn(item) : Caller.flowContinue())
                     .afterwards(Caller.ofResult(Optional.empty()))
                     .build();
 

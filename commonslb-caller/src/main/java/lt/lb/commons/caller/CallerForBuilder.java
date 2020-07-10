@@ -79,7 +79,6 @@ public class CallerForBuilder<R, T> {
     public CallerForBuilder<R, T> afterwards(Caller<T> afterwards) {
         this.afterwards = afterwards;
         return this;
-
     }
 
     /**

@@ -62,6 +62,14 @@ public class Caller<T> {
     protected final CompletableFuture<T> compl;
     protected final AtomicReference<Thread> runner;
 
+    public boolean isSharedDone() {
+        return type == CallerType.SHARED && compl.isDone();
+    }
+
+    public boolean isSharedNotDone() {
+        return type == CallerType.SHARED && !compl.isDone();
+    }
+
     /**
      * Signify {@code for} loop end inside {@code Caller for} loop. Equivalent
      * of using {@code return} with recursive function call.
@@ -72,6 +80,18 @@ public class Caller<T> {
      */
     public static <T> CallerFlowControl<T> flowReturn(Caller<T> next) {
         return new CallerFlowControl<>(next, CallerFlowControl.CallerForType.RETURN);
+    }
+
+    /**
+     * Signify {@code for} loop end inside {@code Caller for} loop. Equivalent
+     * of using {@code return} with value.
+     *
+     * @param <T>
+     * @param next next Caller object
+     * @return
+     */
+    public static <T> CallerFlowControl<T> flowReturn(T result) {
+        return flowReturn(Caller.ofResult(result));
     }
 
     /**
@@ -275,4 +295,5 @@ public class Caller<T> {
     public static <T> T resolveThreaded(Caller<T> caller, int stackLimit, long callLimit, int branch, Executor exe) {
         return CallerImpl.resolveThreaded(caller, stackLimit, callLimit, branch, exe);
     }
+
 }
