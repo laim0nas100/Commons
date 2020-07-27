@@ -1,8 +1,10 @@
 package lt.lb.commons.javafx;
 
+import com.sun.javafx.application.PlatformImpl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javafx.application.Platform;
 import lt.lb.commons.containers.values.Value;
@@ -17,6 +19,23 @@ import lt.lb.commons.func.unchecked.UnsafeRunnable;
  * @author laim0nas100
  */
 public class FX {
+
+    private static AtomicBoolean initialized = new AtomicBoolean(false);
+
+    public static boolean initFxRuntime() {
+        if (initialized.compareAndSet(false, true)) {
+            PlatformImpl.startup(() -> {
+            }, true);
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+    
+    public static boolean isFxInitialized(){
+        return initialized.get();
+    }
 
     public static boolean isFXthread() {
         return Platform.isFxApplicationThread();

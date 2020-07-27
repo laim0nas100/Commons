@@ -21,8 +21,5 @@ public interface BaseController<T extends BaseController> extends Initializable 
     public default void exit() {
     }
 
-    public default void update() {
-    }
-
-    public void initialize(Consumer<T> cons);
+    public void init(Consumer<T> cons);
 }

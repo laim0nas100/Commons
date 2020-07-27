@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -13,12 +12,13 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import lt.lb.commons.F;
 import lt.lb.commons.javafx.FX;
-import lt.lb.commons.javafx.scenemanagement.Frame.FrameException;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Supplier;
 
 /**
  *
@@ -26,35 +26,75 @@ import java.util.ResourceBundle;
  */
 public class MultiStageManager {
 
-    public List<FrameDecorate> decorators = new ArrayList<>();
+    protected List<FrameDecorate> decorators = new ArrayList<>();
 
     public MultiStageManager(FrameDecorate... decs) {
         //initialize FX toolkit
-        new JFXPanel();
+        FX.initFxRuntime();
         decorators.addAll(Arrays.asList(decs));
 
     }
 
-    public HashMap<String, Frame> frames = new HashMap<>();
+    public List<String> getFrameIds() {
+        return new ArrayList<>(frames.keySet());
+    }
 
-    public <T extends BaseController> Frame newFrame(URL resource, String title, Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
-        return newFrame(resource, title, title, true, cons);
+    public List<Frame> getFrames() {
+        return new ArrayList<>(frames.values());
+    }
+
+    protected HashMap<String, Frame> frames = new HashMap<>();
+
+    public StageFrame newStageFrame(String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException, InterruptedException, ExecutionException {
+        String ID = title;
+        int index = findSmallestAvailable(frames, title);
+        ID += index;
+        if (frames.containsKey(ID)) {
+            throw new FrameException("Frame:" + ID + " Allready exists");
+        }
+        final String finalID = ID;
+        return runAndGet(() -> {
+            Scene scene = new Scene(constructor.get());
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle(title);
+            StageFrame frame = new StageFrame(stage, finalID, title);
+            stage.setOnCloseRequest((WindowEvent we) -> {
+               onExit.accept(frame);
+            });
+            for (FrameDecorate fdec : decorators) {
+                fdec.applyDecorators(FrameDecorate.FrameState.CREATE, frame);
+            }
+            return frame;
+        });
+
+    }
+
+    public <T extends BaseController> FXMLFrame newFxmlFrame(URL resource, String title, Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
+        return newFxmlFrame(resource, title, title, true, cons);
     }
 
     public URL getResource(String path) {
         return getClass().getClassLoader().getResource(path);
     }
 
-    public <T extends BaseController> Frame newFrame(URL resource, String ID, String title, boolean singleton, Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
+    protected <T> T runAndGet(Callable<T> call) throws InterruptedException, ExecutionException {
+        FutureTask<T> task = new FutureTask<>(call);
+
+        FX.submit(task);
+        return task.get();
+    }
+
+    public <T extends BaseController> FXMLFrame newFxmlFrame(URL resource, String ID, String title, boolean singleton, Consumer<T> cons) throws FrameException, InterruptedException, ExecutionException {
         if (!singleton) {
             int index = findSmallestAvailable(frames, ID);
             ID += index;
         }
         if (frames.containsKey(ID)) {
-            throw new FrameException("Frame:" + ID + "Allready exists");
+            throw new FrameException("Frame:" + ID + " Allready exists");
         }
         final String finalID = ID;
-        Callable<Frame> call = () -> {
+        Callable<FXMLFrame> call = () -> {
             FXMLLoader loader = new FXMLLoader(resource);
             ResourceBundle rb = loader.getResources();
             Parent root = loader.load();
@@ -68,7 +108,7 @@ public class MultiStageManager {
                 controller.exit();
             });
 
-            Frame frame = new Frame(stage, controller, resource, finalID);
+            FXMLFrame frame = new FXMLFrame(stage, controller, resource, finalID);
             frames.put(finalID, frame);
 
             // optional inject
@@ -80,14 +120,18 @@ public class MultiStageManager {
             for (FrameDecorate fdec : decorators) {
                 fdec.applyDecorators(FrameDecorate.FrameState.CREATE, frame);
             }
-            controller.initialize(cons);
+            controller.init(cons);
 
             return frame;
         };
-        FutureTask<Frame> ftask = new FutureTask<>(call);
+        FutureTask<FXMLFrame> ftask = new FutureTask<>(call);
         FX.submit(ftask);
         return ftask.get();
 
+    }
+
+    public Optional<Frame> getFrame(String ID) {
+        return Optional.ofNullable(frames.get(ID));
     }
 
     public boolean closeFrame(String ID) {

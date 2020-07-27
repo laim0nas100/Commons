@@ -22,7 +22,6 @@ public class FrameDecorate {
 
     }
 
-    protected HashMap<String, Props> frameProps = new HashMap<>();
     protected EnumMap<FrameState, List<FrameDecorator>> decorators = new EnumMap<>(FrameState.class);
 
     public void addFrameDecorator(FrameState state, FrameDecorator decorator) {
@@ -39,19 +38,4 @@ public class FrameDecorate {
         }
     }
 
-    public Props getFrameProps(Frame frame) {
-        return frameProps.computeIfAbsent(frame.getID(), k -> new Props());
-    }
-
-    public Props removeFrameProps(Frame frame) {
-        if (frameProps.containsKey(frame.getID())) {
-            return frameProps.remove(frame.getID());
-        } else {
-            return new Props();
-        }
-    }
-
-    public void clearProps() {
-        frameProps.clear();
-    }
 }

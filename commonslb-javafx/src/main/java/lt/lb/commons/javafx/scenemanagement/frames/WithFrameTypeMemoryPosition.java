@@ -1,6 +1,5 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
-import java.net.URL;
 import java.util.HashMap;
 import javafx.beans.value.ChangeListener;
 import javafx.stage.Stage;
@@ -12,13 +11,12 @@ import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
 
 /**
  *
- * For same resource type frames,
  *
  * @author laim0nas100
  */
-public class WithFrameTypeMemoryPosition extends FrameDecorate {
+public class WithFrameTypeMemoryPosition extends FrameDecorateProps {
 
-    public HashMap<URL, Props> memoryMap = new HashMap<>();
+    public HashMap<String, Props> memoryMap = new HashMap<>();
 
     public static final PropGet<Double> prop_y = PropGet.of("y");
     public static final PropGet<Double> prop_x = PropGet.of("x");
@@ -31,7 +29,7 @@ public class WithFrameTypeMemoryPosition extends FrameDecorate {
     }
 
     public void decorateCreate(Frame frame) {
-        URL type = frame.getFrameResource();
+        String type = frame.getType();
         Stage stage = frame.getStage();
 
         Props memoryProp = memoryMap.computeIfAbsent(type, k -> {
