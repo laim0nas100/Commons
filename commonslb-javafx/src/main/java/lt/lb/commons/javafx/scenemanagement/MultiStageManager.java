@@ -42,6 +42,10 @@ public class MultiStageManager {
     public List<Frame> getFrames() {
         return new ArrayList<>(frames.values());
     }
+    
+    public int getFrameCount(){
+        return frames.size();
+    }
 
     protected HashMap<String, Frame> frames = new HashMap<>();
 

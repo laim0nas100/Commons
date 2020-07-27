@@ -21,5 +21,7 @@ public interface BaseController<T extends BaseController> extends Initializable 
     public default void exit() {
     }
 
-    public void init(Consumer<T> cons);
+    public default void init(Consumer<T> cons){
+        cons.accept((T) this);
+    }
 }
