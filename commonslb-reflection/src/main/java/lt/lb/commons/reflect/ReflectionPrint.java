@@ -39,30 +39,20 @@ public class ReflectionPrint {
     }
 
     private String formatValue(ReflectNode node) {
-
-        String str = "";
-        do {
-            str += node.getName() + "=" + node.getValue();
-            if (!node.isShadowing()) {
-                break;
-            } else {
-                str += " shadows: ";
-                node = node.getShadowed();
-            }
-        } while (true);
-        return str;
+        return formatValue(node, s->s);
     }
 
     private String formatValue(ReflectNode node, Function get) {
 
-        String str = "";
+        String str = node.getName() + "=";
         do {
-            str += node.getName() + "=" + get.apply(node.getValue());
+            str += get.apply(node.getValue());
             if (!node.isShadowing()) {
                 break;
             } else {
-                str += " shadows: ";
+                
                 node = node.getShadowed();
+                str += " shadows: "+node.getName();
             }
         } while (true);
         return str;

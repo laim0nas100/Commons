@@ -21,7 +21,6 @@ import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.F;
-import lt.lb.commons.PosEq;
 
 /**
  *
@@ -52,7 +51,7 @@ public abstract class FieldFactory {
             Class compType = f.getType().getComponentType();
 //            log.appendLine("Array of Immutable ", compType.getName());
             Object sourceArray = f.get(sourceObject);
-            if (refCounter.contains(sourceArray)) {
+            if (refCounter.containsKey(sourceArray)) {
 //                log.appendLine("Found repeating immutable array reference");
                 f.set(parentObject, refCounter.get(sourceArray));
             } else {
@@ -61,7 +60,7 @@ public abstract class FieldFactory {
 
                 System.arraycopy(sourceArray, 0, array, 0, length);
                 f.set(parentObject, array);
-                refCounter.registerIfAbsent(sourceArray, array);
+                refCounter.computeIfAbsent(sourceArray, k->array);
             }
 
         };
@@ -74,7 +73,7 @@ public abstract class FieldFactory {
     }
 
     protected IFieldResolver makeDeferedFieldResolver(Field f) {
-        return (Object sourceObject, Object parentObject, ReferenceCounter refCounter) -> {
+        return (Object sourceObject, Object parentObject, IdentityHashMap refCounter) -> {
 //            log.appendLine("In defered resolver", f);
 
 //            log.appendLine("Try to get instance from " + sourceObject.getClass().getName());
@@ -94,10 +93,10 @@ public abstract class FieldFactory {
     }
 
     protected IFieldResolver makeMutableArrayFieldResolver(Class compType, Field f) {
-        return (Object source, Object parentObject, ReferenceCounter refCounter) -> {
+        return (Object source, Object parentObject, IdentityHashMap refCounter) -> {
             Object[] sourceArray = (Object[]) f.get(source);
 
-            if (refCounter.contains(sourceArray)) {
+            if (refCounter.containsKey(sourceArray)) {
 //                log.appendLine("Found repeating " + compType.getName() + " array reference");
                 f.set(parentObject, refCounter.get(sourceArray));
             } else {
@@ -141,7 +140,7 @@ public abstract class FieldFactory {
                 }
 
                 f.set(parentObject, newArray);
-                refCounter.registerIfAbsent(sourceArray, newArray);
+                refCounter.computeIfAbsent(sourceArray, k->newArray);
             }
         };
     }
@@ -169,14 +168,14 @@ public abstract class FieldFactory {
 
     protected IFieldResolver makeCompositeFieldResolver(Class fieldType, Field f) {
         FieldFactory me = this;
-        return (Object sourceObject, Object parentObject, ReferenceCounter refCounter) -> {
+        return (Object sourceObject, Object parentObject, IdentityHashMap refCounter) -> {
             //TODO maybe let call clone() if object is clonable?
 
 //            log.appendLine("Try get source", fieldType.getName(), f);
             Object sourceInstance = f.get(sourceObject);
 //            log.appendLine("Got source", sourceInstance);
 
-            if (refCounter.contains(sourceInstance)) {
+            if (refCounter.containsKey(sourceInstance)) {
 //                log.appendLine("Found repeating reference");
                 f.set(parentObject, refCounter.get(sourceInstance));
 
@@ -198,7 +197,8 @@ public abstract class FieldFactory {
                         realClass = sourceObject.getClass();
                     }
                     Object newInstance = createNewInstance(realClass);
-                    refCounter.registerIfAbsent(sourceInstance, newInstance);
+                    refCounter.computeIfAbsent(sourceInstance, k->newInstance);
+//                    refCounter.registerIfAbsent(sourceInstance, newInstance);
 
                     IFieldResolver rr = recursiveResolver(realClass);
 
@@ -273,9 +273,7 @@ public abstract class FieldFactory {
     }
 
     public static Enum cloneEnum(Object ob) {
-        Enum en = (Enum) ob;
-        Class<Enum> cls = (Class<Enum>) ob.getClass();
-        return Enum.valueOf(cls, en.name());
+        return (Enum) ob;
     }
 
     public <T> T createNewInstance(Class<T> cls) {
@@ -308,11 +306,11 @@ public abstract class FieldFactory {
         Object newInstance = null;
 
         try {
-            newInstance = cls.newInstance();
+            newInstance = cls.getDeclaredConstructor().newInstance();
 //            log.appendLine("Easy instantiation " + cls.getName());
             return (T) newInstance;
-        } catch (InstantiationException | IllegalAccessException e) {
-        }
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+        } 
 
         Constructor<?>[] declaredConstructors = cls.getDeclaredConstructors();
         // sort by lower parameter constructor first
@@ -450,7 +448,7 @@ public abstract class FieldFactory {
             resolverMap.put(key, finalResolver);
         });
 
-        return (Object source, Object parentObject, ReferenceCounter refCounter) -> {
+        return (Object source, Object parentObject, IdentityHashMap refCounter) -> {
             for (Map.Entry<String, IFieldResolver> resolverEntry : resolverMap.entrySet()) {
 //                log.appendLine("Do clone ", resolverEntry.getKey());
                 resolverEntry.getValue().cloneField(source, parentObject, refCounter);
@@ -479,7 +477,7 @@ public abstract class FieldFactory {
         T newInstance = createNewInstance(cls);
 
         IFieldResolver recursiveResolver = recursiveResolver(cls);
-        recursiveResolver.cloneField(source, newInstance, newReferenceCounter());
+        recursiveResolver.cloneField(source, newInstance, new IdentityHashMap(8));
         return newInstance;
     }
 
