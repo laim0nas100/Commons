@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -13,7 +14,7 @@ import java.util.function.Supplier;
 import lt.lb.commons.EmptyImmutableList;
 
 /**
- * Recursion avoiding function modeling.Main purpose: write a recursive
+ * Recursion avoiding function modeling. Main purpose: write a recursive
  * function. If likely to get stack overflown, use this framework to replace
  * every recursive call with Caller equivalent, without needing to design an
  * iterative solution.
@@ -60,7 +61,7 @@ public class Caller<T> {
      * value is stored as a result of a future.
      */
     protected final CompletableFuture<T> compl;
-    protected final AtomicReference<Thread> runner;
+    protected final AtomicBoolean started;
 
     public boolean isSharedDone() {
         return type == CallerType.SHARED && compl.isDone();
@@ -197,10 +198,10 @@ public class Caller<T> {
         this.dependencies = dependencies;
         if (type == CallerType.SHARED) {
             this.compl = new CompletableFuture<>();
-            this.runner = new AtomicReference<>();
+            this.started = new AtomicBoolean(false);
         } else {
             this.compl = null;
-            this.runner = null;
+            this.started = null;
         }
         this.id = ID_COUNTER.getAndIncrement();
     }

@@ -370,9 +370,9 @@ public class StackOverflowTest {
 //        Log.print(RecursionBuilder.fibb2(35));
 //        Log.print(Caller.resolve(RecursionBuilder.fibb2Caller(35), Optional.empty(), Optional.of(50L)));
 //        Log.print(RecursionBuilder.fibb2Caller(40).resolve());
-        Log.print(RecursionBuilder.fibb2Caller(40).resolveThreaded());
-        Log.print(RecursionBuilder.fibb2Caller(40).resolve());
-        Log.print(RecursionBuilder.fibb2Caller(40).resolveThreaded());
+        Log.print(RecursionBuilder.fibb2Caller(30).resolveThreaded());
+        Log.print(RecursionBuilder.fibb2Caller(30).resolve());
+        Log.print(RecursionBuilder.fibb2Caller(30).resolveThreaded());
 
         Log.print("############");
 //        Caller<BigInteger> fibbCaller = RecursionBuilder.fibbCaller(BigInteger.valueOf(1), BigInteger.valueOf(1), big.pow(999));

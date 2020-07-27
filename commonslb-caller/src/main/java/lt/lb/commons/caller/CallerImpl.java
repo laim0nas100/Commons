@@ -241,7 +241,7 @@ public class CallerImpl {
     }
 
     private static <T> boolean runnerCAS(Caller<T> caller) {
-        return caller.isSharedNotDone() && caller.runner.compareAndSet(null, Thread.currentThread());
+        return caller.isSharedNotDone() && caller.started.compareAndSet(false, true);
     }
 
     private static final CastList emptyArgs = new CastList<>(null);
