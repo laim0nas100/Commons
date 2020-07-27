@@ -63,6 +63,7 @@ public class MultiStageManager {
             stage.setScene(scene);
             stage.setTitle(title);
             StageFrame frame = new StageFrame(stage, finalID, title);
+            frames.put(finalID, frame);
             stage.setOnCloseRequest((WindowEvent we) -> {
                onExit.accept(frame);
             });
