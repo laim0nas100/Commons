@@ -1,6 +1,5 @@
 package lt.lb.commons.containers.values;
 
-import lt.lb.commons.misc.numbers.ExplicitNumberFunctions.BiFunctionsInteger;
 
 /**
  *
@@ -18,65 +17,65 @@ public class IntegerValue extends NumberValue<Integer>{
     @Override
     public Integer getAndMod(Number n) {
         Integer i = value;
-        value = BiFunctionsInteger.mod(value, n);
+        value = value % n.intValue();
         return i;
     }
 
     @Override
     public Integer modAndGet(Number n) {
-        value = BiFunctionsInteger.mod(value, n);
+        value = value % n.intValue();
         return value;
     }
 
     @Override
     public Integer getAndDivide(Number n) {
         Integer i = value;
-        value = BiFunctionsInteger.divide(value, n);
+        value = value / n.intValue();
         return i;
     }
 
     @Override
     public Integer divideAndGet(Number n) {
-        value = BiFunctionsInteger.divide(value, n);
+        value = value / n.intValue();
         return value;
     }
 
     @Override
     public Integer getAndMultiply(Number n) {
         Integer i = value;
-        value = BiFunctionsInteger.multiply(value, n);
+        value = value * n.intValue();
         return i;
     }
 
     @Override
     public Integer multiplyAndGet(Number n) {
-        value = BiFunctionsInteger.multiply(value, n);
+        value = value * n.intValue();
         return value;
     }
 
     @Override
     public Integer decrementAndGet(Number n) {
-        value = BiFunctionsInteger.minus(value, n);
+        value = value - n.intValue();
         return value;
     }
 
     @Override
     public Integer getAndDecrement(Number n) {
         Integer i = value;
-        value = BiFunctionsInteger.minus(value, n);
+        value = value - n.intValue();
         return i;
     }
 
     @Override
     public Integer incrementAndGet(Number n) {
-        value = BiFunctionsInteger.plus(value, n);
+        value = value + n.intValue();
         return value;
     }
 
     @Override
     public Integer getAndIncrement(Number n) {
         Integer i = value;
-        value = BiFunctionsInteger.plus(value, n);
+        value = value + n.intValue();
         return i;
     }
 

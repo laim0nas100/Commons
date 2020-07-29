@@ -1,7 +1,5 @@
 package lt.lb.commons.containers.values;
 
-import lt.lb.commons.misc.numbers.ExplicitNumberFunctions.BiFunctionsByte;
-
 /**
  *
  * @author laim0nas100
@@ -18,65 +16,65 @@ public class ByteValue extends NumberValue<Byte>{
     @Override
     public Byte getAndMod(Number n) {
         Byte i = value;
-        value = BiFunctionsByte.mod(value, n);
+        value = (byte)(value % n.byteValue());
         return i;
     }
 
     @Override
     public Byte modAndGet(Number n) {
-        value = BiFunctionsByte.mod(value, n);
+        value = (byte)(value % n.byteValue());
         return value;
     }
 
     @Override
     public Byte getAndDivide(Number n) {
         Byte i = value;
-        value = BiFunctionsByte.divide(value, n);
+        value = (byte)(value / n.byteValue());
         return i;
     }
 
     @Override
     public Byte divideAndGet(Number n) {
-        value = BiFunctionsByte.divide(value, n);
+        value = (byte)(value / n.byteValue());
         return value;
     }
 
     @Override
     public Byte getAndMultiply(Number n) {
         Byte i = value;
-        value = BiFunctionsByte.multiply(value, n);
+        value = (byte)(value * n.byteValue());
         return i;
     }
 
     @Override
     public Byte multiplyAndGet(Number n) {
-        value = BiFunctionsByte.multiply(value, n);
+        value = (byte)(value * n.byteValue());
         return value;
     }
 
     @Override
     public Byte decrementAndGet(Number n) {
-        value = BiFunctionsByte.minus(value, n);
+        value = (byte)(value - n.byteValue());
         return value;
     }
 
     @Override
     public Byte getAndDecrement(Number n) {
         Byte i = value;
-        value = BiFunctionsByte.minus(value, n);
+        value = (byte)(value - n.byteValue());
         return i;
     }
 
     @Override
     public Byte incrementAndGet(Number n) {
-        value = BiFunctionsByte.plus(value, n);
+        value = (byte)(value + n.byteValue());
         return value;
     }
 
     @Override
     public Byte getAndIncrement(Number n) {
         Byte i = value;
-        value = BiFunctionsByte.plus(value, n);
+        value = (byte)(value + n.byteValue());
         return i;
     }
 

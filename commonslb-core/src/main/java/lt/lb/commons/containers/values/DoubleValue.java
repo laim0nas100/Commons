@@ -1,7 +1,5 @@
 package lt.lb.commons.containers.values;
 
-import lt.lb.commons.misc.numbers.ExplicitNumberFunctions.BiFunctionsDouble;
-
 /**
  *
  * @author laim0nas100
@@ -18,65 +16,65 @@ public class DoubleValue extends NumberValue<Double>{
     @Override
     public Double getAndMod(Number n) {
         Double i = value;
-        value = BiFunctionsDouble.mod(value, n);
+        value = value % n.doubleValue();
         return i;
     }
 
     @Override
     public Double modAndGet(Number n) {
-        value = BiFunctionsDouble.mod(value, n);
+        value = value % n.doubleValue();
         return value;
     }
 
     @Override
     public Double getAndDivide(Number n) {
         Double i = value;
-        value = BiFunctionsDouble.divide(value, n);
+        value = value / n.doubleValue();
         return i;
     }
 
     @Override
     public Double divideAndGet(Number n) {
-        value = BiFunctionsDouble.divide(value, n);
+        value = value / n.doubleValue();
         return value;
     }
 
     @Override
     public Double getAndMultiply(Number n) {
         Double i = value;
-        value = BiFunctionsDouble.multiply(value, n);
+        value = value * n.doubleValue();
         return i;
     }
 
     @Override
     public Double multiplyAndGet(Number n) {
-        value = BiFunctionsDouble.multiply(value, n);
+        value = value * n.doubleValue();
         return value;
     }
 
     @Override
     public Double decrementAndGet(Number n) {
-        value = BiFunctionsDouble.minus(value, n);
+        value = value - n.doubleValue();
         return value;
     }
 
     @Override
     public Double getAndDecrement(Number n) {
         Double i = value;
-        value = BiFunctionsDouble.minus(value, n);
+        value = value - n.doubleValue();
         return i;
     }
 
     @Override
     public Double incrementAndGet(Number n) {
-        value = BiFunctionsDouble.plus(value, n);
+        value = value + n.doubleValue();
         return value;
     }
 
     @Override
     public Double getAndIncrement(Number n) {
         Double i = value;
-        value = BiFunctionsDouble.plus(value, n);
+        value = value + n.doubleValue();
         return i;
     }
 
