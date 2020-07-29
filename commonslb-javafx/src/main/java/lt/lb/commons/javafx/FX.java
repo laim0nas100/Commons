@@ -1,12 +1,12 @@
 package lt.lb.commons.javafx;
 
-import com.sun.javafx.application.PlatformImpl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.F;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
@@ -24,8 +24,7 @@ public class FX {
 
     public static boolean initFxRuntime() {
         if (initialized.compareAndSet(false, true)) {
-            PlatformImpl.startup(() -> {
-            }, true);
+            new JFXPanel();
             return true;
         }else{
             return false;
