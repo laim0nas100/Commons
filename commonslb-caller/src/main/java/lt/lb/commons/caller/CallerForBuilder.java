@@ -6,11 +6,14 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import lt.lb.commons.func.unchecked.UnsafeBiFunction;
+import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
- * @param <T> the main type of Caller product
  * @param <R> type that iteration happens
+ * @param <T> the main type of Caller product
+ * By default every evaluation call ends with {@code continue} and loop return {@code null};
  * @author laim0nas100
  */
 public class CallerForBuilder<R, T> {
@@ -22,6 +25,8 @@ public class CallerForBuilder<R, T> {
     protected Caller<T> afterwards;
 
     public CallerForBuilder() {
+        thenFunction = (i, c) -> Caller.flowContinue();
+        afterwards = Caller.ofNull();
     }
 
     /**
@@ -90,12 +95,12 @@ public class CallerForBuilder<R, T> {
         Objects.requireNonNull(iter);
         Objects.requireNonNull(contFunction);
         Objects.requireNonNull(thenFunction);
-        if(bulk){
+        if (bulk) {
             return CallerImpl.ofIteratorLazyBulk(afterwards, iter, contFunction, thenFunction);
-        }else{
+        } else {
             return CallerImpl.ofIteratorLazy(afterwards, iter, contFunction, thenFunction);
         }
-        
+
     }
 
     /**
@@ -134,12 +139,36 @@ public class CallerForBuilder<R, T> {
     }
 
     /**
+     * Create recursive calls for each item in iterator with unsafe function
+     * masking any exceptions.
+     *
+     * @param contFunction
+     * @return
+     */
+    public CallerForBuilder<R, T> forEachCall(UnsafeFunction<R, Caller<T>> contFunction) {
+        Objects.requireNonNull(contFunction);
+        return this.forEachCall((i, item) -> contFunction.apply(item));
+    }
+
+    /**
      * Create recursive calls for each (index,item) pair in iterator.
      *
      * @param contFunction
      * @return
      */
     public CallerForBuilder<R, T> forEachCall(BiFunction<Integer, R, Caller<T>> contFunction) {
+        this.contFunction = contFunction;
+        return this;
+    }
+
+    /**
+     * Create recursive calls for each (index,item) pair in iterator with unsafe
+     * function masking any exceptions.
+     *
+     * @param contFunction
+     * @return
+     */
+    public CallerForBuilder<R, T> forEachCall(UnsafeBiFunction<Integer, R, Caller<T>> contFunction) {
         this.contFunction = contFunction;
         return this;
     }
