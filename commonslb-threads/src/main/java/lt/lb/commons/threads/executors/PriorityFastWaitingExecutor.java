@@ -3,7 +3,7 @@ package lt.lb.commons.threads.executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
-import lt.lb.commons.Timer;
+import lt.lb.commons.misc.Timer;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.sync.WaitTime;
 

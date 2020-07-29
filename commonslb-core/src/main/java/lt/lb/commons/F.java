@@ -351,7 +351,7 @@ public class F {
         });
 
         F.unsafeRun(() -> {
-            for(Future future:deque){
+            for (Future future : deque) {
                 future.get();
             }
         });

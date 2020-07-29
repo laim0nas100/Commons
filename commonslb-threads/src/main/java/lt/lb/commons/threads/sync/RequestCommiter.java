@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
-import lt.lb.commons.Timer;
+import lt.lb.commons.misc.Timer;
 
 /**
  * Use ServiceRequestCommiter

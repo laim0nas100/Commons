@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
-import lt.lb.commons.ReflectionUtils;
+import lt.lb.commons.misc.ReflectionUtils;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.datafill.NumberFill;

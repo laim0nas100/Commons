@@ -13,7 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import lt.lb.commons.Log;
-import lt.lb.commons.io.FileReader;
+import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.parsing.LexerWithStrings;
 import lt.lb.commons.parsing.Token;
@@ -175,7 +175,7 @@ public class ParamParserTest {
         Log.main().async = false;
         Log.main().display = true;
         String url = "C:\\MyWorkspace\\Commons\\fileToRead.txt";
-        Collection<String> readFromFile = FileReader.readFromFile(url, "//", "/*", "*/");
+        Collection<String> readFromFile = TextFileIO.readFromFile(url, "//", "/*", "*/");
 
         Log.printLines(readFromFile);
         LexerWithStrings lex = new LexerWithStrings();

@@ -147,6 +147,13 @@
             <version>1.25</version>   
             <scope>test</scope>         
         </dependency>
+        
+        <dependency>
+            <groupId>lt.lb</groupId>
+            <artifactId>JobSystem</artifactId>
+            <version>local-jar</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <name>CommonsLB Tests</name>
 </project>

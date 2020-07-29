@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
-import lt.lb.commons.ReflectionUtils;
+import lt.lb.commons.misc.ReflectionUtils;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;

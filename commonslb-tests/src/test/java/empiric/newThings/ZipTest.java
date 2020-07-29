@@ -19,7 +19,7 @@ import java.util.zip.ZipFile;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.io.FileReader;
+import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.io.blobify.Blobbys;
 import lt.lb.commons.io.blobify.bytes.Bytes;
 import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;
@@ -66,7 +66,7 @@ public class ZipTest {
         b.executeBench(16, "Stored", () -> doTest("E:\\LKPB_DS-stored.zip")).print(Log::print);
         b.executeBench(16, "Compressed", () -> doTest("E:\\LKPB_DS-comp.zip")).print(Log::print);
         b.executeBench(16, "My boi", () -> {
-            Blobbys load = Blobbys.loadFromConfig(ReadOnlyIterator.of(FileReader.readFromFile("E:\\DS_DATA.comp.list.txt")));
+            Blobbys load = Blobbys.loadFromConfig(ReadOnlyIterator.of(TextFileIO.readFromFile("E:\\DS_DATA.comp.list.txt")));
 
             F.unsafeRun(() -> {
                     FileInputStream is = new FileInputStream("E:\\DS_DATA.comp");
@@ -88,13 +88,13 @@ public class ZipTest {
         Blobbys load = Blobbys.loadFromDirectory(Paths.get(dir));
         
         ArrayList<String> exportBlob = load.exportBlob(Bytes.writeToOutputStream(Files.newOutputStream(Paths.get(blobPath))));
-        FileReader.writeToFile(configPath, exportBlob);
+        TextFileIO.writeToFile(configPath, exportBlob);
         
     }
     
 //    @Test
     public void blobOutTest() throws Exception {
-        ArrayList<String> readFromFile = FileReader.readFromFile(configPath);
+        ArrayList<String> readFromFile = TextFileIO.readFromFile(configPath);
         Log.print("Read config");
         Blobbys load = Blobbys.loadFromConfig(ReadOnlyIterator.of(readFromFile));
         Log.print("Apply config");

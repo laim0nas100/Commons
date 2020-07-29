@@ -2,7 +2,7 @@ package lt.lb.commons.containers.values;
 
 import java.util.HashMap;
 import java.util.Objects;
-import lt.lb.commons.UUIDgenerator;
+import lt.lb.commons.misc.UUIDgenerator;
 
 /**
  * Property class that stores any value (including null).

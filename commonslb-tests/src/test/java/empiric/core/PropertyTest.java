@@ -6,7 +6,7 @@
 package empiric.core;
 
 import java.util.LinkedList;
-import lt.lb.commons.BindingValue;
+import lt.lb.commons.containers.values.BindingValue;
 import lt.lb.commons.Log;
 import lt.lb.commons.parsing.NumberParsing;
 import org.junit.Test;

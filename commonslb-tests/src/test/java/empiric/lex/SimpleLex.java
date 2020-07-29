@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.io.FileReader;
+import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.parsing.LexerWithStrings;
 import lt.lb.commons.parsing.Token;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class SimpleLex {
     @Test
     public void simpleJavaLex() throws Exception {
         InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("javaFile.txt");
-        ArrayList<String> readFrom = FileReader.readFrom(resourceAsStream);
+        ArrayList<String> readFrom = TextFileIO.readFrom(resourceAsStream);
 
         LexerWithStrings lex = new LexerWithStrings();
         lex.setSaveComments(false);

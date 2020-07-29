@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 //import lt.lb.commons.Log;
-import lt.lb.commons.UUIDgenerator;
+import lt.lb.commons.misc.UUIDgenerator;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.F;

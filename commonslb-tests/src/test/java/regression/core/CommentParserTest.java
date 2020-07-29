@@ -6,7 +6,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import lt.lb.commons.Log;
-import lt.lb.commons.io.FileReader;
+import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.parsing.CommentParser;
 import static org.assertj.core.api.Assertions.*;

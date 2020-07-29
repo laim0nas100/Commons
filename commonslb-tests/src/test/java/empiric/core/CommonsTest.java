@@ -17,9 +17,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.ArrayBasedCounter;
+import lt.lb.commons.misc.ArrayBasedCounter;
 import lt.lb.commons.Log;
-import lt.lb.commons.io.FileReader;
+import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.benchmarking.Benchmark;
@@ -127,7 +127,7 @@ public class CommonsTest {
         Log.main().timeStamp = false;
         F.unsafeRun(() -> {
             String url = desktop + "myFile.txt";
-            ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "/*", "*/");
+            ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "/*", "*/");
 
             Log.printLines(readFromFile);
             Log.print("########");
@@ -135,7 +135,7 @@ public class CommonsTest {
 
         F.unsafeRun(() -> {
             String url = desktop + "myFile.txt";
-            ArrayList<String> readFromFile = FileReader.readFromFile(url);
+            ArrayList<String> readFromFile = TextFileIO.readFromFile(url);
 //            Log.printLines(readFromFile);
             ReadOnlyIterator<String> parseAllComments = CommentParser.parseAllComments(ReadOnlyIterator.of(readFromFile), "#", "/*", "*/");
             ArrayList<String> parsed = new ArrayList<>();
@@ -149,7 +149,7 @@ public class CommonsTest {
 
         F.unsafeRun(() -> {
             String url = desktop + "myFile2.txt";
-            ArrayList<String> readFromFile = FileReader.readFromFile(url, "#", "**", "**");
+            ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "**", "**");
 //            Log.printLines(readFromFile);
             Log.await(1, TimeUnit.HOURS);
         });
@@ -158,7 +158,7 @@ public class CommonsTest {
 
     public void parseTest() throws Exception {
         URL resource = Thread.currentThread().getContextClassLoader().getResource("text.txt");
-        ArrayList<String> readFromFile = FileReader.readFrom(new FileInputStream(new File(resource.getFile())));
+        ArrayList<String> readFromFile = TextFileIO.readFrom(new FileInputStream(new File(resource.getFile())));
         Log.printLines(readFromFile);
         ReadOnlyIterator<String> parseAllComments = CommentParser.parseAllComments(ReadOnlyIterator.of(readFromFile), "//", "/*", "*/");
         ArrayList<String> parsed = new ArrayList<>();
@@ -179,7 +179,7 @@ public class CommonsTest {
         String relationTitle = "SomeTitle";
 
         F.unsafeRun(() -> {
-            ArrayList<String> readFromFile = FileReader.readFromFile(desktop + "raw.txt");
+            ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.txt");
             int colCount = readFromFile.get(0).split(",").length;
             Log.print(colCount);
 
@@ -193,7 +193,7 @@ public class CommonsTest {
             arff.add("");
             arff.add("@data");
             arff.addAll(readFromFile);
-            FileReader.writeToFile(desktop + "output.arff", arff);
+            TextFileIO.writeToFile(desktop + "output.arff", arff);
 
         });
 
@@ -206,7 +206,7 @@ public class CommonsTest {
         String relationTitle = "SomeTitle";
 
         F.unsafeRun(() -> {
-            ArrayList<String> readFromFile = FileReader.readFromFile(desktop + "raw.csv");
+            ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.csv");
             int colCount = readFromFile.get(0).split(",").length;
             Log.print(colCount);
 
@@ -225,7 +225,7 @@ public class CommonsTest {
                 arff.add(newLine);
 
             }
-            FileReader.writeToFile(desktop + "outputConverted.arff", arff);
+            TextFileIO.writeToFile(desktop + "outputConverted.arff", arff);
 
         });
 
@@ -239,7 +239,7 @@ public class CommonsTest {
         String relationTitle = "SomeTitle";
 
         F.unsafeRun(() -> {
-            ArrayList<String> readFromFile = FileReader.readFromFile(desktop + "raw.csv");
+            ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.csv");
             int colCount = readFromFile.get(0).split(",").length;
             Log.print(colCount);
 
@@ -271,7 +271,7 @@ public class CommonsTest {
                 arff.add(newLine);
 
             }
-            FileReader.writeToFile(desktop + "outputConvertedFinal.arff", arff);
+            TextFileIO.writeToFile(desktop + "outputConvertedFinal.arff", arff);
 
         });
 

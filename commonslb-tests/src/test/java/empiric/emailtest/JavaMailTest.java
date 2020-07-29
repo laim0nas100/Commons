@@ -34,7 +34,7 @@ import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.email.props.IMAPEmailProps;
-import lt.lb.commons.io.FileReader;
+import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.executors.FastExecutor;
@@ -308,7 +308,7 @@ public class JavaMailTest {
     public EmailAttributes emailParser(Path file, boolean toMark) {
         Value<EmailAttributes> val = new Value<>();
         F.unsafeRun(() -> {
-            ArrayList<String> content = FileReader.readFromFile(file.toString());
+            ArrayList<String> content = TextFileIO.readFromFile(file.toString());
             EmailAttributes em = new EmailAttributes();
             val.set(em);
             em.spam = toMark ? EmailType.SPAM : EmailType.NOTSPAM;
@@ -436,7 +436,7 @@ public class JavaMailTest {
 
         batcher.awaitFailOnFirst();
 
-        FileReader.writeToFile("spamFile3.arff", new WekaParser(EmailAttributes.class,
+        TextFileIO.writeToFile("spamFile3.arff", new WekaParser(EmailAttributes.class,
                 "spam").wekaReadyLines("EmailRelation", deque));
 
         Log.await(1, TimeUnit.HOURS);
