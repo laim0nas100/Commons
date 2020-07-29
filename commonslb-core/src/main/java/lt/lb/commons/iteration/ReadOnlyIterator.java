@@ -202,8 +202,26 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
      */
     default ReadOnlyIterator<T> withEnsuredCloseOperation(Runnable run) {
         ReadOnlyIterator<T> me = this;
-        AtomicBoolean closed = new AtomicBoolean(false);
+        
         return new ReadOnlyIterator<T>() {
+            AtomicBoolean closed = new AtomicBoolean(false);
+            Boolean cached = null;
+            
+            private boolean isClosed(){
+                return closed.get();
+            }
+            
+            private boolean maybeCloseHasNext(){
+                if(cached == null){
+                    cached = me.hasNext();
+                }
+                if (!cached) {
+                    close();
+                }
+                
+                return cached;
+            }
+            
             @Override
             public void close() {
                 //ensure only once
@@ -226,20 +244,18 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
 
             @Override
             public boolean hasNext() {
-                if (closed.get()) {
+                if (isClosed()) {
                     return false;
                 }
-                //maybe close
-                boolean hasNext = me.hasNext();
-                if (!hasNext) {
-                    close();
-                }
-                return hasNext;
+                return maybeCloseHasNext();
             }
 
             @Override
             public T next() {
-                return me.next();
+                T next = me.next();
+                cached = null;
+                maybeCloseHasNext();
+                return next;
             }
 
         };
