@@ -11,7 +11,7 @@ import lt.lb.commons.io.blobify.bytes.impl.EmptyChunkyBytes;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public interface ChunkyBytes {
     

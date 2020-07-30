@@ -15,7 +15,7 @@ import lt.lb.commons.parsing.CommentParser;
 
 /**
  *
- * @author Laimonas Beniušis
+ * @author laim0nas100
  */
 public class ReadCommentsTest {
     public static void main(String[] args) throws IOException{

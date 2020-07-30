@@ -18,7 +18,7 @@ import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class FastExecutorTest {
 

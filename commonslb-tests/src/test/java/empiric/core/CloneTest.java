@@ -5,7 +5,7 @@ import lt.lb.commons.interfaces.CloneSupport;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class CloneTest {
 

@@ -23,7 +23,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class SimpleGraphGenerate {
 
