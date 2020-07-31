@@ -2,6 +2,7 @@ package lt.lb.commons.javafx;
 
 import java.util.*;
 import javafx.beans.binding.*;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -273,7 +274,7 @@ public class CosmeticsFX {
     }
 
     public static void simpleMenuBindingWrap(Menu menu) {
-        final ArrayDeque<BooleanExpression> list = new ArrayDeque<>();
+        final ArrayDeque<BooleanProperty> list = new ArrayDeque<>();
         menu.getItems().forEach(item -> {
             if (item instanceof Menu) {
                 simpleMenuBindingWrap((Menu) item);
