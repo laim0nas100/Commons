@@ -14,6 +14,10 @@ import lt.lb.commons.MonadicBuilders.StringWithInitialBuilder;
  */
 public abstract class BaseMenuItemBuilder<T extends MenuItem, E extends BaseMenuItemBuilder<T, E>> extends StringWithInitialBuilder<T,E> {
     
+    public BaseMenuItemBuilder(){
+        functions = new LinkedHashMap<>();
+    }
+    
     public E withText(String label) {
         return thenCon("text", c -> c.setText(label));
     }

@@ -74,12 +74,11 @@ public class MenuBuilders {
             this.itemSupplier = itemSupplier;
             this.menuSupplier = menuSupplier;
             this.supplier = contextMenuSupplier;
+            this.functions = new LinkedHashMap<>();
         }
 
         public ContextMenuBuilder() {
-            this.supplier = ContextMenu::new;
-            this.itemSupplier = MenuItem::new;
-            this.menuSupplier = Menu::new;
+            this(ContextMenu::new, MenuItem::new, Menu::new);
         }
 
         @Override
@@ -163,13 +162,13 @@ public class MenuBuilders {
                 c.getItems().add(builder.apply(defaultSelectAll()).build());
             });
         }
-        
+
         public SelectMenuBuilder addSelectInverted(Function<MenuItemBuilder, MenuItemBuilder> builder) {
             return thenCon("select-inverted", c -> {
                 c.getItems().add(builder.apply(defaultSelectInvert()).build());
             });
         }
-        
+
         public SelectMenuBuilder addSelectNone(Function<MenuItemBuilder, MenuItemBuilder> builder) {
             return thenCon("select-none", c -> {
                 c.getItems().add(builder.apply(defaultSelectNone()).build());
