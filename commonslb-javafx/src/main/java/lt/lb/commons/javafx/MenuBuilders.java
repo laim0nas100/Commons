@@ -29,13 +29,13 @@ public class MenuBuilders {
             this(Menu::new);
         }
 
-        public MenuBuilder(Supplier<Menu> supl) {
+        public MenuBuilder(Supplier<? extends Menu> supl) {
             this.supplier = supl;
         }
 
         @Override
         protected MenuBuilder copy(Map<String, Function<? super Menu, ? extends Menu>> funcs, int reqSize) {
-            return copyLinkedHashMap(() -> new MenuBuilder(this.supplier));
+            return copyLinkedHashMap(()-> new MenuBuilder(this.supplier));
         }
 
         public MenuBuilder addMenu(Function<MenuBuilder, MenuBuilder> mb) {
@@ -54,7 +54,7 @@ public class MenuBuilders {
             this(MenuItem::new);
         }
 
-        public MenuItemBuilder(Supplier<MenuItem> supl) {
+        public MenuItemBuilder(Supplier<? extends MenuItem> supl) {
             this.supplier = supl;
         }
 
@@ -67,10 +67,10 @@ public class MenuBuilders {
 
     public static class ContextMenuBuilder extends StringWithInitialBuilder<ContextMenu, ContextMenuBuilder> {
 
-        protected Supplier<MenuItem> itemSupplier;
-        protected Supplier<Menu> menuSupplier;
+        protected Supplier<? extends MenuItem> itemSupplier;
+        protected Supplier<? extends Menu> menuSupplier;
 
-        public ContextMenuBuilder(Supplier<ContextMenu> contextMenuSupplier, Supplier<MenuItem> itemSupplier, Supplier<Menu> menuSupplier) {
+        public ContextMenuBuilder(Supplier<? extends ContextMenu> contextMenuSupplier, Supplier<? extends MenuItem> itemSupplier, Supplier<? extends Menu> menuSupplier) {
             this.itemSupplier = itemSupplier;
             this.menuSupplier = menuSupplier;
             this.supplier = contextMenuSupplier;
@@ -89,11 +89,11 @@ public class MenuBuilders {
         }
 
         public ContextMenuBuilder addItem(MenuItemBuilder builder) {
-            return thenCon(c -> builder.build());
+            return thenCon(c -> c.getItems().add(builder.build()));
         }
 
         public ContextMenuBuilder addItemMenu(MenuBuilder builder) {
-            return thenCon(c -> builder.build());
+            return thenCon(c -> c.getItems().add(builder.build()));
         }
 
         public ContextMenuBuilder addNestedVisibilityBind() {
@@ -103,7 +103,7 @@ public class MenuBuilders {
         }
 
         public ContextMenuBuilder addNestedDisableBind() {
-            return thenCon("visibility", c -> {
+            return thenCon("disabled", c -> {
                 simpleMenuBindingWrap(c, m -> m.disableProperty(), false);
             });
         }
@@ -113,7 +113,7 @@ public class MenuBuilders {
     public static class SelectMenuBuilder extends BaseMenuItemBuilder<Menu, SelectMenuBuilder> {
 
         protected MultipleSelectionModel model;
-        protected Supplier<MenuItem> menuItem;
+        protected Supplier<? extends MenuItem> menuItem;
 
         protected BooleanBinding greaterThan1;
         protected BooleanBinding multiple;
@@ -122,7 +122,7 @@ public class MenuBuilders {
             this(Menu::new, MenuItem::new, model);
         }
 
-        public SelectMenuBuilder(Supplier<Menu> menu, Supplier<MenuItem> menuItem, MultipleSelectionModel model) {
+        public SelectMenuBuilder(Supplier<? extends Menu> menu, Supplier<? extends MenuItem> menuItem, MultipleSelectionModel model) {
             this.supplier = menu;
             this.menuItem = menuItem;
             this.model = model;

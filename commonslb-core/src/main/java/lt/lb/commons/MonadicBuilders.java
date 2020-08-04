@@ -17,28 +17,35 @@ import java.util.stream.Collectors;
  * @author laim0nas100
  */
 public class MonadicBuilders {
-    
-    public static abstract class StringWithInitialBuilder<T, E extends StringWithInitialBuilder<T, E>> extends StringIDSameBuilder<T, E> implements SameInitialValue<String, T, E>{
 
-        protected Supplier<T> supplier;
+    public static abstract class StringWithInitialBuilder<T, E extends StringWithInitialBuilder<T, E>> extends StringIDSameBuilder<T, E> implements SameInitialValue<String, T, E> {
+
+        protected Supplier<? extends T> supplier;
 
         @Override
-        public Supplier<T> initialValueSupplier() {
+        public Supplier<? extends T> getInitialValueSupplier() {
             return supplier;
         }
-        
-        
-
-    }
-    
-    
-    public static abstract class IntWithInitialBuilder<T, E extends IntWithInitialBuilder<T, E>> extends IntIDSameBuilder<T, E> implements SameInitialValue<Integer, T, E>{
-
-        protected Supplier<T> supplier;
 
         @Override
-        public Supplier<T> initialValueSupplier() {
+        public void setInitialValueSupplier(Supplier<? extends T> supl) {
+            this.supplier = supl;
+        }
+
+    }
+
+    public static abstract class IntWithInitialBuilder<T, E extends IntWithInitialBuilder<T, E>> extends IntIDSameBuilder<T, E> implements SameInitialValue<Integer, T, E> {
+
+        protected Supplier<? extends T> supplier;
+
+        @Override
+        public Supplier<? extends T> getInitialValueSupplier() {
             return supplier;
+        }
+
+        @Override
+        public void setInitialValueSupplier(Supplier<? extends T> supl) {
+            this.supplier = supl;
         }
         
         
@@ -50,9 +57,13 @@ public class MonadicBuilders {
         protected long id = 0;
 
         @Override
-        protected String nextID() {
-            id++;
-            return String.valueOf(id);
+        public String nextID() {
+            return String.valueOf(id++);
+        }
+
+        @Override
+        public void seedNextID(String seed) {
+            id = Long.valueOf(seed);
         }
 
     }
@@ -62,16 +73,18 @@ public class MonadicBuilders {
         protected int id;
 
         @Override
-        protected Integer nextID() {
-            id++;
-            return id;
+        public Integer nextID() {
+            return id++;
+        }
+
+        @Override
+        public void seedNextID(Integer seed) {
+            id = seed;
         }
 
     }
 
-    public static abstract class IDProviderSameBuilder<ID, T, E extends IDProviderSameBuilder<ID, T, E>> extends BaseSameBuilder<ID, T, E> {
-
-        protected abstract ID nextID();
+    public static abstract class IDProviderSameBuilder<ID, T, E extends IDProviderSameBuilder<ID, T, E>> extends BaseSameBuilder<ID, T, E> implements IdProvider<ID> {
 
         public <G extends Function<? super T, ? extends T>> E then(G... func) {
             E copy = copy(functions, functions.size() + func.length);
@@ -168,6 +181,17 @@ public class MonadicBuilders {
         ) {
             E get = supl.get();
             get.functions = fun.apply(this.functions);
+            if (get instanceof IdProvider) {
+                IdProvider prov = (IdProvider) get;
+                IdProvider me = (IdProvider) this;
+                prov.seedNextID(me.nextID());
+            }
+
+            if (get instanceof WithInitialValue) {
+                WithInitialValue prov = (WithInitialValue) get;
+                WithInitialValue me = (WithInitialValue) this;
+                prov.setInitialValueSupplier(me.getInitialValueSupplier());
+            }
             return get;
         }
 
@@ -184,28 +208,35 @@ public class MonadicBuilders {
         }
     }
 
+    public static interface IdProvider<ID> {
+
+        public ID nextID();
+
+        public void seedNextID(ID seed);
+    }
+
     public static interface SameInitialValue<ID, T, E extends SameInitialValue<ID, T, E>> extends WithInitialValue<ID, T, T, E>, SameBuilder<ID, T, E>, Supplier<T> {
 
         public default T build() {
-            return build(initialValueSupplier());
+            return build(getInitialValueSupplier());
         }
+
         @Override
         public default T get() {
             return build();
         }
     }
 
-    public static interface WithInitialValue<ID, F, T, E extends WithInitialValue<ID, F, T, E>> extends Builder<ID, F, T, E>  {
+    public static interface WithInitialValue<ID, F, T, E extends WithInitialValue<ID, F, T, E>> extends Builder<ID, F, T, E> {
 
-        public Supplier<? extends F> initialValueSupplier();
+        public Supplier<? extends F> getInitialValueSupplier();
+
+        public void setInitialValueSupplier(Supplier<? extends F> supl);
 
         public default T buildById(ID id) {
-            return buildById(id, initialValueSupplier());
+            return buildById(id, getInitialValueSupplier());
         }
 
-        
-        
-        
     }
 
     public static interface SameBuilder<ID, T, E extends SameBuilder<ID, T, E>> extends Builder<ID, T, T, E>, Function<T, T>, Consumer<T> {
@@ -247,7 +278,7 @@ public class MonadicBuilders {
         }
 
         public List<Function<? super F, ? extends T>> getFunctions();
-        
+
         public E copy();
 
         public Set<ID> getIds();
