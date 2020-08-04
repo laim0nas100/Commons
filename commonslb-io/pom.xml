@@ -11,11 +11,6 @@
         <version>local-jar</version>
     </parent>
     <name>CommonsLB IO</name>
-    <properties>
-        <apache.commons.version>3.7</apache.commons.version>
-        
-        
-    </properties>
     
     <dependencies>
         <dependency>

@@ -14,26 +14,14 @@
     
     <name>CommonsLB Core</name>
     
-    <properties>
-        <apache.commons.version>3.8.1</apache.commons.version>
-    </properties>
-    
-    
-    
-    
-    
-    
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${apache.commons.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.3</version>
-            <type>jar</type>
         </dependency>
     </dependencies>
     
