@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.values.SetOnce;
+import lt.lb.commons.containers.values.ValueProxy;
 
 /**
  *
@@ -31,7 +32,7 @@ public class DataSyncs {
 
     }
 
-    public static interface DisplayValildation<M, V extends Valid<M>>{
+    public static interface DisplayValildation<M, V extends Valid<M>> {
 
         public void withDisplayValidation(V validation);
 
@@ -149,8 +150,7 @@ public class DataSyncs {
         protected List<V> validatePersistence = new ArrayList<>();
 
         protected M managed;
-
-        protected abstract ExplicitDataSync<P, M, D, V> me();
+        
 
         @Override
         public void withDisplaySync(Consumer<? super D> displaySync) {
@@ -160,6 +160,16 @@ public class DataSyncs {
         @Override
         public void withPersistSync(Consumer<? super P> persSync) {
             this.persistenceSync.set(persSync);
+        }
+
+        public void withPersistProxy(ValueProxy<P> proxy) {
+            this.persistenceSupp.set(proxy);
+            this.persistenceSync.set(proxy);
+        }
+
+        public void withDisplayProxy(ValueProxy<D> proxy) {
+            this.displaySupp.set(proxy);
+            this.displaySync.set(proxy);
         }
 
         @Override
@@ -272,6 +282,21 @@ public class DataSyncs {
             this.validatePersistence.add(validation);
         }
 
+        public void withIdentityPersist() {
+            this.persistSet.set(v -> F.cast(v));
+            this.persistGet.set(v -> F.cast(v));
+        }
+        
+        public void withIdentityDisplay() {
+            this.displaySet.set(v -> F.cast(v));
+            this.displayGet.set(v -> F.cast(v));
+        }
+        
+        public void withNoConversion(){
+            withIdentityDisplay();
+            withIdentityPersist();
+        }
+
         @Override
         public boolean validDisplay() {
             return doValidation(validateDisplay, false);
@@ -312,8 +337,6 @@ public class DataSyncs {
     public static abstract class GenDataSync<P, D, V extends Valid<P>> extends ExplicitDataSync<P, P, D, V> {
 
         public GenDataSync() {
-            persistGet.set(v -> v);
-            persistSet.set(v -> v);
         }
 
     }
