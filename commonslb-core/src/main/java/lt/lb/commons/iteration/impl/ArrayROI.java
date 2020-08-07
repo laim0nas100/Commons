@@ -43,4 +43,8 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
         return setCurrent(array[++index]);
     }
 
+    @Override
+    public void close() {
+    }
+
 }

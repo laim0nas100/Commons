@@ -40,5 +40,9 @@ public class ListROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalItera
         index--;
         return setCurrent(iter.previous());
     }
+
+    @Override
+    public void close() {
+    }
     
 }

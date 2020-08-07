@@ -65,4 +65,8 @@ public class EmptyROI<T> implements ReadOnlyBidirectionalIterator<T>, ListIterat
         throw new UnsupportedOperationException("Not supported.");
     }
 
+    @Override
+    public void close() {
+    }
+
 }

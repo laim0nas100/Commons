@@ -166,8 +166,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     }
 
     @Override
-    default void close() {
-    }
+    void close();
 
     default <R> ReadOnlyIterator<R> map(Function<? super T, ? extends R> mapper) {
         ReadOnlyIterator<T> me = this;
@@ -191,6 +190,14 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
             public R next() {
                 return mapper.apply(me.next());
             }
+
+
+            @Override
+            public void close() {
+                me.close();
+            }
+            
+            
         };
     }
 

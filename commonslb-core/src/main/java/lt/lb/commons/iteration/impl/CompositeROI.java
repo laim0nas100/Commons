@@ -44,14 +44,23 @@ public class CompositeROI<T> extends BaseROI<T> {
 
     private void ensureNewest() {
         if (currentIterator == null || !currentIterator.hasNext()) {
+            if(currentIterator != null){
+                currentIterator.close();
+                currentIterator = null;
+            }
             if (rois.hasNext()) {
                 currentIterator = rois.getNext();
                 while (!currentIterator.hasNext() && rois.hasNext()) {
+                    currentIterator.close();
                     currentIterator = rois.getNext();
                 }
             }
 
         }
+    }
+
+    @Override
+    public void close() {
     }
 
 }

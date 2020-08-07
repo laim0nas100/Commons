@@ -294,6 +294,10 @@ public class ParamParserTest {
             return current;
         }
 
+        @Override
+        public void close() {
+        }
+
     }
 
 }

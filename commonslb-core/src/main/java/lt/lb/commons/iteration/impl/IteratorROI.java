@@ -27,5 +27,9 @@ public class IteratorROI<T> extends BaseROI<T> {
         return setCurrent(iter.next());
     }
 
+    @Override
+    public void close() {
+    }
+
 
 }
