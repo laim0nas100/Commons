@@ -58,7 +58,8 @@ public class MonadicBuilders {
 
         @Override
         public String nextID() {
-            return String.valueOf(id++);
+            id++;
+            return String.valueOf(id);
         }
 
         @Override
@@ -74,7 +75,8 @@ public class MonadicBuilders {
 
         @Override
         public Integer nextID() {
-            return id++;
+            id++;
+            return id;
         }
 
         @Override
@@ -127,7 +129,7 @@ public class MonadicBuilders {
         /**
          * Final product decorators
          */
-        protected Map<ID, Function<? super F, ? extends T>> functions;
+        protected Map<ID, Function<? super F, ? extends T>> functions = new HashMap<>();
 
         @Override
         public E copy() {

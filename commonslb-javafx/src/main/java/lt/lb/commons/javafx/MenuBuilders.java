@@ -35,7 +35,7 @@ public class MenuBuilders {
 
         @Override
         protected MenuBuilder copy(Map<String, Function<? super Menu, ? extends Menu>> funcs, int reqSize) {
-            return copyLinkedHashMap(()-> new MenuBuilder(this.supplier));
+            return copyLinkedHashMap(() -> new MenuBuilder(this.supplier));
         }
 
         public MenuBuilder addMenu(Function<MenuBuilder, MenuBuilder> mb) {
@@ -83,9 +83,7 @@ public class MenuBuilders {
 
         @Override
         protected ContextMenuBuilder copy(Map<String, Function<? super ContextMenu, ? extends ContextMenu>> funcs, int reqSize) {
-            ContextMenuBuilder mb = new ContextMenuBuilder(supplier, itemSupplier, menuSupplier);
-            mb.functions = new LinkedHashMap<>(funcs);
-            return mb;
+            return copyLinkedHashMap(() -> new ContextMenuBuilder(supplier, itemSupplier, menuSupplier));
         }
 
         public ContextMenuBuilder addItem(MenuItemBuilder builder) {
