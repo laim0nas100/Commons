@@ -60,12 +60,12 @@ public class NestedFileWatch {
         return this;
     }
 
-    private NestedFileWatch addSys(SingleWatchEventListener listener) {
+    protected NestedFileWatch addSys(SingleWatchEventListener listener) {
         this.sysEventListeners.add(listener);
         return this;
     }
 
-    private Runnable watchTask() {
+    protected Runnable watchTask() {
         return () -> {
             try {
                 while (true) {
@@ -93,7 +93,7 @@ public class NestedFileWatch {
         };
     }
 
-    private void fireErrorListers(Throwable th) {
+    protected void fireErrorListers(Throwable th) {
         if (errorListeners.isEmpty()) {
             System.err.println("No error listeners registered, printing to System.err");
             th.printStackTrace(System.err);
@@ -111,7 +111,7 @@ public class NestedFileWatch {
         }
     }
 
-    private void fireListeners(List<WatchEvent<?>> events) {
+    protected void fireListeners(List<WatchEvent<?>> events) {
         ZonedDateTime now = ZonedDateTime.now();
         try {
             NestedWatchFileEvent[] array = events.stream()
@@ -140,7 +140,7 @@ public class NestedFileWatch {
         TreeVisitor.ofAll(cons, item -> ReadOnlyIterator.of(item.nested.values())).BFS(this);
     }
 
-    private void terminateService() throws IOException {
+    protected void terminateService() throws IOException {
         if (!running) {
             return;
         }
@@ -171,23 +171,23 @@ public class NestedFileWatch {
             }
         });
     }
-    private ExecutorService exe;
+    protected ExecutorService exe;
 
-    private Future currentTask;
+    protected Future currentTask;
     public final Path directory;
 
-    private WatchService service;
-    private WatchKey watchKey;
+    protected WatchService service;
+    protected WatchKey watchKey;
 
-    private boolean running;
+    protected boolean running;
 
-    private List<NestedWatchEventListener> eventListeners;
+    protected List<NestedWatchEventListener> eventListeners;
 
-    private List<ErrorNestedWatchEventListener> errorListeners;
+    protected List<ErrorNestedWatchEventListener> errorListeners;
 
-    private List<NestedWatchEventListener> sysEventListeners;
+    protected List<NestedWatchEventListener> sysEventListeners;
 
-    private Map<String, NestedFileWatch> nested;
+    protected Map<String, NestedFileWatch> nested;
 
     public void tryInit() throws IOException {
         if (running) {
@@ -197,7 +197,7 @@ public class NestedFileWatch {
         treeinit();
     }
 
-    private void addDefaultSysEvents() {
+    protected void addDefaultSysEvents() {
         addSys(ev -> {
             if (ev.kind == StandardWatchEventKinds.ENTRY_DELETE) {
                 Path removedDir = ev.affectedPath; // might not be a directory
@@ -225,7 +225,7 @@ public class NestedFileWatch {
                     nestedService.terminate();
                 }
 
-                NestedFileWatch nestedFileWatch = new NestedFileWatch(Paths.get(directory.toString(), key));
+                NestedFileWatch nestedFileWatch = createNew(Paths.get(directory.toString(), key));
 
                 nested.put(key, nestedFileWatch);
                 try {
@@ -244,7 +244,7 @@ public class NestedFileWatch {
         });
     }
 
-    private void initMe() throws IOException {
+    protected void initMe() throws IOException {
         if (running) {
             return;
         }
@@ -261,7 +261,7 @@ public class NestedFileWatch {
         running = true;
     }
 
-    private void treeinit() throws IOException {
+    protected void treeinit() throws IOException {
         new TreeVisitor<NestedFileWatch>() {
             @Override
             public Boolean find(NestedFileWatch item) {
@@ -277,7 +277,7 @@ public class NestedFileWatch {
             public ReadOnlyIterator<NestedFileWatch> getChildrenIterator(NestedFileWatch parent) {
                 try {
                     return parent.collectFolders().map(folder -> {
-                        NestedFileWatch nestedFileWatch = new NestedFileWatch(folder);
+                        NestedFileWatch nestedFileWatch = createNew(folder);
                         parent.nested.put(folder.getFileName().toString(), nestedFileWatch);
                         return nestedFileWatch;
                     });
@@ -288,10 +288,13 @@ public class NestedFileWatch {
         }.BFS(this);
     }
 
-    private ReadOnlyIterator<Path> collectFolders() throws IOException {
+    protected ReadOnlyIterator<Path> collectFolders() throws IOException {
         DirectoryStream<Path> dirStream = Files.newDirectoryStream(directory, Files::isDirectory);
         return ReadOnlyIterator.of(dirStream.iterator()).withEnsuredCloseOperation((UnsafeRunnable) () -> dirStream.close());
-
+    }
+    
+    protected NestedFileWatch createNew(Path path){
+        return new NestedFileWatch(path);
     }
 
 }

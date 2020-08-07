@@ -17,7 +17,7 @@ import lt.lb.commons.io.filewatch.NestedFileWatch;
 public class NestedFileWatchTest {
 
     public static void main(String... args) throws IOException, InterruptedException {
-        NestedFileWatch nestedFileWatch = new NestedFileWatch(Paths.get("C:\\Users\\Laimonas-Beniusis-PC\\test"));
+        NestedFileWatch nestedFileWatch = new NestedFileWatch(Paths.get("D:\\test"));
         nestedFileWatch.tryInit();
         
         nestedFileWatch.addSingleEventListener(ev -> {
