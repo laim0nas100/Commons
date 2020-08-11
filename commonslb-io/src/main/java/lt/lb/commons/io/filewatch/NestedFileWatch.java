@@ -21,7 +21,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import lt.lb.commons.F;
+import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.io.filewatch.NestedFileWatchEvents.NestedWatchErrorEvent;
 import lt.lb.commons.io.filewatch.NestedFileWatchEvents.NestedWatchFileEvent;
@@ -159,7 +161,7 @@ public class NestedFileWatch {
         if (service != null) {
             this.service.close();
         }
-        running = true;
+        running = false;
     }
 
     public void terminate() {
@@ -194,7 +196,7 @@ public class NestedFileWatch {
             return;
         }
 
-        treeinit();
+        treeinit(null, BooleanValue.FALSE());
     }
 
     protected void addDefaultSysEvents() {
@@ -261,10 +263,13 @@ public class NestedFileWatch {
         running = true;
     }
 
-    protected void treeinit() throws IOException {
+    protected void treeinit(Consumer<Path> collect, Supplier<Boolean> cancel) throws IOException {
         new TreeVisitor<NestedFileWatch>() {
             @Override
             public Boolean find(NestedFileWatch item) {
+                if(cancel.get()){
+                    return true;
+                }
                 try {
                     item.initMe();
                 } catch (IOException io) {
@@ -276,7 +281,7 @@ public class NestedFileWatch {
             @Override
             public ReadOnlyIterator<NestedFileWatch> getChildrenIterator(NestedFileWatch parent) {
                 try {
-                    return parent.collectFolders().map(folder -> {
+                    return parent.collectFolders(collect).map(folder -> {
                         NestedFileWatch nestedFileWatch = createNew(folder);
                         parent.nested.put(folder.getFileName().toString(), nestedFileWatch);
                         return nestedFileWatch;
@@ -288,7 +293,7 @@ public class NestedFileWatch {
         }.BFS(this);
     }
 
-    protected ReadOnlyIterator<Path> collectFolders() throws IOException {
+    protected ReadOnlyIterator<Path> collectFolders(Consumer<Path> collect) throws IOException {
         DirectoryStream<Path> dirStream = Files.newDirectoryStream(directory, Files::isDirectory);
         return ReadOnlyIterator.of(dirStream.iterator()).withEnsuredCloseOperation((UnsafeRunnable) () -> dirStream.close());
     }
