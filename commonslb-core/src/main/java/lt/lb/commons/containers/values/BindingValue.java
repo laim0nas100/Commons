@@ -2,9 +2,12 @@ package lt.lb.commons.containers.values;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -16,19 +19,16 @@ import lt.lb.commons.misc.NestedException;
  *
  * @author laim0nas100
  */
-public class BindingValue<T> extends Value<T> {
+public class BindingValue<T> extends Value<T>  {
 
     private static final AtomicLong ID_GEN = new AtomicLong(0);
-    protected Map<Long, Consumer<T>> consumers;
-    protected Set<BiConsumer<T, T>> listeners;
-    protected final Long id = nextId();
+    protected Map<Long, BiConsumer<T, T>> listeners = new LinkedHashMap<>();
+    public final Long id = nextId();
 
-    private volatile boolean inside = false;
+    private volatile AtomicBoolean inside = new AtomicBoolean(false);
 
     public BindingValue(T val) {
         super(val);
-        consumers = new HashMap<>();
-        listeners = new HashSet<>();
     }
 
     public BindingValue() {
@@ -51,57 +51,64 @@ public class BindingValue<T> extends Value<T> {
 
     @Override
     public void set(T v) {
-        this.propogateWith(this.get(),v);
+        this.propogateWith(this.get(), v);
         super.set(v);
     }
 
     protected void propogateWith(T oldVal, T newVal) {
-        if (inside) { // dont loop
+        if (!inside.compareAndSet(false, true)) { // failed to set, return
             return;
         }
-        inside = true;
         Optional<Throwable> checkedRun = F.checkedRun(() -> {
-            for (BiConsumer<T, T> listener : listeners) {
+            for (BiConsumer<T, T> listener : listeners.values()) {
                 listener.accept(oldVal, newVal);
             }
-            for (Consumer<? super T> cons : consumers.values()) {
-                cons.accept(newVal);
-            }
         });
-        inside = false;
+        if (!inside.compareAndSet(true, false)) {
+            inside.set(false);
+            throw new IllegalStateException("Failed to exit from propogation");
+        }
         if (checkedRun.isPresent()) {
             throw NestedException.of(checkedRun.get());
         }
     }
 
     public void bindPropogate(Long id, Consumer<T> cons) {
-        if (consumers.containsKey(id)) {
+        if (listeners.containsKey(id)) {
             throw new IllegalArgumentException("id:" + id + " is allready present");
         }
-        this.consumers.put(id, cons);
+
+        this.addListener(id, (ov, nv) -> cons.accept(nv));
     }
 
     public void bindPropogate(BindingValue<T> val) {
         bindPropogate(val.id, val);
     }
 
-    public Optional<Consumer<T>> unbind(Long ID) {
-        return Optional.ofNullable(this.consumers.remove(ID));
+    public Optional<BiConsumer<T, T>> unbind(Long ID) {
+        return Optional.ofNullable(this.listeners.remove(ID));
     }
 
-    public Optional<BiConsumer<T, T>> addListener(BiConsumer<T, T> listener) {
-        if(this.listeners.add(listener)){
-            return Optional.of(listener);
-        }
-        return Optional.empty();
+    public Long addListener(BiConsumer<T, T> listener) {
+        Long nextId = BindingValue.nextId();
+        addListener(nextId, listener);
+        return nextId;
     }
 
-    public Optional<BiConsumer<T, T>> addListener(Consumer<T> listener) {
+    public BiConsumer<T, T> addListener(Long id, BiConsumer<T, T> listener) {
+        return this.listeners.put(id, listener);
+    }
+
+    public Long addListener(Consumer<T> listener) {
         return this.addListener((ov, nv) -> listener.accept(nv));
     }
     
-    public boolean removeListener(BiConsumer<T,T> listener){
-        return this.listeners.remove(listener);
+    public Optional<BiConsumer<T,T>> getListener(Long id){
+        return Optional.ofNullable(this.listeners.getOrDefault(id, null));
+    }
+
+    public boolean removeListener(BiConsumer<T, T> listener) {
+        return this.listeners.values().remove(listener);
     }
 
     public static <T> void bindBidirectional(BindingValue<T> val1, BindingValue<T> val2) {
@@ -113,8 +120,8 @@ public class BindingValue<T> extends Value<T> {
         val1.unbind(val2.id);
         val2.unbind(val1.id);
     }
-    
-    public static Long nextId(){
+
+    public static Long nextId() {
         return ID_GEN.getAndIncrement();
     }
 
