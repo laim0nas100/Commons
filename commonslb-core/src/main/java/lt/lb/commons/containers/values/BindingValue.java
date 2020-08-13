@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.NestedException;
+import lt.lb.commons.misc.UUIDgenerator;
 
 /**
  *
@@ -22,8 +23,8 @@ import lt.lb.commons.misc.NestedException;
 public class BindingValue<T> extends Value<T>  {
 
     private static final AtomicLong ID_GEN = new AtomicLong(0);
-    protected Map<Long, BiConsumer<T, T>> listeners = new LinkedHashMap<>();
-    public final Long id = nextId();
+    protected Map<String, BiConsumer<T, T>> listeners = new LinkedHashMap<>();
+    public final String id = nextId();
 
     private volatile AtomicBoolean inside = new AtomicBoolean(false);
 
@@ -73,7 +74,7 @@ public class BindingValue<T> extends Value<T>  {
         }
     }
 
-    public void bindPropogate(Long id, Consumer<T> cons) {
+    public void bindPropogate(String id, Consumer<T> cons) {
         if (listeners.containsKey(id)) {
             throw new IllegalArgumentException("id:" + id + " is allready present");
         }
@@ -85,25 +86,25 @@ public class BindingValue<T> extends Value<T>  {
         bindPropogate(val.id, val);
     }
 
-    public Optional<BiConsumer<T, T>> unbind(Long ID) {
+    public Optional<BiConsumer<T, T>> unbind(String ID) {
         return Optional.ofNullable(this.listeners.remove(ID));
     }
 
-    public Long addListener(BiConsumer<T, T> listener) {
-        Long nextId = BindingValue.nextId();
+    public String addListener(BiConsumer<T, T> listener) {
+        String nextId = BindingValue.nextId();
         addListener(nextId, listener);
         return nextId;
     }
 
-    public BiConsumer<T, T> addListener(Long id, BiConsumer<T, T> listener) {
+    public BiConsumer<T, T> addListener(String id, BiConsumer<T, T> listener) {
         return this.listeners.put(id, listener);
     }
 
-    public Long addListener(Consumer<T> listener) {
+    public String addListener(Consumer<T> listener) {
         return this.addListener((ov, nv) -> listener.accept(nv));
     }
     
-    public Optional<BiConsumer<T,T>> getListener(Long id){
+    public Optional<BiConsumer<T,T>> getListener(String id){
         return Optional.ofNullable(this.listeners.getOrDefault(id, null));
     }
 
@@ -121,8 +122,8 @@ public class BindingValue<T> extends Value<T>  {
         val2.unbind(val1.id);
     }
 
-    public static Long nextId() {
-        return ID_GEN.getAndIncrement();
+    public static String nextId() {
+        return UUIDgenerator.nextUUID("BindingValue");
     }
 
 }
