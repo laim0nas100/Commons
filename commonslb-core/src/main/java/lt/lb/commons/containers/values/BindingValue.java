@@ -1,14 +1,9 @@
 package lt.lb.commons.containers.values;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,7 +17,6 @@ import lt.lb.commons.misc.UUIDgenerator;
  */
 public class BindingValue<T> extends Value<T>  {
 
-    private static final AtomicLong ID_GEN = new AtomicLong(0);
     protected Map<String, BiConsumer<T, T>> listeners = new LinkedHashMap<>();
     public final String id = nextId();
 
