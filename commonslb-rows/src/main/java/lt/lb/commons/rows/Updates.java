@@ -4,6 +4,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.BindingValue;
@@ -16,6 +18,7 @@ import lt.lb.commons.interfaces.CloneSupport;
 public abstract class Updates<U extends Updates> implements CloneSupport<U> {
 
     protected Deque<Runnable> list = new ArrayDeque<>();
+    protected Queue<OrderedRunnable> updateListeners = new PriorityQueue<>();
     protected Deque<U> followUps = new ArrayDeque<>();
     protected BindingValue<Long> bindingValue = new BindingValue<>();
 
@@ -55,11 +58,19 @@ public abstract class Updates<U extends Updates> implements CloneSupport<U> {
 
     protected abstract U me();
 
-    public U addUpdate(Runnable run) {
+    public U addUpdate(OrderedRunnable run) {
         Objects.requireNonNull(run);
         U me = me();
         me.list.add(run);
         return me;
+    }
+
+    public U addUpdate(int order, Runnable run) {
+        return addUpdate(new OrderedRunnable(order, run));
+    }
+
+    public U addUpdate(Runnable run) {
+        return addUpdate(0, run);
     }
 
     public U bindPropogate(U dest) {
