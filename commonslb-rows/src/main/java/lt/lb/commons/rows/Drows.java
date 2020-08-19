@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.caching.LazyDependantValue;
 
@@ -114,15 +115,20 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     }
 
     @Override
+    public String[] defaultUpdateNames() {
+        return ArrayOp.addAll(UpdateAware.super.defaultUpdateNames(), BasicUpdates.INVALIDATE, BasicUpdates.INVALIDATE_VISIBILITY);
+    }
+
+    @Override
     public DR initUpdates() {
         UpdateAware.super.initUpdates();
-        this.withUpdateVisible(r -> {
+        this.withUpdate(BasicUpdates.INVALIDATE_VISIBILITY, 0,()->{
             this.visibleRowsOrder.invalidate();
         });
-
-        this.withUpdateRefresh(r -> {
+        this.withUpdate(BasicUpdates.INVALIDATE, 0,()->{
             this.rowAndComposedKeyOrder.invalidate();
         });
+
         return me();
     }
 
@@ -275,7 +281,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         rows.parentRows = Optional.empty();
         this.composable.remove(rows.getComposableKey());
         removeKey(rows.composableKey);
-        
+
         rowAndComposedKeyOrder.invalidate();// manual trigger of update
         this.conf.uncomposeDecorate(me(), rows);
     }
@@ -297,11 +303,20 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     }
 
     public void invalidateRows() {
-        this.update(BasicUpdates.UPDATES_ON_REFRESH);
+        this.update(BasicUpdates.INVALIDATE);
     }
 
     public void invalidateVisibility() {
-        this.update(BasicUpdates.UPDATES_ON_VISIBLE);
+        this.update(BasicUpdates.INVALIDATE_VISIBILITY);
+    }
+    
+    public void renderAfterStructureChange(){
+        invalidateRows();
+        renderEverything();
+    }
+    public void renderAfterVisibilityChange(){
+        invalidateVisibility();
+        renderEverything();
     }
 
     public Optional<R> getRowIf(String key, Predicate<R> comp) {
@@ -351,14 +366,14 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
                 row -> row.update(type)
         );
     }
-    
+
     public void updateInOrder(String type) {
-        this.doInOrder(row ->{
+        this.doInOrder(row -> {
             row.update(type);
         });
     }
-    
-    public void doInOrder(Consumer<R> rowCons){
+
+    public void doInOrder(Consumer<R> rowCons) {
         for (R row : this.getRowsInOrder()) {
             rowCons.accept(row);
         }

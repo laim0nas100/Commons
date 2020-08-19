@@ -34,4 +34,9 @@ public abstract class BasicUpdates {
      * UPDATES_ON_REFRESH
      */
     public static final String UPDATES_ON_DISABLE = "UPDATES_ON_DISABLE";
+    
+    
+    public static final String INVALIDATE_VISIBILITY ="INVALIDATE_VISIBILITY";
+    public static final String INVALIDATE ="INVALIDATE_ALL";
+    
 }

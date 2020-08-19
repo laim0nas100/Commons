@@ -24,7 +24,7 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
                 UPDATES_ON_DISABLE
         );
     }
-    
+
     public default R initUpdates() {
 
         for (String type : defaultUpdateNames()) {
@@ -103,7 +103,7 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
         R me = me();
         U get = getUpdateMap().getOrDefault(type, null);
 
-        Objects.requireNonNull(get,"Updates of type "+type+" was not registered in this context");
+        Objects.requireNonNull(get, "Updates of type " + type + " was not registered in this context");
 
         getConfig().doUpdates(get, me);
         return me;
@@ -112,8 +112,8 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
     public default R update() {
         return update(UPDATES_ON_REFRESH);
     }
-    
-    public default R render(){
+
+    public default R render() {
         return update(UPDATES_ON_RENDER);
     }
 
@@ -130,17 +130,23 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
     }
 
     public default R bindUpdates(String type, R dest) {
-        U u = getUpdateMap().get(type);
-        U de = (U) dest.getUpdateMap().get(type);
+        U u = getUpdateMap().getOrDefault(type, null);
+        U de = (U) dest.getUpdateMap().getOrDefault(type, null);
+        if (u == null || de == null) {
+            return me();//failed to bind
+        }
         u = (U) u.bindPropogate(de);
         getUpdateMap().put(type, u);
         return me();
     }
-    
+
     public default R unbindUpdates(String type, R dest) {
-        U u = getUpdateMap().get(type);
-        U de = (U) dest.getUpdateMap().get(type);
-        
+        U u = getUpdateMap().getOrDefault(type, null);
+        U de = (U) dest.getUpdateMap().getOrDefault(type, null);
+
+        if (u == null || de == null) {
+            return me();//failed to unbind
+        }
         u = (U) u.unbind(de);
         getUpdateMap().put(type, u);
         return me();
@@ -152,8 +158,8 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
         }
         return me();
     }
-    
-    public default R unbindDefaultUpdates(R dest){
+
+    public default R unbindDefaultUpdates(R dest) {
         for (String type : defaultUpdateNames()) {
             unbindUpdates(type, dest);
         }
