@@ -116,12 +116,6 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     @Override
     public DR initUpdates() {
         UpdateAware.super.initUpdates();
-        for (String name : defaultUpdateNames()) {
-            this.withUpdate(name, 0, () -> {
-                this.updateInOrder(name);
-            });
-        }
-
         this.withUpdateVisible(r -> {
             this.visibleRowsOrder.invalidate();
         });
@@ -259,8 +253,6 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         rows.parentRows = Optional.of(me());
         putKeyAt(index, key);
         me().composable.put(key, rows);
-        me().bindDefaultUpdates(rows);
-        rows.bindDefaultUpdates(me());
 
         rowAndComposedKeyOrder.invalidate();
         this.conf.composeDecorate(me(), rows);
@@ -284,8 +276,6 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         this.composable.remove(rows.getComposableKey());
         removeKey(rows.composableKey);
         
-        me().unbindDefaultUpdates(rows);
-        rows.unbindDefaultUpdates(me());
         rowAndComposedKeyOrder.invalidate();// manual trigger of update
         this.conf.uncomposeDecorate(me(), rows);
     }

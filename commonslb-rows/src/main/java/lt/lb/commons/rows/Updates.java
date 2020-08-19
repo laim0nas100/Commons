@@ -18,7 +18,7 @@ import lt.lb.commons.interfaces.CloneSupport;
 public abstract class Updates<U extends Updates> implements CloneSupport<U> {
 
     protected Deque<Runnable> list = new ArrayDeque<>();
-    protected Queue<OrderedRunnable> updateListeners = new PriorityQueue<>();
+    protected Queue<OrderedRunnable> updateListeners = new PriorityQueue<>(OrderedRunnable.asPriority());
     protected Deque<U> followUps = new ArrayDeque<>();
     protected BindingValue<Long> bindingValue = new BindingValue<>();
 

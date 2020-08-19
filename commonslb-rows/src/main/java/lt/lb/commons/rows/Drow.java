@@ -496,7 +496,6 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
             throw NestedException.of(ex);
         });
         displayed = true;
-        this.update();
         this.update(UPDATES_ON_RENDER);
         return me;
 

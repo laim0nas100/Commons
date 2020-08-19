@@ -1,12 +1,13 @@
 package lt.lb.commons.rows;
 
+import java.util.Comparator;
 import java.util.Objects;
 
 /**
  *
  * @author laim0nas100
  */
-public class OrderedRunnable implements Runnable, Comparable<OrderedRunnable> {
+public class OrderedRunnable implements Runnable {
 
     public final Runnable delegated;
     public final int order;
@@ -25,9 +26,12 @@ public class OrderedRunnable implements Runnable, Comparable<OrderedRunnable> {
         delegated.run();
     }
 
-    @Override
-    public int compareTo(OrderedRunnable o) {
-        return Integer.compare(order, o.order);
+    public static Comparator<OrderedRunnable> asPriority(){
+        return (a,b) -> Integer.compare(b.order, a.order);
+    }
+    
+    public static Comparator<OrderedRunnable> asOrder(){
+        return (a,b) -> Integer.compare(a.order, b.order);
     }
 
 }

@@ -5,6 +5,7 @@ package lt.lb.commons.rows;
  * @author laim0nas100
  */
 public abstract class BasicUpdates {
+
     /**
      * Everything to do during display. Every component should exist as an
      * object, but still not rendered. This is used to give styles, final
@@ -14,7 +15,7 @@ public abstract class BasicUpdates {
     public static final String UPDATES_ON_DISPLAY = "UPDATES_ON_DISPLAY";
     /**
      * Everything to do after anything to do with this row or components
-     * changed, followed by UPDATES_ON_RENDER
+     * changed
      */
     public static final String UPDATES_ON_REFRESH = "UPDATES_ON_REFRESH";
 
