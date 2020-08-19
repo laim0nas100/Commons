@@ -21,7 +21,7 @@ public abstract class BasicUpdates {
     /**
      * Everything to after update, basically rendering the updated row
      */
-    public static final String UPDATES_ON_RENDER = "UPDATES_ON_RERENDER";
+    public static final String UPDATES_ON_RENDER = "UPDATES_ON_RENDER";
 
     /**
      * Everything to do after visible property changed, followed by

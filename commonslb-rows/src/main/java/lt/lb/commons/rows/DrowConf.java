@@ -1,13 +1,12 @@
 package lt.lb.commons.rows;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  *
  * @author laim0nas100
  */
-public interface DrowConf<R extends Drow, C, N, L, U extends Updates> {
+public interface DrowConf<R extends Drow, C, N, L,U extends Updates> extends UpdateConfigAware<U, R>{
 
     /**
      * How much precision your rows need.
@@ -44,9 +43,4 @@ public interface DrowConf<R extends Drow, C, N, L, U extends Updates> {
      */
     public void renderRow(R row);
 
-    public U createUpdates(String type, R drow);
-
-    public void doUpdates(U updates, R drow);
-
-    public void configureUpdates(Map<String, U> updates, R drow);
 }

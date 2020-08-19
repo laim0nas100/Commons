@@ -7,7 +7,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.tuples.Tuple;
@@ -20,7 +19,7 @@ import static lt.lb.commons.rows.BasicUpdates.*;
  *
  * @author laim0nas100
  */
-public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> {
+public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> implements UpdateAware<U, R>{
 
     protected boolean visible = true;
     protected boolean disabled = false;
@@ -36,6 +35,12 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
     protected Map<String, U> updates = new HashMap<>();
     protected Set<String> tags = new HashSet<>();
 
+    @Override
+    public Conf getConfig() {
+        return config;
+    }
+
+    
     public int getRenderOrder() {
         return 500;
     }
@@ -49,9 +54,10 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
 
     }
 
-    public void initUpdates() {
+    @Override
+    public R initUpdates() {
 
-        for (String type : defaultUpdateName()) {
+        for (String type : defaultUpdateNames()) {
             updates.put(type, config.createUpdates(type, me()));
         }
 
@@ -66,20 +72,16 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
             config.renderRow(me());
         });
 
-        u_refresh.addFollowUp(u_render);
         u_display.addFollowUp(u_refresh);
         u_disable.addFollowUp(u_refresh);
         u_visible.addFollowUp(u_refresh);
+        return me();
 
     }
 
-    public String[] defaultUpdateName() {
-        return ArrayOp.asArray(UPDATES_ON_DISPLAY,
-                UPDATES_ON_REFRESH,
-                UPDATES_ON_RENDER,
-                UPDATES_ON_VISIBLE,
-                UPDATES_ON_DISABLE
-        );
+    @Override
+    public Map<String, U> getUpdateMap() {
+        return this.updates;
     }
 
     public List<Integer> getPreferedColSpan() {
@@ -240,7 +242,8 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         }
     }
 
-    protected abstract R me();
+    @Override
+    public abstract R me();
 
     public R add(N node) {
         R me = me();
@@ -357,89 +360,6 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
 
     }
 
-    public R withUpdates(U update) {
-        R me = me();
-        updates.put(update.type, update);
-        return me;
-    }
-
-    public R withUpdate(String type, OrderedRunnable update) {
-        R me = me();
-        updates.computeIfAbsent(type, t -> config.createUpdates(type, me)).addUpdate(update);
-        return me;
-    }
-
-    public R withUpdate(String type, int order, Runnable run) {
-        return withUpdate(type, new OrderedRunnable(order, run));
-    }
-
-    public R withUpdate(String type, int order, Consumer<R> run) {
-        return withUpdate(type, order, () -> run.accept(me()));
-    }
-
-    public R withUpdateRefresh(int order, Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_REFRESH, order, run);
-    }
-
-    public R withUpdateRefresh(Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_REFRESH, 0, run);
-    }
-
-    public R withUpdateRender(int order, Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_RENDER, order, run);
-    }
-
-    public R withUpdateRender(Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_RENDER, 0, run);
-    }
-
-    public R withUpdateVisible(int order, Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_VISIBLE, order, run);
-    }
-
-    public R withUpdateVisible(Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_VISIBLE, 0, run);
-    }
-
-    public R withUpdateDisable(int order, Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_DISABLE, order, run);
-    }
-
-    public R withUpdateDisable(Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_DISABLE, 0, run);
-    }
-
-    public R withUpdateDisplay(int order, Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_DISPLAY, order, run);
-    }
-
-    public R withUpdateDisplay(Consumer<R> run) {
-        return withUpdate(BasicUpdates.UPDATES_ON_DISPLAY, 0, run);
-    }
-
-    public R update(String type) {
-        R me = me();
-        U get = this.updates.getOrDefault(type, null);
-
-        if (get == null) {
-            return me;
-        }
-
-        this.config.doUpdates(get, me);
-
-        this.update();
-        return me;
-    }
-
-    protected R doUpdates(String type) {
-        R me = me();
-        config.doUpdates(updates.get(type), me);
-        return me;
-    }
-
-    public R update() {
-        return doUpdates(UPDATES_ON_REFRESH);
-    }
 
     public R withPreferedColspan(Integer... spans) {
         R me = me();
@@ -561,20 +481,23 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         return F.cast(getNodeSupplier(i).get());
     }
 
+    /**
+     * Does UPDATES_ON_DISPLAY, UPDATES_ON_REFRESH and UPDATES_ON_RENDER
+     * @return 
+     */
     public R display() {
 
         R me = me();
-        if (!displayed) {
-            Optional<Throwable> optionalException = F.checkedRun(() -> {
-                doUpdates(UPDATES_ON_DISPLAY);
+        Optional<Throwable> optionalException = F.checkedRun(() -> {
+            update(UPDATES_ON_DISPLAY);
 
-            });
-            optionalException.ifPresent(ex -> {
-                throw NestedException.of(ex);
-            });
-            displayed = true;
-            this.update();
-        }
+        });
+        optionalException.ifPresent(ex -> {
+            throw NestedException.of(ex);
+        });
+        displayed = true;
+        this.update();
+        this.update(UPDATES_ON_RENDER);
         return me;
 
     }
@@ -629,33 +552,6 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
                 con.accept(node);
             }
         });
-    }
-
-    public R bindDefaultUpdatesFrom(R source) {
-        R me = me();
-        source.bindDefaultUpdates(me);
-        return me;
-    }
-
-    public R bindUpdatesFrom(String type, R source) {
-        R me = me();
-        source.bindUpdates(type, me);
-        return me;
-    }
-
-    public R bindUpdates(String type, R dest) {
-        U u = this.updates.get(type);
-        U de = (U) dest.updates.get(type);
-        u = u.bindPropogate(de);
-        this.updates.put(type, u);
-        return me();
-    }
-
-    public R bindDefaultUpdates(R dest) {
-        for (String type : defaultUpdateName()) {
-            bindUpdates(type, dest);
-        }
-        return me();
     }
 
     public <T extends N> R withNodesOfTypeDo(Class<T> type, Consumer<T> cons) {

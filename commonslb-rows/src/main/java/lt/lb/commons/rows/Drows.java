@@ -19,40 +19,47 @@ import lt.lb.commons.containers.caching.LazyDependantValue;
  *
  * @author laim0nas100
  */
-public abstract class Drows<R extends Drow, L, DR extends Drows> {
+public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updates> implements UpdateAware<U, DR> {
 
+    protected Map<String, U> updates = new HashMap<>();
     protected Map<String, R> rowMap = new HashMap<>();
     protected List<String> keyOrder = new ArrayList<>();
     protected final String composableKey;
-    protected DrowsConf<DR, R> conf;
+    protected DrowsConf<DR, R, U> conf;
+    protected Optional<DR> parentRows = Optional.empty();
 
     protected Map<String, DR> composable = new HashMap<>();
 
-    protected LazyDependantValue<Map<String, Integer>> rowKeyOrder = new LazyDependantValue<>(() -> {
+    protected LazyDependantValue<Map<String, Integer>> rowAndComposedKeyOrder = new LazyDependantValue<>(() -> {
         HashMap<String, Integer> indexMap = new HashMap<>();
         for (R row : rowMap.values()) {
             indexMap.put(row.getKey(), this.getRowIndex(row.getKey()));
         }
+        for (DR rows : composable.values()) {
+            indexMap.put(rows.getComposableKey(), this.getRowIndex(rows.getComposableKey()));
+        }
         return indexMap;
     });
-    protected LazyDependantValue<List<R>> rowsInOrder = rowKeyOrder.map(m -> {
+    protected LazyDependantValue<List<R>> rowsInOrder = rowAndComposedKeyOrder.map(m -> {
         List<R> collect = rowMap.values().stream().collect(Collectors.toList());
         Comparator<R> ofValue = Comparator.comparing(r -> m.getOrDefault(r.getKey(), -1));
         Collections.sort(collect, ofValue);
         return collect;
     });
 
-    protected LazyDependantValue<List> dynamicRowsAndRowsInOrder = rowsInOrder.map(m -> {
+    protected LazyDependantValue<List> rowsAndComposedInOrder = rowAndComposedKeyOrder.map(m -> {
 
         Map<Integer, List> composed = new HashMap<>();
 
         F.iterate(this.composable, (key, rows) -> {
-            int index = Math.max(rowKeyOrder.get().getOrDefault(key, 0), 0);
-            composed.computeIfAbsent(index, i -> new LinkedList<>()).add(rows);
+            int indexKey = Math.max(m.getOrDefault(key, 10000), 0);
+            composed.computeIfAbsent(indexKey, i -> new LinkedList<>()).add(rows);
         });
 
-        F.iterate(m, (key, row) -> {
-            composed.computeIfAbsent(key, i -> new LinkedList<>()).add(row);
+        F.iterate(rowsInOrder.get(), (index, row) -> {
+            String key = row.getKey();
+            int indexKey = Math.max(m.getOrDefault(key, 10000), 0);
+            composed.computeIfAbsent(indexKey, i -> new LinkedList<>()).add(row);
         });
 
         Stream<Object> flatMap = composed.entrySet().stream().sorted(Comparator.comparing(v -> v.getKey()))
@@ -63,7 +70,20 @@ public abstract class Drows<R extends Drow, L, DR extends Drows> {
         return collect;
     });
 
-    protected LazyDependantValue<Map<String, Integer>> visibleRowsOrder = rowsInOrder.map(list -> {
+    protected LazyDependantValue<List<R>> nestedRowsInOrder = rowsAndComposedInOrder.map(list -> {
+        List<R> rows = new ArrayList<>();
+        for (Object rr : list) {
+            if (rr instanceof Drow) {
+                rows.add(F.cast(rr));
+            } else if (rr instanceof Drows) {
+                Drows drows = F.cast(rr);
+                rows.addAll(drows.getRowsInOrderNested());
+            }
+        }
+        return rows;
+    });
+
+    protected LazyDependantValue<Map<String, Integer>> visibleRowsOrder = nestedRowsInOrder.map(list -> {
         Map<String, Integer> map = new HashMap<>();
         int index = 0;
         for (R row : list) {
@@ -76,19 +96,76 @@ public abstract class Drows<R extends Drow, L, DR extends Drows> {
         return map;
     });
 
-    public Drows(String key, DrowsConf<DR, R> conf) {
-        composableKey = key;
-        this.conf = conf;
+    @Override
+    public Map<String, U> getUpdateMap() {
+        return updates;
     }
 
-    protected abstract DR me();
+    @Override
+    public DrowsConf<DR, R, U> getConfig() {
+        return this.conf;
+    }
+
+    public Drows(String key, DrowsConf<DR, R, U> conf) {
+        composableKey = key;
+        this.conf = conf;
+        this.conf.configureUpdates(updates, me());
+
+    }
+
+    @Override
+    public DR initUpdates() {
+        UpdateAware.super.initUpdates();
+        for (String name : defaultUpdateNames()) {
+            this.withUpdate(name, 0, () -> {
+                this.updateInOrder(name);
+            });
+        }
+
+        this.withUpdateVisible(r -> {
+            this.visibleRowsOrder.invalidate();
+        });
+
+        this.withUpdateRefresh(r -> {
+            this.rowAndComposedKeyOrder.invalidate();
+        });
+        return me();
+    }
+
+    @Override
+    public abstract DR me();
 
     public String getComposableKey() {
         return composableKey;
     }
 
     public boolean isEmpty() {
-        return rowMap.isEmpty();
+        return rowMap.isEmpty() && composable.isEmpty();
+    }
+
+    public Optional<DR> getLastParentRows() {
+        Optional<DR> parent = this.getParentRows();
+
+        Optional<DR> nextParent = parent;
+        while (nextParent.isPresent()) {
+            nextParent = parent.flatMap(m -> m.getParentRows());
+            if (nextParent.isPresent()) {
+                parent = nextParent;
+            }
+        }
+        return parent;
+    }
+
+    public DR getLastParentOrMe() {
+        return getLastParentRows().orElse(me());
+    }
+
+    public Optional<DR> getParentRows() {
+        return parentRows;
+    }
+
+    public List<R> getRowsInOrderNested() {
+        return nestedRowsInOrder.get();
     }
 
     public List<R> getRows() {
@@ -119,16 +196,25 @@ public abstract class Drows<R extends Drow, L, DR extends Drows> {
         }
         R remove = rowMap.remove(key);
         removeKey(key);
-        rowKeyOrder.invalidate();// manual trigger of update
+        rowAndComposedKeyOrder.invalidate();// manual trigger of update
+        conf.removeRowDecorate(me(), remove);
     }
 
     public void removeAll() {
+
+        composable.values().stream().collect(Collectors.toList()).forEach(composed -> {
+            removeComposedRows(composed);
+        });
+
         composable.clear();
+
+        rowMap.values().stream().collect(Collectors.toList()).forEach(row -> {
+            removeRow(row.getKey());
+        });
         // in case we have some updaters configured
-        rowMap.values().forEach(r -> r.setDeleted(true));
         rowMap.clear();
         keyOrder.clear();
-        rowKeyOrder.invalidate();
+        rowAndComposedKeyOrder.invalidate();
     }
 
     public void addRow(Integer index, R row) {
@@ -137,13 +223,15 @@ public abstract class Drows<R extends Drow, L, DR extends Drows> {
         }
 
         rowMap.put(row.getKey(), row);
+
         putKeyAt(index, row.getKey());
-        rowKeyOrder.invalidate();// manual trigger of update
+        rowAndComposedKeyOrder.invalidate();// manual trigger of update
+        conf.addRowDecorate(me(), row);
 
     }
 
     public void addRowAfter(String key, R row) {
-        Integer index = rowKeyOrder.get().getOrDefault(key, -10);
+        Integer index = rowAndComposedKeyOrder.get().getOrDefault(key, -10);
         addRow(index + 1, row);
     }
 
@@ -159,56 +247,51 @@ public abstract class Drows<R extends Drow, L, DR extends Drows> {
         return this.getRowsInOrder().stream().reduce((first, second) -> second);
     }
 
-    public List<Object> getDynamicRowsAndRowsInOrder() {
-        List list = dynamicRowsAndRowsInOrder.get();
-//        Log.printLines(list);
-        return list;
-    }
-
-    public List<R> getDynamicRowsInOrderNested() {
-        ArrayList<R> all = new ArrayList<>();
-        this.getDynamicRowsAndRowsInOrder().forEach(r -> {
-            if (r instanceof Drow) {
-                all.add(F.cast(r));
-            } else if (r instanceof Drows) {
-                Drows dr = F.cast(r);
-                all.addAll(dr.getDynamicRowsInOrderNested());
-            }
-        });
-        return all;
-    }
-
-    public R composeRows(Integer index, DR rows) {
-
-        if (composable.containsKey(rows.getComposableKey())) {
-            throw new IllegalArgumentException(rows.getComposableKey() + " is occupied");
+    public void composeRows(Integer index, DR rows) {
+        String key = rows.getComposableKey();
+        if (composable.containsKey(key) || rowMap.containsKey(key)) {
+            throw new IllegalArgumentException(key + " is occupied");
         }
-        R newRow = conf.newRow(me(), rows.getComposableKey());
-        this.addRow(index, newRow);
-        this.composable.put(rows.getComposableKey(), rows);
 
-        this.conf.composeDecorate(me(), newRow, rows);
+        if (rows.parentRows.isPresent()) {
+            throw new IllegalArgumentException(key + " is allready being composed");
+        }
+        rows.parentRows = Optional.of(me());
+        putKeyAt(index, key);
+        me().composable.put(key, rows);
+        me().bindDefaultUpdates(rows);
+        rows.bindDefaultUpdates(me());
 
-        return newRow;
+        rowAndComposedKeyOrder.invalidate();
+        this.conf.composeDecorate(me(), rows);
+
+//        return newRow;
     }
 
     public void removeComposedRows(DR rows) {
         if (!composable.containsKey(rows.getComposableKey())) {
             throw new IllegalArgumentException(rows.getComposableKey() + " is not found");
         }
+        if (rows.parentRows.isEmpty()) {
+            throw new IllegalArgumentException(rows.getComposableKey() + " is not allready being composed");
+        }
 
         DR get = this.composable.get(rows.getComposableKey());
         if (get != rows) {
             throw new IllegalArgumentException("Composed rows reference missmatch");
         }
+        rows.parentRows = Optional.empty();
         this.composable.remove(rows.getComposableKey());
-
-        this.removeRow(rows.getComposableKey());
-
+        removeKey(rows.composableKey);
+        
+        me().unbindDefaultUpdates(rows);
+        rows.unbindDefaultUpdates(me());
+        rowAndComposedKeyOrder.invalidate();// manual trigger of update
+        this.conf.uncomposeDecorate(me(), rows);
     }
 
-    public R composeRowsLast(DR rows) {
-        return this.composeRows(-1, rows);
+    public void composeRowsLast(DR rows) {
+        composeRows(-1, rows);
     }
 
     public Integer getRowIndex(String key) {
@@ -219,12 +302,16 @@ public abstract class Drows<R extends Drow, L, DR extends Drows> {
         return visibleRowsOrder.get().getOrDefault(key, -1);
     }
 
-    public void invalidateRows() {
-        this.rowKeyOrder.invalidate();
+    public void renderEverything() {
+        this.update(BasicUpdates.UPDATES_ON_RENDER);
     }
-    
-    public void invalidateVisibility(){
-        this.visibleRowsOrder.invalidate();
+
+    public void invalidateRows() {
+        this.update(BasicUpdates.UPDATES_ON_REFRESH);
+    }
+
+    public void invalidateVisibility() {
+        this.update(BasicUpdates.UPDATES_ON_VISIBLE);
     }
 
     public Optional<R> getRowIf(String key, Predicate<R> comp) {
@@ -268,15 +355,33 @@ public abstract class Drows<R extends Drow, L, DR extends Drows> {
         return "DynamicRows{" + "composableKey=" + composableKey + '}';
     }
 
-    public void update(String type) {
-        this.doInOrder(
+    public void updateInOrderNested(String type) {
+        this.doInOrderNested(
                 rows -> rows.update(type),
                 row -> row.update(type)
         );
     }
+    
+    public void updateInOrder(String type) {
+        this.doInOrder(row ->{
+            row.update(type);
+        });
+    }
+    
+    public void doInOrder(Consumer<R> rowCons){
+        for (R row : this.getRowsInOrder()) {
+            rowCons.accept(row);
+        }
+    }
 
-    public void doInOrder(Consumer<DR> rowsCons, Consumer<R> rowCons) {
-        for (Object ob : this.getDynamicRowsAndRowsInOrder()) {
+    public void doInOrderNested(Consumer<R> rowCons) {
+        for (R row : this.getRowsInOrderNested()) {
+            rowCons.accept(row);
+        }
+    }
+
+    public void doInOrderNested(Consumer<DR> rowsCons, Consumer<R> rowCons) {
+        for (Object ob : this.rowsAndComposedInOrder.get()) {
             if (ob instanceof Drow) {
                 rowCons.accept(F.cast(ob));
             } else if (ob instanceof Drows) {
@@ -285,11 +390,6 @@ public abstract class Drows<R extends Drow, L, DR extends Drows> {
                 throw new IllegalStateException("Found unrecognized object of" + ob);
             }
         }
-    }
-
-    public void doInOrderRows(Consumer<R> rowCons) {
-        this.doInOrder(r -> {
-        }, rowCons);
     }
 
 }

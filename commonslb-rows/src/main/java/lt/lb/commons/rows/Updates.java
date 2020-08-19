@@ -25,6 +25,10 @@ public abstract class Updates<U extends Updates> implements CloneSupport<U> {
     protected Set<String> boundDestinations = new LinkedHashSet<>();
     public final String type;
     public boolean active = true;
+    
+    public String getID(){
+        return bindingValue.id;
+    }
 
     public Updates(String type) {
         this.type = type;
@@ -77,7 +81,15 @@ public abstract class Updates<U extends Updates> implements CloneSupport<U> {
         Objects.requireNonNull(dest);
         U me = me();
         me.bindingValue.bindPropogate(dest.bindingValue);
-        me.boundDestinations.add(dest.bindingValue.id);
+        me.boundDestinations.add(dest.getID());
+        return me;
+    }
+    
+    public U unbind(U dest){
+        U me = me();
+        if(me.boundDestinations.remove(dest.getID())){
+            me.bindingValue.unbind(dest.getID());
+        }
         return me;
     }
 
@@ -91,6 +103,13 @@ public abstract class Updates<U extends Updates> implements CloneSupport<U> {
         Objects.requireNonNull(followUp);
         U me = me();
         me.followUps.add(followUp);
+        return me;
+    }
+    
+    public U removeFollowUp(U followUp){
+        Objects.requireNonNull(followUp);
+        U me = me();
+        me.followUps.remove(followUp);
         return me;
     }
 

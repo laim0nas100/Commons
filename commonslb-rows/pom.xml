@@ -21,6 +21,10 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-caching</artifactId>
         </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-log</artifactId>
+        </dependency>
     </dependencies>
     
 </project>
