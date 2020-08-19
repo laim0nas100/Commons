@@ -270,8 +270,8 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         if (!composable.containsKey(rows.getComposableKey())) {
             throw new IllegalArgumentException(rows.getComposableKey() + " is not found");
         }
-        if (rows.parentRows.isEmpty()) {
-            throw new IllegalArgumentException(rows.getComposableKey() + " is not allready being composed");
+        if (!rows.parentRows.isPresent()) {
+            throw new IllegalArgumentException(rows.getComposableKey() + " is not being composed");
         }
 
         DR get = this.composable.get(rows.getComposableKey());
