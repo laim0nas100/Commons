@@ -12,6 +12,20 @@ import lt.lb.commons.SafeOpt;
  */
 public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
 
+    public static <T> ValueProxy<T> quickProxy(Supplier<? extends T> supl, Consumer<? super T> cons) {
+        return new ValueProxy<T>() {
+            @Override
+            public T get() {
+                return supl.get();
+            }
+
+            @Override
+            public void set(T v) {
+                cons.accept(v);
+            }
+        };
+    }
+
     /**
      * Main get method
      *
@@ -80,24 +94,28 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
 
     /**
      * Construct {@code Optional} with this value
+     *
      * @return constructed Optional
      */
     public default Optional<T> toOptional() {
         return Optional.ofNullable(get());
     }
-    
+
     /**
      * Construct {@code SafeOpt} with this value
+     *
      * @return constructed SafeOpt
      */
-    public default SafeOpt<T> toSafeOpt(){
+    public default SafeOpt<T> toSafeOpt() {
         return SafeOpt.ofNullable(get());
     }
+
     /**
      * Construct {@code SafeOpt} with this value
+     *
      * @return constructed SafeOpt
      */
-    public default Stream<T> toStream(){
+    public default Stream<T> toStream() {
         return Stream.of(get());
     }
 }

@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.containers.values.SetOnce;
 import lt.lb.commons.containers.values.ValueProxy;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
  *
@@ -22,17 +25,30 @@ public class DataSyncs {
             return !isValid(from);
         }
 
-        public void displayInvalidation();
+        public void displayInvalidation(F from);
 
-        public void clearInvalidation();
+        public void clearInvalidation(F from);
+    }
+
+    public static abstract class NodeValid<T, N> implements Valid<T> {
+
+        public Supplier<List<N>> referenceSupl;
+        public Function<? super T, String> errorSupl;
+        public Predicate<T> isValid;
+
+        @Override
+        public boolean isValid(T from) {
+            return isValid.test(from);
+        }
+
     }
 
     public static interface SyncValidation<M, V extends Valid<M>>
-            extends DisplayValildation<M, V>, PersistValidation<M, V> {
+            extends DisplayValidation<M, V>, PersistValidation<M, V> {
 
     }
 
-    public static interface DisplayValildation<M, V extends Valid<M>> {
+    public static interface DisplayValidation<M, V extends Valid<M>> {
 
         public void withDisplayValidation(V validation);
 
@@ -132,10 +148,79 @@ public class DataSyncs {
 
     }
 
-    /*
-    BaseBuilder<ID, F, T, E extends BaseBuilder<ID, F, T, E>> implements Builder<ID, F, T, E>
-     */
-    public static abstract class ExplicitDataSync<P, M, D, V extends Valid<M>> implements DataSyncManagedValidation<P, M, D, V> {
+    public static class UnmanagedValidation<V extends Valid<Object>> extends BaseValidation<Object, V> {
+
+        @Override
+        public Object getManaged() {
+            return null;
+        }
+
+    }
+
+    public static abstract class BaseValidation<M, V extends Valid<M>> implements SyncValidation<M, V> {
+
+        protected List<V> validateDisplay = new ArrayList<>(0);
+        protected List<V> validatePersistence = new ArrayList<>(0);
+
+        public abstract M getManaged();
+
+        @Override
+        public void withDisplayValidation(V validation) {
+            this.validateDisplay.add(validation);
+        }
+
+        @Override
+        public void withPersistValidation(V validation) {
+            this.validatePersistence.add(validation);
+        }
+
+        @Override
+        public boolean validDisplay() {
+            return doValidation(validateDisplay, false, getManaged());
+        }
+
+        @Override
+        public boolean validDisplayFull() {
+            return doValidation(validateDisplay, true, getManaged());
+        }
+
+        @Override
+        public boolean validPersist() {
+            return doValidation(validatePersistence, false, getManaged());
+        }
+
+        @Override
+        public boolean validPersistFull() {
+            return doValidation(validatePersistence, true, getManaged());
+        }
+
+        public static <T> boolean iterateFindFirst(Iterable<T> list, boolean full, Predicate<T> satisfied) {
+
+            if (full) {
+                BooleanValue found = BooleanValue.FALSE();
+                F.iterate(list, (i, item) -> found.setOr(satisfied.test(item)));
+                return found.get();
+            } else {
+                return F.find(list, (i, item) -> satisfied.test(item)).isPresent();
+            }
+        }
+
+        protected boolean doValidation(List<V> list, boolean full, M managed) {
+            boolean invalid = iterateFindFirst(list, full, val -> {
+                val.clearInvalidation(managed);
+                if (val.isInvalid(getManaged())) {
+                    val.displayInvalidation(managed);
+                    return true;
+                }
+                return false;
+
+            });
+            return !invalid;
+        }
+
+    }
+
+    public static abstract class ExplicitDataSync<P, M, D, V extends Valid<M>> extends BaseValidation<M, V> implements DataSyncManagedValidation<P, M, D, V> {
 
         protected SetOnce<Supplier<? extends D>> displaySupp = new SetOnce<>();
         protected SetOnce<Consumer<? super D>> displaySync = new SetOnce<>();
@@ -146,11 +231,7 @@ public class DataSyncs {
         protected SetOnce<Function<? super D, ? extends M>> displayGet = new SetOnce<>();
         protected SetOnce<Function<? super M, ? extends D>> displaySet = new SetOnce<>();
 
-        protected List<V> validateDisplay = new ArrayList<>();
-        protected List<V> validatePersistence = new ArrayList<>();
-
         protected M managed;
-        
 
         @Override
         public void withDisplaySync(Consumer<? super D> displaySync) {
@@ -272,64 +353,19 @@ public class DataSyncs {
             }
         }
 
-        @Override
-        public void withDisplayValidation(V validation) {
-            this.validateDisplay.add(validation);
-        }
-
-        @Override
-        public void withPersistValidation(V validation) {
-            this.validatePersistence.add(validation);
-        }
-
         public void withIdentityPersist() {
             this.persistSet.set(v -> F.cast(v));
             this.persistGet.set(v -> F.cast(v));
         }
-        
+
         public void withIdentityDisplay() {
             this.displaySet.set(v -> F.cast(v));
             this.displayGet.set(v -> F.cast(v));
         }
-        
-        public void withNoConversion(){
+
+        public void withNoConversion() {
             withIdentityDisplay();
             withIdentityPersist();
-        }
-
-        @Override
-        public boolean validDisplay() {
-            return doValidation(validateDisplay, false);
-        }
-
-        @Override
-        public boolean validDisplayFull() {
-            return doValidation(validateDisplay, true);
-        }
-
-        @Override
-        public boolean validPersist() {
-            return doValidation(validatePersistence, false);
-        }
-
-        @Override
-        public boolean validPersistFull() {
-            return doValidation(validatePersistence, true);
-        }
-
-        protected boolean doValidation(List<V> list, boolean full) {
-            boolean valid = true;
-            for (V val : list) {
-                val.clearInvalidation();
-                if (val.isInvalid(managed)) {
-                    valid = false;
-                    val.displayInvalidation();
-                    if (!full) {
-                        return valid;
-                    }
-                }
-            }
-            return valid;
         }
 
     }
@@ -337,6 +373,38 @@ public class DataSyncs {
     public static abstract class GenDataSync<P, D, V extends Valid<P>> extends ExplicitDataSync<P, P, D, V> {
 
         public GenDataSync() {
+        }
+
+    }
+
+    public static abstract class NodeSync<P, D, N, V extends NodeValid<P, N>> extends GenDataSync<P, D, V> {
+
+        public NodeSync(N node) {
+            this(ReadOnlyIterator.of(node).toArrayList());
+        }
+
+        public NodeSync(List<N> nodes) {
+            this.nodes = nodes;
+        }
+
+        public final List<N> nodes;
+
+        public void addPersistValidation(V valid) {
+            withPersistValidation(valid);
+        }
+
+        protected abstract V createValidation();
+
+        public void addPersistValidation(String error, Predicate<P> isValid) {
+            addPersistValidation(m -> error, isValid);
+        }
+
+        public void addPersistValidation(Function<? super P, String> error, Predicate<P> isValid) {
+            V valid = createValidation();
+            valid.errorSupl = error;
+            valid.isValid = isValid;
+            valid.referenceSupl = () -> nodes;
+            withPersistValidation(valid);
         }
 
     }

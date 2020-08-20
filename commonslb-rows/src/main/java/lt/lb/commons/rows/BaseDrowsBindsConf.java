@@ -6,7 +6,7 @@ import lt.lb.commons.misc.UUIDgenerator;
  *
  * @author laim0nas100
  */
-public abstract class BaseDrowsBindsConfig<DR extends Drows, R extends Drow, U extends Updates> implements DrowsConf<DR, R, U> {
+public abstract class BaseDrowsBindsConf<DR extends Drows, R extends Drow, U extends Updates> implements DrowsConf<DR, R, U> {
 
     @Override
     public R newRow(DR rows) {

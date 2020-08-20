@@ -21,6 +21,22 @@ public class BooleanValue extends Value<Boolean> {
     public BooleanValue(Boolean bool) {
         super(bool);
     }
+    
+    public Boolean or(Boolean bool){
+        return get() || bool;
+    }
+    
+    public Boolean and(Boolean bool){
+        return get() && bool;
+    }
+    
+    public void setAnd(Boolean bool){
+        set(get() && bool);
+    }
+    
+    public void setOr(Boolean bool){
+        set(get() || bool);
+    }
 
     public Boolean not() {
         return !this.get();

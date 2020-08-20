@@ -1,6 +1,7 @@
 package lt.lb.commons.rows;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -26,6 +27,8 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
     protected boolean deleted = false;
 
     protected boolean displayed = false;
+    
+    protected AtomicBoolean inDisplay = new AtomicBoolean(false);
 
     protected List<Integer> cellColSpan = new ArrayList<>();
     protected List<C> cells = new ArrayList<>();
@@ -487,6 +490,9 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
      */
     public R display() {
 
+        if(!inDisplay.compareAndSet(false, true)){
+            return me();
+        }
         R me = me();
         Optional<Throwable> optionalException = F.checkedRun(() -> {
             update(UPDATES_ON_DISPLAY);
@@ -496,6 +502,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
             throw NestedException.of(ex);
         });
         displayed = true;
+        inDisplay.set(false);
         this.update(UPDATES_ON_RENDER);
         return me;
 
@@ -559,7 +566,11 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         return me();
     }
 
-    private R addOnDisplayAndRunIfDone(Runnable run) {
+    protected R addOnDisplayAndRunIfDone(Runnable run) {
+        if(inDisplay.get()){
+            run.run();
+            return me();
+        }
         if (displayed) {
             run.run();
         }

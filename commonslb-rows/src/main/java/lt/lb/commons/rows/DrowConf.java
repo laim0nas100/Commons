@@ -6,14 +6,15 @@ import java.util.List;
  *
  * @author laim0nas100
  */
-public interface DrowConf<R extends Drow, C, N, L,U extends Updates> extends UpdateConfigAware<U, R>{
+public interface DrowConf<R extends Drow, C, N, L, U extends Updates> extends UpdateConfigAware<U, R> {
 
     /**
      * How much precision your rows need.
+     *
      * @param drow
-     * @return 
+     * @return
      */
-    public default int getMaxColSpan(R drow){
+    public default int getMaxColSpan(R drow) {
         return 100;
     }
 
@@ -39,7 +40,8 @@ public interface DrowConf<R extends Drow, C, N, L,U extends Updates> extends Upd
 
     /**
      * Should check if row is displayed and visible
-     * @param row 
+     *
+     * @param row
      */
     public void renderRow(R row);
 
