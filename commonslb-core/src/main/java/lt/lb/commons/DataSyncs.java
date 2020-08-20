@@ -104,13 +104,13 @@ public class DataSyncs {
 
     }
 
-    public static interface DataSyncManaged<P, M, D> {
+    public static interface DataSyncManaged<P, M, D> extends ValueProxy<M> {
 
         public void withDisplaySync(Consumer<? super D> displaySync);
 
         public void withPersistSync(Consumer<? super P> persSync);
 
-        public void withDiplaySup(Supplier<? extends D> displaySup);
+        public void withDisplaySup(Supplier<? extends D> displaySup);
 
         public void withPersisSup(Supplier<? extends P> persistSup);
 
@@ -125,6 +125,16 @@ public class DataSyncs {
         public void setManaged(M managed);
 
         public M getManaged();
+
+        @Override
+        public default void set(M v) {
+            setManaged(v);
+        }
+
+        @Override
+        public default M get() {
+            return getManaged();
+        }
 
         public void syncPersist();
 
@@ -254,7 +264,7 @@ public class DataSyncs {
         }
 
         @Override
-        public void withDiplaySup(Supplier<? extends D> displaySup) {
+        public void withDisplaySup(Supplier<? extends D> displaySup) {
             this.displaySupp.set(displaySup);
         }
 
@@ -389,10 +399,25 @@ public class DataSyncs {
 
         public final List<N> nodes;
 
+        /**
+         * Copy validation strategy except the nodes.
+         *
+         * @param valid
+         */
         public void addPersistValidation(V valid) {
-            withPersistValidation(valid);
+            V v = createValidation();
+            v.errorSupl = valid.errorSupl;
+            v.isValid = valid.isValid;
+            v.referenceSupl = () -> nodes;
+            withPersistValidation(v);
         }
 
+        /**
+         * Create base class, so that we can supply with nodes, error message
+         * etc..
+         *
+         * @return
+         */
         protected abstract V createValidation();
 
         public void addPersistValidation(String error, Predicate<P> isValid) {
