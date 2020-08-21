@@ -17,17 +17,17 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
  */
 public class DataSyncs {
 
-    public static interface Valid<F> {
+    public static interface Valid<M> {
 
-        public boolean isValid(F from);
+        public boolean isValid(M from);
 
-        public default boolean isInvalid(F from) {
+        public default boolean isInvalid(M from) {
             return !isValid(from);
         }
 
-        public void displayInvalidation(F from);
+        public void showInvalidation(M from);
 
-        public void clearInvalidation(F from);
+        public void clearInvalidation(M from);
     }
 
     public static abstract class NodeValid<T, N> implements Valid<T> {
@@ -74,6 +74,32 @@ public class DataSyncs {
             return !validDisplayFull();
         }
 
+        /**
+         * Check only conditions, don't actually show anything
+         *
+         * @param from
+         * @return
+         */
+        public boolean isValidDisplay(M from);
+
+        /**
+         * Check only conditions, don't actually show anything
+         *
+         * @param from
+         * @return
+         */
+        public default boolean isInvalidDisplay(M from) {
+            return !isValidDisplay(from);
+        }
+
+        /**
+         * Clear validation
+         *
+         * @param from
+         * @return
+         */
+        public void clearInvalidationDisplay(M from);
+
     }
 
     public static interface PersistValidation<M, V extends Valid<M>> {
@@ -101,6 +127,14 @@ public class DataSyncs {
         public default boolean invalidPersistFull() {
             return !validPersistFull();
         }
+
+        public boolean isValidPersist(M from);
+
+        public default boolean isInvalidPersist(M from) {
+            return !isValidPersist(from);
+        }
+
+        public void clearInvalidationPersist(M from);
 
     }
 
@@ -204,6 +238,26 @@ public class DataSyncs {
             return doValidation(validatePersistence, true, getManaged());
         }
 
+        @Override
+        public boolean isValidDisplay(M from) {
+            return checkValidation(validateDisplay, from);
+        }
+
+        @Override
+        public void clearInvalidationDisplay(M from) {
+            clearValidation(validateDisplay, from);
+        }
+
+        @Override
+        public boolean isValidPersist(M from) {
+            return checkValidation(validatePersistence, from);
+        }
+
+        @Override
+        public void clearInvalidationPersist(M from) {
+            clearValidation(validatePersistence, from);
+        }
+
         public static <T> boolean iterateFindFirst(Iterable<T> list, boolean full, Predicate<T> satisfied) {
 
             if (full) {
@@ -215,11 +269,22 @@ public class DataSyncs {
             }
         }
 
-        protected boolean doValidation(List<V> list, boolean full, M managed) {
+        public static <T extends Valid<M>, M> void clearValidation(List<T> list, M managed) {
+            iterateFindFirst(list, true, c -> {
+                c.clearInvalidation(managed);
+                return false;
+            });
+        }
+
+        public static <T extends Valid<M>, M> boolean checkValidation(List<T> list, M managed) {
+            return !iterateFindFirst(list, false, c -> c.isInvalid(managed));//find first invalid
+        }
+
+        public static <T extends Valid<M>, M> boolean doValidation(List<T> list, boolean full, M managed) {
             boolean invalid = iterateFindFirst(list, full, val -> {
                 val.clearInvalidation(managed);
-                if (val.isInvalid(getManaged())) {
-                    val.displayInvalidation(managed);
+                if (val.isInvalid(managed)) {
+                    val.showInvalidation(managed);
                     return true;
                 }
                 return false;
