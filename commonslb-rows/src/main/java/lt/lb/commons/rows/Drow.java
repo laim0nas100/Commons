@@ -142,10 +142,6 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         return config.getCellInfo(me());
     }
 
-    public NodeInfo<N> getNodeInfo() {
-        return config.getNodeInfo(me());
-    }
-
     public int getTotalColSpan() {
         return getCells().stream().mapToInt(m -> getCellInfo().getColSpan(m)).sum();
     }

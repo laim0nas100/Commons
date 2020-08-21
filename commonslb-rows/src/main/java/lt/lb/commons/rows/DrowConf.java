@@ -32,8 +32,6 @@ public interface DrowConf<R extends Drow, C, N, L, U extends Updates> extends Up
 
     public CellInfo<C, N> getCellInfo(R drow);
 
-    public NodeInfo<N> getNodeInfo(R drow);
-
     public N getEnclosingNode(R drow);
 
     public C createCell(List<N> nodes, N enclosingNode, R drow);

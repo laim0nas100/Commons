@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.DataSyncs;
-import lt.lb.commons.DataSyncs.ExplicitDataSync;
+
+import lt.lb.commons.DataSyncs.DataSyncDisplay;
+import lt.lb.commons.DataSyncs.DataSyncManaged;
+import lt.lb.commons.DataSyncs.DataSyncPersist;
+import lt.lb.commons.DataSyncs.DisplayValidation;
+import lt.lb.commons.DataSyncs.PersistValidation;
 import lt.lb.commons.DataSyncs.SyncValidation;
 import lt.lb.commons.DataSyncs.Valid;
 
@@ -16,22 +20,53 @@ import lt.lb.commons.DataSyncs.Valid;
  */
 public abstract class SyncDrow<C, N, L, U extends Updates<U>, Conf extends SyncDrowConf<R, C, N, L, U>, R extends SyncDrow> extends Drow<C, N, L, U, Conf, R> {
 
-    protected List<ExplicitDataSync> syncs = new ArrayList<>();
-    protected List<SyncValidation> syncValidations = new ArrayList<>();
-    protected SyncValidation unmanagedValidation = new DataSyncs.UnmanagedValidation();
+    protected List<DataSyncPersist> persists = new ArrayList<>();
+    protected List<DataSyncDisplay> displays = new ArrayList<>();
+    protected List<DisplayValidation> displayValidations = new ArrayList<>();
+    protected List<PersistValidation> persistValidations = new ArrayList<>();
 
     public SyncDrow(L line, Conf config, String key) {
         super(line, config, key);
     }
 
-    public R addSync(ExplicitDataSync sync) {
-        syncs.add(sync);
-        return me();
+    public R addSync(DataSyncManaged sync) {
+        return addOnDisplayAndRunIfDone(() -> {
+            addSyncPersist(sync);
+            addSyncDisplay(sync);
+        });
+
+    }
+
+    public R addSyncDisplay(DataSyncDisplay sync) {
+        return addOnDisplayAndRunIfDone(() -> {
+            displays.add(sync);
+        });
+
+    }
+
+    public R addSyncPersist(DataSyncPersist sync) {
+        return addOnDisplayAndRunIfDone(() -> {
+            persists.add(sync);
+        });
+
+    }
+
+    public R addDisplayValidation(DisplayValidation valid) {
+        return addOnDisplayAndRunIfDone(() -> {
+            displayValidations.add(valid);
+        });
+    }
+
+    public R addPersistValidation(PersistValidation valid) {
+        return addOnDisplayAndRunIfDone(() -> {
+            persistValidations.add(valid);
+        });
     }
 
     public R addSyncValidation(SyncValidation syncVal) {
         addOnDisplayAndRunIfDone(() -> {
-            syncValidations.add(syncVal);
+            addPersistValidation(syncVal);
+            addDisplayValidation(syncVal);
         });
 
         return me();
@@ -40,7 +75,10 @@ public abstract class SyncDrow<C, N, L, U extends Updates<U>, Conf extends SyncD
 
     public R addValidationPersist(Valid valid) {
         addOnDisplayAndRunIfDone(() -> {
-            unmanagedValidation.withPersistValidation(valid);
+            SyncValidation<Object, Valid<Object>> unmanaged = config.createBaseSyncValidationUnmanaged();
+            unmanaged.withPersistValidation(valid);
+            addPersistValidation(unmanaged);
+
         });
 
         return me();
@@ -48,7 +86,9 @@ public abstract class SyncDrow<C, N, L, U extends Updates<U>, Conf extends SyncD
 
     public R addValidationDisplay(Valid valid) {
         addOnDisplayAndRunIfDone(() -> {
-            unmanagedValidation.withDisplayValidation(valid);
+            SyncValidation<Object, Valid<Object>> unmanaged = config.createBaseSyncValidationUnmanaged();
+            unmanaged.withDisplayValidation(valid);
+            addDisplayValidation(unmanaged);
         });
 
         return me();
@@ -110,62 +150,52 @@ public abstract class SyncDrow<C, N, L, U extends Updates<U>, Conf extends SyncD
         return me();
     }
 
-    public <M, V extends Valid<M>> R addDisplayValidation(V valid, Supplier<? extends M> managed) {
+    public <M, V extends Valid<M>> R addValidationDisplay(V valid, Supplier<? extends M> managed) {
         addOnDisplayAndRunIfDone(() -> {
-            addSyncValidation(config.createSyncValidationDisplay(valid, managed));
+            SyncValidation<M, Valid<M>> managedValidation = config.createBaseSyncValidation(managed);
+            managedValidation.withDisplayValidation(valid);
+            addDisplayValidation(managedValidation);
         });
         return me();
     }
 
-    public <M, V extends Valid<M>> R addPersistValidation(V valid, Supplier<? extends M> managed) {
+    public <M, V extends Valid<M>> R addValidationPersist(V valid, Supplier<? extends M> managed) {
         addOnDisplayAndRunIfDone(() -> {
-            addSyncValidation(config.createSyncValidationPersist(valid, managed));
+            SyncValidation<M, Valid<M>> managedValidation = config.createBaseSyncValidation(managed);
+            managedValidation.withPersistValidation(valid);
+            addPersistValidation(managedValidation);
         });
         return me();
     }
 
     public void syncManagedFromDisplay() {
-        for (ExplicitDataSync sync : syncs) {
+        for (DataSyncDisplay sync : displays) {
             sync.syncManagedFromDisplay();
         }
     }
 
     public void syncManagedFromPersist() {
-        for (ExplicitDataSync sync : syncs) {
+        for (DataSyncPersist sync : persists) {
             sync.syncManagedFromPersist();
         }
     }
 
     public void syncDisplay() {
-        for (ExplicitDataSync sync : syncs) {
+        for (DataSyncDisplay sync : displays) {
             sync.syncDisplay();
         }
     }
 
     public void syncPersist() {
-        for (ExplicitDataSync sync : syncs) {
+        for (DataSyncPersist sync : persists) {
             sync.syncPersist();
         }
     }
 
     public boolean invalidPersist(boolean full) {
-        boolean invalid = full ? unmanagedValidation.invalidPersistFull() : unmanagedValidation.invalidPersist();
-        if (invalid && full) {
-            return invalid;
-        }
+        boolean invalid = false;
 
-        for (ExplicitDataSync sync : syncs) {
-
-            if (full) {
-                invalid = invalid || sync.invalidPersistFull();
-                if (invalid) {
-                    return invalid;
-                }
-            } else {
-                invalid = invalid || sync.invalidPersist();
-            }
-        }
-        for (SyncValidation validation : syncValidations) {
+        for (PersistValidation validation : persistValidations) {
             if (full) {
                 invalid = invalid || validation.invalidPersistFull();
                 if (invalid) {
@@ -181,21 +211,8 @@ public abstract class SyncDrow<C, N, L, U extends Updates<U>, Conf extends SyncD
     }
 
     public boolean invalidDisplay(boolean full) {
-        boolean invalid = full ? unmanagedValidation.invalidDisplayFull() : unmanagedValidation.invalidDisplay();
-        if (invalid && full) {
-            return invalid;
-        }
-        for (ExplicitDataSync sync : syncs) {
-            if (full) {
-                invalid = invalid || sync.invalidDisplayFull();
-                if (invalid) {
-                    return invalid;
-                }
-            } else {
-                invalid = invalid || sync.invalidDisplay();
-            }
-        }
-        for (SyncValidation validation : syncValidations) {
+        boolean invalid = false;
+        for (DisplayValidation validation : displayValidations) {
             if (full) {
                 invalid = invalid || validation.invalidDisplayFull();
                 if (invalid) {

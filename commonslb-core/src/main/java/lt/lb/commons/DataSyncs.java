@@ -138,23 +138,7 @@ public class DataSyncs {
 
     }
 
-    public static interface DataSyncManaged<P, M, D> extends ValueProxy<M> {
-
-        public void withDisplaySync(Consumer<? super D> displaySync);
-
-        public void withPersistSync(Consumer<? super P> persSync);
-
-        public void withDisplaySup(Supplier<? extends D> displaySup);
-
-        public void withPersisSup(Supplier<? extends P> persistSup);
-
-        public void withPersistGet(Function<? super P, ? extends M> func);
-
-        public void withDisplayGet(Function<? super D, ? extends M> func);
-
-        public void withPersistSet(Function<? super M, ? extends P> func);
-
-        public void withDisplaySet(Function<? super M, ? extends D> func);
+    public static interface SyncManaged<M> extends ValueProxy<M> {
 
         public void setManaged(M managed);
 
@@ -170,13 +154,39 @@ public class DataSyncs {
             return getManaged();
         }
 
+    }
+
+    public static interface DataSyncPersist<P, M> extends SyncManaged<M> {
+
+        public void withPersistSync(Consumer<? super P> persSync);
+
+        public void withPersisSup(Supplier<? extends P> persistSup);
+
+        public void withPersistGet(Function<? super P, ? extends M> func);
+
+        public void withPersistSet(Function<? super M, ? extends P> func);
+
         public void syncPersist();
+
+        public void syncManagedFromPersist();
+    }
+
+    public static interface DataSyncDisplay<D, M> extends SyncManaged<M> {
+
+        public void withDisplaySync(Consumer<? super D> displaySync);
+
+        public void withDisplaySup(Supplier<? extends D> displaySup);
+
+        public void withDisplayGet(Function<? super D, ? extends M> func);
+
+        public void withDisplaySet(Function<? super M, ? extends D> func);
 
         public void syncDisplay();
 
         public void syncManagedFromDisplay();
+    }
 
-        public void syncManagedFromPersist();
+    public static interface DataSyncManaged<P, M, D> extends DataSyncPersist<P, M>, DataSyncDisplay<D, M> {
 
     }
 
