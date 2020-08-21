@@ -42,31 +42,12 @@ public class ComparatorTest {
         Log.printLines(ReadOnlyIterator.of(stream));
     }
     
-    public static void main(String...args){
-        
-        List<Item> list = new ArrayList<>();
-        Log.main().async = true;
-        
-        list.add(new Item(1,1));
-        list.add(new Item(2,1));
-        list.add(new Item(1,2));
-        list.add(new Item(2,null));
-        list.add(new Item(2,1));
-        list.add(new Item(2,3));
-        list.add(new Item(null,4));
-        list.add(new Item(null,2));
+    
+    public static void withNew(List<Item> list){
         
         
-        Collections.shuffle(list);
         
         
-        Comparator<Item> build1 = new ComparatorBuilder<Item>()
-                .thenComparingNullableValue(true, v->v.num1)
-                .thenComparingNullableValue(false, v->v.num2)
-                .build();
-        
-        
-        print(list.stream().sorted(build1));
         
         
         Comparator<Item> build2 = new ComparatorBuilder<Item>()
@@ -87,13 +68,43 @@ public class ComparatorTest {
         
         print(list.stream().sorted(build3));
         
-        Comparator<Item> build4 = new ComparatorBuilder<Item>()
-                .thenComparingNullableValue(true, v->v.num1)
+        Comparator<Item> build1 = new ComparatorBuilder<Item>()
+                .thenComparingNullableValue(false, v->v.num1)
                 .thenComparingNullableValue(false, v->v.num2)
-                .reverseAll()
                 .build();
         
+        Comparator<Item> build4 = new ComparatorBuilder<Item>()
+                .thenComparingNullableValue(false, v->v.num1)
+                .thenComparingNullableValue(false, v->v.num2)
+                .reverseAll()
+                .reverseAll()
+                .build();
+        print(list.stream().sorted(build1));
         print(list.stream().sorted(build4));
+    }
+    
+    
+    public static void main(String...args){
+        
+        List<Item> list = new ArrayList<>();
+        Log.main().async = false;
+        
+        list.add(new Item(1,1));
+        list.add(new Item(2,1));
+        list.add(new Item(1,2));
+        list.add(new Item(2,null));
+        list.add(new Item(2,1));
+        list.add(new Item(2,3));
+        list.add(new Item(null,4));
+        list.add(new Item(null,2));
+        
+        
+        Collections.shuffle(list);
+        
+//        withList(list);
+        Log.print("###################");
+        withNew(list);
+        
         
         
         Log.close();
