@@ -1,9 +1,11 @@
 package lt.lb.commons.rows;
 
-
 /**
  *
  * @author laim0nas100
+ * @param <DR> Drows
+ * @param <R> Drow
+ * @param <U> Updates
  */
 public interface DrowsConf<DR extends Drows, R extends Drow, U extends Updates> extends UpdateConfigAware<U, DR> {
 
@@ -48,7 +50,7 @@ public interface DrowsConf<DR extends Drows, R extends Drow, U extends Updates> 
      * Manage bindings on row add event.
      *
      * @param parentRows
-     * @param childRows
+     * @param childRow
      */
     public void addRowDecorate(DR parentRows, R childRow);
 
@@ -56,7 +58,7 @@ public interface DrowsConf<DR extends Drows, R extends Drow, U extends Updates> 
      * Manage bindings on row remove event.
      *
      * @param parentRows
-     * @param childRows
+     * @param childRow
      */
     public void removeRowDecorate(DR parentRows, R childRow);
 

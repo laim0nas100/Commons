@@ -112,7 +112,7 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
     public default R update() {
         return update(UPDATES_ON_REFRESH);
     }
-
+    
     public default R render() {
         return update(UPDATES_ON_RENDER);
     }

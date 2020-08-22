@@ -5,8 +5,10 @@ import java.util.Map;
 /**
  *
  * @author laim0nas100
+ * @param <U> Updates
+ * @param <T> Object that is UpdateAware
  */
-public interface UpdateConfigAware<U extends Updates, T> {
+public interface UpdateConfigAware<U extends Updates, T extends UpdateAware> {
 
     /**
      * Updates factory method.

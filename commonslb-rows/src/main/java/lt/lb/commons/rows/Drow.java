@@ -15,20 +15,20 @@ import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import static lt.lb.commons.rows.BasicUpdates.*;
+import lt.lb.commons.threads.sync.RecursiveRedirection;
+import lt.lb.commons.threads.sync.ThreadBottleneck;
 
 /**
  *
  * @author laim0nas100
  */
-public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> implements UpdateAware<U, R>{
+public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> implements UpdateAware<U, R> {
 
     protected boolean visible = true;
     protected boolean disabled = false;
     protected boolean deleted = false;
 
     protected boolean displayed = false;
-    
-    protected AtomicBoolean inDisplay = new AtomicBoolean(false);
 
     protected List<Integer> cellColSpan = new ArrayList<>();
     protected List<C> cells = new ArrayList<>();
@@ -43,7 +43,6 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         return config;
     }
 
-    
     public int getRenderOrder() {
         return 500;
     }
@@ -359,7 +358,6 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
 
     }
 
-
     public R withPreferedColspan(Integer... spans) {
         R me = me();
         F.iterate(spans, (i, spa) -> {
@@ -481,14 +479,23 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
     }
 
     /**
-     * Does UPDATES_ON_DISPLAY, UPDATES_ON_REFRESH and UPDATES_ON_RENDER
-     * @return 
+     * calls display(true)
+     *
+     * @return
      */
     public R display() {
+        return display(true);
+    }
 
-        if(!inDisplay.compareAndSet(false, true)){
-            return me();
-        }
+    /**
+     * Does UPDATES_ON_DISPLAY, UPDATES_ON_REFRESH and conditional
+     * UPDATES_RENDER
+     *
+     * @param render wether to also render
+     * @return
+     */
+    public R display(boolean render) {
+
         R me = me();
         Optional<Throwable> optionalException = F.checkedRun(() -> {
             update(UPDATES_ON_DISPLAY);
@@ -498,8 +505,9 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
             throw NestedException.of(ex);
         });
         displayed = true;
-        inDisplay.set(false);
-        this.update(UPDATES_ON_RENDER);
+        if (render) {
+            render();
+        }
         return me;
 
     }
@@ -562,15 +570,44 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         return me();
     }
 
+    protected RecursiveRedirection redirection = new RecursiveRedirection()
+            .setFirstRedirect(run -> {
+                if (displayed) {
+                    run.run();
+                }
+                updates.get(UPDATES_ON_DISPLAY).addUpdate(run.asExecutedIn(1));
+            });
+
     protected R addOnDisplayAndRunIfDone(Runnable run) {
-        if(inDisplay.get()){
+        //protection form recursive calls, starts at 0.
+        redirection.execute(run).ifPresent(NestedException::nestedThrow);
+        return me();
+    }
+
+    protected boolean inDisplay = false;
+
+    protected R addOnDisplayAndRunIfDone2(Runnable run) {
+        //protection form recursive calls
+        if (inDisplay) {
             run.run();
             return me();
         }
+        Runnable decorated = () -> {
+            if (inDisplay) {
+                run.run();
+                return;
+            }
+            inDisplay = true;
+            Optional<Throwable> checkedRun = F.checkedRun(run);
+            inDisplay = false;
+            checkedRun.ifPresent(NestedException::nestedThrow);
+
+        };
+
         if (displayed) {
-            run.run();
+            decorated.run();
         }
-        updates.get(UPDATES_ON_DISPLAY).addUpdate(run);
+        updates.get(UPDATES_ON_DISPLAY).addUpdate(decorated);
         return me();
     }
 
