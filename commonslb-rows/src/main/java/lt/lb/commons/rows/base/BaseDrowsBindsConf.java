@@ -27,24 +27,24 @@ public abstract class BaseDrowsBindsConf<DR extends Drows, R extends Drow, U ext
 
     @Override
     public void composeDecorate(DR parentRows, DR childRows) {
-        parentRows.bindDefaultUpdates(childRows);
-        childRows.bindDefaultUpdates(parentRows);
+        parentRows.bindBindableUpdates(childRows);
+        childRows.bindBindableUpdates(parentRows);
     }
 
     @Override
     public void uncomposeDecorate(DR parentRows, DR childRows) {
-        parentRows.unbindDefaultUpdates(childRows);
-        childRows.unbindDefaultUpdates(parentRows);
+        parentRows.unbindBindableUpdates(childRows);
+        childRows.unbindBindableUpdates(parentRows);
     }
 
     @Override
     public void addRowDecorate(DR parentRows, R childRow) {
-        parentRows.bindDefaultUpdates(childRow);
+        parentRows.bindBindableUpdates(childRow);
     }
 
     @Override
     public void removeRowDecorate(DR parentRows, R childRow) {
-        parentRows.unbindDefaultUpdates(childRow);
+        parentRows.unbindBindableUpdates(childRow);
     }
 
 }

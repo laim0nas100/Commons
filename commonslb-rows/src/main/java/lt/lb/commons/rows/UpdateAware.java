@@ -2,6 +2,7 @@ package lt.lb.commons.rows;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import lt.lb.commons.ArrayOp;
 import static lt.lb.commons.rows.BasicUpdates.UPDATES_ON_DISABLE;
@@ -31,6 +32,10 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
             getUpdateMap().put(type, getConfig().createUpdates(type, me()));
         }
         return me();
+    }
+    
+    public default Set<String> getBindableTypes(){
+        return getUpdateMap().keySet();
     }
 
     public R me();
@@ -117,9 +122,9 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
         return update(UPDATES_ON_RENDER);
     }
 
-    public default R bindDefaultUpdatesFrom(R source) {
+    public default R bindBindableUpdatesFrom(R source) {
         R me = me();
-        source.bindDefaultUpdates(me);
+        source.bindBindableUpdates(me);
         return me;
     }
 
@@ -152,15 +157,15 @@ public interface UpdateAware<U extends Updates, R extends UpdateAware> {
         return me();
     }
 
-    public default R bindDefaultUpdates(R dest) {
-        for (String type : defaultUpdateNames()) {
+    public default R bindBindableUpdates(R dest) {
+        for (String type : getBindableTypes()) {
             bindUpdates(type, dest);
         }
         return me();
     }
 
-    public default R unbindDefaultUpdates(R dest) {
-        for (String type : defaultUpdateNames()) {
+    public default R unbindBindableUpdates(R dest) {
+        for (String type : getBindableTypes()) {
             unbindUpdates(type, dest);
         }
         return me();
