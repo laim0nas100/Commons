@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.rows.base;
 
 import java.util.ArrayList;
@@ -16,23 +11,35 @@ import lt.lb.commons.rows.Drows;
  * @param <C> BaseCell
  * @param <N> Node
  */
-public class BaseLine<DR extends Drows<?, ? extends BaseLine, DR, ?>, C extends BaseCell<N,?>, N> {
-
+public class BaseLine<DR extends Drows<?, ? extends BaseLine, DR, ?>, C extends BaseCell<N, ?>, N> {
+    
     protected DR originalRows;
     protected List<C> cells = new ArrayList<>();
     protected List<N> renderedNodes = new ArrayList<>();
+    
+    public static final Runnable empty = ()->{
+        
+    };
+    protected Runnable derender = empty;
+    
+    public BaseLine(DR originalRows) {
+        this.originalRows = originalRows;
+    }
 
     /**
      * Gets the original Drows object when this line was created.
-     * @return 
+     *
+     * @return
      */
     public DR getOriginalRows() {
         return originalRows;
     }
 
     /**
-     * Gets relevant Drows object. Only different from getOriginalRows when composition is used.
-     * @return 
+     * Gets relevant Drows object. Only different from getOriginalRows when
+     * composition is used.
+     *
+     * @return
      */
     public DR getRows() {
         return originalRows.getLastParentOrMe();
@@ -40,7 +47,8 @@ public class BaseLine<DR extends Drows<?, ? extends BaseLine, DR, ?>, C extends 
 
     /**
      * Drows object at the time of creation this line
-     * @param originalRows 
+     *
+     * @param originalRows
      */
     public void setOriginalRows(DR originalRows) {
         this.originalRows = originalRows;
@@ -48,12 +56,12 @@ public class BaseLine<DR extends Drows<?, ? extends BaseLine, DR, ?>, C extends 
 
     /**
      * Cells submitted to render.
-     * @return 
+     *
+     * @return
      */
     public List<C> getCells() {
         return cells;
     }
-
     
     public void setCells(List<C> cells) {
         this.cells = cells;
@@ -61,14 +69,45 @@ public class BaseLine<DR extends Drows<?, ? extends BaseLine, DR, ?>, C extends 
 
     /**
      * Actual nodes that has been rendered.
-     * @return 
+     *
+     * @return
      */
     public List<N> getRenderedNodes() {
         return renderedNodes;
     }
-
+    
     public void setRenderedNodes(List<N> renderedNodes) {
         this.renderedNodes = renderedNodes;
     }
 
+    /**
+     * Routine to remove drawn things
+     *
+     * @return
+     */
+    public Runnable getDerender() {
+        return derender;
+    }
+
+    /**
+     * Run derender routine and replace with empty runnable
+     */
+    public void derender() {
+        Runnable derend = getDerender();
+        if(derend == empty){
+            return;
+        }
+        derend.run();
+        setDerender(empty);
+    }
+
+    /**
+     * Set derender routine
+     *
+     * @param derender
+     */
+    public void setDerender(Runnable derender) {
+        this.derender = derender;
+    }
+    
 }

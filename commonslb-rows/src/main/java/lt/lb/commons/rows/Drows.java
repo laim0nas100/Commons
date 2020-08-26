@@ -195,6 +195,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
             throw new IllegalArgumentException("Row with key:" + key + " is not present");
         }
         R remove = rowMap.remove(key);
+        remove.setDeleted(true);
         removeKey(key);
         rowAndComposedKeyOrder.invalidate();// manual trigger of update
         conf.removeRowDecorate(me(), remove);

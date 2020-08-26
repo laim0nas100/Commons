@@ -1,7 +1,6 @@
 package lt.lb.commons.rows;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -16,7 +15,6 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import static lt.lb.commons.rows.BasicUpdates.*;
 import lt.lb.commons.threads.sync.RecursiveRedirection;
-import lt.lb.commons.threads.sync.ThreadBottleneck;
 
 /**
  *
@@ -497,13 +495,12 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
     public R display(boolean render) {
 
         R me = me();
-        Optional<Throwable> optionalException = F.checkedRun(() -> {
+        if (displayed) {
+            return me;
+        }
+        F.checkedRun(() -> {
             update(UPDATES_ON_DISPLAY);
-
-        });
-        optionalException.ifPresent(ex -> {
-            throw NestedException.of(ex);
-        });
+        }).ifPresent(NestedException::nestedThrow);
         displayed = true;
         if (render) {
             render();
@@ -583,32 +580,4 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         redirection.execute(run).ifPresent(NestedException::nestedThrow);
         return me();
     }
-
-    protected boolean inDisplay = false;
-
-    protected R addOnDisplayAndRunIfDone2(Runnable run) {
-        //protection form recursive calls
-        if (inDisplay) {
-            run.run();
-            return me();
-        }
-        Runnable decorated = () -> {
-            if (inDisplay) {
-                run.run();
-                return;
-            }
-            inDisplay = true;
-            Optional<Throwable> checkedRun = F.checkedRun(run);
-            inDisplay = false;
-            checkedRun.ifPresent(NestedException::nestedThrow);
-
-        };
-
-        if (displayed) {
-            decorated.run();
-        }
-        updates.get(UPDATES_ON_DISPLAY).addUpdate(decorated);
-        return me();
-    }
-
 }
