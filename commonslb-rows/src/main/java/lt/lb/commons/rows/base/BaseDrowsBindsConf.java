@@ -1,9 +1,14 @@
 package lt.lb.commons.rows.base;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 import lt.lb.commons.misc.UUIDgenerator;
 import lt.lb.commons.rows.Drow;
 import lt.lb.commons.rows.Drows;
 import lt.lb.commons.rows.DrowsConf;
+import lt.lb.commons.rows.UpdateConfigAware;
+import lt.lb.commons.rows.UpdateHolder;
 import lt.lb.commons.rows.Updates;
 
 /**
@@ -13,8 +18,16 @@ import lt.lb.commons.rows.Updates;
  * @param <R> Drow
  * @param <U> Updates
  */
-public abstract class BaseDrowsBindsConf<DR extends Drows, R extends Drow, U extends Updates> implements DrowsConf<DR, R, U> {
+public abstract class BaseDrowsBindsConf<DR extends Drows, R extends Drow, U extends Updates> implements DrowsConf<DR, R, U>  {
 
+    protected Map<String,U> updateMap = new HashMap<>();
+    
+    
+    @Override
+    public void configureUpdates(Map<String, U> updates, DR object) {
+        object.initUpdates();
+    }
+    
     @Override
     public R newRow(DR rows) {
         return newRow(rows, getNextRowID());
@@ -46,5 +59,4 @@ public abstract class BaseDrowsBindsConf<DR extends Drows, R extends Drow, U ext
     public void removeRowDecorate(DR parentRows, R childRow) {
         parentRows.unbindBindableUpdates(childRow);
     }
-
 }

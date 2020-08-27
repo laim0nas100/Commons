@@ -49,6 +49,24 @@ public abstract class Updates<U extends Updates> implements CloneSupport<U> {
             
         });
     }
+
+    public List<OrderedRunnable> getUpdateListeners() {
+        return updateListeners;
+    }
+
+    public Deque<U> getFollowUps() {
+        return followUps;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+    
+    
     
     protected Updates(Updates old) {
         this(old.type);
