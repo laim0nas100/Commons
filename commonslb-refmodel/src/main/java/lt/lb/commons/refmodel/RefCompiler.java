@@ -1,11 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.refmodel;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  *
@@ -14,24 +10,24 @@ import java.lang.reflect.Field;
 public class RefCompiler {
 
     public static final int DEFAULT_COMPILE_DEPTH = 5;
-    public static final String separator = ".";
+    public static final String DEFAULT_SEPARATOR = ".";
 
-    public static <T extends Ref> T compile(Class<T> rootCls) throws InstantiationException, IllegalAccessException {
-        return compile(DEFAULT_COMPILE_DEPTH, rootCls);
+    public static <T extends Ref> T compile(Class<T> rootCls) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+        return compile(DEFAULT_COMPILE_DEPTH, rootCls, DEFAULT_SEPARATOR);
     }
 
-    public static <T extends Ref> T compile(int limit, Class<T> rootCls) throws InstantiationException, IllegalAccessException {
-        Ref root = rootCls.newInstance();
+    public static <T extends Ref> T compile(int limit, Class<T> rootCls, String sep) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+        Ref root = rootCls.getDeclaredConstructor().newInstance();
         root.local = "";
         root.relative = "";
         if (RefModel.class.isAssignableFrom(rootCls)) {
-            compile(root, "", limit);
+            compile(root, "", limit, sep);
         }
 
         return (T) root;
     }
 
-    private static void compile(Ref me, String parentRelative, int limit) throws IllegalArgumentException, IllegalAccessException, InstantiationException {
+    private static void compile(Ref me, String parentRelative, int limit, String separator) throws IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         if (limit <= 0) {
             return;
         }
@@ -45,12 +41,12 @@ public class RefCompiler {
             Class<?> type = f.getType();
 
             if (Ref.class.isAssignableFrom(type)) {
-                Ref ref = (Ref) type.newInstance();
+                Ref ref = (Ref) type.getDeclaredConstructor().newInstance();
                 f.set(me, ref);
                 ref.local = f.getName();
                 ref.relative = substring + ref.local;
                 if (RefModel.class.isAssignableFrom(type)) {
-                    compile(ref, ref.relative, limit - 1);
+                    compile(ref, ref.relative, limit - 1, separator);
                 }
             }
         }
