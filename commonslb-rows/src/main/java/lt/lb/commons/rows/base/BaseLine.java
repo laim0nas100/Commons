@@ -6,12 +6,12 @@ import lt.lb.commons.rows.Drows;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  * @param <DR> Drows
  * @param <C> BaseCell
  * @param <N> Node
  */
-public class BaseLine<DR extends Drows<?, ? extends BaseLine, DR, ?>, C extends BaseCell<N, ?>, N> {
+public class BaseLine<DR extends Drows<?,?,DR,?>, C extends BaseCell<N, ?>, N> {
     
     protected DR originalRows;
     protected List<C> cells = new ArrayList<>();

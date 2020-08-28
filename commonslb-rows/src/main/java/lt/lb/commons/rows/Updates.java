@@ -6,8 +6,6 @@ import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.BindingValue;

@@ -30,7 +30,7 @@ public interface DrowConf<R extends Drow, C, N, L, U extends Updates> extends Up
         return diff <= 0.05;
     }
 
-    public CellInfo<C, N> getCellInfo(R drow);
+//    public CellInfo<C, N> getCellInfo(R drow);
 
     public N getEnclosingNode(R drow);
 

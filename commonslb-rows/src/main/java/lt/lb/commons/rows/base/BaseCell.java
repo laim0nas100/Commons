@@ -2,8 +2,8 @@ package lt.lb.commons.rows.base;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import lt.lb.commons.rows.CellInf;
 
 /**
  *
@@ -11,7 +11,7 @@ import java.util.Optional;
  * @param <N>
  * @param <Enc>
  */
-public class BaseCell<N, Enc extends N> {
+public class BaseCell<N, Enc extends N> implements CellInf<N> {
 
     protected boolean visible = true;
     protected boolean disabled = false;
@@ -20,44 +20,34 @@ public class BaseCell<N, Enc extends N> {
     protected List<N> children = new ArrayList<>();
     protected Optional<Enc> enclosed = Optional.empty();
 
+    @Override
     public boolean isVisible() {
         return visible;
     }
 
+    @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
 
+    @Override
     public boolean isDisabled() {
         return disabled;
     }
 
+    @Override
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }
 
+    @Override
     public boolean isMerged() {
         return merged;
     }
 
+    @Override
     public void setMerged(boolean merged) {
         this.merged = merged;
-    }
-
-    public int getColspan() {
-        return colspan;
-    }
-
-    public void setColspan(int colspan) {
-        this.colspan = colspan;
-    }
-
-    public List<N> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<N> children) {
-        this.children = children;
     }
 
     public Optional<Enc> getEnclosed() {
@@ -66,6 +56,25 @@ public class BaseCell<N, Enc extends N> {
 
     public void setEnclosed(Enc enclosed) {
         this.enclosed = Optional.ofNullable(enclosed);
+    }
+
+    public void setNodes(List<N> list){
+        this.children = list;
+    }
+    
+    @Override
+    public List<N> getNodes() {
+        return children;
+    }
+
+    @Override
+    public int getColSpan() {
+        return colspan;
+    }
+
+    @Override
+    public void setColSpan(int colspan) {
+        this.colspan = colspan;
     }
 
 }

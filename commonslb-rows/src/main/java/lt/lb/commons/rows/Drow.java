@@ -20,7 +20,7 @@ import lt.lb.commons.threads.sync.RecursiveRedirection;
  *
  * @author laim0nas100
  */
-public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> implements UpdateAware<U, R> {
+public abstract class Drow<C extends CellInf<N>, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> implements UpdateAware<U, R> {
 
     protected boolean visible = true;
     protected boolean disabled = false;
@@ -135,26 +135,23 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         return this.cells;
     }
 
-    public CellInfo<C, N> getCellInfo() {
-        return config.getCellInfo(me());
-    }
 
     public int getTotalColSpan() {
-        return getCells().stream().mapToInt(m -> getCellInfo().getColSpan(m)).sum();
+        return getCells().stream().mapToInt(m -> m.getColSpan()).sum();
     }
 
     public int getTotalColSpanVisible() {
-        return getVisibleCells().stream().mapToInt(m -> getCellInfo().getColSpan(m)).sum();
+        return getVisibleCells().stream().mapToInt(m -> m.getColSpan()).sum();
     }
 
     public List<C> getVisibleCells() {
-        return getCells().stream().filter(c -> getCellInfo().isVisible(c)).collect(Collectors.toList());
+        return getCells().stream().filter(c -> c.isVisible()).collect(Collectors.toList());
     }
 
     public List<Integer> getVisibleIndices() {
         ArrayList<Integer> list = new ArrayList<>();
         F.iterate(cells, (i, cell) -> {
-            if (getCellInfo().isVisible(cell)) {
+            if (cell.isVisible()) {
                 list.add(i);
             }
         });
@@ -165,7 +162,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
     public List<Integer> getPreferedColSpanOfVisible() {
         ArrayList<Integer> prefVis = new ArrayList<>();
         F.iterate(cells, (i, cell) -> {
-            if (getCellInfo().isVisible(cell)) {
+            if (cell.isVisible()) {
                 prefVis.add(getPreferedColSpan().get(i));
             }
         });
@@ -191,7 +188,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
 
         for (int i = 0; i < count; i++) {
             double ratioPrefered = preferedColSpanOfVisible.get(i) / total;
-            double ratioCurrent = getCellInfo().getColSpan(getCell(cellIndex.get(i))) / totalVisible;
+            double ratioCurrent = getCell(cellIndex.get(i)).getColSpan() / totalVisible;
             if (!config.colspanWithinMargin(Math.abs(ratioCurrent - ratioPrefered), me())) {
                 return true;
             }
@@ -234,7 +231,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
         }
 
         for (int i = 0; i < colApply.length; i++) {
-            getCellInfo().setColSpan(visibleCells.get(i), colApply[i]);
+            visibleCells.get(i).setColSpan(colApply[i]);
         }
     }
 
@@ -276,7 +273,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
             final int num = comps[i];
             C get = getCellSupplier(p -> p.g1 == num).get();
 
-            if (getCellInfo().isMerged(get)) {
+            if (get.isMerged()) {
                 throw new IllegalArgumentException("node num:" + num + " is part of a merged cell, can only merge free cells");
             }
         }
@@ -322,14 +319,14 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
 
         int mergedColspan = merge.stream().mapToInt(m -> m.g1).sum();
         List<N> mergedNodes = merge.stream()
-                .flatMap(m -> getCellInfo().getNodes(m.g2).stream())
+                .flatMap(m -> m.g2.getNodes().stream())
                 .collect(Collectors.toList());
         merge.stream().map(m -> m.g2).forEach(cell -> {
-            getCellInfo().setMerged(cell, true);
+            cell.setMerged(true);
         });
 
         C finalCell = this.finalAdd(mergedNodes, enclosing.get(), newCells, mergedColspan, newColSpans);
-        getCellInfo().setMerged(finalCell, true);
+        finalCell.setMerged(true);
         //insert after merged
         F.iterate(after, (i, tup) -> {
             newCells.add(tup.getG2());
@@ -366,7 +363,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
             }
             if (displayed) {
                 C cell = this.getCell(i);
-                getCellInfo().setColSpan(cell, spa);
+                cell.setColSpan(spa);
             }
 
         });
@@ -378,7 +375,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
     }
 
     public int getNodeCount() {
-        return cells.stream().mapToInt(m -> getCellInfo().getNodes(m).size()).sum();
+        return cells.stream().mapToInt(m -> m.getNodes().size()).sum();
     }
 
     private ReadOnlyIterator<Tuple<C, N>> mainIterator() {
@@ -394,7 +391,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
             }
 
             private N getCurrentComp() {
-                return getCellInfo().getNodes(getCurrentCell()).get(compIndex);
+                return getCurrentCell().getNodes().get(compIndex);
             }
 
             @Override
@@ -413,7 +410,7 @@ public abstract class Drow<C, N, L, U extends Updates<U>, Conf extends DrowConf<
             }
 
             private int currentCellChildrenSize() {
-                return getCellInfo().getNodes(getCurrentCell()).size();
+                return getCurrentCell().getNodes().size();
             }
 
             @Override

@@ -18,7 +18,7 @@ import lt.lb.commons.DataSyncs.Valid;
  *
  * @author laim0nas100
  */
-public abstract class SyncDrow<C, N, L, U extends Updates<U>, Conf extends SyncDrowConf<R, C, N, L, U>, R extends SyncDrow> extends Drow<C, N, L, U, Conf, R> {
+public abstract class SyncDrow<C extends CellInf<N>, N, L, U extends Updates<U>, Conf extends SyncDrowConf<R, C, N, L, U>, R extends SyncDrow> extends Drow<C, N, L, U, Conf, R> {
 
     protected List<DataSyncPersist> persists = new ArrayList<>();
     protected List<DataSyncDisplay> displays = new ArrayList<>();

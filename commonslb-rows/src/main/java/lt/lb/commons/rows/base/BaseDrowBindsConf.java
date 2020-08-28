@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.rows.base;
 
 import java.util.ArrayList;
@@ -11,18 +6,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
-import lt.lb.commons.Java;
+import lt.lb.commons.rows.Drow;
+import lt.lb.commons.rows.DrowConf;
 import lt.lb.commons.rows.OrderedRunnable;
-import lt.lb.commons.rows.SyncDrow;
-import lt.lb.commons.rows.SyncDrowConf;
 import lt.lb.commons.rows.UpdateHolder;
 import lt.lb.commons.rows.Updates;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
-public abstract class BaseSyncDrowConfig<R extends SyncDrow, C, N, L, U extends Updates, Conf extends BaseSyncDrowConfig> implements SyncDrowConf<R, C, N, L, U>, UpdateHolder<U, Conf, R> {
+public abstract class BaseDrowBindsConf<R extends Drow, C, N, L, U extends Updates, Conf extends BaseDrowBindsConf> implements DrowConf<R, C, N, L, U>, UpdateHolder<U, Conf, R> {
 
     protected Map<String, U> updateMap = new HashMap<>();
 
@@ -31,13 +25,6 @@ public abstract class BaseSyncDrowConfig<R extends SyncDrow, C, N, L, U extends 
     @Override
     public Map<String, U> getUpdateMap() {
         return updateMap;
-    }
-
-    @Override
-    public void doUpdates(U updates, R object) {
-        if (updates.active) {
-            updates.triggerUpdate(Java.getNanoTime());
-        }
     }
 
     protected R confupdatesFor;
@@ -61,7 +48,8 @@ public abstract class BaseSyncDrowConfig<R extends SyncDrow, C, N, L, U extends 
 
     @Override
     public U ensureUpdate(String type) {
-        return getUpdateMap().computeIfAbsent(type, k -> createUpdates(type, confupdatesFor));
+        final R current = confupdatesFor;
+        return getUpdateMap().computeIfAbsent(type, k -> createUpdates(type, current));
     }
 
     @Override
