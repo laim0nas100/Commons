@@ -6,7 +6,7 @@ import java.util.List;
  *
  * @author laim0nas100
  */
-public interface CellInf<N> {
+public interface CellInfo<N> {
     public List<N> getNodes();
 
     public int getColSpan();

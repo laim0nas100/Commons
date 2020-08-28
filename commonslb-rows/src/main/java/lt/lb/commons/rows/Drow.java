@@ -20,7 +20,7 @@ import lt.lb.commons.threads.sync.RecursiveRedirection;
  *
  * @author laim0nas100
  */
-public abstract class Drow<C extends CellInf<N>, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> implements UpdateAware<U, R> {
+public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> implements UpdateAware<U, R> {
 
     protected boolean visible = true;
     protected boolean disabled = false;

@@ -3,7 +3,7 @@ package lt.lb.commons.rows.base;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import lt.lb.commons.rows.CellInf;
+import lt.lb.commons.rows.CellInfo;
 
 /**
  *
@@ -11,7 +11,7 @@ import lt.lb.commons.rows.CellInf;
  * @param <N>
  * @param <Enc>
  */
-public class BaseCell<N, Enc extends N> implements CellInf<N> {
+public class BaseCell<N, Enc extends N> implements CellInfo<N> {
 
     protected boolean visible = true;
     protected boolean disabled = false;
