@@ -6,13 +6,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import lt.lb.commons.DataSyncs.DataSyncDisplay;
-import lt.lb.commons.DataSyncs.DataSyncManaged;
-import lt.lb.commons.DataSyncs.DataSyncPersist;
-import lt.lb.commons.DataSyncs.DisplayValidation;
-import lt.lb.commons.DataSyncs.PersistValidation;
-import lt.lb.commons.DataSyncs.SyncValidation;
-import lt.lb.commons.DataSyncs.Valid;
+import lt.lb.commons.datasync.DataSyncDisplay;
+import lt.lb.commons.datasync.DataSyncManaged;
+import lt.lb.commons.datasync.DataSyncPersist;
+import lt.lb.commons.datasync.DisplayValidation;
+import lt.lb.commons.datasync.PersistValidation;
+import lt.lb.commons.datasync.SyncValidation;
+import lt.lb.commons.datasync.Valid;
 
 /**
  *

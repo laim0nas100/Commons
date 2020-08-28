@@ -1,6 +1,7 @@
 package lt.lb.commons.rows;
 
-import lt.lb.commons.DataSyncs;
+import lt.lb.commons.datasync.BaseValidation;
+
 
 /**
  *
@@ -13,11 +14,11 @@ public abstract class SyncDrows<R extends SyncDrow, L, DR extends SyncDrows, U e
     }
 
     public boolean isInvalidPersist(boolean all) {
-        return DataSyncs.BaseValidation.iterateFindFirst(getRowsInOrderNested(), all, r -> r.invalidPersist(all));
+        return BaseValidation.iterateFindFirst(getRowsInOrderNested(), all, r -> r.invalidPersist(all));
     }
 
     public boolean isInvalidDisplay(boolean all) {
-        return DataSyncs.BaseValidation.iterateFindFirst(getRowsInOrderNested(), all, r -> r.invalidDisplay(all));
+        return BaseValidation.iterateFindFirst(getRowsInOrderNested(), all, r -> r.invalidDisplay(all));
     }
 
     public void syncPersist() {

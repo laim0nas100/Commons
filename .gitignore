@@ -44,3 +44,5 @@
 /commonslb-io - Copy/target/
 /commonslb-rows/target/
 /commonslb-io/target/
+/commonslb-datasync/nbproject/
+/commonslb-datasync/target/
