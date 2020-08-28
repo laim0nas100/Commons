@@ -12,20 +12,6 @@ import lt.lb.commons.SafeOpt;
  */
 public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
 
-    public static <T> ValueProxy<T> quickProxy(Supplier<? extends T> supl, Consumer<? super T> cons) {
-        return new ValueProxy<T>() {
-            @Override
-            public T get() {
-                return supl.get();
-            }
-
-            @Override
-            public void set(T v) {
-                cons.accept(v);
-            }
-        };
-    }
-
     /**
      * Main get method
      *
