@@ -19,6 +19,12 @@ import lt.lb.commons.threads.sync.RecursiveRedirection;
 /**
  *
  * @author laim0nas100
+ * @param <C>
+ * @param <N>
+ * @param <L>
+ * @param <U>
+ * @param <Conf>
+ * @param <R>
  */
 public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Conf extends DrowConf<R, C, N, L, U>, R extends Drow> implements UpdateAware<U, R> {
 

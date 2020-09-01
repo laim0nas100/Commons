@@ -26,6 +26,7 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
+            <type>jar</type>
         </dependency>
         
         <dependency>

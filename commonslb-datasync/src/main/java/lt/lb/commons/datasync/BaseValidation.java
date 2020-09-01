@@ -10,7 +10,7 @@ import lt.lb.commons.containers.values.BooleanValue;
  *
  * @author laim0nas100
  */
-public abstract class BaseValidation<M, V extends Valid<M>> implements SyncValidation<M, V> {
+public abstract class BaseValidation<M, V extends Valid<M>> implements PersistAndDisplayValidation<M, V> {
 
     protected List<V> validateDisplay = new ArrayList<>(0);
     protected List<V> validatePersistence = new ArrayList<>(0);

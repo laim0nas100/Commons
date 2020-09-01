@@ -8,7 +8,7 @@ import java.util.function.Supplier;
  *
  * @author laim0nas100
  */
-public interface DataSyncDisplay<D, M> extends SyncManaged<M> {
+public interface DataSyncDisplay<D, M> extends SyncManaged<M>, SyncDisplay {
 
     public void withDisplaySync(Consumer<? super D> displaySync);
 
@@ -18,7 +18,5 @@ public interface DataSyncDisplay<D, M> extends SyncManaged<M> {
 
     public void withDisplaySet(Function<? super M, ? extends D> func);
 
-    public void syncDisplay();
-
-    public void syncManagedFromDisplay();
+   
 }

@@ -9,6 +9,8 @@ import static lt.lb.commons.rows.BasicUpdates.UPDATES_ON_RENDER;
 /**
  *
  * @author laim0nas100
+ * @param <U>
+ * @param <R>
  */
 public interface UpdateAware<U extends Updates, R extends UpdateAware> extends UpdateHolder<U, R, R> {
 

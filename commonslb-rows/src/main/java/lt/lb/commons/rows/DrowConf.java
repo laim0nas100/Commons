@@ -5,6 +5,11 @@ import java.util.List;
 /**
  *
  * @author laim0nas100
+ * @param <R>
+ * @param <C>
+ * @param <N>
+ * @param <L>
+ * @param <U>
  */
 public interface DrowConf<R extends Drow, C, N, L, U extends Updates> extends UpdateConfigAware<U, R> {
 

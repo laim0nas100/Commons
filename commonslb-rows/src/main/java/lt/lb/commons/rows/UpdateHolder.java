@@ -12,6 +12,9 @@ import static lt.lb.commons.rows.BasicUpdates.UPDATES_ON_VISIBLE;
 /**
  *
  * @author laim0nas100
+ * @param <U>
+ * @param <P>
+ * @param <R>
  */
 public interface UpdateHolder<U extends Updates, P extends UpdateHolder, R extends UpdateAware> {
 

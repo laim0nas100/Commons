@@ -8,7 +8,7 @@ import java.util.function.Supplier;
  *
  * @author laim0nas100
  */
-public interface DataSyncPersist<P, M> extends SyncManaged<M> {
+public interface DataSyncPersist<P, M> extends SyncManaged<M>, SyncPersist {
 
     public void withPersistSync(Consumer<? super P> persSync);
 
@@ -18,7 +18,5 @@ public interface DataSyncPersist<P, M> extends SyncManaged<M> {
 
     public void withPersistSet(Function<? super M, ? extends P> func);
 
-    public void syncPersist();
-
-    public void syncManagedFromPersist();
+    
 }

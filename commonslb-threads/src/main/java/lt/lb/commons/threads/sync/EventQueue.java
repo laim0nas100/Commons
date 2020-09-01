@@ -121,6 +121,15 @@ public class EventQueue {
         }
     }
     
+    public void forceShutdown(){
+        shutdown = true;
+        events.forEach(ev -> {
+            ev.cancel(true);
+        });
+        events.clear();
+        
+    }
+    
     public void shutdown() {
         shutdown = true;
         events.forEach(ev -> {

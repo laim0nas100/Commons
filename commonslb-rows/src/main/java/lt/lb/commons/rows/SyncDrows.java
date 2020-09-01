@@ -6,6 +6,10 @@ import lt.lb.commons.datasync.BaseValidation;
 /**
  *
  * @author laim0nas100
+ * @param <R>
+ * @param <L>
+ * @param <DR>
+ * @param <U>
  */
 public abstract class SyncDrows<R extends SyncDrow, L, DR extends SyncDrows, U extends Updates> extends Drows<R, L, DR, U> {
 
