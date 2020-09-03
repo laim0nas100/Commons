@@ -55,11 +55,9 @@ public class PortableDir implements Supplier<String> {
                 List<String> readAllLines = Files.readAllLines(portableRedirect);
                 if (readAllLines.size() >= 1) {
                     String redirectPath = StringOp.appendIfMissing(readAllLines.get(0), File.separator);
-
                     if (!Files.isDirectory(Paths.get(redirectPath))) {
                         Files.createDirectories(Paths.get(redirectPath));
                     }
-
                     homeDir = redirectPath;
 
                 }
@@ -74,7 +72,7 @@ public class PortableDir implements Supplier<String> {
         if (homeDir != null) {
             return homeDir;
         }
-        homeDir = optionalResolve(basePath, folderName, getPortablePathRedirect());
+        homeDir = StringOp.appendIfMissing(optionalResolve(basePath, folderName, getPortablePathRedirect()), File.separator);
         if (!basePath.equals(homeDir)) {
             established = true;
         }
