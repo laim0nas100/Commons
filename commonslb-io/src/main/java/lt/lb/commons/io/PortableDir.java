@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Supplier;
+import lt.lb.commons.parsing.StringOp;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,53 +15,52 @@ import org.apache.logging.log4j.Logger;
  *
  * @author laim0nas100
  */
-public class PortableHomeDir implements Supplier<String> {
+public class PortableDir implements Supplier<String> {
 
-    public static Logger log = LogManager.getLogger(PortableHomeDir.class);
+    public static Logger log = LogManager.getLogger(PortableDir.class);
 
-    public PortableHomeDir(String applicationFolderName) {
-        this(applicationFolderName, "portable_directory.txt");
+    public PortableDir(String folderName) {
+        this(getSystemHomeDir(folderName), folderName, "portable_directory.txt");
     }
 
-    public PortableHomeDir(String applicationFolderName, String portableFileRedirect) {
-        this.applicationFolderName = applicationFolderName;
+    public PortableDir(String basePath, String folderName, String portableFileRedirect) {
+        this.folderName = folderName;
         this.portableFileRedirect = portableFileRedirect;
+        this.basePath = StringOp.appendIfMissing(basePath, File.separator);
     }
 
-    public final String applicationFolderName;
+    public final String folderName;
     public final String portableFileRedirect;
+    public final String basePath;
 
     protected String homeDir = null;
-    
+
     protected boolean established = false;
 
-    public String getHomeDir() {
-        if (homeDir != null) {
-            return homeDir;
-        }
-        String systemHomeDir = getSystemHomeDir();
-        homeDir = systemHomeDir;
+    public PortableDir establishSubDir(String subdirFolder) {
+        String path = getHomeDir() + subdirFolder;
+        return new PortableDir(path, subdirFolder, portableFileRedirect);
+    }
+
+    public static String optionalResolve(String systemHomeDir, String folderName, String portableRedirectFile) {
+        String homeDir = systemHomeDir;
         try {
             if (!Files.isDirectory(Paths.get(systemHomeDir))) {
                 Files.createDirectories(Paths.get(systemHomeDir));
                 //no optional redirect because we had to create new directory
                 return homeDir;
             }
-            Path portableRedirect = Paths.get(getPortablePathRedirect());
+            Path portableRedirect = Paths.get(portableRedirectFile);
             if (Files.isReadable(portableRedirect)) {
                 List<String> readAllLines = Files.readAllLines(portableRedirect);
                 if (readAllLines.size() >= 1) {
-                    String redirectPath = readAllLines.get(0);
-                    if (!redirectPath.endsWith(File.separator)) {
-                        redirectPath += File.separator;
-                    }
+                    String redirectPath = StringOp.appendIfMissing(readAllLines.get(0), File.separator);
 
                     if (!Files.isDirectory(Paths.get(redirectPath))) {
                         Files.createDirectories(Paths.get(redirectPath));
                     }
 
                     homeDir = redirectPath;
-                    established = true;
 
                 }
             }
@@ -70,17 +70,28 @@ public class PortableHomeDir implements Supplier<String> {
         return homeDir;
     }
 
+    public String getHomeDir() {
+        if (homeDir != null) {
+            return homeDir;
+        }
+        homeDir = optionalResolve(basePath, folderName, getPortablePathRedirect());
+        if (!basePath.equals(homeDir)) {
+            established = true;
+        }
+        return homeDir;
+    }
+
     public void reset() {
         homeDir = null;
         established = false;
     }
 
-    public String getSystemHomeDir() {
-        return System.getProperty("user.home") + File.separator + applicationFolderName + File.separator;
+    public static String getSystemHomeDir(String folder) {
+        return System.getProperty("user.home") + File.separator + folder + File.separator;
     }
 
     public String getPortablePathRedirect() {
-        return getSystemHomeDir() + portableFileRedirect;
+        return basePath + portableFileRedirect;
     }
 
     public boolean isEstablished() {
