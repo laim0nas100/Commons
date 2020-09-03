@@ -100,6 +100,14 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
     public static Predicate<String> validatorDirPath() {
         return p -> SafeOpt.ofNullable(p).map(Paths::get).filter(Files::isDirectory).isPresent();
     }
+    
+    public static <T> List<T> newList(Collection<T> col, T... removed){
+        ArrayList<T> list = new ArrayList<>(col);
+        for(T t:removed){
+            list.remove(t);
+        }
+        return list;
+    }
 
     public static <T> Predicate<String> validatorUnique(boolean in, boolean ignoreCase, Collection<T> list, Function<? super T, String> func) {
         return validatorUnique(in, list, func, (o1, o2) -> {
