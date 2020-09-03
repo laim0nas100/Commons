@@ -12,6 +12,11 @@ public interface SyncAndValidationAggregator extends SyncValidation {
         addSyncPersist(sync);
         addSyncDisplay(sync);
     }
+    
+    public default void addDataSyncValidation(DataSyncManagedValidation syncValid){
+        addSync(syncValid);
+        addSyncValidation(syncValid);
+    }
 
     public void addSyncDisplay(DataSyncDisplay sync);
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.rows.Drow;
@@ -27,12 +28,12 @@ public abstract class BaseDrowBindsConf<R extends Drow, C, N, L, U extends Updat
         return updateMap;
     }
 
-    protected R confupdatesFor;
+    protected Optional<R> confupdatesFor = Optional.empty();
 
     @Override
     public void configureUpdates(Map<String, U> updates, R object) {
         object.initUpdates();
-        confupdatesFor = object;
+        confupdatesFor = Optional.of(object);
         F.iterate(updateMap, (type, up) -> {
             List<OrderedRunnable> updateListeners = up.getUpdateListeners();
             for (OrderedRunnable run : updateListeners) {
@@ -43,12 +44,12 @@ public abstract class BaseDrowBindsConf<R extends Drow, C, N, L, U extends Updat
         for (UnresolvedConsumer<R> consumer : unresolved) {
             object.withUpdate(consumer.type, new OrderedRunnable(consumer.order, () -> consumer.cons.accept(object)));
         }
-        confupdatesFor = null;
+        confupdatesFor = Optional.empty();
     }
 
     @Override
     public U ensureUpdate(String type) {
-        final R current = confupdatesFor;
+        final R current = confupdatesFor.get();
         return getUpdateMap().computeIfAbsent(type, k -> createUpdates(type, current));
     }
 

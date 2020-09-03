@@ -1,7 +1,7 @@
 package lt.lb.commons.datasync;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -11,10 +11,10 @@ import java.util.function.Supplier;
  */
 public class SyncValidationAggregator implements SyncAndValidationAggregator {
 
-    protected List<DataSyncPersist> persists = new ArrayList<>();
-    protected List<DataSyncDisplay> displays = new ArrayList<>();
-    protected List<DisplayValidation> displayValidations = new ArrayList<>();
-    protected List<PersistValidation> persistValidations = new ArrayList<>();
+    protected Collection<DataSyncPersist> persists = new LinkedHashSet<>();
+    protected Collection<DataSyncDisplay> displays = new LinkedHashSet<>();
+    protected Collection<DisplayValidation> displayValidations = new LinkedHashSet<>();
+    protected Collection<PersistValidation> persistValidations = new LinkedHashSet<>();
     protected Function<Supplier, PersistAndDisplayValidation> factory;
 
     public SyncValidationAggregator(Function<Supplier, PersistAndDisplayValidation> factory) {

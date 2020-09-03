@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import lt.lb.commons.datasync.DataSyncDisplay;
 import lt.lb.commons.datasync.DataSyncManaged;
+import lt.lb.commons.datasync.DataSyncManagedValidation;
 import lt.lb.commons.datasync.DataSyncPersist;
 import lt.lb.commons.datasync.DisplayValidation;
 import lt.lb.commons.datasync.PersistValidation;
@@ -38,6 +39,12 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
             agg.addSync(sync);
         });
 
+    }
+    
+    public R addDataSyncValidation(DataSyncManagedValidation sync){
+        return addOnDisplayAndRunIfDone(() -> {
+            agg.addDataSyncValidation(sync);
+        });
     }
 
     public R addSyncDisplay(DataSyncDisplay sync) {
