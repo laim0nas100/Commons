@@ -41,17 +41,17 @@ public abstract class SyncDrows<R extends SyncDrow, L, DR extends SyncDrows, U e
 
     @Override
     public boolean validDisplay() {
-        return BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.validDisplay());
+        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.invalidDisplay());
     }
 
     @Override
     public boolean validDisplayFull() {
-        return BaseValidation.iterateFindFirst(getRowsInOrderNested(), true, r->r.validDisplayFull());
+        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), true, r->r.invalidDisplayFull());
     }
 
     @Override
     public boolean isValidDisplay(Object from) {
-        return BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.isValidDisplay(from));
+        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.isInvalidDisplay(from));
     }
 
     @Override
@@ -61,17 +61,17 @@ public abstract class SyncDrows<R extends SyncDrow, L, DR extends SyncDrows, U e
 
     @Override
     public boolean validPersist() {
-        return BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.validPersist());
+        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.invalidPersist());
     }
 
     @Override
     public boolean validPersistFull() {
-        return BaseValidation.iterateFindFirst(getRowsInOrderNested(), true, r->r.validPersistFull());
+        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), true, r->r.invalidPersistFull());
     }
 
     @Override
     public boolean isValidPersist(Object from) {
-        return BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.isInvalidPersist(from));
+        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.isInvalidPersist(from));
     }
 
     @Override
