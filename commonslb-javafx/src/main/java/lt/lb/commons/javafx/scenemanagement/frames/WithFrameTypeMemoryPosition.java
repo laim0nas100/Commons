@@ -5,7 +5,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.stage.Stage;
 import lt.lb.commons.containers.values.Props;
 import lt.lb.commons.containers.values.Props.PropGet;
-import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.javafx.scenemanagement.Frame;
 import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
 
@@ -41,8 +41,8 @@ public class WithFrameTypeMemoryPosition extends FrameDecorateProps {
             return p;
         });
 
-        Value<Double> x = prop_x.getAsValue(memoryProp);
-        Value<Double> y = prop_y.getAsValue(memoryProp);
+        ValueProxy<Double> x = prop_x.getAsValue(memoryProp);
+        ValueProxy<Double> y = prop_y.getAsValue(memoryProp);
 
         stage.setX(x.get());
         stage.setY(y.get());

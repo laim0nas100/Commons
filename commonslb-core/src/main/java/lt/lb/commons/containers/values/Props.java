@@ -9,9 +9,23 @@ import lt.lb.commons.misc.UUIDgenerator;
  *
  * @author laim0nas100
  */
-public class Props extends HashMap<String, Value> {
-    
+public class Props extends HashMap<String, Object> {
+
     public static final String UUID_PREFIX = "Props";
+
+    public static <T> ValueProxy<T> asValueProxy(Props props, String key) {
+        return new ValueProxy<T>() {
+            @Override
+            public T get() {
+                return props.getCast(key);
+            }
+
+            @Override
+            public void set(T v) {
+                props.put(key, v);
+            }
+        };
+    }
 
     /**
      * Explicit typing and property key information. Designed to be used with
@@ -23,9 +37,10 @@ public class Props extends HashMap<String, Value> {
 
         /**
          * Construct PropGet of specified key and explicit type.
+         *
          * @param <Type>
          * @param str
-         * @return 
+         * @return
          */
         public static <Type> PropGet<Type> of(String str) {
             return new PropGet<>(str);
@@ -36,43 +51,60 @@ public class Props extends HashMap<String, Value> {
             this.propKey = Objects.requireNonNull(propKey);
         }
 
-       /**
-         * Inserts new value at given Props object by this key and returns newly inserted value proxy.
+        /**
+         * Gets proxy value from given Props object by his key.
+         *
+         * @param props
+         * @return
+         */
+        public ValueProxy<T> getAsValue(Props props) {
+            return asValueProxy(props, propKey);
+        }
+
+        /**
+         * Inserts new value at given Props object by this key and returns newly
+         * inserted value proxy.
+         *
          * @param props
          * @param value
-         * @return 
+         * @return
          */
-        public Value<T> insert(Props props, T value) {
+        public ValueProxy<T> insert(Props props, T value) {
             return props.insert(propKey, value);
         }
 
         /**
          * Removes value proxy from Props object by this key and returns it.
+         *
          * @param props
-         * @return 
+         * @return
          */
-        public Value<T> remove(Props props) {
-            return props.remove(propKey);
+        public ValueProxy<T> remove(Props props) {
+            props.remove(propKey);
+            return getAsValue(props);
         }
 
         /**
          * Removes value from Props object by this key and returns it.
+         *
          * @param props
-         * @return 
+         * @return
          */
         public T removeGet(Props props) {
-            Value<T> remove = props.remove(propKey);
+            Object remove = props.remove(propKey);
             if (remove == null) {
                 return null;
             }
-            return remove.get();
+            return (T) remove;
         }
 
         /**
-         * Inserts new value at given Props object by this key and returns newly inserted value.
+         * Inserts new value at given Props object by this key and returns newly
+         * inserted value.
+         *
          * @param props
          * @param value
-         * @return 
+         * @return
          */
         public T insertGet(Props props, T value) {
             return (T) props.insert(propKey, value).get();
@@ -80,20 +112,12 @@ public class Props extends HashMap<String, Value> {
 
         /**
          * Gets and casts value from given Props object by this key.
+         *
          * @param props
-         * @return 
+         * @return
          */
         public T get(Props props) {
             return props.getCast(propKey);
-        }
-
-        /**
-         * Gets proxy value from given Props object by his key.
-         * @param props
-         * @return 
-         */
-        public Value<T> getAsValue(Props props) {
-            return props.get(propKey);
         }
 
     }
@@ -106,23 +130,23 @@ public class Props extends HashMap<String, Value> {
      * @param value
      * @return
      */
-    public <T> Value<T> insert(String key, T value) {
-        Value<T> val = new Value<>(value);
-        this.put(key, val);
-        return val;
+    public <T> ValueProxy<T> insert(String key, T value) {
+        this.put(key, value);
+        return asValueProxy(this, key);
     }
-    
+
     /**
      * Inserts value with generated UUID and returns key specification.
+     *
      * @param <T>
      * @param value
-     * @return 
+     * @return
      */
-    public <T> PropGet<T> insertAny(T value){
+    public <T> PropGet<T> insertAny(T value) {
         String key = UUIDgenerator.nextUUID(UUID_PREFIX);
         insert(key, value);
         return new PropGet<>(key);
-        
+
     }
 
     /**
@@ -135,11 +159,11 @@ public class Props extends HashMap<String, Value> {
      * @return
      */
     public <T> T getOrDefaultCast(String str, T val) {
-        Value get = this.get(str);
+        Object get = this.get(str);
         if (get == null) {
             return val;
         }
-        return (T) get.get();
+        return (T) get;
     }
 
     /**
@@ -150,11 +174,11 @@ public class Props extends HashMap<String, Value> {
      * @return
      */
     public <T> T getCast(String str) {
-        Value get = this.get(str);
+        Object get = this.get(str);
         if (get == null) {
             return null;
         }
-        return (T) get.get();
+        return (T) get;
     }
 
 }

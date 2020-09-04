@@ -5,7 +5,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.stage.Stage;
 import lt.lb.commons.containers.values.Props;
 import lt.lb.commons.containers.values.Props.PropGet;
-import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.javafx.scenemanagement.Frame;
 import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
 
@@ -39,8 +39,8 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
             return p;
         });
 
-        Value<Double> height = prop_height.getAsValue(memoryProp);
-        Value<Double> width = prop_width.getAsValue(memoryProp);
+        ValueProxy<Double> height = prop_height.getAsValue(memoryProp);
+        ValueProxy<Double> width = prop_width.getAsValue(memoryProp);
 
         stage.setHeight(height.get());
         stage.setWidth(width.get());
@@ -49,7 +49,6 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
 
         stage.widthProperty().addListener(prop_width_listen.insertGet(props, listenerUpdating(width)));
         stage.heightProperty().addListener(prop_height_listen.insertGet(props, listenerUpdating(height)));
-        
 
     }
 
