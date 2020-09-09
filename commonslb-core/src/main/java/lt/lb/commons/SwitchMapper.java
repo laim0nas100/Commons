@@ -1,15 +1,18 @@
 package lt.lb.commons;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author laim0nas100
  */
-public abstract class SwitchMapper<T , V, M extends SwitchMapper<T, V, M>> {
+public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
 
     protected final Map<T, Supplier<V>> mapping;
     protected Supplier<V> defaultCase = () -> null;
@@ -17,7 +20,7 @@ public abstract class SwitchMapper<T , V, M extends SwitchMapper<T, V, M>> {
     public SwitchMapper(Map<T, Supplier<V>> mapping) {
         this.mapping = mapping;
     }
-    
+
     public abstract M me();
 
     public Optional<V> toVal(T en) {
@@ -57,5 +60,21 @@ public abstract class SwitchMapper<T , V, M extends SwitchMapper<T, V, M>> {
 
     public M withDefaultCase(V val) {
         return withDefaultCase(() -> val);
+    }
+
+    public List<V> mappedValues(boolean includeDefault) {
+        ArrayList<V> list = new ArrayList<>();
+        this.mapping.values().forEach(supl -> {
+            list.add(supl.get());
+        });
+        if (includeDefault) {
+            list.add(defaultCase.get());
+        }
+
+        return list;
+    }
+
+    public List<T> mappedKeys() {
+        return mapping.keySet().stream().collect(Collectors.toList());
     }
 }
