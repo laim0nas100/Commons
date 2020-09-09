@@ -9,15 +9,16 @@ import java.util.function.Supplier;
  *
  * @author laim0nas100
  */
-public abstract class NodeValid<T, N> implements Valid<T> {
+public abstract class NodeValid<T, N> extends BaseValid<T> {
 
     public Supplier<List<N>> referenceSupl;
-    public Function<? super T, String> errorSupl;
-    public Predicate<T> isValid;
 
-    @Override
-    public boolean isValid(T from) {
-        return isValid.test(from);
+    public NodeValid() {
+    }
+
+    public NodeValid(Supplier<List<N>> referenceSupl, Function<? super T, String> errorSupl, Predicate<T> isValid) {
+        super(errorSupl, isValid);
+        this.referenceSupl = referenceSupl;
     }
 
 }
