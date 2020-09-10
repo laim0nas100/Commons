@@ -35,27 +35,21 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
     }
 
     public R addSync(DataSyncManaged sync) {
-        return withUpdateRefresh(r -> {
-            sync.syncDisplay();
-        }).addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             agg.addSync(sync);
         });
 
     }
 
     public R addDataSyncValidation(DataSyncManagedValidation sync) {
-       return withUpdateRefresh(r -> {
-            sync.syncDisplay();
-        }).addOnDisplayAndRunIfDone(() -> {
+       return addOnDisplayAndRunIfDone(() -> {
             agg.addDataSyncValidation(sync);
         });
     }
 
     public R addSyncDisplay(DataSyncDisplay sync) {
 
-        return withUpdateRefresh(r -> {
-            sync.syncDisplay();
-        }).addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             agg.addSyncDisplay(sync);
         });
 
