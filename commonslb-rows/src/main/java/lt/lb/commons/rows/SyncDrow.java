@@ -3,6 +3,7 @@ package lt.lb.commons.rows;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import lt.lb.commons.F;
 
 import lt.lb.commons.datasync.DataSyncDisplay;
 import lt.lb.commons.datasync.DataSyncManaged;
@@ -26,7 +27,6 @@ import lt.lb.commons.datasync.Valid;
  */
 public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>, Conf extends SyncDrowConf<R, C, N, L, U>, R extends SyncDrow> extends Drow<C, N, L, U, Conf, R> implements SyncValidation {
 
-    
     protected SyncAndValidationAggregator agg;
 
     public SyncDrow(L line, Conf config, String key) {
@@ -40,8 +40,8 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
         });
 
     }
-    
-    public R addDataSyncValidation(DataSyncManagedValidation sync){
+
+    public R addDataSyncValidation(DataSyncManagedValidation sync) {
         return addOnDisplayAndRunIfDone(() -> {
             agg.addDataSyncValidation(sync);
         });
@@ -154,22 +154,46 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
         return me();
     }
 
-    public <M, V extends Valid<M>> R addValidationDisplay(Supplier<? extends M> managed,V valid) {
+    public <M, V extends Valid<M>> R addValidationDisplay(Supplier<? extends M> managed, V valid) {
         addOnDisplayAndRunIfDone(() -> {
             agg.addValidationDisplay(managed, valid);
         });
         return me();
     }
 
-    public <M, V extends Valid<M>> R addValidationPersist(Supplier<? extends M> managed,V valid) {
+    public <M, V extends Valid<M>> R addValidationPersist(Supplier<? extends M> managed, V valid) {
         addOnDisplayAndRunIfDone(() -> {
             agg.addValidationPersist(managed, valid);
         });
         return me();
     }
-    
-    public SyncAndValidationAggregator getSyncAggregator(){
+
+    public SyncAndValidationAggregator getSyncAggregator() {
         return agg;
+    }
+
+    public <T extends DataSyncPersist> T getPersistenceSync(int index) {
+        return (T) F.find(getSyncAggregator().getPersists(), (i, item) -> {
+            return i == index;
+        }).map(m -> m.g2).orElse(null);
+    }
+
+    public <T extends DataSyncDisplay> T getDisplaySync(int index) {
+        return (T) F.find(getSyncAggregator().getDisplays(), (i, item) -> {
+            return i == index;
+        }).map(m -> m.g2).orElse(null);
+    }
+
+    public <T extends PersistValidation> T getPersistenceValid(int index) {
+        return (T) F.find(getSyncAggregator().getPersistValidations(), (i, item) -> {
+            return i == index;
+        }).map(m -> m.g2).orElse(null);
+    }
+
+    public <T extends DisplayValidation> T getDisplaySyncValid(int index) {
+        return (T) F.find(getSyncAggregator().getDisplayValidations(), (i, item) -> {
+            return i == index;
+        }).map(m -> m.g2).orElse(null);
     }
 
     @Override
@@ -226,7 +250,6 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
     public boolean validPersist() {
         return agg.validPersist();
     }
-
 
     @Override
     public boolean validPersistFull() {
