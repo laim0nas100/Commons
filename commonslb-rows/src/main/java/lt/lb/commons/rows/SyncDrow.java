@@ -167,6 +167,10 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
         });
         return me();
     }
+    
+    public SyncAndValidationAggregator getSyncAggregator(){
+        return agg;
+    }
 
     @Override
     public void syncManagedFromDisplay() {

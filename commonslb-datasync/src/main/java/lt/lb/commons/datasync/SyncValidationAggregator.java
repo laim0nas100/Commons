@@ -22,6 +22,26 @@ public class SyncValidationAggregator implements SyncAndValidationAggregator {
     }
 
     @Override
+    public Iterable<DataSyncPersist> getPersists() {
+        return persists;
+    }
+
+    @Override
+    public Iterable<DataSyncDisplay> getDisplays() {
+        return displays;
+    }
+
+    @Override
+    public Iterable<DisplayValidation> getDisplayValidations() {
+        return displayValidations;
+    }
+
+    @Override
+    public Iterable<PersistValidation> getPersistValidations() {
+        return persistValidations;
+    }
+
+    @Override
     public void syncManagedFromDisplay() {
         for (DataSyncDisplay sync : displays) {
             sync.syncManagedFromDisplay();

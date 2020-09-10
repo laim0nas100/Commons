@@ -13,6 +13,14 @@ public interface SyncAndValidationAggregator extends SyncValidation {
         addSyncDisplay(sync);
     }
     
+    public Iterable<DataSyncPersist> getPersists();
+
+    public Iterable<DataSyncDisplay> getDisplays();
+
+    public Iterable<DisplayValidation> getDisplayValidations();
+
+    public Iterable<PersistValidation> getPersistValidations();
+    
     public default void addDataSyncValidation(DataSyncManagedValidation syncValid){
         addSync(syncValid);
         addSyncValidation(syncValid);
