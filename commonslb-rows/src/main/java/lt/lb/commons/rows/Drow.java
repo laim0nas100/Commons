@@ -34,7 +34,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     protected boolean displayed = false;
 
-    protected List<Integer> cellColSpan = new ArrayList<>();
+//    protected List<Integer> cellColSpan = new ArrayList<>();
     protected List<C> cells = new ArrayList<>();
     protected Conf config;
     protected L line;
@@ -91,7 +91,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     }
 
     public List<Integer> getPreferedColSpan() {
-        return this.cellColSpan;
+        return this.cells.stream().map(m -> m.getColSpan()).collect(Collectors.toList());
     }
 
     public boolean isVisible() {
@@ -140,7 +140,6 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     public List<C> getCells() {
         return this.cells;
     }
-
 
     public int getTotalColSpan() {
         return getCells().stream().mapToInt(m -> m.getColSpan()).sum();
@@ -245,8 +244,12 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     public abstract R me();
 
     public R add(N node) {
+        return add(-1, node);
+    }
+
+    public R add(int index, N node) {
         R me = me();
-        finalAdd(Arrays.asList(node), config.getEnclosingNode(me), cells, 1, cellColSpan);
+        finalAdd(index, Arrays.asList(node), config.getEnclosingNode(me), cells, 1);
         return me;
     }
 
@@ -289,21 +292,18 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         ArrayList<Tuple<Integer, C>> after = new ArrayList<>();
 
         ArrayList<C> newCells = new ArrayList<>();
-        ArrayList<Integer> newColSpans = new ArrayList<>();
 
         int beforeIndex = comps[0];
         int afterIndex = comps[comps.length - 1];
 
         F.iterate(mainIterator(), (i, tup) -> {
             C cell = tup.g1;
-            int cellIndex = cells.indexOf(cell);
-            Integer colSpan = cellColSpan.get(cellIndex);
+            Integer colSpan = cell.getColSpan();
             Tuple<Integer, C> tuple = Tuples.create(colSpan, cell);
 
             if (i < beforeIndex) {
                 if (!before.contains(tuple)) {
                     before.add(tuple);
-
                 }
 
             } else if (i <= afterIndex) {
@@ -319,8 +319,9 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         //insert before merged
 
         F.iterate(before, (i, tup) -> {
-            newCells.add(tup.getG2());
-            newColSpans.add(tup.g1);
+            C cell = tup.getG2();
+            cell.setColSpan(tup.g1);
+            newCells.add(cell);
         });
 
         int mergedColspan = merge.stream().mapToInt(m -> m.g1).sum();
@@ -331,51 +332,45 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
             cell.setMerged(true);
         });
 
-        C finalCell = this.finalAdd(mergedNodes, enclosing.get(), newCells, mergedColspan, newColSpans);
+        C finalCell = this.finalAdd(-1, mergedNodes, enclosing.get(), newCells, mergedColspan);
         finalCell.setMerged(true);
         //insert after merged
         F.iterate(after, (i, tup) -> {
-            newCells.add(tup.getG2());
-            newColSpans.add(tup.g1);
+            C cell = tup.getG2();
+            cell.setColSpan(tup.g1);
+            newCells.add(cell);
         });
 
         this.cells = newCells;
-        this.cellColSpan = newColSpans;
 
         return me();
 
     }
 
-    protected C finalAdd(List<N> nodes, N enclosing, List<C> cellArray, int colSpan, List<Integer> cellColSpanArray) {
+    protected C finalAdd(int index, List<N> nodes, N enclosing, List<C> cellArray, int colSpan) {
 
         C cell = config.createCell(nodes, enclosing, me());
-        int indexToAdd = cellArray.size();
-        cellArray.add(cell);
-
-        while (indexToAdd >= cellColSpanArray.size()) {
-            cellColSpanArray.add(colSpan);
+        if (index < 0) {
+            cellArray.add(cell);
+        } else {
+            cellArray.add(index, cell);
         }
+        cell.setColSpan(colSpan);
+
         return cell;
 
     }
 
     public R withPreferedColspan(Integer... spans) {
         R me = me();
-        F.iterate(spans, (i, spa) -> {
-            if (me.cellColSpan.size() <= i) {
-                me.cellColSpan.add(spa);
-            } else {
-                cellColSpan.set(i, spa);
-            }
-            if (displayed) {
+        addOnDisplayAndRunIfDone(() -> {
+            F.iterate(spans, (i, spa) -> {
                 C cell = this.getCell(i);
                 cell.setColSpan(spa);
-            }
 
-        });
-        if (displayed) {
+            });
             update();
-        }
+        });
 
         return me;
     }
