@@ -8,8 +8,18 @@ import lt.lb.commons.containers.values.ValueProxy;
  */
 public interface SyncManaged<M> extends ValueProxy<M> {
 
+    /**
+     * Set managed value
+     *
+     * @param managed
+     */
     public void setManaged(M managed);
 
+    /**
+     * Get managed value
+     *
+     * @return
+     */
     public M getManaged();
 
     @Override

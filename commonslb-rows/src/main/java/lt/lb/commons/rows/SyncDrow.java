@@ -25,7 +25,7 @@ import lt.lb.commons.datasync.Valid;
  * @param <Conf>
  * @param <R>
  */
-public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>, Conf extends SyncDrowConf<R, C, N, L, U>, R extends SyncDrow> extends Drow<C, N, L, U, Conf, R> implements SyncValidation {
+public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>, Conf extends SyncDrowConf<R, C, N, L, U>, R extends SyncDrow<C, N, L, U, Conf, R>> extends Drow<C, N, L, U, Conf, R> implements SyncValidation {
 
     protected SyncAndValidationAggregator agg;
 
@@ -35,20 +35,27 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
     }
 
     public R addSync(DataSyncManaged sync) {
-        return addOnDisplayAndRunIfDone(() -> {
+        return withUpdateRefresh(r -> {
+            sync.syncDisplay();
+        }).addOnDisplayAndRunIfDone(() -> {
             agg.addSync(sync);
         });
 
     }
 
     public R addDataSyncValidation(DataSyncManagedValidation sync) {
-        return addOnDisplayAndRunIfDone(() -> {
+       return withUpdateRefresh(r -> {
+            sync.syncDisplay();
+        }).addOnDisplayAndRunIfDone(() -> {
             agg.addDataSyncValidation(sync);
         });
     }
 
     public R addSyncDisplay(DataSyncDisplay sync) {
-        return addOnDisplayAndRunIfDone(() -> {
+
+        return withUpdateRefresh(r -> {
+            sync.syncDisplay();
+        }).addOnDisplayAndRunIfDone(() -> {
             agg.addSyncDisplay(sync);
         });
 
@@ -74,98 +81,82 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
     }
 
     public R addSyncValidation(SyncValidation syncVal) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             agg.addSyncValidation(syncVal);
         });
-
-        return me();
 
     }
 
     public R addValidationPersist(Valid valid) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             agg.addValidationPersist(valid);
         });
-
-        return me();
     }
 
     public R addValidationDisplay(Valid valid) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             agg.addValidationDisplay(valid);
         });
 
-        return me();
     }
 
     public R addValidationMakerPersist(Function<R, Valid> maker) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             addValidationPersist(maker.apply(me()));
         });
 
-        return me();
     }
 
     public R addValidationMakerDisplay(Function<R, Valid> maker) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             addValidationDisplay(maker.apply(me()));
         });
 
-        return me();
     }
 
     public R addValidationPersist(Supplier<String> msg, Predicate<R> isValid) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             Valid valid = config.createValidation(me(), t -> isValid.test(me()), t -> msg.get());
             addValidationPersist(valid);
         });
-
-        return me();
 
     }
 
     public R addValidationDisplay(Supplier<String> msg, Predicate<R> isValid) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             Valid valid = config.createValidation(me(), t -> isValid.test(me()), t -> msg.get());
             addValidationDisplay(valid);
         });
 
-        return me();
-
     }
 
     public R addValidationPersist(Supplier<String> msg, Predicate<R> isValid, Supplier<N> nodeSupplier) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             Valid valid = config.createValidation(me(), t -> isValid.test(me()), t -> msg.get());
             addValidationPersist(valid);
         });
-
-        return me();
 
     }
 
     public R addValidationDisplay(Supplier<String> msg, Predicate<R> isValid, Supplier<N> nodeSupplier) {
 
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             Valid valid = config.createValidation(me(), null, nodeSupplier.get(), t -> isValid.test(me()), t -> msg.get());
             addValidationDisplay(valid);
         });
 
-        return me();
     }
 
     public <M, V extends Valid<M>> R addValidationDisplay(Supplier<? extends M> managed, V valid) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             agg.addValidationDisplay(managed, valid);
         });
-        return me();
     }
 
     public <M, V extends Valid<M>> R addValidationPersist(Supplier<? extends M> managed, V valid) {
-        addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             agg.addValidationPersist(managed, valid);
         });
-        return me();
     }
 
     public SyncAndValidationAggregator getSyncAggregator() {
