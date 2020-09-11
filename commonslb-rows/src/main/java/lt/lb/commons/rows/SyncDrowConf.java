@@ -3,7 +3,7 @@ package lt.lb.commons.rows;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.datasync.BaseValidation;
+import lt.lb.commons.datasync.base.BaseValidation;
 import lt.lb.commons.datasync.PersistAndDisplayValidation;
 import lt.lb.commons.datasync.SyncAndValidationAggregator;
 import lt.lb.commons.datasync.SyncValidationAggregator;

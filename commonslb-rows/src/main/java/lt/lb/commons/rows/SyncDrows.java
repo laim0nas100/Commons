@@ -1,6 +1,6 @@
 package lt.lb.commons.rows;
 
-import lt.lb.commons.datasync.BaseValidation;
+import lt.lb.commons.datasync.base.BaseValidation;
 import lt.lb.commons.datasync.PureSyncValidation;
 
 
