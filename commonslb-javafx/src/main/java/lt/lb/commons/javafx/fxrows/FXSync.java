@@ -25,7 +25,7 @@ import javafx.util.StringConverter;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.containers.values.ValueProxy;
-import lt.lb.commons.datasync.NodeSync;
+import lt.lb.commons.datasync.base.NodeSync;
 import lt.lb.commons.datasync.extractors.Extractors;
 import lt.lb.commons.javafx.FXDefs;
 import lt.lb.commons.misc.ComparatorBuilder;
