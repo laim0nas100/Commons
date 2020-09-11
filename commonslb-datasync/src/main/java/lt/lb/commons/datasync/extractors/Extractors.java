@@ -49,11 +49,11 @@ public abstract class Extractors {
         };
     }
 
-    public static <T> ValueProxy<T> ofReadIgnore(Consumer<? super T> cons) {
+    public static <T> ValueProxy<T> ofReadConstant(T constant, Consumer<? super T> cons) {
         return new ValueProxy<T>() {
             @Override
             public T get() {
-                return null;
+                return constant;
             }
 
             @Override
@@ -61,6 +61,10 @@ public abstract class Extractors {
                 cons.accept(v);
             }
         };
+    }
+
+    public static <T> ValueProxy<T> ofReadIgnore(Consumer<? super T> cons) {
+        return ofReadConstant(null, cons);
     }
 
     public static <T> ValueProxy<T> ofWriteIgnore(Supplier<? extends T> supl) {

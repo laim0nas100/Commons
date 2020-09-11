@@ -9,10 +9,15 @@ import lt.lb.commons.containers.values.ValueProxy;
 public class SimpleDataSyncDisplay<M> extends ExplicitDataSyncDisplay<M, M> {
 
     protected M managed;
+
     public SimpleDataSyncDisplay(M initial, ValueProxy<M> displaySync) {
         super(displaySync);
         withIdentityDisplay();
         this.managed = initial;
+    }
+
+    public SimpleDataSyncDisplay(ValueProxy<M> displaySync) {
+        this(null, displaySync);
     }
 
     public SimpleDataSyncDisplay() {
@@ -28,6 +33,5 @@ public class SimpleDataSyncDisplay<M> extends ExplicitDataSyncDisplay<M, M> {
     public void setManaged(M managed) {
         this.managed = managed;
     }
-    
 
 }

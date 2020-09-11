@@ -9,10 +9,15 @@ import lt.lb.commons.containers.values.ValueProxy;
 public class SimpleDataSyncPersist<M> extends ExplicitDataSyncPersist<M, M> {
 
     protected M managed;
+
     public SimpleDataSyncPersist(M initial, ValueProxy<M> persistSync) {
         super(persistSync);
         withIdentityPersist();
         managed = initial;
+    }
+
+    public SimpleDataSyncPersist(ValueProxy<M> persistSync) {
+        this(null, persistSync);
     }
 
     public SimpleDataSyncPersist() {
