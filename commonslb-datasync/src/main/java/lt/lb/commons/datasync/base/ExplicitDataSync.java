@@ -1,11 +1,14 @@
-package lt.lb.commons.datasync;
+package lt.lb.commons.datasync.base;
 
+import lt.lb.commons.datasync.base.BaseValidation;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.SetOnce;
 import lt.lb.commons.containers.values.ValueProxy;
+import lt.lb.commons.datasync.DataSyncManagedValidation;
+import lt.lb.commons.datasync.Valid;
 
 /**
  *

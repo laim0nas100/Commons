@@ -1,4 +1,7 @@
-package lt.lb.commons.datasync;
+package lt.lb.commons.datasync.base;
+
+import lt.lb.commons.datasync.Valid;
+import lt.lb.commons.datasync.base.BaseValidation;
 
 /**
  *

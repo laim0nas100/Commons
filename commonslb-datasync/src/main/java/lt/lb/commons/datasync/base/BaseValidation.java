@@ -1,10 +1,12 @@
-package lt.lb.commons.datasync;
+package lt.lb.commons.datasync.base;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.BooleanValue;
+import lt.lb.commons.datasync.PersistAndDisplayValidation;
+import lt.lb.commons.datasync.Valid;
 
 /**
  *

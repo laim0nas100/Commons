@@ -1,4 +1,4 @@
-package lt.lb.commons.datasync;
+package lt.lb.commons.datasync.base;
 
 import java.util.List;
 import java.util.function.Function;

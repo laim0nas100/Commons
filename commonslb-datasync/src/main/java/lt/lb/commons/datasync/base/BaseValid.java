@@ -1,7 +1,8 @@
-package lt.lb.commons.datasync;
+package lt.lb.commons.datasync.base;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
+import lt.lb.commons.datasync.Valid;
 
 /**
  *

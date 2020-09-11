@@ -1,5 +1,6 @@
 package lt.lb.commons.datasync;
 
+import lt.lb.commons.datasync.base.BaseValidation;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.function.Function;
