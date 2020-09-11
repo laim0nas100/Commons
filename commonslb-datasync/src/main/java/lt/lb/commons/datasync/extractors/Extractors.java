@@ -2,17 +2,12 @@ package lt.lb.commons.datasync.extractors;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import static java.util.Locale.ENGLISH;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.caching.LazyValue;
-import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.func.unchecked.UnsafeConsumer;
 import lt.lb.commons.func.unchecked.UnsafeSupplier;
@@ -151,38 +146,22 @@ public abstract class Extractors {
         }
     }
 
-    public static class BasicBeanPropertyAccess<V, T> implements ValueProxy<T> {
+    public static class BasicReadPropertyAccess<V, T> implements Supplier<T> {
 
-        protected final V object;
-        protected final Method read;
-        protected final Method write;
-        protected final String writeMethodName;
-        protected final String readMethodName;
+        protected V object;
+        protected Method read;
+        protected String readMethodName;
 
         @Override
         public T get() {
             return F.unsafeCall(() -> (T) read.invoke(object));
         }
 
-        @Override
-        public void set(T v) {
-            F.unsafeRun(() -> {
-                write.invoke(object, v);
-            });
-        }
-
-        public BasicBeanPropertyAccess(V object, String property) {
+        public BasicReadPropertyAccess(V object, String property) {
             this.object = object;
             Class clazz = object.getClass();
-            //try simple then boolean
-            writeMethodName = "set" + NameGenerator.capitalize(property);
-
-            write = Stream.of(clazz.getMethods())
-                    .filter(p -> p.getName().equals(writeMethodName))
-                    .filter(p -> p.getParameterCount() == 1)
-                    .findFirst().orElseThrow(() -> new IllegalArgumentException("Failed to find write method of name:" + writeMethodName));
-
-            String simpleReadName = "get" + NameGenerator.capitalize(property);
+            String cap = BasicBeanPropertyAccess.capitalize(property);
+            String simpleReadName = "get" + cap;
 
             Optional<Method> firstTry = Stream.of(clazz.getMethods())
                     .filter(p -> p.getName().equals(simpleReadName))
@@ -190,51 +169,65 @@ public abstract class Extractors {
                     .findFirst();
 
             if (!firstTry.isPresent()) {
-                readMethodName = "is" + NameGenerator.capitalize(property);
+                readMethodName = "is" + BasicBeanPropertyAccess.capitalize(property);
                 read = Stream.of(clazz.getMethods())
                         .filter(p -> p.getName().equals(readMethodName))
                         .filter(p -> p.getParameterCount() == 0)
-                        .findFirst().orElseThrow(() -> new IllegalArgumentException("Failed to find write method of name:" + simpleReadName + " or " + readMethodName));
+                        .findFirst().orElseThrow(() -> new IllegalArgumentException("Failed to find read method of name:" + simpleReadName + " or " + readMethodName));
             } else {
                 read = firstTry.get();
                 readMethodName = simpleReadName;
             }
 
         }
-
     }
 
-    private static class NameGenerator {
+    public static class BasicWritePropertyAccess<V, T> implements Consumer<T> {
 
-        private Map<Object, String> valueToName;
-        private Map<String, Integer> nameToCount;
+        protected V object;
+        protected Method write;
+        protected String writeMethodName;
 
-        public NameGenerator() {
-            valueToName = new IdentityHashMap<>();
-            nameToCount = new HashMap<>();
+        @Override
+        public void accept(T v) {
+            F.unsafeRun(() -> {
+                write.invoke(object, v);
+            });
         }
 
-        /**
-         * Clears the name cache. Should be called to near the end of the
-         * encoding cycle.
-         */
-        public void clear() {
-            valueToName.clear();
-            nameToCount.clear();
+        public BasicWritePropertyAccess(V object, String property) {
+            this.object = object;
+            Class clazz = object.getClass();
+            //try simple then boolean
+            writeMethodName = "set" + BasicBeanPropertyAccess.capitalize(property);
+
+            write = Stream.of(clazz.getMethods())
+                    .filter(p -> p.getName().equals(writeMethodName))
+                    .filter(p -> p.getParameterCount() == 1)
+                    .findFirst().orElseThrow(() -> new IllegalArgumentException("Failed to find write method of name:" + writeMethodName));
+        }
+    }
+
+    public static class BasicBeanPropertyAccess<V, T> implements ValueProxy<T> {
+
+        protected BasicWritePropertyAccess<V, T> write;
+        protected BasicReadPropertyAccess<V, T> read;
+
+        @Override
+        public T get() {
+            return read.get();
         }
 
-        /**
-         * Returns the root name of the class.
-         */
-        @SuppressWarnings("rawtypes")
-        public static String unqualifiedClassName(Class type) {
-            if (type.isArray()) {
-                return unqualifiedClassName(type.getComponentType()) + "Array";
-            }
-            String name = type.getName();
-            return name.substring(name.lastIndexOf('.') + 1);
+        @Override
+        public void set(T v) {
+            write.accept(v);
         }
 
+        public BasicBeanPropertyAccess(V object, String property) {
+            write = new BasicWritePropertyAccess<>(object, property);
+            read = new BasicReadPropertyAccess<>(object, property);
+        }
+        
         /**
          * Returns a String which capitalizes the first letter of the string.
          */
@@ -242,39 +235,9 @@ public abstract class Extractors {
             if (name == null || name.length() == 0) {
                 return name;
             }
-            return name.substring(0, 1).toUpperCase(ENGLISH) + name.substring(1);
+            return name.substring(0, 1).toUpperCase(Locale.ENGLISH) + name.substring(1);
         }
 
-        /**
-         * Returns a unique string which identifies the object instance.
-         * Invocations are cached so that if an object has been previously
-         * passed into this method then the same identifier is returned.
-         *
-         * @param instance object used to generate string
-         * @return a unique string representing the object
-         */
-        public String instanceName(Object instance) {
-            if (instance == null) {
-                return "null";
-            }
-            if (instance instanceof Class) {
-                return unqualifiedClassName((Class) instance);
-            } else {
-                String result = valueToName.get(instance);
-                if (result != null) {
-                    return result;
-                }
-                Class<?> type = instance.getClass();
-                String className = unqualifiedClassName(type);
 
-                Integer size = nameToCount.get(className);
-                int instanceNumber = (size == null) ? 0 : size + 1;
-                nameToCount.put(className, instanceNumber);
-
-                result = className + instanceNumber;
-                valueToName.put(instance, result);
-                return result;
-            }
-        }
     }
 }
