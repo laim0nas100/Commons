@@ -146,7 +146,7 @@ public abstract class Extractors {
         }
     }
 
-    public static class BasicReadPropertyAccess<V, T> implements Supplier<T> {
+    public static class BasicBeanReadPropertyAccess<V, T> implements Supplier<T> {
 
         protected V object;
         protected Method read;
@@ -157,7 +157,7 @@ public abstract class Extractors {
             return F.unsafeCall(() -> (T) read.invoke(object));
         }
 
-        public BasicReadPropertyAccess(V object, String property) {
+        public BasicBeanReadPropertyAccess(V object, String property) {
             this.object = object;
             Class clazz = object.getClass();
             String cap = BasicBeanPropertyAccess.capitalize(property);
@@ -182,7 +182,7 @@ public abstract class Extractors {
         }
     }
 
-    public static class BasicWritePropertyAccess<V, T> implements Consumer<T> {
+    public static class BasicBeanWritePropertyAccess<V, T> implements Consumer<T> {
 
         protected V object;
         protected Method write;
@@ -194,8 +194,12 @@ public abstract class Extractors {
                 write.invoke(object, v);
             });
         }
+        
+        public void set(T v){
+            accept(v);
+        }
 
-        public BasicWritePropertyAccess(V object, String property) {
+        public BasicBeanWritePropertyAccess(V object, String property) {
             this.object = object;
             Class clazz = object.getClass();
             //try simple then boolean
@@ -210,8 +214,8 @@ public abstract class Extractors {
 
     public static class BasicBeanPropertyAccess<V, T> implements ValueProxy<T> {
 
-        protected BasicWritePropertyAccess<V, T> write;
-        protected BasicReadPropertyAccess<V, T> read;
+        protected BasicBeanWritePropertyAccess<V, T> write;
+        protected BasicBeanReadPropertyAccess<V, T> read;
 
         @Override
         public T get() {
@@ -224,8 +228,8 @@ public abstract class Extractors {
         }
 
         public BasicBeanPropertyAccess(V object, String property) {
-            write = new BasicWritePropertyAccess<>(object, property);
-            read = new BasicReadPropertyAccess<>(object, property);
+            write = new BasicBeanWritePropertyAccess<>(object, property);
+            read = new BasicBeanReadPropertyAccess<>(object, property);
         }
         
         /**
