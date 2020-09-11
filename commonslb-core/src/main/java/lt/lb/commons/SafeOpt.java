@@ -378,7 +378,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * {@code SafeOpt} produced by the supplying function.
      * @throws NullPointerException if the supplying function is {@code null}
      */
-    public SafeOpt<T> or(Supplier<? extends Optional<T>> supplier) {
+    public SafeOpt<T> orOpt(Supplier<? extends Optional<T>> supplier) {
         Objects.requireNonNull(supplier,"Supplier was null");
         if (isPresent()) {
             return this;
@@ -397,7 +397,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * {@code SafeOpt} produced by the supplying function.
      * @throws NullPointerException if the supplying function is {@code null}
      */
-    public SafeOpt<T> orSafe(Supplier<? extends SafeOpt<T>> supplier) {
+    public SafeOpt<T> or(Supplier<? extends SafeOpt<T>> supplier) {
         Objects.requireNonNull(supplier,"Supplier was null");
         if (isPresent()) {
             return this;

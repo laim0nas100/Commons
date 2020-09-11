@@ -32,7 +32,7 @@ public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
     public Optional<V> toMaybe(T en) {
         return SafeOpt.ofNullable(en)
                 .map(mapping::get)
-                .orSafe(() -> SafeOpt.ofNullable(defaultCase))
+                .or(() -> SafeOpt.ofNullable(defaultCase))
                 .map(m -> m.get()).asOptional();
     }
 
