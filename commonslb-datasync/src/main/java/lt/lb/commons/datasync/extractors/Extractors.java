@@ -12,7 +12,10 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.caching.LazyValue;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
+import lt.lb.commons.func.unchecked.UnsafeConsumer;
+import lt.lb.commons.func.unchecked.UnsafeSupplier;
 import lt.lb.commons.reflect.FieldChain;
 
 /**
@@ -20,6 +23,10 @@ import lt.lb.commons.reflect.FieldChain;
  * @author laim0nas100
  */
 public abstract class Extractors {
+
+    public static <T> ValueProxy<T> ofUnsave(UnsafeSupplier<? extends T> sup, UnsafeConsumer<? super T> con) {
+        return quickProxy(sup, con);
+    }
 
     public static <T> ValueProxy<Collection<T>> mutableCollection(Supplier<? extends Collection<T>> supl) {
         return new ValueProxy<Collection<T>>() {
@@ -38,6 +45,33 @@ public abstract class Extractors {
                 get.clear();
                 get.addAll(v);
 
+            }
+        };
+    }
+
+    public static <T> ValueProxy<T> ofReadIgnore(Consumer<? super T> cons) {
+        return new ValueProxy<T>() {
+            @Override
+            public T get() {
+                return null;
+            }
+
+            @Override
+            public void set(T v) {
+                cons.accept(v);
+            }
+        };
+    }
+
+    public static <T> ValueProxy<T> ofWriteIgnore(Supplier<? extends T> supl) {
+        return new ValueProxy<T>() {
+            @Override
+            public T get() {
+                return supl.get();
+            }
+
+            @Override
+            public void set(T v) {
             }
         };
     }
