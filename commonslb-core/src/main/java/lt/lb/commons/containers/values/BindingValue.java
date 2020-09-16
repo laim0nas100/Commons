@@ -55,9 +55,9 @@ public class BindingValue<T> extends Value<T>  {
             return;
         }
         Optional<Throwable> checkedRun = F.checkedRun(() -> {
-            for (BiConsumer<T, T> listener : listeners.values()) {
+            listeners.values().stream().forEachOrdered(listener ->{
                 listener.accept(oldVal, newVal);
-            }
+            });
         });
         if (!inside.compareAndSet(true, false)) {
             inside.set(false);

@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.BindingValue;
 import lt.lb.commons.interfaces.CloneSupport;
@@ -38,12 +39,10 @@ public abstract class Updates<U extends Updates> implements CloneSupport<U> {
             if (Objects.equals(oldval, newval)) {
                 return;
             }
-            for (Runnable run : updateListeners) {
-                run.run();
-            }
-            for (U followUp : followUps) {
-                followUp.triggerUpdate(newval);
-            }
+            updateListeners.stream().collect(Collectors.toList()).forEach(Runnable::run);
+            followUps.stream().collect(Collectors.toList()).forEach(f->{
+                f.triggerUpdate(newval);
+            });
             
         });
     }

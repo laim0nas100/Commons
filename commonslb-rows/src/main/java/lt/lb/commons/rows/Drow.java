@@ -496,10 +496,11 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         if (displayed) {
             return me;
         }
+        displayed = true;
         F.checkedRun(() -> {
             update(UPDATES_ON_DISPLAY);
         }).ifPresent(NestedException::nestedThrow);
-        displayed = true;
+        
         if (render) {
             render();
         }
