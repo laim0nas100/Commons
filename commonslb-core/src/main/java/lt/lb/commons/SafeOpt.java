@@ -378,7 +378,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * {@code SafeOpt} produced by the supplying function.
      * @throws NullPointerException if the supplying function is {@code null}
      */
-    public SafeOpt<T> orOpt(Supplier<? extends Optional<T>> supplier) {
+    public SafeOpt<T> orGetOpt(Supplier<? extends Optional<T>> supplier) {
         Objects.requireNonNull(supplier,"Supplier was null");
         if (isPresent()) {
             return this;
@@ -397,14 +397,16 @@ public class SafeOpt<T> implements Supplier<T> {
      * {@code SafeOpt} produced by the supplying function.
      * @throws NullPointerException if the supplying function is {@code null}
      */
-    public SafeOpt<T> or(Supplier<? extends SafeOpt<T>> supplier) {
+    public SafeOpt<T> orGet(Supplier<? extends T> supplier) {
         Objects.requireNonNull(supplier,"Supplier was null");
         if (isPresent()) {
             return this;
         } else {
-            return SafeOpt.READY.flatMap(m -> supplier.get());
+            return SafeOpt.READY.map(m -> supplier.get());
         }
     }
+    
+    
 
     /**
      * If both values are present (in this {@code SafeOpt} and provided
