@@ -1,7 +1,9 @@
 package lt.lb.commons.containers.values;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import lt.lb.commons.containers.ForwardingMap;
 import lt.lb.commons.misc.UUIDgenerator;
 
 /**
@@ -9,7 +11,21 @@ import lt.lb.commons.misc.UUIDgenerator;
  *
  * @author laim0nas100
  */
-public class Props extends HashMap<String, Object> {
+public class Props extends ForwardingMap<String, Object> implements Map<String, Object> {
+
+    protected Map<String, Object> map;
+
+    public Props(Map<String, Object> delegated) {
+        this.map = delegated;
+    }
+
+    public Props() {
+        this(new HashMap<>());
+    }
+
+    public Map<String, Object> getMap() {
+        return map;
+    }
 
     public static final String UUID_PREFIX = "Props";
 
@@ -25,6 +41,11 @@ public class Props extends HashMap<String, Object> {
                 props.put(key, v);
             }
         };
+    }
+
+    @Override
+    protected Map<String, Object> delegate() {
+        return map;
     }
 
     /**
