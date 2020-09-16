@@ -43,6 +43,11 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
         };
     }
 
+    public <T> Props with(String key, T val){
+        this.put(key, val);
+        return this;
+    }
+    
     @Override
     protected Map<String, Object> delegate() {
         return map;
@@ -95,7 +100,7 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
         }
 
         /**
-         * Removes value proxy from Props object by this key and returns it.
+         * Removes value from Props object by this key and returns it as proxy.
          *
          * @param props
          * @return
