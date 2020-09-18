@@ -48,4 +48,17 @@ public abstract class EnumMapper<T extends Enum<T>, V, M extends EnumMapper<T, V
         return me();
     }
     
+    public static class SimpleEnumMapper<T extends Enum<T>,V> extends EnumMapper<T, V, SimpleEnumMapper<T,V>>{
+
+        public SimpleEnumMapper(Class<T> type) {
+            super(type);
+        }
+
+        @Override
+        public SimpleEnumMapper me() {
+            return this;
+        }
+        
+    }
+    
 }
