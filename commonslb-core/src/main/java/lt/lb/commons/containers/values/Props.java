@@ -43,11 +43,11 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
         };
     }
 
-    public <T> Props with(String key, T val){
+    public <T> Props with(String key, T val) {
         this.put(key, val);
         return this;
     }
-    
+
     @Override
     protected Map<String, Object> delegate() {
         return map;
@@ -205,6 +205,19 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
             return null;
         }
         return (T) get;
+    }
+
+    /**
+     * Retrieves value and returns it as a String.
+     * @param str
+     * @return 
+     */
+    public String getString(String str) {
+        Object get = this.get(str);
+        if (get == null) {
+            return null;
+        }
+        return String.valueOf(get);
     }
 
 }
