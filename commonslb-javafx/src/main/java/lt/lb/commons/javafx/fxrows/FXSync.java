@@ -27,6 +27,7 @@ import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.NodeSync;
 import lt.lb.commons.datasync.extractors.Extractors;
+import lt.lb.commons.func.Converter;
 import lt.lb.commons.javafx.FXDefs;
 import lt.lb.commons.misc.ComparatorBuilder;
 import lt.lb.commons.parsing.StringOp;
@@ -57,9 +58,25 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         return new FXValid<>(this.nodes);
     }
     
-    public static <T> FXSync<T,String,TextField> ofTextFieldFormatted(ValueProxy<T> persistProxy, TextField tf, TextFormatter<T> formatter){
+    public static <T> FXSync<T,String,TextField> ofTextFieldFormatted(ValueProxy<T> persistProxy, TextField tf, Converter<String,T> conv){
         FXSync<T, String, TextField> fxSync = new FXSync<>(tf);
 
+        fxSync.withIdentityPersist();
+        fxSync.withDisplayGet(conv::getFrom);
+        fxSync.withDisplaySet(conv::getBackFrom);
+        fxSync.withDisplayProxy(Extractors.quickProxy(tf::getText, tf::setText));
+        fxSync.withPersistProxy(persistProxy);
+        
+        FXDefs.applyOnFocusChange(tf, field->{
+            fxSync.syncManagedFromDisplay();
+        });
+        return fxSync;
+    }
+    
+    public static <T> FXSync<T,String,TextField> ofTextFieldFormattedEnforced(ValueProxy<T> persistProxy, TextField tf, TextFormatter<T> formatter){
+        FXSync<T, String, TextField> fxSync = new FXSync<>(tf);
+
+        tf.setTextFormatter(formatter);
         fxSync.withIdentityPersist();
         StringConverter<T> conv = formatter.getValueConverter();
         fxSync.withDisplayGet(conv::fromString);
@@ -74,7 +91,7 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
     }
 
     public static FXSync<String, String, TextField> ofTextField(ValueProxy<String> persistProxy, TextField tf) {
-        return ofTextFieldFormatted(persistProxy, tf, new TextFormatter<>(TextFormatter.IDENTITY_STRING_CONVERTER));
+        return ofTextFieldFormattedEnforced(persistProxy, tf, new TextFormatter<>(TextFormatter.IDENTITY_STRING_CONVERTER));
     }
 
     public static FXSync<String, String, TextField> ofTextField(ValueProxy<String> persistProxy) {
