@@ -57,24 +57,32 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
     protected FXValid<P, N> createValidation() {
         return new FXValid<>(this.nodes);
     }
-    
-    public static <T> FXSync<T,String,TextField> ofTextFieldFormatted(ValueProxy<T> persistProxy, TextField tf, Converter<String,T> conv){
-        FXSync<T, String, TextField> fxSync = new FXSync<>(tf);
+
+    public static class TextFieldSync<T> extends FXSync<T, String, TextField> {
+
+        public TextFieldSync(TextField node) {
+            super(node);
+        }
+
+    }
+
+    public static <T> TextFieldSync<T> ofTextFieldFormatted(ValueProxy<T> persistProxy, TextField tf, Converter<String, T> conv) {
+        TextFieldSync<T> fxSync = new TextFieldSync<>(tf);
 
         fxSync.withIdentityPersist();
         fxSync.withDisplayGet(conv::getFrom);
         fxSync.withDisplaySet(conv::getBackFrom);
         fxSync.withDisplayProxy(Extractors.quickProxy(tf::getText, tf::setText));
         fxSync.withPersistProxy(persistProxy);
-        
-        FXDefs.applyOnFocusChange(tf, field->{
+
+        FXDefs.applyOnFocusChange(tf, field -> {
             fxSync.syncManagedFromDisplay();
         });
         return fxSync;
     }
-    
-    public static <T> FXSync<T,String,TextField> ofTextFieldFormattedEnforced(ValueProxy<T> persistProxy, TextField tf, TextFormatter<T> formatter){
-        FXSync<T, String, TextField> fxSync = new FXSync<>(tf);
+
+    public static <T> TextFieldSync<T> ofTextFieldFormattedEnforced(ValueProxy<T> persistProxy, TextField tf, TextFormatter<T> formatter) {
+        TextFieldSync<T> fxSync = new TextFieldSync<>(tf);
 
         tf.setTextFormatter(formatter);
         fxSync.withIdentityPersist();
@@ -83,28 +91,37 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         fxSync.withDisplaySet(conv::toString);
         fxSync.withDisplayProxy(Extractors.quickProxy(tf::getText, tf::setText));
         fxSync.withPersistProxy(persistProxy);
-        
-        FXDefs.applyOnFocusChange(tf, field->{
+
+        FXDefs.applyOnFocusChange(tf, field -> {
             fxSync.syncManagedFromDisplay();
         });
         return fxSync;
     }
 
-    public static FXSync<String, String, TextField> ofTextField(ValueProxy<String> persistProxy, TextField tf) {
+    public static TextFieldSync<String> ofTextField(ValueProxy<String> persistProxy, TextField tf) {
         return ofTextFieldFormattedEnforced(persistProxy, tf, new TextFormatter<>(TextFormatter.IDENTITY_STRING_CONVERTER));
     }
 
-    public static FXSync<String, String, TextField> ofTextField(ValueProxy<String> persistProxy) {
+    public static TextFieldSync<String> ofTextField(ValueProxy<String> persistProxy) {
         return ofTextField(persistProxy, new TextField());
     }
 
-    public static <T> FXSync<Collection<T>, ObservableList<T>, TableView<T>> ofTableView(TableView<T> view, ValueProxy<Collection<T>> items, List<T> options) {
+    public static class TableViewSync<T> extends FXSync<Collection<T>, ObservableList<T>, TableView<T>> {
 
-        FXSync<Collection<T>, ObservableList<T>, TableView<T>> sync = new FXSync<>(view);
+        public TableViewSync(TableView<T> node) {
+            super(node);
+        }
+
+    }
+
+    public static <T> TableViewSync<T> ofTableView(TableView<T> view, ValueProxy<Collection<T>> items, List<T> options) {
+
+        TableViewSync<T> sync = new TableViewSync<>(view);
         view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         sync.withIdentityPersist();
-
-        sync.withDisplaySup(() -> view.getSelectionModel().getSelectedItems());
+        sync.withDisplaySup(() -> {
+            return view.getSelectionModel().getSelectedItems();
+        });
         sync.withDisplaySync(supl -> {
             view.getSelectionModel().clearSelection();
             for (T item : supl) {
@@ -124,13 +141,20 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         view.getSelectionModel().selectedItemProperty().addListener((FXDefs.SimpleChangeListener<T>) item -> {
             sync.syncManagedFromDisplay();
         });
-
         return sync;
     }
 
-    public static <T> FXSync<Collection<T>, ObservableList<T>, ListView<T>> ofListView(ListView<T> view, ValueProxy<Collection<T>> items, List<T> options, FXDefs.SimpleListViewCallback<T> callback) {
+    public static class ListViewSync<T> extends FXSync<Collection<T>, ObservableList<T>, ListView<T>> {
 
-        FXSync<Collection<T>, ObservableList<T>, ListView<T>> sync = new FXSync<>(view);
+        public ListViewSync(ListView<T> node) {
+            super(node);
+        }
+
+    }
+
+    public static <T> ListViewSync<T> ofListView(ListView<T> view, ValueProxy<Collection<T>> items, List<T> options, FXDefs.SimpleListViewCallback<T> callback) {
+
+        ListViewSync<T> sync = new ListViewSync<>(view);
         view.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         sync.withIdentityPersist();
 
@@ -156,16 +180,23 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         view.getSelectionModel().selectedItemProperty().addListener((FXDefs.SimpleChangeListener<T>) item -> {
             sync.syncManagedFromDisplay();
         });
-
         return sync;
     }
-    
-    public static <T extends Enum<T>> FXSync<T, T, ComboBox<T>> ofComboBox(ComboBox<T> box, ValueProxy<T> selectedItem, Class<T> cls, Function<T, String> textExtract) {
+
+    public static class ComboBoxSync<T> extends FXSync<T, T, ComboBox<T>> {
+
+        public ComboBoxSync(ComboBox<T> node) {
+            super(node);
+        }
+
+    }
+
+    public static <T extends Enum<T>> ComboBoxSync<T> ofComboBox(ComboBox<T> box, ValueProxy<T> selectedItem, Class<T> cls, Function<T, String> textExtract) {
         List<T> options = new ArrayList<>(EnumSet.allOf(cls));
         return ofComboBox(box, selectedItem, options, textExtract, FXDefs.cellFactoryString(textExtract));
     }
 
-    public static <T> FXSync<T, T, ComboBox<T>> ofComboBox(ComboBox<T> box, ValueProxy<T> selectedItem, List<T> options, Function<T, String> textExtract) {
+    public static <T> ComboBoxSync<T> ofComboBox(ComboBox<T> box, ValueProxy<T> selectedItem, List<T> options, Function<T, String> textExtract) {
         return ofComboBox(box, selectedItem, options, textExtract, FXDefs.cellFactoryString(textExtract));
     }
 
@@ -203,9 +234,9 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
 
     }
 
-    public static <T> FXSync<T, T, ComboBox<T>> ofComboBox(ComboBox<T> box, ValueProxy<T> selectedItem, List<T> options, Function<T, String> textExtract, FXDefs.SimpleListViewCallback<T> callback) {
+    public static <T> ComboBoxSync<T> ofComboBox(ComboBox<T> box, ValueProxy<T> selectedItem, List<T> options, Function<T, String> textExtract, FXDefs.SimpleListViewCallback<T> callback) {
 
-        FXSync<T, T, ComboBox<T>> sync = new FXSync<>(box);
+        ComboBoxSync<T> sync = new ComboBoxSync<>(box);
 
         sync.withPersistProxy(selectedItem);
         sync.withIdentityPersist();
@@ -265,8 +296,16 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         return sync;
     }
 
-    public static <T> FXSync<Boolean, Boolean, CheckBox> ofCheckBox(CheckBox box, ValueProxy<Boolean> condition) {
-        FXSync<Boolean, Boolean, CheckBox> sync = new FXSync<>(box);
+    public static class CheckBoxSync extends FXSync<Boolean, Boolean, CheckBox> {
+
+        public CheckBoxSync(CheckBox node) {
+            super(node);
+        }
+
+    }
+
+    public static CheckBoxSync ofCheckBox(CheckBox box, ValueProxy<Boolean> condition) {
+        CheckBoxSync sync = new CheckBoxSync(box);
 
         sync.withPersistProxy(condition);
         sync.withIdentityPersist();
@@ -286,8 +325,16 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         return sync;
     }
 
-    public static <T> FXSync<Boolean, Boolean, ToggleButton> ofToggleButton(ToggleButton box, ValueProxy<Boolean> condition) {
-        FXSync<Boolean, Boolean, ToggleButton> sync = new FXSync<>(box);
+    public static class ToggleButtonSync extends FXSync<Boolean, Boolean, ToggleButton> {
+
+        public ToggleButtonSync(ToggleButton node) {
+            super(node);
+        }
+
+    }
+
+    public static ToggleButtonSync ofToggleButton(ToggleButton box, ValueProxy<Boolean> condition) {
+        ToggleButtonSync sync = new ToggleButtonSync(box);
 
         sync.withPersistProxy(condition);
         sync.withIdentityPersist();

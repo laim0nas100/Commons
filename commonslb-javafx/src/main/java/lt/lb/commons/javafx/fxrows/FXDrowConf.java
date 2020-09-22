@@ -19,7 +19,6 @@ import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.rows.base.BaseDrowSyncConf;
-import lt.lb.commons.javafx.fxrows.FXValid;
 
 /**
  *

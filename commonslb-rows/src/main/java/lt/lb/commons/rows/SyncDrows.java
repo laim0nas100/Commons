@@ -21,61 +21,61 @@ public abstract class SyncDrows<R extends SyncDrow, L, DR extends SyncDrows, U e
 
     @Override
     public void syncPersist() {
-        doInOrderNested(r -> r.syncPersist());
+        doActiveRowsNested(r -> r.syncPersist());
     }
 
     @Override
     public void syncManagedFromDisplay() {
-        doInOrderNested(r -> r.syncManagedFromDisplay());
+        doActiveRowsNested(r -> r.syncManagedFromDisplay());
     }
 
     @Override
     public void syncManagedFromPersist() {
-        doInOrderNested(r -> r.syncManagedFromPersist());
+        doActiveRowsNested(r -> r.syncManagedFromPersist());
     }
 
     @Override
     public void syncDisplay() {
-        doInOrderNested(r -> r.syncDisplay());
+        doActiveRowsNested(r -> r.syncDisplay());
     }
 
     @Override
     public boolean validDisplay() {
-        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.invalidDisplay());
+        return !BaseValidation.iterateFindFirst(getActiveRowsNested(), false, r->r.invalidDisplay());
     }
 
     @Override
     public boolean validDisplayFull() {
-        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), true, r->r.invalidDisplayFull());
+        return !BaseValidation.iterateFindFirst(getActiveRowsNested(), true, r->r.invalidDisplayFull());
     }
 
     @Override
     public boolean isValidDisplay(Object from) {
-        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.isInvalidDisplay(from));
+        return !BaseValidation.iterateFindFirst(getActiveRowsNested(), false, r->r.isInvalidDisplay(from));
     }
 
     @Override
     public void clearInvalidationDisplay(Object from) {
-        doInOrderNested(r -> r.clearInvalidationDisplay(from));
+        doActiveRowsNested(r -> r.clearInvalidationDisplay(from));
     }
 
     @Override
     public boolean validPersist() {
-        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.invalidPersist());
+        return !BaseValidation.iterateFindFirst(getActiveRowsNested(), false, r->r.invalidPersist());
     }
 
     @Override
     public boolean validPersistFull() {
-        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), true, r->r.invalidPersistFull());
+        return !BaseValidation.iterateFindFirst(getActiveRowsNested(), true, r->r.invalidPersistFull());
     }
 
     @Override
     public boolean isValidPersist(Object from) {
-        return !BaseValidation.iterateFindFirst(getRowsInOrderNested(), false, r->r.isInvalidPersist(from));
+        return !BaseValidation.iterateFindFirst(getActiveRowsNested(), false, r->r.isInvalidPersist(from));
     }
 
     @Override
     public void clearInvalidationPersist(Object from) {
-        doInOrderNested(r -> r.clearInvalidationPersist(from));
+        doActiveRowsNested(r -> r.clearInvalidationPersist(from));
     }
 }

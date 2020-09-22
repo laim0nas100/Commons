@@ -122,10 +122,10 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     @Override
     public DR initUpdates() {
         UpdateAware.super.initUpdates();
-        this.withUpdate(BasicUpdates.INVALIDATE_VISIBILITY, 0,()->{
+        this.withUpdate(BasicUpdates.INVALIDATE_VISIBILITY, 0, () -> {
             this.visibleRowsOrder.invalidate();
         });
-        this.withUpdate(BasicUpdates.INVALIDATE, 0,()->{
+        this.withUpdate(BasicUpdates.INVALIDATE, 0, () -> {
             this.rowAndComposedKeyOrder.invalidate();
         });
 
@@ -162,6 +162,14 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
 
     public Optional<DR> getParentRows() {
         return parentRows;
+    }
+
+    public List<R> getActiveRows() {
+        return getRowsInOrder().stream().filter(f -> f.isRendable()).collect(Collectors.toList());
+    }
+
+    public List<R> getActiveRowsNested() {
+        return getRowsInOrderNested().stream().filter(f -> f.isRendable()).collect(Collectors.toList());
     }
 
     public List<R> getRowsInOrderNested() {
@@ -310,12 +318,13 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     public void invalidateVisibility() {
         this.update(BasicUpdates.INVALIDATE_VISIBILITY);
     }
-    
-    public void renderAfterStructureChange(){
+
+    public void renderAfterStructureChange() {
         invalidateRows();
         renderEverything();
     }
-    public void renderAfterVisibilityChange(){
+
+    public void renderAfterVisibilityChange() {
         invalidateVisibility();
         renderEverything();
     }
@@ -376,6 +385,12 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
 
     public void doInOrder(Consumer<R> rowCons) {
         for (R row : this.getRowsInOrder()) {
+            rowCons.accept(row);
+        }
+    }
+    
+    public void doActiveRowsNested(Consumer<R> rowCons) {
+        for (R row : this.getActiveRowsNested()) {
             rowCons.accept(row);
         }
     }

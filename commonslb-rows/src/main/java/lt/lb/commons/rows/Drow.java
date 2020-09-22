@@ -125,6 +125,12 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         return displayed;
     }
 
+    /**
+     * Alias active.
+     * Visible, displayed and not deleted.
+     *
+     * @return
+     */
     public boolean isRendable() {
         return isDisplayed() && isVisible() && !isDeleted();
     }
@@ -500,7 +506,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         F.checkedRun(() -> {
             update(UPDATES_ON_DISPLAY);
         }).ifPresent(NestedException::nestedThrow);
-        
+
         if (render) {
             render();
         }
