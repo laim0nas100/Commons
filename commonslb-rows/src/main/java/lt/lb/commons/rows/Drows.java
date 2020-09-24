@@ -93,7 +93,6 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
                 index++;
             }
         }
-
         return map;
     });
 
@@ -304,6 +303,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     }
 
     public Integer getVisibleRowIndex(String key) {
+        visibleRowsOrder.invalidate(); //TODO need a better solution
         return visibleRowsOrder.get().getOrDefault(key, -1);
     }
 
