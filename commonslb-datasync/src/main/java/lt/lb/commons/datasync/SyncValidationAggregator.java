@@ -129,7 +129,7 @@ public class SyncValidationAggregator implements SyncAndValidationAggregator {
 
     @Override
     public boolean validPersistFull() {
-        return invalidPersist(false);
+        return !invalidPersist(false);
     }
 
     @Override
