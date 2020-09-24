@@ -8,11 +8,12 @@ import java.util.function.Supplier;
  */
 public interface SyncAndValidationAggregator extends SyncValidation {
 
+
     public default void addSync(DataSyncManaged sync) {
         addSyncPersist(sync);
         addSyncDisplay(sync);
     }
-    
+
     public Iterable<DataSyncPersist> getPersists();
 
     public Iterable<DataSyncDisplay> getDisplays();
@@ -20,8 +21,8 @@ public interface SyncAndValidationAggregator extends SyncValidation {
     public Iterable<DisplayValidation> getDisplayValidations();
 
     public Iterable<PersistValidation> getPersistValidations();
-    
-    public default void addDataSyncValidation(DataSyncManagedValidation syncValid){
+
+    public default void addDataSyncValidation(DataSyncManagedValidation syncValid) {
         addSync(syncValid);
         addSyncValidation(syncValid);
     }
@@ -40,7 +41,7 @@ public interface SyncAndValidationAggregator extends SyncValidation {
     }
 
     public <M, V extends Valid<M>> PersistAndDisplayValidation<M, V> createBaseSyncValidationUnmanaged();
-    
+
     public <M, V extends Valid<M>> PersistAndDisplayValidation<M, V> createBaseSyncValidationManaged(Supplier<M> managed);
 
     public default void addValidationPersist(Valid valid) {
@@ -54,14 +55,14 @@ public interface SyncAndValidationAggregator extends SyncValidation {
         unmanaged.withDisplayValidation(valid);
         addDisplayValidation(unmanaged);
     }
-    
-    public default void addValidationPersist(Supplier supl,Valid valid) {
+
+    public default void addValidationPersist(Supplier supl, Valid valid) {
         PersistAndDisplayValidation managed = createBaseSyncValidationManaged(supl);
         managed.withPersistValidation(valid);
         addPersistValidation(managed);
     }
-    
-     public default void addValidationDisplay(Supplier supl,Valid valid) {
+
+    public default void addValidationDisplay(Supplier supl, Valid valid) {
         PersistAndDisplayValidation managed = createBaseSyncValidationManaged(supl);
         managed.withDisplayValidation(valid);
         addDisplayValidation(managed);

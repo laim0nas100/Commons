@@ -25,7 +25,11 @@ import lt.lb.commons.datasync.Valid;
  * @param <Conf>
  * @param <R>
  */
-public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>, Conf extends SyncDrowConf<R, C, N, L, U>, R extends SyncDrow<C, N, L, U, Conf, R>> extends Drow<C, N, L, U, Conf, R> implements SyncValidation {
+public abstract class SyncDrow<C extends CellInfo<N>,
+        N, L, U extends Updates<U>,
+        Conf extends SyncDrowConf<R, C, N, L, U>,
+        R extends SyncDrow<C, N, L, U, Conf, R>>
+        extends Drow<C, N, L, U, Conf, R> implements SyncValidation{
 
     protected SyncAndValidationAggregator agg;
 

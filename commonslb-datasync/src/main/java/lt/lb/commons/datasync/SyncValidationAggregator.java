@@ -113,13 +113,13 @@ public class SyncValidationAggregator implements SyncAndValidationAggregator {
         boolean invalid = false;
 
         for (PersistValidation validation : persistValidations) {
-            if (full) {
-                invalid = invalid || validation.invalidPersistFull();
+            if (!full) {
+                invalid = invalid || validation.invalidPersist();
                 if (invalid) {
                     return invalid;
                 }
             } else {
-                invalid = invalid || validation.invalidPersist();
+                invalid = invalid || validation.invalidPersistFull();
             }
         }
 
@@ -129,7 +129,7 @@ public class SyncValidationAggregator implements SyncAndValidationAggregator {
 
     @Override
     public boolean validPersistFull() {
-        return !invalidPersist(false);
+        return !invalidPersist(true);
     }
 
     @Override
@@ -145,13 +145,13 @@ public class SyncValidationAggregator implements SyncAndValidationAggregator {
     public boolean invalidDisplay(boolean full) {
         boolean invalid = false;
         for (DisplayValidation validation : displayValidations) {
-            if (full) {
-                invalid = invalid || validation.invalidDisplayFull();
+            if (!full) {
+                invalid = invalid || validation.invalidDisplay();
                 if (invalid) {
                     return invalid;
                 }
             } else {
-                invalid = invalid || validation.invalidDisplay();
+                invalid = invalid || validation.invalidDisplayFull();
             }
         }
 
