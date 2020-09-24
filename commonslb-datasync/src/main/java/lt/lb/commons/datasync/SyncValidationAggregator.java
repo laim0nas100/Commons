@@ -181,7 +181,7 @@ public class SyncValidationAggregator implements SyncAndValidationAggregator {
 
     @Override
     public <M, V extends Valid<M>> PersistAndDisplayValidation<M, V> createBaseSyncValidationUnmanaged() {
-        return factory.apply(null);
+        return factory.apply(()->null);
     }
 
     @Override
