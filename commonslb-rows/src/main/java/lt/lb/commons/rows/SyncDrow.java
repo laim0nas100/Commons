@@ -108,7 +108,7 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
 
     }
 
-    public R addValidationPersist(Supplier<String> msg, Predicate<R> isValid) {
+    public R addValidationPersistPredicate(Supplier<String> msg, Predicate<R> isValid) {
         return addOnDisplayAndRunIfDone(() -> {
             Valid valid = config.createValidation(me(), t -> isValid.test(me()), t -> msg.get());
             addValidationPersist(valid);
@@ -116,7 +116,7 @@ public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>
 
     }
 
-    public R addValidationDisplay(Supplier<String> msg, Predicate<R> isValid) {
+    public R addValidationDisplayPredicate(Supplier<String> msg, Predicate<R> isValid) {
         return addOnDisplayAndRunIfDone(() -> {
             Valid valid = config.createValidation(me(), t -> isValid.test(me()), t -> msg.get());
             addValidationDisplay(valid);
