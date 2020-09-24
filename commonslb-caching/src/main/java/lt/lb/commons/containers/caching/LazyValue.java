@@ -2,8 +2,8 @@ package lt.lb.commons.containers.caching;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-import lt.lb.commons.Java;
 import lt.lb.commons.containers.values.Value;
 
 /**
@@ -13,15 +13,22 @@ import lt.lb.commons.containers.values.Value;
  * @param <T> type
  */
 public class LazyValue<T> extends Value<T> {
+    //should be good for a really long time
 
-    protected Long loaded = null;
+    public static AtomicLong counter = new AtomicLong(Long.MIN_VALUE);
+
+    protected AtomicLong loaded = new AtomicLong(Long.MAX_VALUE);
     protected Deque<Condition> conditions = new ArrayDeque<>();
     protected Supplier<T> supply;
     protected Deque<Supplier> dependants;
 
     public LazyValue(Supplier<T> supply) {
         this.supply = supply;
-        conditions.add(() -> loaded != null);
+        conditions.add(() -> {
+            long val = loaded.get();
+            long c = counter.get();
+            return (c > val && c == Math.max(val, c));//ensure counter always the max
+        });
 
     }
 
@@ -48,7 +55,7 @@ public class LazyValue<T> extends Value<T> {
     @Override
     public void set(T val) {
         super.set(val);
-        loaded = Java.getNanoTime();
+        loaded.set(counter.getAndIncrement());
     }
 
     /**
@@ -93,10 +100,10 @@ public class LazyValue<T> extends Value<T> {
 
     /**
      *
-     * @return time this value was set, returned by Java.getNanoTime()
+     * @return time this value was set, returned by internal call counter
      */
     public Long getLoadedTime() {
-        return loaded;
+        return loaded.get();
     }
 
     protected synchronized T syncGet() {
@@ -112,7 +119,7 @@ public class LazyValue<T> extends Value<T> {
      * Invalidates value (needs recomputing)
      */
     public void invalidate() {
-        loaded = null;
+        loaded.set(Long.MAX_VALUE);
     }
 
 }
