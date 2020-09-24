@@ -205,7 +205,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         R remove = rowMap.remove(key);
         remove.setDeleted(true);
         removeKey(key);
-        rowAndComposedKeyOrder.invalidate();// manual trigger of update
+        invalidateRows();
         conf.removeRowDecorate(me(), remove);
     }
 
@@ -223,7 +223,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         // in case we have some updaters configured
         rowMap.clear();
         keyOrder.clear();
-        rowAndComposedKeyOrder.invalidate();
+        invalidateRows();
     }
 
     public void addRow(Integer index, R row) {
@@ -234,7 +234,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         rowMap.put(row.getKey(), row);
 
         putKeyAt(index, row.getKey());
-        rowAndComposedKeyOrder.invalidate();// manual trigger of update
+        invalidateRows();
         conf.addRowDecorate(me(), row);
 
     }
@@ -269,7 +269,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         putKeyAt(index, key);
         me().composable.put(key, rows);
 
-        rowAndComposedKeyOrder.invalidate();
+        invalidateRows();
         this.conf.composeDecorate(me(), rows);
 
 //        return newRow;
@@ -291,7 +291,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         this.composable.remove(rows.getComposableKey());
         removeKey(rows.composableKey);
 
-        rowAndComposedKeyOrder.invalidate();// manual trigger of update
+        invalidateRows();
         this.conf.uncomposeDecorate(me(), rows);
     }
 
