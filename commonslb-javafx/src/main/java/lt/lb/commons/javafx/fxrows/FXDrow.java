@@ -5,6 +5,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import lt.lb.commons.rows.Drow;
 import lt.lb.commons.rows.SyncDrow;
 
 /**
@@ -31,6 +32,13 @@ public class FXDrow extends SyncDrow<FXCell, Node, FXLine, FXUpdates, FXDrowConf
         addSyncValidation(sync);
         return add(sync.getNode());
     }
+
+    @Override
+    public FXDrow display() {
+        return display(false);
+    }
+    
+    
 
     @Override
     public FXDrow me() {

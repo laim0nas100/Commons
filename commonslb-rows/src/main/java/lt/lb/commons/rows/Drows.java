@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -31,70 +32,11 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
 
     protected Map<String, DR> composable = new HashMap<>();
 
-    protected LazyDependantValue<Map<String, Integer>> rowAndComposedKeyOrder = new LazyDependantValue<>(() -> {
-        HashMap<String, Integer> indexMap = new HashMap<>();
-        for (R row : rowMap.values()) {
-            indexMap.put(row.getKey(), this.getRowIndex(row.getKey()));
-        }
-        for (DR rows : composable.values()) {
-            indexMap.put(rows.getComposableKey(), this.getRowIndex(rows.getComposableKey()));
-        }
-        return indexMap;
-    });
-    protected LazyDependantValue<List<R>> rowsInOrder = rowAndComposedKeyOrder.map(m -> {
-        List<R> collect = rowMap.values().stream().collect(Collectors.toList());
-        Comparator<R> ofValue = Comparator.comparing(r -> m.getOrDefault(r.getKey(), -1));
-        Collections.sort(collect, ofValue);
-        return collect;
-    });
-
-    protected LazyDependantValue<List> rowsAndComposedInOrder = rowAndComposedKeyOrder.map(m -> {
-
-        Map<Integer, List> composed = new HashMap<>();
-
-        F.iterate(this.composable, (key, rows) -> {
-            int indexKey = Math.max(m.getOrDefault(key, 10000), 0);
-            composed.computeIfAbsent(indexKey, i -> new LinkedList<>()).add(rows);
-        });
-
-        F.iterate(rowsInOrder.get(), (index, row) -> {
-            String key = row.getKey();
-            int indexKey = Math.max(m.getOrDefault(key, 10000), 0);
-            composed.computeIfAbsent(indexKey, i -> new LinkedList<>()).add(row);
-        });
-
-        Stream<Object> flatMap = composed.entrySet().stream().sorted(Comparator.comparing(v -> v.getKey()))
-                .map(entry -> entry.getValue())
-                .flatMap(list -> list.stream());
-
-        List collect = flatMap.collect(Collectors.toList());
-        return collect;
-    });
-
-    protected LazyDependantValue<List<R>> nestedRowsInOrder = rowsAndComposedInOrder.map(list -> {
-        List<R> rows = new ArrayList<>();
-        for (Object rr : list) {
-            if (rr instanceof Drow) {
-                rows.add(F.cast(rr));
-            } else if (rr instanceof Drows) {
-                Drows drows = F.cast(rr);
-                rows.addAll(drows.getRowsInOrderNested());
-            }
-        }
-        return rows;
-    });
-
-    protected LazyDependantValue<Map<String, Integer>> visibleRowsOrder = nestedRowsInOrder.map(list -> {
-        Map<String, Integer> map = new HashMap<>();
-        int index = 0;
-        for (R row : list) {
-            if (row.isRendable()) {
-                map.put(row.getKey(), index);
-                index++;
-            }
-        }
-        return map;
-    });
+    protected LazyDependantValue<Map<String, Integer>> rowAndComposedKeyOrder;
+    protected LazyDependantValue<List<R>> rowsInOrder;
+    protected LazyDependantValue<List> rowsAndComposedInOrder;
+    protected LazyDependantValue<List<R>> nestedRowsInOrder;
+    protected LazyDependantValue<Map<String, Integer>> visibleRowsOrder;
 
     @Override
     public Map<String, U> getUpdateMap() {
@@ -110,6 +52,67 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         composableKey = key;
         this.conf = conf;
         this.conf.configureUpdates(updates, me());
+        rowAndComposedKeyOrder = new LazyDependantValue<>(() -> {
+            HashMap<String, Integer> indexMap = new HashMap<>();
+            for (R row : rowMap.values()) {
+                indexMap.put(row.getKey(), this.getRowIndex(row.getKey()));
+            }
+            for (DR rows : composable.values()) {
+                indexMap.put(rows.getComposableKey(), this.getRowIndex(rows.getComposableKey()));
+            }
+            return indexMap;
+        });
+        rowsInOrder = rowAndComposedKeyOrder.map(m -> {
+            List<R> collect = rowMap.values().stream().collect(Collectors.toList());
+            Comparator<R> ofValue = Comparator.comparing(r -> m.getOrDefault(r.getKey(), -1));
+            Collections.sort(collect, ofValue);
+            return collect;
+        });
+        rowsAndComposedInOrder = rowAndComposedKeyOrder.map(m -> {
+
+            Map<Integer, List> composed = new HashMap<>();
+
+            F.iterate(this.composable, (k, rows) -> {
+                int indexKey = Math.max(m.getOrDefault(k, 10000), 0);
+                composed.computeIfAbsent(indexKey, i -> new LinkedList<>()).add(rows);
+            });
+
+            F.iterate(rowsInOrder.get(), (index, row) -> {
+                String k = row.getKey();
+                int indexKey = Math.max(m.getOrDefault(k, 10000), 0);
+                composed.computeIfAbsent(indexKey, i -> new LinkedList<>()).add(row);
+            });
+
+            Stream<Object> flatMap = composed.entrySet().stream().sorted(Comparator.comparing(v -> v.getKey()))
+                    .map(entry -> entry.getValue())
+                    .flatMap(list -> list.stream());
+
+            List collect = flatMap.collect(Collectors.toList());
+            return collect;
+        });
+        nestedRowsInOrder = rowsAndComposedInOrder.map(list -> {
+            List<R> rows = new ArrayList<>();
+            for (Object rr : list) {
+                if (rr instanceof Drow) {
+                    rows.add(F.cast(rr));
+                } else if (rr instanceof Drows) {
+                    Drows drows = F.cast(rr);
+                    rows.addAll(drows.getRowsInOrderNested());
+                }
+            }
+            return rows;
+        });
+        visibleRowsOrder = nestedRowsInOrder.map(list -> {
+            Map<String, Integer> map = new HashMap<>();
+            int index = 0;
+            for (R row : list) {
+                if (row.isRendable()) {
+                    map.put(row.getKey(), index);
+                    index++;
+                }
+            }
+            return map;
+        });
 
     }
 
@@ -204,8 +207,17 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         R remove = rowMap.remove(key);
         remove.setDeleted(true);
         removeKey(key);
-        invalidateRows();
+        rowAndComposedKeyOrder.invalidate();
         conf.removeRowDecorate(me(), remove);
+    }
+
+    protected void invalidateMeAndParent() {
+        DR me = me();
+        DR lastParentOrMe = getLastParentOrMe();
+        me.rowAndComposedKeyOrder.invalidate();
+        if (!Objects.equals(lastParentOrMe, me)) {
+            lastParentOrMe.rowAndComposedKeyOrder.invalidate();
+        }
     }
 
     public void removeAll() {
@@ -222,7 +234,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         // in case we have some updaters configured
         rowMap.clear();
         keyOrder.clear();
-        invalidateRows();
+        rowAndComposedKeyOrder.invalidate();
     }
 
     public void addRow(Integer index, R row) {
@@ -233,7 +245,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         rowMap.put(row.getKey(), row);
 
         putKeyAt(index, row.getKey());
-        invalidateRows();
+        rowAndComposedKeyOrder.invalidate();
         conf.addRowDecorate(me(), row);
 
     }
@@ -268,7 +280,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         putKeyAt(index, key);
         me().composable.put(key, rows);
 
-        invalidateRows();
+        rowAndComposedKeyOrder.invalidate();
         this.conf.composeDecorate(me(), rows);
 
 //        return newRow;
@@ -290,7 +302,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         this.composable.remove(rows.getComposableKey());
         removeKey(rows.composableKey);
 
-        invalidateRows();
+        rowAndComposedKeyOrder.invalidate();
         this.conf.uncomposeDecorate(me(), rows);
     }
 
@@ -303,7 +315,6 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     }
 
     public Integer getVisibleRowIndex(String key) {
-        visibleRowsOrder.invalidate(); //TODO need a better solution
         return visibleRowsOrder.get().getOrDefault(key, -1);
     }
 
@@ -388,7 +399,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
             rowCons.accept(row);
         }
     }
-    
+
     public void doActiveRowsNested(Consumer<R> rowCons) {
         for (R row : this.getActiveRowsNested()) {
             rowCons.accept(row);

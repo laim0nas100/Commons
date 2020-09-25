@@ -565,6 +565,11 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
             }
         });
     }
+    
+    public R withRowDecorator(Consumer<R> r){
+        r.accept(me());
+        return me();
+    }
 
     public <T extends N> R withNodesOfTypeDo(Class<T> type, Consumer<T> cons) {
         Ins.InsCl<T> cl = Ins.of(type);
