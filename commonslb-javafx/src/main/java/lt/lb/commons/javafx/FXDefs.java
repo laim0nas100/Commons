@@ -11,8 +11,11 @@ import java.util.function.UnaryOperator;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -36,6 +39,14 @@ import org.apache.logging.log4j.LogManager;
  * @author Lemmin
  */
 public abstract class FXDefs {
+
+    public static void closeTab(Tab tab) {
+        EventHandler<Event> handler = tab.getOnClosed();
+        if (null != handler) {
+            handler.handle(null);
+        }
+        tab.getTabPane().getTabs().remove(tab);
+    }
 
     public static abstract class TextFormatters {
 
