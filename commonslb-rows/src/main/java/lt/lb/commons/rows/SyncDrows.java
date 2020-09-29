@@ -78,15 +78,16 @@ public abstract class SyncDrows<R extends SyncDrow, L, DR extends SyncDrows, U e
     }
 
     /**
-     * Sync: managed,display
+     * 
      * update
      * invalidate
      * render
+     * Sync: managed,display
      */
     public void viewUpdate() {
-        syncDisplay();
         update();
         renderAfterStructureChange();
+        syncDisplay();
     }
 
 }
