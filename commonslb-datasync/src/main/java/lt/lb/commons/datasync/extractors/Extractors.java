@@ -1,5 +1,6 @@
 package lt.lb.commons.datasync.extractors;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Locale;
@@ -9,9 +10,13 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.ValueProxy;
+import lt.lb.commons.datasync.base.SimpleDataSyncDisplay;
+import lt.lb.commons.datasync.base.SimpleDataSyncPersist;
 import lt.lb.commons.func.unchecked.UnsafeConsumer;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.func.unchecked.UnsafeSupplier;
 import lt.lb.commons.reflect.FieldChain;
+import lt.lb.commons.reflect.Refl;
 
 /**
  *
@@ -194,8 +199,8 @@ public abstract class Extractors {
                 write.invoke(object, v);
             });
         }
-        
-        public void set(T v){
+
+        public void set(T v) {
             accept(v);
         }
 
@@ -231,7 +236,7 @@ public abstract class Extractors {
             write = new BasicBeanWritePropertyAccess<>(object, property);
             read = new BasicBeanReadPropertyAccess<>(object, property);
         }
-        
+
         /**
          * Returns a String which capitalizes the first letter of the string.
          */
@@ -242,6 +247,66 @@ public abstract class Extractors {
             return name.substring(0, 1).toUpperCase(Locale.ENGLISH) + name.substring(1);
         }
 
+    }
 
+    public static <T> ValueProxy<T> ofReflected(Object ob, String fieldName) {
+        Class<? extends Object> aClass = ob.getClass();
+        return F.unsafeCall(() -> {
+            Field field = aClass.getField(fieldName);
+            return ofUnsave(
+                    () -> (T) Refl.fieldAccessableGet(field, ob),
+                    v -> Refl.fieldAccessableSet(field, ob, v)
+            );
+        });
+    }
+
+    public static <T> ValueProxy<T> ofBeanAccess(Object ob, String property) {
+        return new BasicBeanPropertyAccess<>(ob, property);
+    }
+
+    public static SimpleDataSyncPersist ofSyncPersist(UnsafeRunnable run) {
+        return new SimpleDataSyncPersist(ofReadIgnore(c -> run.run()));
+    }
+
+    public static SimpleDataSyncDisplay ofSyncDisplay(UnsafeRunnable run) {
+        return new SimpleDataSyncDisplay(ofReadIgnore(c -> run.run()));
+    }
+
+    public static <T> SimpleDataSyncPersist<T> ofSimplePersistSync(ValueProxy<T> proxy) {
+        return new SimpleDataSyncPersist(proxy);
+    }
+
+    public static <T> SimpleDataSyncPersist<T> ofSimplePersistSync(UnsafeRunnable read, UnsafeRunnable write) {
+        return new SimpleDataSyncPersist(new ValueProxy<T>() {
+            @Override
+            public T get() {
+                read.run();
+                return null;
+            }
+
+            @Override
+            public void set(T v) {
+                write.run();
+            }
+        });
+    }
+
+    public static <T> SimpleDataSyncDisplay<T> ofSimpleDisplaySync(ValueProxy<T> proxy) {
+        return new SimpleDataSyncDisplay(proxy);
+    }
+
+    public static <T> SimpleDataSyncDisplay<T> ofSimpleDisplaySync(UnsafeRunnable read, UnsafeRunnable write) {
+        return new SimpleDataSyncDisplay(new ValueProxy<T>() {
+            @Override
+            public T get() {
+                read.run();
+                return null;
+            }
+
+            @Override
+            public void set(T v) {
+                write.run();
+            }
+        });
     }
 }
