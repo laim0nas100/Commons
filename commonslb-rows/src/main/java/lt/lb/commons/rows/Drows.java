@@ -103,6 +103,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
             return rows;
         });
         visibleRowsOrder = nestedRowsInOrder.map(list -> {
+            System.out.println("Update visible at" + getComposableKey());
             Map<String, Integer> map = new HashMap<>();
             int index = 0;
             for (R row : list) {
@@ -319,7 +320,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     }
 
     public void renderEverything() {
-        this.update(BasicUpdates.UPDATES_ON_RENDER);
+        doInOrderNested(r -> r.render());
     }
 
     public void invalidateRows() {
