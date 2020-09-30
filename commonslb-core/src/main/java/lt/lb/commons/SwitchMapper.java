@@ -1,6 +1,7 @@
 package lt.lb.commons;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,5 +77,22 @@ public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
 
     public List<T> mappedKeys() {
         return mapping.keySet().stream().collect(Collectors.toList());
+    }
+
+    public static class SimpleSwitchMapper<T, V> extends SwitchMapper<T, V, SimpleSwitchMapper<T, V>> {
+
+        public SimpleSwitchMapper(){
+            this(new HashMap<>());
+        }
+        
+        public SimpleSwitchMapper(Map<T, Supplier<V>> mapping) {
+            super(mapping);
+        }
+
+        @Override
+        public SimpleSwitchMapper<T, V> me() {
+            return this;
+        }
+
     }
 }
