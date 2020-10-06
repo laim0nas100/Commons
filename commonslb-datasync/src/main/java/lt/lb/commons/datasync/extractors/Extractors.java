@@ -67,6 +67,10 @@ public abstract class Extractors {
         return ofReadConstant(null, cons);
     }
 
+    public static <T> ValueProxy ofConstant(T constant) {
+        return ofWriteIgnore(() -> constant);
+    }
+
     public static <T> ValueProxy<T> ofWriteIgnore(Supplier<? extends T> supl) {
         return new ValueProxy<T>() {
             @Override
