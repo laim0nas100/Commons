@@ -64,7 +64,7 @@ public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
     public M withDefaultCase(V val) {
         return withDefaultCase(() -> val);
     }
-
+    
     public List<V> mappedValues(boolean includeDefault) {
         ArrayList<V> list = new ArrayList<>();
         this.mapping.values().forEach(supl -> {
