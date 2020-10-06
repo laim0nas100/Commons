@@ -1,4 +1,4 @@
-package lt.lb.commons;
+package lt.lb.commons.switchmap;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
