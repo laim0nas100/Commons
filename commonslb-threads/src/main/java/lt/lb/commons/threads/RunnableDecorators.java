@@ -3,12 +3,10 @@ package lt.lb.commons.threads;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lt.lb.commons.F;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -25,7 +23,7 @@ public class RunnableDecorators {
      * @param run
      * @return
      */
-    public static UnsafeRunnable withTimeout(WaitTime time, Runnable run) {
+    public static UnsafeRunnable withTimeout(WaitTime time, Runnable run, Runnable onInterrupt) {
         return () -> {
             ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
             Thread toCancel = Thread.currentThread();
@@ -33,9 +31,9 @@ public class RunnableDecorators {
             Runnable interrupter = () -> {
                 if (!isDone.get()) {
                     toCancel.interrupt();
-                }else{
-                    service.shutdown();
+                    F.checkedRun(onInterrupt);
                 }
+                service.shutdown();
             };
             service.schedule(interrupter, time.time, time.unit);
             Optional<Throwable> checkedRun = F.checkedRun(run);
@@ -48,7 +46,7 @@ public class RunnableDecorators {
         };
 
     }
-    
+
     /**
      *
      * Decorates Runnable to be interrupted after a set amount of time. If given
@@ -61,8 +59,8 @@ public class RunnableDecorators {
      * @param run
      * @return
      */
-    public static UnsafeRunnable withTimeoutRepeat(WaitTime time, Integer repeatTimeIfTimeout, Runnable run) {
-        return withTimeoutRepeat(time, false, repeatTimeIfTimeout, run);
+    public static UnsafeRunnable withTimeoutRepeat(WaitTime time, Integer repeatTimeIfTimeout, Runnable run, Runnable onInterrupt) {
+        return withTimeoutRepeat(time, false, repeatTimeIfTimeout, run, onInterrupt);
     }
 
     /**
@@ -75,11 +73,11 @@ public class RunnableDecorators {
      * @param run
      * @return
      */
-    public static UnsafeRunnable withTimeoutRepeatUntilDone(WaitTime time, Runnable run) {
-        return withTimeoutRepeat(time, true, Integer.MAX_VALUE, run);
+    public static UnsafeRunnable withTimeoutRepeatUntilDone(WaitTime time, Runnable run, Runnable onInterrupt) {
+        return withTimeoutRepeat(time, true, Integer.MAX_VALUE, run, onInterrupt);
     }
 
-    private static UnsafeRunnable withTimeoutRepeat(WaitTime time, boolean always, Integer repeatTimeIfTimeout, Runnable run) {
+    private static UnsafeRunnable withTimeoutRepeat(WaitTime time, boolean always, Integer repeatTimeIfTimeout, Runnable run, Runnable onInterrupt) {
         return () -> {
             Integer repeat = repeatTimeIfTimeout;
             ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
@@ -90,6 +88,7 @@ public class RunnableDecorators {
                 if (!isDone.get()) {
                     interruptReached.set(true);
                     toCancel.interrupt();
+                    F.checkedRun(onInterrupt);
                 }
             };
             while ((always || repeat > 0) && !isDone.get()) {
