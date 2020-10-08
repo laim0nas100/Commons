@@ -48,6 +48,19 @@ public class RunnableDecorators {
     }
 
     /**
+     * Same as {@link withTimeout} with no onInterrupt action
+     *
+     * @param time
+     * @param repeatTimeIfTimeout
+     * @param run
+     * @return
+     */
+    public static UnsafeRunnable withTimeout(WaitTime time, Runnable run) {
+        return withTimeout(time, run, () -> {
+        });
+    }
+
+    /**
      *
      * Decorates Runnable to be interrupted after a set amount of time. If given
      * runnable ignores interrupts, then we can't do anything. Runnable then
@@ -57,10 +70,24 @@ public class RunnableDecorators {
      * @param time
      * @param repeatTimeIfTimeout repeat limit
      * @param run
+     * @param onInterrupt
      * @return
      */
     public static UnsafeRunnable withTimeoutRepeat(WaitTime time, Integer repeatTimeIfTimeout, Runnable run, Runnable onInterrupt) {
         return withTimeoutRepeat(time, false, repeatTimeIfTimeout, run, onInterrupt);
+    }
+
+    /**
+     * Same as {@link withTimeoutRepeat} with no onInterrupt action
+     *
+     * @param time
+     * @param repeatTimeIfTimeout
+     * @param run
+     * @return
+     */
+    public static UnsafeRunnable withTimeoutRepeat(WaitTime time, Integer repeatTimeIfTimeout, Runnable run) {
+        return withTimeoutRepeat(time, repeatTimeIfTimeout, run, () -> {
+        });
     }
 
     /**
@@ -71,10 +98,24 @@ public class RunnableDecorators {
      *
      * @param time
      * @param run
+     * @param onInterrupt
      * @return
      */
     public static UnsafeRunnable withTimeoutRepeatUntilDone(WaitTime time, Runnable run, Runnable onInterrupt) {
         return withTimeoutRepeat(time, true, Integer.MAX_VALUE, run, onInterrupt);
+    }
+
+    /**
+     * Same as {@link withTimeoutRepeatUntilDone} with no onInterrupt action
+     *
+     * @param time
+     * @param repeatTimeIfTimeout
+     * @param run
+     * @return
+     */
+    public static UnsafeRunnable withTimeoutRepeatUntilDone(WaitTime time, Runnable run) {
+        return withTimeoutRepeatUntilDone(time, run, () -> {
+        });
     }
 
     private static UnsafeRunnable withTimeoutRepeat(WaitTime time, boolean always, Integer repeatTimeIfTimeout, Runnable run, Runnable onInterrupt) {
