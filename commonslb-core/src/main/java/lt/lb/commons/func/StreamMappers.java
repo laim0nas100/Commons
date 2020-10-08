@@ -152,6 +152,19 @@ public abstract class StreamMappers {
         Objects.requireNonNull(it, "Iterable is null");
         return st -> st.then(s -> Stream.concat(s, StreamMapper.fromIterable(it)));
     }
+    
+    /**
+     * Applies concat functor with given stream appending the stream
+     *
+     * @param <T>
+     * @param <Z>
+     * @param stream 
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> concat(Stream<Z> stream) {
+        Objects.requireNonNull(stream, "Iterable is null");
+        return st -> st.then(s -> Stream.concat(s, stream));
+    }
 
     /**
      * Applies concat functor with given iterable prepending the stream
@@ -164,6 +177,19 @@ public abstract class StreamMappers {
     public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> concatFirst(Iterable<Z> it) {
         Objects.requireNonNull(it, "Iterable is null");
         return st -> st.then(s -> Stream.concat(StreamMapper.fromIterable(it), s));
+    }
+    
+    /**
+     * Applies concat functor with given stream prepending the stream
+     *
+     * @param <T>
+     * @param <Z>
+     * @param stream 
+     * @return
+     */
+    public static <T, Z> Function<StreamMapper<T, Z>, StreamMapper<T, Z>> concatFirst(Stream<Z> stream) {
+        Objects.requireNonNull(stream, "Iterable is null");
+        return st -> st.then(s -> Stream.concat(stream,s));
     }
 
     /**
