@@ -87,6 +87,28 @@ public abstract class ExplicitDataSync<P, M, D, V extends Valid<M>> extends Base
     }
 
     @Override
+    public Consumer<? super P> getPersistSync() {
+        return this.persist.getPersistSync();
+    }
+
+    @Override
+    public Supplier<? extends P> getPersistSup() {
+        return this.persist.getPersistSup();
+    }
+
+    @Override
+    public Consumer<? super D> getDisplaySync() {
+        return this.display.getDisplaySync();
+    }
+
+    @Override
+    public Supplier<? extends D> getDisplaySup() {
+        return this.display.getDisplaySup();
+    }
+    
+    
+
+    @Override
     public void setManaged(M managed) {
         this.managed = managed;
     }

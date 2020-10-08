@@ -16,13 +16,16 @@ public interface DataSyncPersist<P, M> extends SyncManaged<M>, SyncPersist {
      * @param persSync
      */
     public void withPersistSync(Consumer<? super P> persSync);
-
+    
+    public Consumer<? super P> getPersistSync();
     /**
      * A gateway to extract data from persistence layer
      *
      * @param persistSup
      */
     public void withPersistSup(Supplier<? extends P> persistSup);
+    
+    public Supplier<? extends P> getPersistSup();
 
     /**
      * Adapter to convert data from persistence layer to managed

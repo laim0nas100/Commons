@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.values.SetOnce;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.DataSyncDisplay;
@@ -23,10 +22,10 @@ public abstract class ExplicitDataSyncDisplay <D,M> implements DataSyncDisplay<D
     }
 
     
-    protected SetOnce<Supplier<? extends D>> displaySupp = new SetOnce<>();
-    protected SetOnce<Consumer<? super D>> displaySync = new SetOnce<>();
-    protected SetOnce<Function<? super D, ? extends M>> displayGet = new SetOnce<>();
-    protected SetOnce<Function<? super M, ? extends D>> displaySet = new SetOnce<>();
+    protected Value<Supplier<? extends D>> displaySupp = new Value<>();
+    protected Value<Consumer<? super D>> displaySync = new Value<>();
+    protected Value<Function<? super D, ? extends M>> displayGet = new Value<>();
+    protected Value<Function<? super M, ? extends D>> displaySet = new Value<>();
 
     
     @Override
@@ -38,6 +37,16 @@ public abstract class ExplicitDataSyncDisplay <D,M> implements DataSyncDisplay<D
     public void withDisplayProxy(ValueProxy<D> proxy) {
         this.displaySupp.set(proxy);
         this.displaySync.set(proxy);
+    }
+
+    @Override
+    public Consumer<? super D> getDisplaySync() {
+        return this.displaySync.get();
+    }
+
+    @Override
+    public Supplier<? extends D> getDisplaySup() {
+        return this.displaySupp.get();
     }
 
     
