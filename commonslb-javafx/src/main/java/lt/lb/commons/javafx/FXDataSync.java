@@ -4,7 +4,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.extractors.Extractors;
-import lt.lb.commons.func.Converter;
+import lt.lb.commons.func.BiConverter;
 
 /**
  *
@@ -12,7 +12,7 @@ import lt.lb.commons.func.Converter;
  */
 public class FXDataSync extends Extractors {
 
-    public static class ProxyPropertyConverter<T> implements Converter<ValueProxy<T>, Property<T>> {
+    public static class ProxyPropertyConverter<T> implements BiConverter<ValueProxy<T>, Property<T>> {
 
         @Override
         public Property<T> getFrom(ValueProxy<T> from) {

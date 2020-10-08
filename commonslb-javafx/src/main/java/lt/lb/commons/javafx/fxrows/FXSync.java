@@ -27,7 +27,7 @@ import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.NodeSync;
 import lt.lb.commons.datasync.extractors.Extractors;
-import lt.lb.commons.func.Converter;
+import lt.lb.commons.func.BiConverter;
 import lt.lb.commons.javafx.FXDefs;
 import lt.lb.commons.misc.ComparatorBuilder;
 import lt.lb.commons.parsing.StringOp;
@@ -66,7 +66,7 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
 
     }
 
-    public static <T> TextFieldSync<T> ofTextFieldFormatted(ValueProxy<T> persistProxy, TextField tf, Converter<String, T> conv) {
+    public static <T> TextFieldSync<T> ofTextFieldFormatted(ValueProxy<T> persistProxy, TextField tf, BiConverter<String, T> conv) {
         TextFieldSync<T> fxSync = new TextFieldSync<>(tf);
 
         fxSync.withIdentityPersist();
