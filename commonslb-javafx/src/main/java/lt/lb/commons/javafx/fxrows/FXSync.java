@@ -23,6 +23,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.util.StringConverter;
 import lt.lb.commons.F;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.NodeSync;
@@ -71,7 +72,9 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
 
         fxSync.withIdentityPersist();
         fxSync.withDisplayGet(conv::getFrom);
-        fxSync.withDisplaySet(conv::getBackFrom);
+        fxSync.withDisplaySet(t -> {
+            return SafeOpt.ofNullable(t).map(conv::getBackFrom).orElse(null);
+        });
         fxSync.withDisplayProxy(Extractors.quickProxy(tf::getText, tf::setText));
         fxSync.withPersistProxy(persistProxy);
 

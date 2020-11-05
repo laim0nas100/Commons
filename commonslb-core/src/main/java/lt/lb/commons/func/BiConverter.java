@@ -1,50 +1,51 @@
 package lt.lb.commons.func;
 
+import java.util.Objects;
 import java.util.function.Function;
-import lt.lb.commons.parsing.NumberParsing;
 
 /**
  *
  * @author laim0nas100
  */
-public interface BiConverter<From, To> extends Function<From,To> {
+public interface BiConverter<A, B> extends Function<A,B> {
 
-    public To getFrom(From from);
+    public B getFrom(A from);
 
-    public From getBackFrom(To to);
+    public A getBackFrom(B to);
 
     @Override
-    public default To apply(From t) {
+    public default B apply(A t) {
         return getFrom(t);
     }
 
-    public default BiConverter<To, From> reverse() {
-        BiConverter<From, To> me = this;
-        return new BiConverter<To, From>() {
+    public default BiConverter<B, A> reverse() {
+        BiConverter<A, B> me = this;
+        return new BiConverter<B, A>() {
             @Override
-            public From getFrom(To from) {
+            public A getFrom(B from) {
                 return me.getBackFrom(from);
             }
 
             @Override
-            public To getBackFrom(From to) {
+            public B getBackFrom(A to) {
                 return me.getFrom(to);
             }
         };
     }
 
-    public default <T> BiConverter<From, T> map(BiConverter<To, T> conv) {
-        BiConverter<From, To> me = this;
-        return new BiConverter<From, T>() {
+    public default <T> BiConverter<A, T> map(BiConverter<B, T> conv) {
+        Objects.requireNonNull(conv);
+        BiConverter<A, B> me = this;
+        return new BiConverter<A, T>() {
             @Override
-            public T getFrom(From from) {
-                To to = me.getFrom(from);
+            public T getFrom(A from) {
+                B to = me.getFrom(from);
                 return conv.getFrom(to);
             }
 
             @Override
-            public From getBackFrom(T to) {
-                To backFrom = conv.getBackFrom(to);
+            public A getBackFrom(T to) {
+                B backFrom = conv.getBackFrom(to);
                 return me.getBackFrom(backFrom);
             }
         };
@@ -54,7 +55,7 @@ public interface BiConverter<From, To> extends Function<From,To> {
 
         @Override
         public Integer getFrom(String from) {
-            return NumberParsing.parseInt(from).orElse(null);
+            return Integer.parseInt(from);
         }
 
         @Override
