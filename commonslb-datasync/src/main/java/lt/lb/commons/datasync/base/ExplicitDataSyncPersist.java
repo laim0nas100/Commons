@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.values.SetOnce;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.DataSyncPersist;
 
@@ -14,10 +14,10 @@ import lt.lb.commons.datasync.DataSyncPersist;
  */
 public abstract class ExplicitDataSyncPersist<P, M> implements DataSyncPersist<P, M> {
 
-    protected SetOnce<Supplier<? extends P>> persistenceSupp = new SetOnce<>();
-    protected SetOnce<Consumer<? super P>> persistenceSync = new SetOnce<>();
-    protected SetOnce<Function<? super P, ? extends M>> persistGet = new SetOnce<>();
-    protected SetOnce<Function<? super M, ? extends P>> persistSet = new SetOnce<>();
+    protected Value<Supplier<? extends P>> persistenceSupp = new Value<>();
+    protected Value<Consumer<? super P>> persistenceSync = new Value<>();
+    protected Value<Function<? super P, ? extends M>> persistGet = new Value<>();
+    protected Value<Function<? super M, ? extends P>> persistSet = new Value<>();
 
     public ExplicitDataSyncPersist(ValueProxy<P> persistSync) {
         withPersistProxy(persistSync);
@@ -26,6 +26,18 @@ public abstract class ExplicitDataSyncPersist<P, M> implements DataSyncPersist<P
     public ExplicitDataSyncPersist() {
     }
 
+    @Override
+    public Consumer<? super P> getPersistSync() {
+        return persistenceSync.get();
+    }
+
+    @Override
+    public Supplier<? extends P> getPersistSup() {
+        return persistenceSupp.get();
+    }
+
+    
+    
     @Override
     public void withPersistSync(Consumer<? super P> persSync) {
         this.persistenceSync.set(persSync);

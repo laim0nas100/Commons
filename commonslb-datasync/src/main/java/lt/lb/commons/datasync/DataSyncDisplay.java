@@ -17,12 +17,16 @@ public interface DataSyncDisplay<D, M> extends SyncManaged<M>, SyncDisplay {
      */
     public void withDisplaySync(Consumer<? super D> displaySync);
 
+    public Consumer<? super D> getDisplaySync();
+
     /**
      * A gateway to extract data from display layer
      *
      * @param displaySup
      */
     public void withDisplaySup(Supplier<? extends D> displaySup);
+
+    public Supplier<? extends D> getDisplaySup();
 
     /**
      * Adapter to convert data from display to managed

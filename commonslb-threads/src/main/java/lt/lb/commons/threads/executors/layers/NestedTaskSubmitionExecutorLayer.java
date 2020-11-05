@@ -5,8 +5,6 @@ import lt.lb.commons.F;
 
 /**
  *
- * 
- *
  * If you divide task into blocks, sometimes it happens that a block calls
  * another block, so instead of executing asynchronously, we just extend the
  * same call.

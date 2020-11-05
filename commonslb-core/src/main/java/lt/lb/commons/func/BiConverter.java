@@ -7,15 +7,20 @@ import lt.lb.commons.parsing.NumberParsing;
  *
  * @author laim0nas100
  */
-public interface Converter<From, To> {
+public interface BiConverter<From, To> extends Function<From,To> {
 
     public To getFrom(From from);
 
     public From getBackFrom(To to);
 
-    public default Converter<To, From> reverse() {
-        Converter<From, To> me = this;
-        return new Converter<To, From>() {
+    @Override
+    public default To apply(From t) {
+        return getFrom(t);
+    }
+
+    public default BiConverter<To, From> reverse() {
+        BiConverter<From, To> me = this;
+        return new BiConverter<To, From>() {
             @Override
             public From getFrom(To from) {
                 return me.getBackFrom(from);
@@ -28,9 +33,9 @@ public interface Converter<From, To> {
         };
     }
 
-    public default <T> Converter<From, T> map(Converter<To, T> conv) {
-        Converter<From, To> me = this;
-        return new Converter<From, T>() {
+    public default <T> BiConverter<From, T> map(BiConverter<To, T> conv) {
+        BiConverter<From, To> me = this;
+        return new BiConverter<From, T>() {
             @Override
             public T getFrom(From from) {
                 To to = me.getFrom(from);
@@ -45,7 +50,7 @@ public interface Converter<From, To> {
         };
     }
 
-    public static class StringIntegerConverter implements Converter<String, Integer> {
+    public static class StringIntegerConverter implements BiConverter<String, Integer> {
 
         @Override
         public Integer getFrom(String from) {
@@ -59,8 +64,8 @@ public interface Converter<From, To> {
 
     }
 
-    public static <T> Converter<T, T> identity() {
-        return new Converter<T, T>() {
+    public static <T> BiConverter<T, T> identity() {
+        return new BiConverter<T, T>() {
             @Override
             public T getFrom(T from) {
                 return from;

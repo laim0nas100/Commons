@@ -1,6 +1,5 @@
 package lt.lb.commons.datasync.base;
 
-import lt.lb.commons.datasync.base.BaseValid;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;

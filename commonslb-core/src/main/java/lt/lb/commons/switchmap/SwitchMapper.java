@@ -1,4 +1,4 @@
-package lt.lb.commons;
+package lt.lb.commons.switchmap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +8,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import lt.lb.commons.F;
+import lt.lb.commons.SafeOpt;
 
 /**
  *
@@ -46,6 +48,20 @@ public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
     public M with(T e, V val) {
         return with(e, () -> val);
     }
+    
+    public M withMultipleKeys(V val, T... keys){
+        for(T key:keys){
+            with(key, val);
+        }
+        return me();
+    }
+    
+    public M withMultipleKeys(Supplier<V> val, T... keys){
+        for(T key:keys){
+            with(key, val);
+        }
+        return me();
+    }
 
     public M with(T e, Supplier<V> val) {
         M me = me();
@@ -62,7 +78,7 @@ public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
     public M withDefaultCase(V val) {
         return withDefaultCase(() -> val);
     }
-
+    
     public List<V> mappedValues(boolean includeDefault) {
         ArrayList<V> list = new ArrayList<>();
         this.mapping.values().forEach(supl -> {
