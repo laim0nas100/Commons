@@ -31,8 +31,6 @@ import lt.lb.commons.misc.Range;
 import lt.lb.commons.parsing.NumberParsing;
 import lt.lb.commons.javafx.fxrows.FXDrows;
 import lt.lb.commons.javafx.fxrows.FXDrowsConf;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 /**
  *
@@ -102,8 +100,6 @@ public abstract class FXDefs {
         }
     }
 
-    public static Logger log = LogManager.getLogger(FXDefs.class);
-
     public static void applyOnFocusChange(TextField tf, Consumer<TextField> consumer) {
         BooleanValue hasChanges = BooleanValue.FALSE();
         tf.textProperty().addListener((FXDefs.SimpleChangeListener<String>) s -> {
@@ -160,7 +156,7 @@ public abstract class FXDefs {
         protected void updateItem(P item, boolean empty) {
             F.checkedRun(() -> {
                 if (decorator == null) {
-                    log.error("null decorator");
+                    return;
                 }
                 super.updateItem(item, empty);
                 decorator.apply(this, item, empty);
