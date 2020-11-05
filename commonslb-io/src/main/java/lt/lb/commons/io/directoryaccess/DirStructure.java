@@ -91,10 +91,10 @@ public class DirStructure {
                 }
                 if (Files.isDirectory(path)) {
                     Dir newDir = populate(path, Dir.class);
-                    map.put(newDir.getName(), newDir);
+                    map.put(key, newDir);
                 } else {
                     Fil newFil = populate(path, Fil.class);
-                    map.put(newFil.getName(), newFil);
+                    map.put(key, newFil);
                 }
             }
             
