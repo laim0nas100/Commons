@@ -1,5 +1,14 @@
 package lt.lb.commons.io.directoryaccess;
 
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import lt.lb.commons.F;
+import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.iteration.ReadOnlyIterator;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  *
@@ -13,8 +22,34 @@ public class Dir extends Fil {
         return files;
     }
 
-    public Dir(String absolutePath) {
+    public static <T extends Fil> T establishDirectory(String absolutePath, Class<T> cls) {
+        return F.unsafeCall(() -> Fil.create(Paths.get(absolutePath), cls));
+    }
+
+    public Dir(String absolutePath) throws Exception {
         super(absolutePath);
+        Files.createDirectories(getPath());
+
+        DirectoryStream<Path> dirStream = Files.newDirectoryStream(getPath());
+        ArrayList<Path> paths = ReadOnlyIterator.of(dirStream.iterator())
+                .withEnsuredCloseOperation((UnsafeRunnable) () -> dirStream.close())
+                .toArrayList();
+
+        for (Path path : paths) {
+            String key = FilenameUtils.getName(path.toAbsolutePath().toString());
+            if (map.containsKey(key)) {
+                continue;
+            }
+            if (Files.isDirectory(path)) {
+                Dir newDir = create(path, Dir.class);
+                map.put(key, newDir);
+            } else {
+                Fil newFil = create(path, Fil.class);
+                map.put(key, newFil);
+            }
+        }
+
+        files = new ArrayList<>(map.values());
     }
 
 }
