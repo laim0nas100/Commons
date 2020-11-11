@@ -82,6 +82,7 @@ public interface PagedIteration<PageInfo, T> extends Iterable {
      * Construct iterator of items based on this paged access
      * @return 
      */
+    @Override
     public default Iterator<T> iterator() {
 
         return new Iterator<T>() {

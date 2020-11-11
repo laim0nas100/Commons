@@ -60,7 +60,6 @@ public interface PureDisplayValidation<M, V extends Valid<M>> {
      * Clear validation
      *
      * @param from
-     * @return
      */
     public void clearInvalidationDisplay(M from);
 }
