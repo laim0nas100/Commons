@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
  * @param <PageInfo> how to get next page and how to get items
  * @param <T> items
  */
-public interface PagedIteration<PageInfo, T> extends Iterable {
+public interface PagedIteration<PageInfo, T> extends Iterable<T> {
 
     /**
      * First page

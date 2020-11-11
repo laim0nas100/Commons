@@ -25,7 +25,7 @@ public class NestingIterationTest {
         F.unsafeRun(() -> {
             ArrayList<IterProvider<Integer>> list = new ArrayList<>();
             for (int i = 0; i < bound; i++) {
-                list.add(upTo(rng.nextInt(10)));
+                list.add(upTo(rng.nextInt(0, 7)));
             }
 
             Iterator<CastIndexedList<Integer>> iterator = NestingIteration.iterator(list, false);
@@ -36,10 +36,10 @@ public class NestingIterationTest {
         });
 
         F.unsafeRun(() -> {
-            ArrayList<ReadOnlyIterator<Integer>> list = new ArrayList<>();
-           
+            ArrayList<Iterator<Integer>> list = new ArrayList<>();
+
             for (int i = 0; i < bound; i++) {
-                list.add(upToIter(rng.nextInt(10)));
+                list.add(upToIter(rng.nextInt(0, 7)));
             }
             Iterator<CastIndexedList<Integer>> iterator = NestingIteration.lazyInitIterator(list, false);
             F.iterate(iterator, (i, c) -> {

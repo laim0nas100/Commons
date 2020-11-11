@@ -1,6 +1,5 @@
 package lt.lb.commons.iteration;
 
-import lt.lb.commons.containers.CastList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -9,7 +8,6 @@ import java.util.NoSuchElementException;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.EmptyImmutableList;
 import lt.lb.commons.containers.CastIndexedList;
-import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  *
@@ -57,7 +55,7 @@ public class NestingIteration<T> {
                         Collections.reverse(args);
                     }
                     onConsume();
-                    return new CastIndexedList<>(indexes,args);
+                    return new CastIndexedList<>(indexes, args);
                 } else {
                     throw new NoSuchElementException();
                 }
@@ -80,34 +78,45 @@ public class NestingIteration<T> {
         };
     }
 
-    public static <T> Iterator<CastIndexedList<T>> lazyInitIterator(List<ReadOnlyIterator<T>> list, boolean revPrint) {
+    public static class NestedListInfo<T> {
+
+        int listSize;
+        boolean listScanComplete;
+        List<T> completedList;
+        Iterator<T> iterator;
+    }
+
+    public static <T> Iterator<CastIndexedList<T>> lazyInitIterator(List<Iterator<T>> list, boolean revPrint) {
         final int size = list.size();
         boolean isEmpty = true;
-        final int[] listSize = new int[size];
+
+        final NestedListInfo<T>[] info = new NestedListInfo[size];
 
         final int[] listIndex = new int[size];
-        final ArrayList<ArrayList<T>> completedList = new ArrayList<>();
-        final boolean[] listScanComplete = new boolean[size]; //all false by default
 
         for (int i = 0; i < size; i++) {
 
-            if (list.get(i).hasNext()) {
+            NestedListInfo inf = new NestedListInfo();
+            info[i] = inf;
+            Iterator<T> iterator = list.get(i);
+            inf.iterator = iterator;
+            if (iterator.hasNext()) {
                 isEmpty = false;
-                listSize[i] = 1;
+                inf.listSize = 1;
+                inf.completedList = new ArrayList();
             } else {
-                listScanComplete[i] = true;
-                listSize[i] = 0;
+                inf.listScanComplete = true;
+                inf.listSize = 0;
+                inf.completedList = EmptyImmutableList.getInstance();
             }
-            completedList.add(new ArrayList<>());
 
             listIndex[i] = 0;
-
         }
 
         if (isEmpty) {
             return EmptyImmutableList.emptyIterator();
         }
-        
+
         return new Iterator<CastIndexedList<T>>() {
             boolean reachedEnd = false;
 
@@ -124,12 +133,12 @@ public class NestingIteration<T> {
                         //if can get from completed, do it, otherwise get from iterators
                         int localIndex = listIndex[i];
                         T item;
-                        ArrayList<T> completed = completedList.get(i);
+                        List<T> completed = info[i].completedList;
                         if (completed.size() > localIndex) {
                             item = completed.get(localIndex);
                         } else {
                             // this is ensured to have next
-                            item = list.get(i).next();
+                            item = info[i].iterator.next();
                             completed.add(item);
                         }
                         args.add(item);
@@ -140,7 +149,7 @@ public class NestingIteration<T> {
                         Collections.reverse(args);
                     }
                     onConsume();
-                    return new CastIndexedList<>(indexes,args);
+                    return new CastIndexedList<>(indexes, args);
                 } else {
                     throw new NoSuchElementException();
                 }
@@ -149,23 +158,23 @@ public class NestingIteration<T> {
             private void onConsume() {
                 boolean end = true;
                 for (int i = 0; i < size; i++) {
-
-                    if (listScanComplete[i]) {
+                    NestedListInfo<T> inf = info[i];
+                    if (inf.listScanComplete) {
                         continue;
                     }
-                    ArrayList<T> completed = completedList.get(i);
-                    ReadOnlyIterator<T> iterator = list.get(i);
+                    List<T> completed = inf.completedList;
                     int completedSize = completed.size();
-                    boolean hasNext = iterator.hasNext();
+                    boolean hasNext = inf.iterator.hasNext();
+
                     if (!hasNext) {
-                        listScanComplete[i] = true;
-                    } else if (listIndex[i] + 1 >= completedSize && listSize[i] == completedSize) {
-                        listSize[i]++;
+                        inf.listScanComplete = true;
+                    } else if (listIndex[i] + 1 >= completedSize && inf.listSize == completedSize) {
+                        inf.listSize++;
                     }
                 }
 
                 for (int i = 0; i < size; i++) {
-                    if (listIndex[i] + 1 < listSize[i]) {
+                    if (listIndex[i] + 1 < info[i].listSize) {
                         listIndex[i]++;
                         for (int j = 0; j < i; j++) {
                             listIndex[j] = 0;
@@ -178,45 +187,4 @@ public class NestingIteration<T> {
             }
         };
     }
-
-//    public void iterate(BiConsumer<int[], CastList<T>> cons) {
-//        int size = list.size();
-//        int[] listSize = new int[size];
-//        int[] listIndex = new int[size];
-//        for (int i = 0; i < size; i++) {
-//            listSize[i] = list.get(i).size();
-//            listIndex[i] = 0;
-//        }
-//
-//        while (true) {
-//            List<T> args = new ArrayList<>(size);
-//            for (int i = 0; i < size; i++) {
-//                T item = list.get(i).get(listIndex[i]);
-//                args.add(item);
-//            }
-//            int[] indexes = listIndex;
-//            if (this.printReverse) {
-//                indexes = ArrayOp.clone(listIndex);
-//                ArrayOp.reverse(indexes);
-//                Collections.reverse(args);
-//            }
-//            cons.accept(indexes, new CastList<>(args));
-//            boolean end = true;
-//            for (int i = 0; i < size; i++) {
-//                if (listIndex[i] + 1 < listSize[i]) {
-//                    listIndex[i]++;
-//                    for (int j = 0; j < i; j++) {
-//                        listIndex[j] = 0;
-//                    }
-//                    end = false;
-//                    break;
-//                }
-//            }
-//            if (end) {
-//                return;
-//            }
-//
-//        }
-//        // else
-//    }
 }
