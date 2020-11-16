@@ -1,11 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package regression.datasync;
 
-import lt.lb.commons.Log;
 import lt.lb.commons.datasync.extractors.Extractors;
 import lt.lb.commons.datasync.extractors.Extractors.BasicBeanPropertyAccess;
 import org.junit.Test;
@@ -61,8 +55,6 @@ public class PropertyAccessTest {
         s.ok = true;
         s.myName = "SOME NAME";
         s.CapName ="CAP NAME";
-        Log.main().async = false;
-        Log.print(s);
         
         BasicBeanPropertyAccess<SimpleClass,Boolean> propBoolean = new Extractors.BasicBeanPropertyAccess<>(s,"ok");
         

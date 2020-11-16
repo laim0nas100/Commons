@@ -46,8 +46,14 @@ public class NestingIteration<T> {
                 if (hasNext()) {
                     List<T> args = new ArrayList<>(size);
                     for (int i = 0; i < size; i++) {
-                        T item = list.get(i).get(listIndex[i]);
-                        args.add(item);
+                        IterProvider<T> prov = list.get(i);
+                        int li = listIndex[i];
+                        if (prov.size() > li) {
+                            args.add(prov.get(li));
+                        } else {
+                            args.add(null);
+                        }
+
                     }
                     int[] indexes = ArrayOp.clone(listIndex);
                     if (revPrint) {
@@ -133,13 +139,15 @@ public class NestingIteration<T> {
                         //if can get from completed, do it, otherwise get from iterators
                         int localIndex = listIndex[i];
                         T item;
-                        List<T> completed = info[i].completedList;
-                        if (completed.size() > localIndex) {
-                            item = completed.get(localIndex);
-                        } else {
+                        NestedListInfo<T> inf = info[i];
+                        if (inf.completedList.size() > localIndex) {
+                            item = inf.completedList.get(localIndex);
+                        } else if (inf.iterator.hasNext()) {
                             // this is ensured to have next
-                            item = info[i].iterator.next();
-                            completed.add(item);
+                            item = inf.iterator.next();
+                            inf.completedList.add(item);
+                        } else {
+                            item = null;
                         }
                         args.add(item);
                     }

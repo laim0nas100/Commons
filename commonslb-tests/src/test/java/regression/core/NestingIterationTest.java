@@ -2,6 +2,7 @@ package regression.core;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.CastIndexedList;
@@ -21,35 +22,44 @@ public class NestingIterationTest {
     @Test
     public void test() {
         RandomDistribution rng = RandomDistribution.uniform(new Random());
-        Integer bound = 5;
+        Integer bound = 10;
         F.unsafeRun(() -> {
+            int[] sizes = new int[bound];
             ArrayList<IterProvider<Integer>> list = new ArrayList<>();
             for (int i = 0; i < bound; i++) {
-                list.add(upTo(rng.nextInt(0, 7)));
+                sizes[i] = rng.nextInt(0, 7);
+                list.add(upTo(sizes[i]));
             }
 
             Iterator<CastIndexedList<Integer>> iterator = NestingIteration.iterator(list, false);
             F.iterate(iterator, (i, c) -> {
-                assertCast(c);
+                assertCast(sizes, c);
             });
 
         });
 
         F.unsafeRun(() -> {
             ArrayList<Iterator<Integer>> list = new ArrayList<>();
-
+            int[] sizes = new int[bound];
             for (int i = 0; i < bound; i++) {
-                list.add(upToIter(rng.nextInt(0, 7)));
+                sizes[i] = rng.nextInt(0, 7);
+                list.add(upToIter(sizes[i]));
             }
             Iterator<CastIndexedList<Integer>> iterator = NestingIteration.lazyInitIterator(list, false);
             F.iterate(iterator, (i, c) -> {
-                assertCast(c);
+                assertCast(sizes, c);
             });
         });
     }
 
-    public void assertCast(CastIndexedList<Integer> c) {
-        assertThat(c.asList()).isEqualTo(c.asIndexList());
+    public void assertCast(int[] sizes, CastIndexedList<Integer> c) {
+        List<Integer> indexList = c.asIndexList();
+        for (int i = 0; i < sizes.length; i++) {
+            if (sizes[i] == 0) {
+                indexList.set(i, null);
+            }
+        }
+        assertThat(c.asList()).isEqualTo(indexList);
     }
 
     public static IterProvider<Integer> upTo(int upTo) {
