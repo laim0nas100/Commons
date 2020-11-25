@@ -11,7 +11,7 @@ import java.util.Optional;
 import lt.lb.commons.F;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.Equator;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 

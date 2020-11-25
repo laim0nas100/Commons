@@ -16,7 +16,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.caller.Caller;
 import lt.lb.commons.caller.CallerBuilder;
 import lt.lb.commons.caller.SharedCallerBuilder;
-import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.misc.rng.RandomDistribution;
 

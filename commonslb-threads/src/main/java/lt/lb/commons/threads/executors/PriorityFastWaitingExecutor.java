@@ -1,10 +1,9 @@
 package lt.lb.commons.threads.executors;
 
+import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
-import lt.lb.commons.misc.Timer;
-import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -15,7 +14,7 @@ import lt.lb.commons.threads.sync.WaitTime;
  */
 public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
 
-    private ExtComparator<Runnable> priorityComparator = (Runnable r1, Runnable r2) -> {
+    private Comparator<Runnable> priorityComparator = (Runnable r1, Runnable r2) -> {
         if (r1 instanceof PriorityRunnable) {
             PriorityRunnable p1 = F.cast(r1);
             if (r2 instanceof PriorityRunnable) {

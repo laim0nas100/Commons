@@ -17,7 +17,7 @@ import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.rng.FastRandom;
 import org.junit.Test;
 

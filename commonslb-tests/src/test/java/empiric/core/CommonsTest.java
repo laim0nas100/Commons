@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import lt.lb.commons.misc.ArrayBasedCounter;
 import lt.lb.commons.Log;
 import lt.lb.commons.io.TextFileIO;
-import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.collections.CollectionOp;
@@ -30,7 +30,7 @@ import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.Memoized;
 import lt.lb.commons.io.CommentParser;
 import lt.lb.commons.threads.executors.FastExecutor;
@@ -107,7 +107,7 @@ public class CommonsTest {
         Log.print("Left after filter", collection);
         List<Integer> filterDistinct = StreamDecorator.of(Integer.class)
                 .parallel()
-                .apply(StreamMappers.distinct(Equator.primitiveHashEquator()))
+                .apply(StreamMappers.distinct(Equator.simpleHashEquator()))
                 .collectToList()
                 .startingWithOpt(collection);
 

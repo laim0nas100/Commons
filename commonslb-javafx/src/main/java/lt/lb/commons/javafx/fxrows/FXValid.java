@@ -13,7 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.datasync.base.NodeValid;
-import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.Equator;
 import lt.lb.commons.parsing.StringOp;
 
 /**

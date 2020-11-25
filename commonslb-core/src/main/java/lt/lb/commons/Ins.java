@@ -1,8 +1,7 @@
 package lt.lb.commons;
 
+import java.util.Comparator;
 import java.util.Objects;
-import lt.lb.commons.misc.ExtComparable;
-import lt.lb.commons.misc.ExtComparator;
 
 /**
  *
@@ -12,7 +11,7 @@ import lt.lb.commons.misc.ExtComparator;
  */
 public class Ins<T> {
 
-    public static class InsCl<T> extends Ins<T> implements ExtComparable<Class> {
+    public static class InsCl<T> extends Ins<T> implements Comparable<Class> {
 
         protected InsCl(boolean primitivePromotion, Class<T> cl, T ob) {
             super(primitivePromotion, cl, ob);
@@ -25,11 +24,6 @@ public class Ins<T> {
         @Override
         public int compareTo(Class o) {
             return Ins.typeComparator.compare(clazz, o);
-        }
-
-        @Override
-        public Class get() {
-            return clazz;
         }
 
         /**
@@ -549,7 +543,7 @@ public class Ins<T> {
      * Comparator of types. Broader types (like {@code Object}) come first. Null
      * parameters comes first.
      */
-    public static final ExtComparator<Class> typeComparator = new ExtComparator<Class>() {
+    public static final Comparator<Class> typeComparator = new Comparator<Class>() {
         @Override
         public int compare(Class o1, Class o2) {
             if (o1 == null && o2 == null) {

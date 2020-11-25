@@ -30,7 +30,7 @@ import lt.lb.commons.datasync.base.NodeSync;
 import lt.lb.commons.datasync.extractors.Extractors;
 import lt.lb.commons.func.BiConverter;
 import lt.lb.commons.javafx.FXDefs;
-import lt.lb.commons.misc.ComparatorBuilder;
+import lt.lb.commons.misc.compare.ComparatorBuilder;
 import lt.lb.commons.parsing.StringOp;
 import org.apache.commons.text.similarity.FuzzyScore;
 

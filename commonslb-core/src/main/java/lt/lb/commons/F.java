@@ -2,18 +2,10 @@ package lt.lb.commons;
 
 import java.io.Closeable;
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.containers.tuples.Pair;
-import lt.lb.commons.containers.tuples.PairLeft;
-import lt.lb.commons.containers.tuples.PairRight;
-import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.func.unchecked.UnsafeSupplier;

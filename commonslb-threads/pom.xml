@@ -18,7 +18,10 @@
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-iteration</artifactId>
-            <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-misc</artifactId>
+        </dependency>  
     </dependencies>
 </project>

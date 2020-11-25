@@ -37,7 +37,7 @@ import lt.lb.commons.email.props.IMAPEmailProps;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.executors.TaskBatcher;

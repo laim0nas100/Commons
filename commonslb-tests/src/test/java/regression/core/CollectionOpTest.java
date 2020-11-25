@@ -24,9 +24,9 @@ import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMapperEnder;
 import lt.lb.commons.iteration.streams.StreamMappers;
-import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.Equator;
 import lt.lb.commons.iteration.Iter;
-import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.util.Lists;
@@ -131,7 +131,7 @@ public class CollectionOpTest {
             toFindNoBackwards(toFind, array);
         }
         Integer[] distinctArray = StreamDecorator.of(Integer.class)
-                .apply(StreamMappers.distinct(Equator.primitiveEquator()))
+                .apply(StreamMappers.distinct(Equator.simpleEquator()))
                 .toArray(s -> new Integer[s])
                 .startingWith(array);
         for (Integer toFind : distinctArray) {
@@ -147,10 +147,10 @@ public class CollectionOpTest {
         Equator<Integer> mod3 = (a, b) -> a % 3 == b % 3;
 
         Log.println("Disjunction");
-        Log.printLines(CollectionOp.disjointPairs(list1, list2, Equator.primitiveHashEquator()));
+        Log.printLines(CollectionOp.disjointPairs(list1, list2, Equator.simpleHashEquator()));
 
         Log.println("Intersection");
-        Log.printLines(CollectionOp.intersectionPairs(list1, list2, Equator.primitiveHashEquator()));
+        Log.printLines(CollectionOp.intersectionPairs(list1, list2, Equator.simpleHashEquator()));
 
         Log.println("Disjunction");
         Log.printLines(CollectionOp.disjointPairs(list1, list2, mod3));
@@ -172,12 +172,12 @@ public class CollectionOpTest {
         StreamMapperEnder<Pair<Integer>, Integer, List<Integer>> left = new StreamDecorator<Pair<Integer>>().filter(m -> m.g1 != null).map(m -> m.g1).collectToList();
         StreamMapperEnder<Pair<Integer>, Integer, List<Integer>> right = new StreamDecorator<Pair<Integer>>().filter(m -> m.g2 != null).map(m -> m.g2).collectToList();
 
-        ArrayList<Pair<Integer>> disjointPairs1 = CollectionOp.disjointPairs(list1, list2, Equator.primitiveHashEquator());
+        ArrayList<Pair<Integer>> disjointPairs1 = CollectionOp.disjointPairs(list1, list2, Equator.simpleHashEquator());
 
         assertThat(Lists.newArrayList(3)).containsOnlyElementsOf(left.startingWithOpt(disjointPairs1));
         assertThat(Lists.newArrayList(2, 6, 10)).containsOnlyElementsOf(right.startingWithOpt(disjointPairs1));
 
-        ArrayList<Pair<Integer>> intersectionPairs1 = CollectionOp.intersectionPairs(list1, list2, Equator.primitiveHashEquator());
+        ArrayList<Pair<Integer>> intersectionPairs1 = CollectionOp.intersectionPairs(list1, list2, Equator.simpleHashEquator());
 
         assertThat(Lists.newArrayList(1, 5, 7, 8, 9)).containsExactlyElementsOf(left.startingWithOpt(intersectionPairs1));
         assertThat(Lists.newArrayList(1, 5, 9, 7, 8)).containsExactlyElementsOf(right.startingWithOpt(intersectionPairs1));

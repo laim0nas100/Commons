@@ -1,8 +1,7 @@
-package lt.lb.commons.interfaces;
+package lt.lb.commons;
 
 import java.util.Objects;
 import java.util.function.Function;
-import lt.lb.commons.ArrayOp;
 
 /**
  * redefine objects "equals" and "hashCode" methods, to change what it means to
@@ -176,7 +175,7 @@ public interface Equator<T> {
      *
      * @param <T>
      */
-    public static interface PrimitiveEquator<T> extends Equator<T> {
+    public static interface SimpleEquator<T> extends Equator<T> {
 
         @Override
         public default boolean equals(T value1, T value2) {
@@ -190,7 +189,7 @@ public interface Equator<T> {
      *
      * @param <T>
      */
-    public static interface PrimitiveHashEquator<T> extends Equator<T> {
+    public static interface SimpleHashEquator<T> extends Equator<T> {
 
         @Override
         public default int hashCode(T val) {
@@ -238,8 +237,8 @@ public interface Equator<T> {
      * @param <T>
      * @return
      */
-    public static <T> Equator<T> primitiveHashEquator() {
-        return new PrimitiveHashEquator<T>() {
+    public static <T> Equator<T> simpleHashEquator() {
+        return new SimpleHashEquator<T>() {
         };
     }
 
@@ -249,8 +248,8 @@ public interface Equator<T> {
      * @param <T>
      * @return
      */
-    public static <T> Equator<T> primitiveEquator() {
-        return new PrimitiveEquator<T>() {
+    public static <T> Equator<T> simpleEquator() {
+        return new SimpleEquator<T>() {
         };
     }
 

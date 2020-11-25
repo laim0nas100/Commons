@@ -18,14 +18,19 @@
             <artifactId>commonslb-threads</artifactId>
         </dependency>
         <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-reflection</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-misc</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>2.13.3</version>
         </dependency>
-        <dependency>
-            <groupId>lt.lb.commons</groupId>
-            <artifactId>commonslb-reflection</artifactId>
-        </dependency>
+        
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

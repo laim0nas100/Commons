@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.Ins;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.Equator;
 
 /**
  * Collection of functors used for StreamMapper objects

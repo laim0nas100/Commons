@@ -18,7 +18,7 @@ import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.Iter;
-import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.compare.ExtComparator;
 
 /**
  *

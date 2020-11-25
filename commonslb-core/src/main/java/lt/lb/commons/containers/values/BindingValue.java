@@ -4,23 +4,23 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.NestedException;
-import lt.lb.commons.misc.UUIDgenerator;
 
 /**
  *
  * @author laim0nas100
  */
-public class BindingValue<T> extends Value<T>  {
+public class BindingValue<T> extends Value<T> {
 
     protected Map<String, BiConsumer<T, T>> listeners = new LinkedHashMap<>();
     public final String id = nextId();
 
-    private volatile AtomicBoolean inside = new AtomicBoolean(false);
+    private final AtomicBoolean inside = new AtomicBoolean(false);
 
     public BindingValue(T val) {
         super(val);
@@ -55,7 +55,7 @@ public class BindingValue<T> extends Value<T>  {
             return;
         }
         Optional<Throwable> checkedRun = F.checkedRun(() -> {
-            listeners.values().stream().forEachOrdered(listener ->{
+            listeners.values().stream().forEachOrdered(listener -> {
                 listener.accept(oldVal, newVal);
             });
         });
@@ -97,8 +97,8 @@ public class BindingValue<T> extends Value<T>  {
     public String addListener(Consumer<T> listener) {
         return this.addListener((ov, nv) -> listener.accept(nv));
     }
-    
-    public Optional<BiConsumer<T,T>> getListener(String id){
+
+    public Optional<BiConsumer<T, T>> getListener(String id) {
         return Optional.ofNullable(this.listeners.getOrDefault(id, null));
     }
 
@@ -116,8 +116,10 @@ public class BindingValue<T> extends Value<T>  {
         val2.unbind(val1.id);
     }
 
+    private static final AtomicLong idGen = new AtomicLong(0L);
+
     public static String nextId() {
-        return UUIDgenerator.nextUUID("BindingValue");
+        return "BindingValue-" + idGen.getAndIncrement();
     }
 
 }

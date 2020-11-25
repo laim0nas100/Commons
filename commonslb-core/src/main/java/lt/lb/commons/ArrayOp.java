@@ -3,11 +3,11 @@ package lt.lb.commons;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.misc.IntRange;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Extension of @{link org.apache.commons.lang3.ArrayUtils}
+ *
  * @author laim0nas100
  */
 public class ArrayOp extends ArrayUtils {
@@ -207,8 +207,8 @@ public class ArrayOp extends ArrayUtils {
      */
     public static <T> T[] newArray(Iterator<T> it, int size, Class<T> clz) {
         T[] array = makeArray(size, clz);
-        
-        for(int i = 0; i < size && it.hasNext(); i++){
+
+        for (int i = 0; i < size && it.hasNext(); i++) {
             array[i] = it.next();
         }
         return array;
@@ -287,9 +287,9 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static <T> T[] removeStrip(T[] array, Integer from, Integer to) {
-        IntRange.of(from, to)
-                .assertRangeIsValid()
-                .assertRangeIsValidIf((mi, mx) -> mi >= 0 && mx < array.length);
+        if (from > to || from < 0 || to >= array.length) {
+            throw new IllegalArgumentException("Arra ranges invalid [" + from + " ," + to + "] and size of:" + array.length);
+        }
         int strip = to - from;
         if (strip == 0) {
             return array;

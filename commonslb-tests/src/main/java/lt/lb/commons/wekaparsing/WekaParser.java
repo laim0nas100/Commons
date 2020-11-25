@@ -13,7 +13,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.iteration.Iter;
-import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.wekaparsing.WekaDefaultParsers.WekaTransformer;
 

@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import lt.lb.commons.iteration.Iter;
-import lt.lb.commons.misc.ExtComparator;
+import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.Interval;
 
 /**

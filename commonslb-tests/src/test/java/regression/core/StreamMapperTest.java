@@ -10,7 +10,7 @@ import lt.lb.commons.iteration.streams.StreamMapperEnder;
 import lt.lb.commons.iteration.streams.StreamMappers;
 import static lt.lb.commons.iteration.streams.StreamMappers.concat;
 import static lt.lb.commons.iteration.streams.StreamMappers.distinct;
-import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.Equator;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 

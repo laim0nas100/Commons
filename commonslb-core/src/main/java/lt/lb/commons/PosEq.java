@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import lt.lb.commons.interfaces.Equator;
 
 /**
  * Positional equals helper for quick parameter comparison
@@ -17,7 +16,7 @@ public class PosEq {
     public final Equator eq;
 
     private PosEq(Object[] objs) {
-        this(objs, Equator.primitiveHashEquator());
+        this(objs, Equator.simpleHashEquator());
     }
 
     public boolean isEmpty() {

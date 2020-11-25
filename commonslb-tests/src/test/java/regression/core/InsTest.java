@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 import lt.lb.commons.Ins;
+import lt.lb.commons.misc.compare.ExtComparable;
+import lt.lb.commons.misc.compare.ExtComparator;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 
@@ -33,13 +35,14 @@ public class InsTest {
         assert !numberIns.superClassOfAll("");
         assert !numberIns.superClassOfAny(null, null, null);
         
-        assert numberIns.greaterThan(Object.class);
-        assert numberIns.greaterThanOrEq(Number.class);
-        assert numberIns.exactly(Number.class);
-        assert numberIns.lessThan(Integer.class);
-        assert numberIns.lessThanOrEq(Integer.class);
+        ExtComparable<Class> cmp = ExtComparable.from(Ins.typeComparator,Number.class);
+        assert cmp.greaterThan(Object.class);
+        assert cmp.greaterThanOrEq(Number.class);
+        assert cmp.exactly(Number.class);
+        assert cmp.lessThan(Integer.class);
+        assert cmp.lessThanOrEq(Integer.class);
         
-        assert numberIns.notEqual(null);
+        assert cmp.notEqual(null);
         
         List<Class> list = Lists.newArrayList(Number.class,Object.class,Integer.class,String.class);
         Collections.sort(list, Ins.typeComparator);

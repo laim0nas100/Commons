@@ -18,7 +18,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.PairLeft;
 import lt.lb.commons.containers.tuples.PairRight;
-import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.Equator;
 import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;

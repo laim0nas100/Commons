@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMapperEnder;
 import lt.lb.commons.iteration.streams.StreamMappers;
-import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.Equator;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.Range;
 

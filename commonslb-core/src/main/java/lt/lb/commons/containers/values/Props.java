@@ -3,8 +3,8 @@ package lt.lb.commons.containers.values;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.containers.ForwardingMap;
-import lt.lb.commons.misc.UUIDgenerator;
 
 /**
  * Property class that stores any value (including null).
@@ -26,8 +26,6 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
     public Map<String, Object> getMap() {
         return map;
     }
-
-    public static final String UUID_PREFIX = "Props";
 
     public static <T> ValueProxy<T> asValueProxy(Props props, String key) {
         return new ValueProxy<T>() {
@@ -169,7 +167,7 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
      * @return
      */
     public <T> PropGet<T> insertAny(T value) {
-        String key = UUIDgenerator.nextUUID(UUID_PREFIX);
+        String key = "PropGet-" + idGen.getAndIncrement();
         insert(key, value);
         return new PropGet<>(key);
 
@@ -209,8 +207,9 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
 
     /**
      * Retrieves value and returns it as a String.
+     *
      * @param str
-     * @return 
+     * @return
      */
     public String getString(String str) {
         Object get = this.get(str);
@@ -219,5 +218,7 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
         }
         return String.valueOf(get);
     }
+
+    private static final AtomicLong idGen = new AtomicLong(0L);
 
 }

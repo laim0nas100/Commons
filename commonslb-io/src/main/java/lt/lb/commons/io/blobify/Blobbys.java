@@ -20,11 +20,11 @@ import lt.lb.commons.io.DirectoryTreeVisitor;
 import lt.lb.commons.io.blobify.bytes.Bytes;
 import lt.lb.commons.io.blobify.bytes.ChunkyBytes;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;
 import lt.lb.commons.io.blobify.bytes.WriteableBytes;
+import lt.lb.commons.misc.compare.ExtComparator;
 
 /**
  *

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import lt.lb.commons.Log;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.ComparatorBuilder;
+import lt.lb.commons.misc.compare.ComparatorBuilder;
 
 /**
  *

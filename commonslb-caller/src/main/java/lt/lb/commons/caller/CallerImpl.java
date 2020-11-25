@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import lt.lb.commons.F;
 import static lt.lb.commons.caller.Caller.CallerType.FUNCTION;
 import static lt.lb.commons.caller.Caller.CallerType.RESULT;
 import static lt.lb.commons.caller.Caller.CallerType.SHARED;
