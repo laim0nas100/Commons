@@ -1,4 +1,4 @@
-package lt.lb.commons.func;
+package lt.lb.commons.iteration.streams;
 
 import java.util.Collection;
 import java.util.Objects;

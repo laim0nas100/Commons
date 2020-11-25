@@ -207,13 +207,10 @@ public class ArrayOp extends ArrayUtils {
      */
     public static <T> T[] newArray(Iterator<T> it, int size, Class<T> clz) {
         T[] array = makeArray(size, clz);
-        F.find(it, (i, item) -> {
-            if (i >= size) {
-                return true;
-            }
-            array[i] = item;
-            return false;
-        });
+        
+        for(int i = 0; i < size && it.hasNext(); i++){
+            array[i] = it.next();
+        }
         return array;
     }
 

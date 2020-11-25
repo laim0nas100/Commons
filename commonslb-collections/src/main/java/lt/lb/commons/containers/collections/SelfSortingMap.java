@@ -1,7 +1,7 @@
 package lt.lb.commons.containers.collections;
 
 import java.util.*;
-import lt.lb.commons.F;
+import lt.lb.commons.iteration.Iter;
 
 /**
  *
@@ -50,7 +50,7 @@ public class SelfSortingMap<K, V> implements Map<K, V> {
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        F.iterate(m, (k, v) -> {
+        Iter.iterate(m, (k, v) -> {
             this.put(k, v);
         });
     }
@@ -115,7 +115,7 @@ public class SelfSortingMap<K, V> implements Map<K, V> {
     @Override
     public Set<Entry<K, V>> entrySet() {
         HashSet<Entry<K, V>> entries = new HashSet<>();
-        F.iterate(map, (k, v) -> {
+        Iter.iterate(map, (k, v) -> {
             entries.add(MapEntries.byKey(map, k));
         });
         return entries;

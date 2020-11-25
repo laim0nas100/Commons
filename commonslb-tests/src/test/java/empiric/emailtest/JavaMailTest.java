@@ -35,6 +35,7 @@ import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.email.props.IMAPEmailProps;
 import lt.lb.commons.io.TextFileIO;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.threads.executors.FastExecutor;
@@ -354,13 +355,13 @@ public class JavaMailTest {
 
             NumberValue<Double> wordCount = NumberValue.of(0d);
             NumberValue<Double> wordLengthTotal = NumberValue.of(0d);
-            F.iterate(map, (k, i) -> {
+            Iter.iterate(map, (k, i) -> {
                 wordCount.incrementAndGet(i.get());
                 wordLengthTotal.incrementAndGet(k.length() * i.get());
             });
             NumberValue<Integer> capitalChars = NumberValue.of(0);
             NumberValue<Integer> capitalWords = NumberValue.of(0);
-            F.iterate(capMap, (w, count) -> {
+            Iter.iterate(capMap, (w, count) -> {
                 capitalChars.incrementAndGet(count.get() * w.length());
                 capitalWords.incrementAndGet(count.get());
             });

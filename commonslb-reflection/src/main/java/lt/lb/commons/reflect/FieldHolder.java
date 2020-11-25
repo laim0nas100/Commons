@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
+import lt.lb.commons.iteration.Iter;
 
 /**
  *
@@ -90,7 +91,7 @@ public class FieldHolder {
 
     public FieldMap getFieldsWith(Predicate<Field> pred) {
         FieldMap fields = new FieldMap();
-        F.iterate(this.getFields(), (name, field) -> {
+        Iter.iterate(this.getFields(), (name, field) -> {
             if (pred.test(field)) {
                 fields.put(name, field);
             }
@@ -104,7 +105,7 @@ public class FieldHolder {
     }
 
     public static Predicate<Field> createPredicateFilter(Class... classes) {
-        return (Field f) -> F.find(classes, (i, cl) -> f.getType().equals(cl)).isPresent();
+        return (Field f) -> Iter.find(classes, (i, cl) -> f.getType().equals(cl)).isPresent();
     }
 
 }

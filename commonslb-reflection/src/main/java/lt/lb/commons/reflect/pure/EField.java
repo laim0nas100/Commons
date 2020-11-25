@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.caching.LazyValue;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.reflect.FieldHolder;
 
 /**
@@ -31,10 +32,10 @@ public interface EField {
             FieldHolder.FieldMap localCompositeFields = node.getLocalCompositeFields();
             FieldHolder.FieldMap localPrimitiveOrWrapperFields = node.getLocalPrimitiveOrWrapperFields();
             ArrayList<EField> list = new ArrayList<>(localCompositeFields.size() + localPrimitiveOrWrapperFields.size());
-            F.iterate(node.compositeChildNodes.get(), (fname, cnode) -> {
+            Iter.iterate(node.compositeChildNodes.get(), (fname, cnode) -> {
                 list.add(EField.fromComposite(node, fname, cnode));
             });
-            F.iterate(node.getLocalPrimitiveOrWrapperFields(), (fname, field) -> {
+            Iter.iterate(node.getLocalPrimitiveOrWrapperFields(), (fname, field) -> {
                 list.add(EField.fromPrimitive(node, fname));
             });
             return list;
@@ -109,10 +110,10 @@ public interface EField {
             FieldHolder.FieldMap localCompositeFields = root.getLocalCompositeFields();
             FieldHolder.FieldMap localPrimitiveOrWrapperFields = root.getLocalPrimitiveOrWrapperFields();
             ArrayList<EField> list = new ArrayList<>(localCompositeFields.size() + localPrimitiveOrWrapperFields.size());
-            F.iterate(root.compositeChildNodes.get(), (fname, cnode) -> {
+            Iter.iterate(root.compositeChildNodes.get(), (fname, cnode) -> {
                 list.add(EField.fromComposite(root, fname, cnode));
             });
-            F.iterate(root.getLocalPrimitiveOrWrapperFields(), (fname, field) -> {
+            Iter.iterate(root.getLocalPrimitiveOrWrapperFields(), (fname, field) -> {
                 list.add(EField.fromPrimitive(root, fname));
             });
             return list;

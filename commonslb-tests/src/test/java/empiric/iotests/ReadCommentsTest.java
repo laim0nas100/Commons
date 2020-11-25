@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import lt.lb.commons.Log;
 import lt.lb.commons.io.TextFileIO;
-import lt.lb.commons.parsing.CommentParser;
+import lt.lb.commons.io.CommentParser;
 
 /**
  *

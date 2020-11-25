@@ -12,7 +12,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.parsing.CommentParser;
 
 /**
  *

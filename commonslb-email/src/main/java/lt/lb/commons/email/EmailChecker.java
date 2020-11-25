@@ -7,6 +7,7 @@ import javax.mail.internet.MimeMessage;
 import lt.lb.commons.email.props.IMAPOrPOP3Props;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.F;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.threads.executors.ScheduledDispatchExecutor;
 
 /**
@@ -47,7 +48,7 @@ public class EmailChecker extends ScheduledDispatchExecutor {
                     messages = emailFolder.getMessages();
                 }
                 List<Consumer<Message>> afterReadActions = p.getAfterReadActions();
-                F.iterate(messages, (i, m) -> {
+                Iter.iterate(messages, (i, m) -> {
                     if (m == null) {
                         debug.appendLine("Found null message at " + i);
                     } else {

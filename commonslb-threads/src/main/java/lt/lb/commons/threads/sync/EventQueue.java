@@ -89,7 +89,13 @@ public class EventQueue {
         nested.execute(ev);
         if (ai.getAndIncrement() % autoCleanUpAfter == 0) {
             ai.set(1);
-            F.filterInPlace(events, e -> !e.isDone());
+            Iterator<Event> iterator = events.iterator();
+            while(iterator.hasNext()){
+                Event next = iterator.next();
+                if(next.isDone()){
+                    iterator.remove();
+                }
+            }
         }
         return ev;
     }

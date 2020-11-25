@@ -8,7 +8,7 @@ import java.util.Arrays;
 import lt.lb.commons.Log;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.parsing.CommentParser;
+import lt.lb.commons.io.CommentParser;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 

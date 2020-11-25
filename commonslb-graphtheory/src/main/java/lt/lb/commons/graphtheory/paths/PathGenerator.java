@@ -13,6 +13,7 @@ import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Tuple3;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.misc.rng.RandomRanges;
 
@@ -41,7 +42,7 @@ public class PathGenerator {
         return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
             Orgraph gr = f.g1;
             ArrayList<Tuple<Double, Long>> nodeList = new ArrayList<>();
-            F.iterate(gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)), (i, n) -> {
+            Iter.iterate(gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)), (i, n) -> {
                 Optional<GNode> node = gr.getNode(n.nodeTo);
                 if (node.isPresent()) {
                     double deg = node.get().degree();
@@ -65,7 +66,7 @@ public class PathGenerator {
         return (Tuple3<Orgraph, Set<Long>, GNode> f) -> {
             Orgraph gr = f.g1;
             ArrayList<Tuple<Double, GLink>> linkList = new ArrayList<>();
-            F.iterate(gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)), (i, n) -> {
+            Iter.iterate(gr.resolveLinkedTo(f.g3, n -> !f.g2.contains(n)), (i, n) -> {
                 double w = n.weight;
                 if (minimize) {
                     w = 1d / w;
@@ -113,7 +114,7 @@ public class PathGenerator {
         genericUniquePathVisitContinued(gr, path.get(0).nodeFrom, pathBackward, visited, picker);
 
         List<GLink> finalList = new ArrayList<>();
-        F.iterateBackwards(pathBackward, (i, item) -> {
+        Iter.iterateBackwards(pathBackward, (i, item) -> {
             finalList.add(item.reverse());
         });
         finalList.addAll(pathForward);
@@ -140,7 +141,7 @@ public class PathGenerator {
         genericUniquePathVisitContinued(gr, startNode, pathBackward, visited, picker);
 
         List<GLink> finalList = new ArrayList<>();
-        F.iterateBackwards(pathBackward, (i, item) -> {
+        Iter.iterateBackwards(pathBackward, (i, item) -> {
             finalList.add(item.reverse());
         });
 

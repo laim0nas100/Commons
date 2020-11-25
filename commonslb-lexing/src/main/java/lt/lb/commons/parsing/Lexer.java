@@ -12,6 +12,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
@@ -271,7 +272,7 @@ public class Lexer {
     public final void resetLines(Collection<String> allLines) {
         reset();
         lines = new String[allLines.size()];
-        F.iterate(allLines, (i, s) -> {
+        Iter.iterate(allLines, (i, s) -> {
             if (s.endsWith("\n")) {
                 lines[i] = s;
             } else {

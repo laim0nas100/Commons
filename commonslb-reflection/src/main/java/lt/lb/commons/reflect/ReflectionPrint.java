@@ -13,6 +13,7 @@ import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.interfaces.StringBuilderActions;
 import lt.lb.commons.F;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.NestedException;
 
 /**
@@ -94,7 +95,7 @@ public class ReflectionPrint {
         } else {
             sb.appendLine(indent + node.getName() + " <v>");
 
-            F.iterate(node.getAllValuesKeys(), (i, key) -> {
+            Iter.iterate(node.getAllValuesKeys(), (i, key) -> {
                 ReflectNode value = allValues.get(key);
                 sb.appendLine(newIndent + formatValue(value));
             });
@@ -108,7 +109,7 @@ public class ReflectionPrint {
             sb.appendLine(indent + node.getName() + " <c> </c>");
         } else {
             sb.appendLine(indent + node.getName() + " <c>");
-            F.find(node.getAllChildrenKeys(), (i, key) -> { // using return to break early
+            Iter.find(node.getAllChildrenKeys(), (i, key) -> { // using return to break early
 
                 ReflectNode childNode = allChildren.get(key);
 

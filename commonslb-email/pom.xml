@@ -25,8 +25,13 @@
         <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>javax.mail-api</artifactId>
-        </dependency> 
-
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+            <version>local-jar</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     
 </project>

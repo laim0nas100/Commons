@@ -55,6 +55,16 @@
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-misc</artifactId>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-io</artifactId>
             <scope>test</scope>
             <type>jar</type>
@@ -158,6 +168,12 @@
             <artifactId>JobSystem</artifactId>
             <version>local-jar</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+            <version>local-jar</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
     <name>CommonsLB Tests</name>

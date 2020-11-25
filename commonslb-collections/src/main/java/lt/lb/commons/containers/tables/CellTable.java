@@ -17,6 +17,7 @@ import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.IntRange;
 
 /**
@@ -103,7 +104,7 @@ public class CellTable<T> {
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (int r = startRow; r < lastRow + 1; r++) {
                 Row<T> row = getRow(table, r);
-                F.iterate(row.cells, startCol, lastCol + 1, (i, cell) -> {
+                Iter.iterate(row.cells, startCol, lastCol + 1, (i, cell) -> {
                     cells.add(cell);
                 });
             }
@@ -159,7 +160,7 @@ public class CellTable<T> {
             IntRange.of(index, endIndex).assertRangeIsValid();
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (Row<T> row : table.rows) {
-                F.iterate(row.cells, index, endIndex + 1, (i, cell) -> {
+                Iter.iterate(row.cells, index, endIndex + 1, (i, cell) -> {
                     cells.add(cell);
                 });
             }
@@ -354,7 +355,7 @@ public class CellTable<T> {
         Row<T> row = getRow(this, ri);
         row.cells.forEach(c -> c.content = Optional.empty());
         row.modifyToSize(content.length);
-        F.iterate(row.cells, (i, cell) -> {
+        Iter.iterate(row.cells, (i, cell) -> {
             cell.content = Optional.ofNullable(content[i]);
         });
         return this;
@@ -397,7 +398,7 @@ public class CellTable<T> {
      */
     public CellTable<T> mergeVertical(int from, int to, int column) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
-        F.iterate(rows, from, to + 1, (i, row) -> {
+        Iter.iterate(rows, from, to + 1, (i, row) -> {
             CellPrep<T> cell = row.cells.get(column);
             if (cell.verticalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(i, column) + " clean existing merge first");
@@ -467,7 +468,7 @@ public class CellTable<T> {
      */
     public CellTable<T> mergeLastEmpty() {
         Row<T> row = rows.get(this.getLastRowIndex());
-        Optional<Integer> firstIndex = F.findBackwards(row.cells, (i, cell) -> {
+        Optional<Integer> firstIndex = Iter.findBackwards(row.cells, (i, cell) -> {
             return cell.content.isPresent();
         }).map(m -> m.g1);
         firstIndex.ifPresent(from -> {
@@ -620,7 +621,7 @@ public class CellTable<T> {
         IntegerValue ri = new IntegerValue(0);
         for (Row<T> row : this.rows) {
             Optional<Tuple<Pair<Integer>, CellPrep<T>>> map
-                    = F.find(row.cells, (ci, cell) -> cell.id == id)
+                    = Iter.find(row.cells, (ci, cell) -> cell.id == id)
                             .map(m -> Tuples.create(new Pair<>(ri.get(), m.g1), m.g2));
             if (map.isPresent()) {
                 return map;

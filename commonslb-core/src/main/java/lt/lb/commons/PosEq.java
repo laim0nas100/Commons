@@ -1,7 +1,10 @@
 package lt.lb.commons;
 
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
+import lt.lb.commons.interfaces.Equator;
 
 /**
  * Positional equals helper for quick parameter comparison
@@ -11,15 +14,33 @@ import java.util.stream.Stream;
 public class PosEq {
 
     public final Object[] objs;
+    public final Equator eq;
 
     private PosEq(Object[] objs) {
-        this.objs = objs;
+        this(objs, Equator.primitiveHashEquator());
+    }
+
+    public boolean isEmpty() {
+        return objs.length == 0;
+    }
+
+    private PosEq(Object[] objs, Equator eq) {
+        this.objs = Objects.requireNonNull(objs);
+        this.eq = Objects.requireNonNull(eq);
+    }
+
+    public PosEq withEquator(Equator eq) {
+        return new PosEq(objs, eq);
+    }
+
+    public PosEq withObjects(Object... obj) {
+        return new PosEq(obj, eq);
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 59 * hash + Arrays.deepHashCode(this.objs);
+        hash = 59 * hash + Equator.deepHashCode(eq, objs);
         return hash;
     }
 
@@ -35,27 +56,32 @@ public class PosEq {
             return false;
         }
         final PosEq other = (PosEq) obj;
-
         if (!Arrays.deepEquals(this.objs, other.objs)) {
             return false;
         }
-
+        if (!Objects.equals(this.eq, other.eq)) {
+            return false;
+        }
         return true;
     }
 
+
     /**
-     * Every object is equal to this object at respected position in the array
+     * Every object is equal to this objects array at the respected position
+     *
      * @param objs
-     * @return 
+     * @return
      */
     public boolean eq(Object... objs) {
-        return this.equals(PosEq.of(objs));
+        return Equator.deepEqualsArray(eq, this.objs, objs);
     }
 
     /**
-     * Some object is not equal to this object at respected position in the array
+     * Some object is not equal to this object at respected position in the
+     * array
+     *
      * @param objs
-     * @return 
+     * @return
      */
     public boolean neq(Object... objs) {
         return !eq(objs);
@@ -63,59 +89,115 @@ public class PosEq {
 
     /**
      * Some common elements
+     *
      * @param objs
-     * @return 
+     * @return
      */
     public boolean any(Object... objs) {
-        return Stream.of(objs).anyMatch(ob -> ArrayOp.contains(this.objs, ob));
+
+        for (Object myElem : this.objs) {
+            for (Object yourElem : objs) {
+                if (Equator.deepEquals(eq, myElem, yourElem)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
      * No common elements
+     *
      * @param objs
-     * @return 
+     * @return
      */
     public boolean none(Object... objs) {
-        return Stream.of(objs).noneMatch(ob -> ArrayOp.contains(this.objs, ob));
+        return !any(objs);
     }
-    
+
     /**
      * All common elements
+     *
      * @param objs
-     * @return 
+     * @return
      */
     public boolean all(Object... objs) {
-        return Stream.of(objs).allMatch(ob -> ArrayOp.contains(this.objs, ob));
+        if (isEmpty()) {
+            return false;
+        }
+        for (Object myElem : this.objs) {
+            for (Object yourElem : objs) {
+                if (!Equator.deepEquals(eq, myElem, yourElem)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+
     }
 
     /**
      * Some null elements
-     * @return 
+     *
+     * @return
      */
     public boolean anyNull() {
-        return Stream.of(objs).anyMatch(ob -> ob == null);
+        return any(p -> p == null);
+    }
+
+    /**
+     * Some elements satisfying predicate
+     *
+     * @param pred
+     * @return
+     */
+    public boolean any(Predicate pred) {
+        return Stream.of(objs).anyMatch(pred);
     }
 
     /**
      * All null elements
-     * @return 
+     *
+     * @return
      */
     public boolean allNull() {
-        return Stream.of(objs).allMatch(ob -> ob == null);
+        return all(ob -> ob == null);
     }
+    /**
+     * All elements satisfy predicate
+     *
+     * @param pred
+     * @return
+     */
+    public boolean all(Predicate pred) {
+        return Stream.of(objs).allMatch(pred);
+    }
+    
 
     /**
+     * None elements satisfy predicate
+     *
+     * @param pred
+     * @return
+     */
+    public boolean none(Predicate pred) {
+        return Stream.of(objs).noneMatch(pred);
+    }
+    
+    /**
      * None null elements
-     * @return 
+     *
+     * @return
      */
     public boolean noneNull() {
-        return Stream.of(objs).allMatch(ob -> ob == null);
+        return none(ob -> ob == null);
     }
 
     /**
      * Construct array-based parameter comparator with inner elements.
+     *
      * @param objs
-     * @return 
+     * @return
      */
     public static PosEq of(Object... objs) {
         return new PosEq(objs);

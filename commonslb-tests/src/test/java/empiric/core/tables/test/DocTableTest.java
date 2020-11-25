@@ -12,6 +12,7 @@ import lt.lb.commons.containers.tables.CellFormatBuilder;
 import lt.lb.commons.containers.tables.CellTable;
 import lt.lb.commons.F;
 import lt.lb.commons.func.Lambda;
+import lt.lb.commons.iteration.Iter;
 import org.junit.Test;
 
 /**
@@ -53,7 +54,7 @@ public class DocTableTest {
 
         table.renderRows((ri, cells) -> {
 
-            F.iterate(cells, (i, c) -> {
+            Iter.iterate(cells, (i, c) -> {
                 if (i != 0) {
                     System.out.print(" ");
                 }

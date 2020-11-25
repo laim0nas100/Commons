@@ -23,15 +23,16 @@ import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.interfaces.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.containers.collections.CollectionOp;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.Lambda;
-import lt.lb.commons.func.StreamMapper.StreamDecorator;
-import lt.lb.commons.func.StreamMappers;
+import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
+import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.misc.Memoized;
-import lt.lb.commons.parsing.CommentParser;
+import lt.lb.commons.io.CommentParser;
 import lt.lb.commons.threads.executors.FastExecutor;
 import org.junit.*;
 
@@ -101,7 +102,7 @@ public class CommonsTest {
     public void testFilterDistinct() {
         Collection<Integer> collection = new LinkedList<>(Arrays.asList(1, 1, 2, 3, 4, 5, 6, 6, 7, 8, 9, 10));
         Log.print("Initial", collection);
-        List<Integer> filterParallel = F.filterParallel(collection, n -> n % 2 == 0, new FastExecutor(4));
+        List<Integer> filterParallel = CollectionOp.filterParallel(collection, n -> n % 2 == 0, new FastExecutor(4));
         Log.print("Removed after filter", filterParallel);
         Log.print("Left after filter", collection);
         List<Integer> filterDistinct = StreamDecorator.of(Integer.class)

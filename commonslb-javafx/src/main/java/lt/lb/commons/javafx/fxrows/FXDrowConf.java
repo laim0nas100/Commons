@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import lt.lb.commons.datasync.Valid;
 import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.rows.base.BaseDrowSyncConf;
 
@@ -123,7 +124,7 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
             conditionalAlligment(line.getRenderedNodes().get(1), HPos.RIGHT);
         } else if (line.getRenderedNodes().size() > 0) {
             final int last = line.getCells().size() - 1;
-            F.iterate(line.getRenderedNodes(), (i, n) -> {
+            Iter.iterate(line.getRenderedNodes(), (i, n) -> {
                 if (i == 0) {
                     conditionalAlligment(n, HPos.LEFT);
                 } else if (i == last) {

@@ -6,6 +6,7 @@ import java.util.Objects;
 import lt.lb.commons.F;
 import lt.lb.commons.Predicates;
 import lt.lb.commons.containers.caching.LazyValue;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.reflect.FieldFactory;
 import lt.lb.commons.reflect.FieldHolder;
 import lt.lb.commons.reflect.FullFieldHolder;
@@ -40,7 +41,7 @@ public class PureReflectNode {
         });
         compositeChildNodes = new LazyValue<>(() -> {
             Map<String, PureReflectNode> children = new HashMap<>();
-            F.iterate(getLocalCompositeFields(), (name, field) -> {
+            Iter.iterate(getLocalCompositeFields(), (name, field) -> {
                 Class type = field.getType();
                 PureReflectNode child = cache.computeIfAbsent(type, (c) -> {
                     return new PureReflectNode(cache, c);

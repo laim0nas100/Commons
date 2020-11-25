@@ -11,6 +11,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import static lt.lb.commons.rows.BasicUpdates.*;
@@ -161,7 +162,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     public List<Integer> getVisibleIndices() {
         ArrayList<Integer> list = new ArrayList<>();
-        F.iterate(cells, (i, cell) -> {
+        Iter.iterate(cells, (i, cell) -> {
             if (cell.isVisible()) {
                 list.add(i);
             }
@@ -172,7 +173,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     public List<Integer> getPreferedColSpanOfVisible() {
         ArrayList<Integer> prefVis = new ArrayList<>();
-        F.iterate(cells, (i, cell) -> {
+        Iter.iterate(cells, (i, cell) -> {
             if (cell.isVisible()) {
                 prefVis.add(getPreferedColSpan().get(i));
             }
@@ -223,7 +224,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         double mult = maxColSpan / preferedTotal;
 
         Integer[] colApply = new Integer[preferedColSpan.size()];
-        F.iterate(preferedColSpan, (i, pref) -> {
+        Iter.iterate(preferedColSpan, (i, pref) -> {
             colApply[i] = (int) Math.floor(pref * mult);
         });
 
@@ -302,7 +303,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         int beforeIndex = comps[0];
         int afterIndex = comps[comps.length - 1];
 
-        F.iterate(mainIterator(), (i, tup) -> {
+        Iter.iterate(mainIterator(), (i, tup) -> {
             C cell = tup.g1;
             Integer colSpan = cell.getColSpan();
             Tuple<Integer, C> tuple = Tuples.create(colSpan, cell);
@@ -324,7 +325,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         });
         //insert before merged
 
-        F.iterate(before, (i, tup) -> {
+        Iter.iterate(before, (i, tup) -> {
             C cell = tup.getG2();
             cell.setColSpan(tup.g1);
             newCells.add(cell);
@@ -341,7 +342,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         C finalCell = this.finalAdd(-1, mergedNodes, enclosing.get(), newCells, mergedColspan);
         finalCell.setMerged(true);
         //insert after merged
-        F.iterate(after, (i, tup) -> {
+        Iter.iterate(after, (i, tup) -> {
             C cell = tup.getG2();
             cell.setColSpan(tup.g1);
             newCells.add(cell);
@@ -370,7 +371,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     public R withPreferedColspan(Integer... spans) {
         R me = me();
         addOnDisplayAndRunIfDone(() -> {
-            F.iterate(spans, (i, spa) -> {
+            Iter.iterate(spans, (i, spa) -> {
                 C cell = this.getCell(i);
                 cell.setColSpan(spa);
 
@@ -452,14 +453,14 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     public Supplier<C> getCellSupplier(Predicate<Tuple<Integer, N>> pred) {
         return () -> {
-            return F.find(mainIterator(), (i, tuple) -> pred.test(Tuples.create(i, tuple.g2)))
+            return Iter.find(mainIterator(), (i, tuple) -> pred.test(Tuples.create(i, tuple.g2)))
                     .map(m -> m.g2.g1).orElse(null);
         };
     }
 
     public Supplier<N> getNodeSupplier(Integer i) {
         return () -> {
-            return F.find(mainIterator(), (j, tuple) -> Objects.equals(i, j))
+            return Iter.find(mainIterator(), (j, tuple) -> Objects.equals(i, j))
                     .map(m -> m.g2.g2).orElse(null);
         };
     }
@@ -467,7 +468,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     public Supplier<N> getNodeSupplier(Predicate<N> pred) {
 
         return () -> {
-            return F.find(mainIterator(), (j, tuple) -> pred.test(tuple.g2))
+            return Iter.find(mainIterator(), (j, tuple) -> pred.test(tuple.g2))
                     .map(m -> m.g2.g2).orElse(null);
         };
     }

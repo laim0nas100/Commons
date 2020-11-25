@@ -1,8 +1,8 @@
 package lt.lb.commons.containers.collections;
 
 import java.util.*;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Tuple;
+import lt.lb.commons.iteration.Iter;
 
 /**
  *
@@ -104,7 +104,7 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
 
     @Override
     public void putAll(Map<? extends Integer, ? extends T> m) {
-        F.iterate(m, (k, v) -> {
+        Iter.iterate(m, (k, v) -> {
             this.put(k, v);
         });
     }
@@ -124,7 +124,7 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
             set.add(null);
         }
         set.addAll(positive.keySet());
-        F.iterate(negative.keySet(), (i, val) -> {
+        Iter.iterate(negative.keySet(), (i, val) -> {
             set.add(-val);
         });
         return set;
@@ -149,10 +149,10 @@ public class PrefillArrayMap<T> implements Map<Integer, T> {
             set.add(MapEntries.byKey(this, null));
 
         }
-        F.iterate(negative.entrySet(), (i, entry) -> {
+        Iter.iterate(negative.entrySet(), (i, entry) -> {
             set.add(MapEntries.byMappingKey(this, () -> entry.getKey() * (-1)));
         });
-        F.iterate(positive.entrySet(), (i, entry) -> {
+        Iter.iterate(positive.entrySet(), (i, entry) -> {
             set.add(MapEntries.byKey(this, i));
         });
         return set;

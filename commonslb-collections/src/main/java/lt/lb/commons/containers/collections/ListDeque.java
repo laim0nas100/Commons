@@ -10,8 +10,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.RandomAccess;
 import java.util.function.Consumer;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.iteration.Iter;
 
 /**
  *
@@ -642,12 +642,12 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
 
         @Override
         public default int indexOf(Object o) {
-            return F.find(getDeque().iterator(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.g1).orElse(-1);
+            return Iter.find(getDeque().iterator(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.g1).orElse(-1);
         }
 
         @Override
         public default int lastIndexOf(Object o) {
-            return F.find(getDeque().descendingIterator(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.g1).orElse(-1);
+            return Iter.find(getDeque().descendingIterator(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.g1).orElse(-1);
         }
 
         @Override

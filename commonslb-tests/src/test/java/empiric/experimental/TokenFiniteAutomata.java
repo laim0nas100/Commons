@@ -18,6 +18,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.F;
 import lt.lb.commons.interfaces.StringBuilderActions;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.parsing.Literal;
 import lt.lb.commons.parsing.Token;
 
@@ -38,7 +39,7 @@ public class TokenFiniteAutomata {
 
         public String getStringResult() {
             StringBuilder sb = new StringBuilder();
-            F.iterate(nodeList, (i, n) -> {
+            Iter.iterate(nodeList, (i, n) -> {
 //                if (n.appendable) {
                 sb.append(n.value);
 //                }
@@ -205,7 +206,7 @@ public class TokenFiniteAutomata {
         }
 
         public void connectAtEnd(TGraph gr) {
-            F.iterate(this.connectedGraphs, (i, g) -> {
+            Iter.iterate(this.connectedGraphs, (i, g) -> {
                 g.connect(gr);
             });
         }
@@ -215,7 +216,7 @@ public class TokenFiniteAutomata {
         }
 
         public void addNodes(TNode... nodeArray) {
-            F.iterate(nodeArray, (i, n) -> {
+            Iter.iterate(nodeArray, (i, n) -> {
                 nodes.putIfAbsent(n.id, n);
             });
         }
@@ -308,7 +309,7 @@ public class TokenFiniteAutomata {
             resList.add(res);
 
             if (t != null) {
-                Optional<Tuple<String, TGraph>> iterate = F.find(this.connectedGraphs, (k, g) -> g.matches(t));
+                Optional<Tuple<String, TGraph>> iterate = Iter.find(this.connectedGraphs, (k, g) -> g.matches(t));
                 if (iterate.isPresent()) {
                     TGraph nextGraph = iterate.get().g2;
 

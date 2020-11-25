@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.EmptyImmutableList;
 import lt.lb.commons.containers.CastIndexedList;
 
 /**

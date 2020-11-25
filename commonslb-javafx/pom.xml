@@ -60,6 +60,12 @@
             <artifactId>commons-text</artifactId>
             <version>1.9</version>
         </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+            <version>local-jar</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     
 </project>

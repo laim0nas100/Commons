@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
 import lt.lb.commons.LineStringBuilder;
+import lt.lb.commons.containers.collections.CollectionOp;
+import lt.lb.commons.iteration.Iter;
 
 /**
  *
@@ -174,7 +176,7 @@ public class Orgraph {
     }
 
     public void sanityCheck() {
-        F.iterate(links, (p, link) -> {
+        Iter.iterate(links, (p, link) -> {
             GNode from = nodes.get(link.nodeFrom);
             GNode to = nodes.get(link.nodeTo);
             if (!from.linksTo.contains(link.nodeTo)) {
@@ -186,13 +188,13 @@ public class Orgraph {
         });
         //link -> nodes OK
 
-        F.iterate(nodes, (idFrom, node) -> {
-            F.iterate(node.linksTo, (otherI, ID) -> {
+        Iter.iterate(nodes, (idFrom, node) -> {
+            Iter.iterate(node.linksTo, (otherI, ID) -> {
                 if (!this.linkExists(idFrom, ID)) {
                     throw new IllegalStateException("Nodes has link: " + idFrom + " -> " + ID + " but no such link info");
                 }
             });
-            F.iterate(node.linkedFrom, (otherI, ID) -> {
+            Iter.iterate(node.linkedFrom, (otherI, ID) -> {
                 if (!this.linkExists(ID, idFrom)) {
                     throw new IllegalStateException("Nodes has link: " + ID + " -> " + idFrom + " but no such link info");
                 }
@@ -227,7 +229,7 @@ public class Orgraph {
     public List<GLink> doesNotHaveAPair() {
         LinkedList<GLink> localLinks = new LinkedList<>();
         localLinks.addAll(this.links.values());
-        return F.filterInPlace(localLinks, l -> {
+        return CollectionOp.filterInPlace(localLinks, l -> {
             return this.linkExists(l.nodeTo, l.nodeFrom);
         });
     }

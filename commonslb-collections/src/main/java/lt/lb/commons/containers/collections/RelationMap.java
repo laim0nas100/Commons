@@ -13,11 +13,11 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.caller.Caller;
-import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.ExtComparator;
 
 /**
@@ -191,7 +191,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         V toReturn = removeNode.val;
         removeNode.parent.links.remove(removeNode.key);
 
-        F.iterate(removeNode.links.values(), (i, c) -> {
+        Iter.iterate(removeNode.links.values(), (i, c) -> {
             c.parent = removeNode.parent;
             removeNode.parent.links.put(c.key, c);
         });
@@ -221,15 +221,15 @@ public class RelationMap<K, V> implements Map<K, V> {
         HashMap<K, Rnode<K, V>> newMap = new HashMap<>();
         ArrayList<Tuple<K, V>> nodes = new ArrayList<>();
         newMap.put(newRoot.key, newRoot);
-        F.iterate(this.getPresentValues(), (i, n) -> {
+        Iter.iterate(this.getPresentValues(), (i, n) -> {
             if (n != root) {
                 nodes.add(Tuples.create(n.key, n.val));
             }
         });
         nodes.addAll(newValues);
 
-        F.iterate(nodes, (i, n) -> {
-            F.iterate(nodes, (j, m) -> {
+        Iter.iterate(nodes, (i, n) -> {
+            Iter.iterate(nodes, (j, m) -> {
                 if (relation.apply(m.g1, n.g1)) {
                     satisfiedRelationMap.computeIfAbsent(n.g1, k -> new IntegerValue(0)).incrementAndGet();
                 }
@@ -237,7 +237,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         });
         ExtComparator<Tuple<K, V>> ofValue = ExtComparator.ofValue(n -> satisfiedRelationMap.getOrDefault(n.g1, new IntegerValue(0)).get());
         Collections.sort(nodes, ofValue.reversed());
-        F.iterate(nodes, (i, n) -> {
+        Iter.iterate(nodes, (i, n) -> {
             put(n.g1, n.g2, newMap, newRoot, relation);
         });
 
@@ -256,7 +256,7 @@ public class RelationMap<K, V> implements Map<K, V> {
         }
         V removed = removeNode.val;
         removeNode.parent.links.remove(key);
-        F.iterate(new ArrayList<>(removeNode.links.keySet()), (i, k) -> {
+        Iter.iterate(new ArrayList<>(removeNode.links.keySet()), (i, k) -> {
             cull(k, rootKey, map);
         });
 
@@ -269,7 +269,7 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        F.iterate(m, (k, v) -> {
+        Iter.iterate(m, (k, v) -> {
             this.put(k, v);
         });
     }

@@ -12,6 +12,7 @@ import java.util.Optional;
 import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.ExtComparator;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.wekaparsing.WekaDefaultParsers.WekaTransformer;
@@ -43,7 +44,7 @@ public class WekaParser<T> {
 
         this.cls = cls;
         this.className = className;
-        F.iterate(cls.getFields(), (i, f) -> {
+        Iter.iterate(cls.getFields(), (i, f) -> {
             if (f.getType().isEnum()) {
                 printers.put(f.getType(), WekaDefaultParsers.defaultEnum(F.cast(f.getType())));
             }
@@ -67,7 +68,7 @@ public class WekaParser<T> {
             return Optional.of(printers.get(cls));
         }
         //try to match derived class
-        return F.find(printers, (c, pr) -> {
+        return Iter.find(printers, (c, pr) -> {
             return Ins.of(cls).instanceOf(c);
         }).map(m -> m.g2);
     }
@@ -80,7 +81,7 @@ public class WekaParser<T> {
         Field[] fields = cls.getFields();
         Value<Field> classField = new Value<>();
         ArrayList<Field> arr = new ArrayList<>();
-        F.iterate(fields, (i, field) -> {
+        Iter.iterate(fields, (i, field) -> {
 
             if (field.getName().equals(className)) {
                 classField.set(field);
@@ -109,8 +110,8 @@ public class WekaParser<T> {
                 .map(f -> ensureWekaPrinter(f).typeInfo().length())
                 .max(Comparator.naturalOrder()).orElse(fieldNameLengthMin) + spaceLength;
         final String format = "@ATTRIBUTE %-" + maxFieldLength + "s %-" + maxTypeLength + "s %s";
-        F.iterate(arr, (i, field) -> {
-            String mapped = F.find(field.getAnnotations(), (j, a) -> a instanceof Comment)
+        Iter.iterate(arr, (i, field) -> {
+            String mapped = Iter.find(field.getAnnotations(), (j, a) -> a instanceof Comment)
                     .map(m -> {
                         Comment com = F.cast(m.g2);
                         return com.value();
@@ -136,7 +137,7 @@ public class WekaParser<T> {
         if (attributes.size() > fields.size()) {
             throw new IllegalArgumentException("Class field count:" + fields.size() + " attribute count:" + attributes.size());
         }
-        F.iterate(attributes, (i, f) -> {
+        Iter.iterate(attributes, (i, f) -> {
             if (!StringOp.equals("?", f)) { // leave null otherwise
                 F.unsafeRun(() -> {
                     Field field = fields.get(i);
@@ -160,9 +161,9 @@ public class WekaParser<T> {
         if (fields.isEmpty()) {
             return wekaReady;
         }
-        F.iterate(col, (i, item) -> {
+        Iter.iterate(col, (i, item) -> {
             String[] param = new String[fields.size()];
-            F.iterate(fields, (j, f) -> {
+            Iter.iterate(fields, (j, f) -> {
                 F.unsafeRun(() -> {
                     param[j] = wekaAttributePrint(f.get(item));
                 });

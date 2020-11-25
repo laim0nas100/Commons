@@ -1,9 +1,9 @@
 package lt.lb.commons.containers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import lt.lb.commons.EmptyImmutableList;
 
 /**
  *
@@ -20,13 +20,15 @@ public class CastList<T> implements Iterable<T> {
      * Amount of parameters passed here
      */
     public final int parameterCount;
+    
+    private static final List emptyList = Arrays.asList();
 
     private T assign(int index) {
         return parameterCount > index ? args.get(index) : null;
     }
 
     public CastList(List<T> list) {
-        this.args = list == null ? EmptyImmutableList.getInstance() : list;
+        this.args = list == null ? emptyList : list;
         parameterCount = args.size();
         _0 = assign(0);
         _1 = assign(1);

@@ -29,7 +29,12 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-collections</artifactId>
         </dependency>
-        
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+            <version>local-jar</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     
 </project>

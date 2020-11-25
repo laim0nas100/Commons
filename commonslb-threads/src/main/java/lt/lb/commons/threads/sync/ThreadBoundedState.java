@@ -3,12 +3,11 @@ package lt.lb.commons.threads.sync;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import lt.lb.commons.F;
-import lt.lb.commons.func.StreamMapper;
-import lt.lb.commons.func.StreamMapper.StreamDecorator;
-import lt.lb.commons.func.StreamMapperEnder;
-import lt.lb.commons.func.StreamMappers;
+import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
+import lt.lb.commons.iteration.streams.StreamMapperEnder;
+import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.interfaces.Equator;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.misc.Range;
 
 /**
@@ -35,7 +34,7 @@ public class ThreadBoundedState {
      */
     public ThreadBoundedState(int stateCount, int maxThreads) {
         states = new StateInfo[stateCount];
-        F.iterate(states, (i, NULL) -> {
+        Iter.iterate(states, (i, NULL) -> {
             states[i] = new StateInfo();
             states[i].name = "State " + i;
             states[i].threadBound = maxThreads;
@@ -89,7 +88,7 @@ public class ThreadBoundedState {
      * @return
      */
     public Optional<Integer> nameToStateIndex(String stateName) {
-        return F.find(states, (i, st) -> Objects.equals(st.name, stateName)).map(t -> t.g1);
+        return Iter.find(states, (i, st) -> Objects.equals(st.name, stateName)).map(t -> t.g1);
     }
 
     /**

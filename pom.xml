@@ -19,6 +19,8 @@
     <name>CommonsLB</name>
     <modules>
         <module>commonslb-core</module>
+        <module>commonslb-iteration</module>
+        <module>commonslb-misc</module>
         <module>commonslb-datasync</module>
         <module>commonslb-collections</module>
         <module>commonslb-caching</module>
@@ -42,6 +44,16 @@
             <dependency>
                 <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-core</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-iteration</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-misc</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>

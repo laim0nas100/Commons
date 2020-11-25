@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lt.lb.commons.F;
@@ -40,24 +41,24 @@ public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
     }
 
     public Optional<T> toKey(V val) {
-        return F.find(mapping, (key, v) -> {
-            return Objects.equals(v.get(), val);
-        }).map(m -> m.getG1());
+        return mapping.entrySet().stream()
+                .filter(p -> Objects.equals(val, p.getValue().get()))
+                .map(m -> m.getKey()).findFirst();
     }
 
     public M with(T e, V val) {
         return with(e, () -> val);
     }
-    
-    public M withMultipleKeys(V val, T... keys){
-        for(T key:keys){
+
+    public M withMultipleKeys(V val, T... keys) {
+        for (T key : keys) {
             with(key, val);
         }
         return me();
     }
-    
-    public M withMultipleKeys(Supplier<V> val, T... keys){
-        for(T key:keys){
+
+    public M withMultipleKeys(Supplier<V> val, T... keys) {
+        for (T key : keys) {
             with(key, val);
         }
         return me();
@@ -78,7 +79,7 @@ public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
     public M withDefaultCase(V val) {
         return withDefaultCase(() -> val);
     }
-    
+
     public List<V> mappedValues(boolean includeDefault) {
         ArrayList<V> list = new ArrayList<>();
         this.mapping.values().forEach(supl -> {
@@ -97,10 +98,10 @@ public abstract class SwitchMapper<T, V, M extends SwitchMapper<T, V, M>> {
 
     public static class SimpleSwitchMapper<T, V> extends SwitchMapper<T, V, SimpleSwitchMapper<T, V>> {
 
-        public SimpleSwitchMapper(){
+        public SimpleSwitchMapper() {
             this(new HashMap<>());
         }
-        
+
         public SimpleSwitchMapper(Map<T, Supplier<V>> mapping) {
             super(mapping);
         }

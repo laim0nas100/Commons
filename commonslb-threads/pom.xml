@@ -15,5 +15,10 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 </project>

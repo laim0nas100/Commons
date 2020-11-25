@@ -20,6 +20,12 @@
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+            <version>local-jar</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     
 </project>

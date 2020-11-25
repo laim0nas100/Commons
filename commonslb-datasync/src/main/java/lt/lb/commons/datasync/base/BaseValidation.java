@@ -7,6 +7,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.datasync.PersistAndDisplayValidation;
 import lt.lb.commons.datasync.Valid;
+import lt.lb.commons.iteration.Iter;
 
 /**
  *
@@ -73,10 +74,10 @@ public abstract class BaseValidation<M, V extends Valid<M>> implements PersistAn
 
         if (full) {
             BooleanValue found = BooleanValue.FALSE();
-            F.iterate(list, (i, item) -> found.setOr(satisfied.test(item)));
+            Iter.iterate(list, (i, item) -> found.setOr(satisfied.test(item)));
             return found.get();
         } else {
-            return F.find(list, (i, item) -> satisfied.test(item)).isPresent();
+            return Iter.find(list, (i, item) -> satisfied.test(item)).isPresent();
         }
     }
 

@@ -24,7 +24,13 @@
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-caching</artifactId>
-        </dependency> 
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+            <version>local-jar</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     
 </project>

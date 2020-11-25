@@ -42,17 +42,17 @@ public class IteratorTest {
         };
 
         Log.print("as List from 10");
-        F.iterate(asList, 10, 14, it);
+        Iter.iterate(asList, 10, 14, it);
 
-        F.iterate(asList, it);
+        Iter.iterate(asList, it);
 
-        F.iterate(ReadOnlyIterator.of(asList), it);
+        Iter.iterate(ReadOnlyIterator.of(asList), it);
 
-        F.iterate(asList.stream(), it);
+        Iter.iterate(asList.stream(), it);
 
-        F.iterate(arr, it);
+        Iter.iterate(arr, it);
 
-        F.iterate(ReadOnlyIterator.of(arr), it);
+        Iter.iterate(ReadOnlyIterator.of(arr), it);
 
 //        Log.print(() -> ReflectionUtils.reflectionString(Log.main(), 2));
         Log.await(1, TimeUnit.HOURS);
@@ -74,23 +74,23 @@ public class IteratorTest {
         int times = 100;
 
         bench.executeBench(times, "List", () -> {
-            F.find(asList, it);
+            Iter.find(asList, it);
         }).print(Log::print);
 
         bench.executeBench(times, "Collection", () -> {
-            F.find(col, it);
+            Iter.find(col, it);
         }).print(Log::print);
         bench.executeBench(times, "ROI list", () -> {
-            F.find(ReadOnlyIterator.of(asList), it);
+            Iter.find(ReadOnlyIterator.of(asList), it);
         }).print(Log::print);
         bench.executeBench(times, "ROI stream ", () -> {
-            F.find(asList.stream(), it);
+            Iter.find(asList.stream(), it);
         }).print(Log::print);
         
         
-        F.find(asList.stream().iterator(), it);
+        Iter.find(asList.stream().iterator(), it);
         bench.executeBench(times, "Stream iter", () -> {
-            F.find(asList.stream().iterator(), it);
+            Iter.find(asList.stream().iterator(), it);
         }).print(Log::print);
 
         bench.executeBench(times, "pure stream ", () -> {
@@ -98,7 +98,7 @@ public class IteratorTest {
             asList.stream().filter(f -> it.visit(val.getAndIncrement(), f)).findFirst();
         }).print(Log::print);
         bench.executeBench(times, "ROI array", () -> {
-            F.find(new ArrayROI<>(arr), it);
+            Iter.find(new ArrayROI<>(arr), it);
         }).print(Log::print);
         
         
@@ -108,7 +108,7 @@ public class IteratorTest {
             Stream.of(arr).filter(f -> it.visit(val.getAndIncrement(), f)).findFirst();
         }).print(Log::print);
         bench.executeBench(times, "Array   ", () -> {
-            F.find(arr, it);
+            Iter.find(arr, it);
         }).print(Log::print);
         bench.executeBench(times, "For List", () -> {
             int i = 0;

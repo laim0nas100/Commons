@@ -19,8 +19,19 @@
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-log</artifactId>
-        </dependency>  
-
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-misc</artifactId>
+        </dependency>
     </dependencies>
     
 </project>

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
+import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.rows.Drow;
 import lt.lb.commons.rows.DrowConf;
 import lt.lb.commons.rows.OrderedRunnable;
@@ -34,7 +35,7 @@ public abstract class BaseDrowBindsConf<R extends Drow, C, N, L, U extends Updat
     public void configureUpdates(Map<String, U> updates, R object) {
         object.initUpdates();
         confupdatesFor = Optional.of(object);
-        F.iterate(updateMap, (type, up) -> {
+        Iter.iterate(updateMap, (type, up) -> {
             List<OrderedRunnable> updateListeners = up.getUpdateListeners();
             for (OrderedRunnable run : updateListeners) {
                 object.withUpdate(type, run);

@@ -1,5 +1,6 @@
 package lt.lb.commons.caller;
 
+import java.util.Arrays;
 import lt.lb.commons.containers.CastList;
 import java.util.List;
 import java.util.Objects;
@@ -8,10 +9,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import lt.lb.commons.EmptyImmutableList;
 
 /**
  * Recursion avoiding function modeling. Main purpose: write a recursive
@@ -29,6 +28,7 @@ import lt.lb.commons.EmptyImmutableList;
  * caller is used to model.
  */
 public class Caller<T> {
+    private static List emptyList = Arrays.asList();
 
     /**
      * What to put if stack limit is disabled
@@ -44,7 +44,7 @@ public class Caller<T> {
     public static final int DEFAULT_FORK_COUNT = 10;
 
     private static final AtomicLong ID_COUNTER = new AtomicLong(0);
-    private static final Caller<?> emptyResultCaller = new Caller<>(CallerType.RESULT, null, null, EmptyImmutableList.getInstance());
+    private static final Caller<?> emptyResultCaller = new Caller<>(CallerType.RESULT, null, null, emptyList);
 
     public static enum CallerType {
         RESULT, FUNCTION, SHARED
@@ -127,7 +127,7 @@ public class Caller<T> {
         if (result == null) {
             return (Caller<T>) emptyResultCaller;
         }
-        return new Caller<>(CallerType.RESULT, result, null, EmptyImmutableList.getInstance());
+        return new Caller<>(CallerType.RESULT, result, null, emptyList);
     }
 
     /**
@@ -147,7 +147,7 @@ public class Caller<T> {
      */
     public static <T> Caller<T> ofFunction(Function<CastList<T>, Caller<T>> call) {
         Objects.requireNonNull(call);
-        return new Caller<>(CallerType.FUNCTION, null, call, EmptyImmutableList.getInstance());
+        return new Caller<>(CallerType.FUNCTION, null, call, emptyList);
     }
 
     /**

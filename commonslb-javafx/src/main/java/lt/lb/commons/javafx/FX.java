@@ -26,13 +26,13 @@ public class FX {
         if (initialized.compareAndSet(false, true)) {
             new JFXPanel();
             return true;
-        }else{
+        } else {
             return false;
         }
 
     }
-    
-    public static boolean isFxInitialized(){
+
+    public static boolean isFxInitialized() {
         return initialized.get();
     }
 
@@ -90,7 +90,7 @@ public class FX {
     }
 
     public static void join(Collection<Future> futures) {
-        F.iterate(futures, (i, f) -> {
+        futures.forEach(f -> {
             F.unsafeRun(() -> {
                 f.get();
             });

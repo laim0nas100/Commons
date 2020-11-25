@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import lt.lb.commons.EmptyImmutableList;
 import lt.lb.commons.containers.ForwardingStream;
 import lt.lb.commons.iteration.impl.ListROI;
 
