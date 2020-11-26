@@ -290,7 +290,7 @@ public class ParamParserTest {
         }
 
         @Override
-        public Integer getCurrentIndex() {
+        public int getCurrentIndex() {
             return current;
         }
 

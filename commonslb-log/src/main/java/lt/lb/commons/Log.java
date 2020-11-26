@@ -72,11 +72,11 @@ public class Log {
      * Used in printIter
      */
     public Lambda.L1R<Iterator, Supplier<String>> printIterDecorator = DefaultLogDecorators.printIterDecorator();
-    
+
     /**
      * Used in printStackStrace
      */
-    public Lambda.L3R<Throwable,Integer,Integer,Supplier<String>> printStackDecorator = DefaultLogDecorators.stackTraceFullSupplier();
+    public Lambda.L3R<Throwable, Integer, Integer, Supplier<String>> printStackDecorator = DefaultLogDecorators.stackTraceFullSupplier();
 
     public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -135,6 +135,9 @@ public class Log {
     }
 
     public static void await(Log log, long timeout, TimeUnit tu) throws InterruptedException, TimeoutException {
+        if (log.closed) {
+            return;
+        }
         FutureTask shutdown = Futures.empty();
         log.exe.execute(shutdown);
         try {
@@ -267,12 +270,12 @@ public class Log {
     public static void printStackTrace(Log log, int depth, Throwable th) {
         printStackTrace(log, depth, 0, th);
     }
-    
+
     public static void printStackTrace(Log log, int depth, int reduceBy, Throwable th) {
         long millis = System.currentTimeMillis();
         final String threadName = Thread.currentThread().getName();
         Supplier<String> supplier = log.printStackDecorator.apply(th, depth, reduceBy);
-        if(log.override.isPresent()){
+        if (log.override.isPresent()) {
             log.override.get().accept(supplier);
             return;
         }

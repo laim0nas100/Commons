@@ -12,7 +12,7 @@ public abstract class BaseROI<T> implements ReadOnlyIterator<T>{
     protected T current;
     
     @Override
-    public Integer getCurrentIndex() {
+    public int getCurrentIndex() {
         return index;
     }
 

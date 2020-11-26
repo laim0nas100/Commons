@@ -408,7 +408,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
             }
 
             @Override
-            public Integer getCurrentIndex() {
+            public int getCurrentIndex() {
                 return totalIndex;
             }
 

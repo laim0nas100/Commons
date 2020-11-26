@@ -161,7 +161,7 @@ public class CommentParser {
             }
 
             @Override
-            public Integer getCurrentIndex() {
+            public int getCurrentIndex() {
                 return i.get();
             }
 

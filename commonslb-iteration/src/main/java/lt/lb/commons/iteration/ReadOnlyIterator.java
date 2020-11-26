@@ -49,8 +49,8 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
         }
         return new IteratorROI<>(it);
     }
-    
-    public static <T> ReadOnlyIterator<T> of(Iterable<T> it){
+
+    public static <T> ReadOnlyIterator<T> of(Iterable<T> it) {
         if (it instanceof ReadOnlyIterator) {
             return (ReadOnlyIterator<T>) it;
         }
@@ -150,7 +150,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
      *
      * @return the next element index in the iteration
      */
-    Integer getCurrentIndex();
+    int getCurrentIndex();
 
     /**
      * Returns element, that was received after next call
@@ -176,7 +176,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
             }
 
             @Override
-            public Integer getCurrentIndex() {
+            public int getCurrentIndex() {
                 return me.getCurrentIndex();
             }
 
@@ -190,44 +190,43 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
                 return mapper.apply(me.next());
             }
 
-
             @Override
             public void close() {
                 me.close();
             }
-            
-            
+
         };
     }
 
     /**
-     * Appends close operation, even when not in try-with-resources block
+     * Appends close operation after no more elements remain, even when not in
+     * try-with-resources block
      *
      * @param run
      * @return
      */
     default ReadOnlyIterator<T> withEnsuredCloseOperation(Runnable run) {
         ReadOnlyIterator<T> me = this;
-        
+
         return new ReadOnlyIterator<T>() {
             AtomicBoolean closed = new AtomicBoolean(false);
             Boolean cached = null;
-            
-            private boolean isClosed(){
+
+            private boolean isClosed() {
                 return closed.get();
             }
-            
-            private boolean maybeCloseHasNext(){
-                if(cached == null){
+
+            private boolean maybeCloseHasNext() {
+                if (cached == null) {
                     cached = me.hasNext();
                 }
                 if (!cached) {
                     close();
                 }
-                
+
                 return cached;
             }
-            
+
             @Override
             public void close() {
                 //ensure only once
@@ -244,7 +243,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
             }
 
             @Override
-            public Integer getCurrentIndex() {
+            public int getCurrentIndex() {
                 return me.getCurrentIndex();
             }
 

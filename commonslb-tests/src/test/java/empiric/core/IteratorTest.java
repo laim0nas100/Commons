@@ -7,19 +7,16 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.F;
 import lt.lb.commons.Log;
-import lt.lb.commons.misc.ReflectionUtils;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.datafill.NumberFill;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.Iter.IterNoStop;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.impl.ArrayROI;
 import lt.lb.commons.misc.rng.FastRandom;
-import lt.lb.commons.reflect.ReflectionPrint;
-import org.junit.Test;
 
 /**
  *
@@ -27,8 +24,16 @@ import org.junit.Test;
  */
 public class IteratorTest {
 
+    public static void main(String[] args) throws Exception {
+        Log.main().disable = true;
+        testBench();
+        Log.main().disable = false;
+        testBench();
+        Log.close();
+    }
+
 //    @Test
-    public void test() throws Exception {
+    public static void test() throws Exception {
         Integer[] arr = ArrayOp.asArray(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
         List<Integer> asList = Arrays.asList(arr);
         Log.main().stackTrace = false;
@@ -59,9 +64,9 @@ public class IteratorTest {
     }
 
 //    @Test
-    public void testBench() throws Exception {
+    public static void testBench() throws Exception {
         FastRandom rng = new FastRandom();
-        ArrayList<Integer> asList = NumberFill.fillArrayList(855555, () -> rng.nextInt());
+        ArrayList<Integer> asList = NumberFill.fillArrayList(200000, () -> rng.nextInt(10000));
         Integer[] arr = asList.stream().toArray(t -> new Integer[t]);
         Collection<Integer> col = asList;
         Benchmark bench = new Benchmark();
@@ -71,7 +76,7 @@ public class IteratorTest {
         Iter it = (i, item) -> {
             return (i == 755555);
         };
-        int times = 100;
+        int times = 250;
 
         bench.executeBench(times, "List", () -> {
             Iter.find(asList, it);
@@ -84,10 +89,9 @@ public class IteratorTest {
             Iter.find(ReadOnlyIterator.of(asList), it);
         }).print(Log::print);
         bench.executeBench(times, "ROI stream ", () -> {
-            Iter.find(asList.stream(), it);
+            Iter.find(ReadOnlyIterator.of(asList.stream()), it);
         }).print(Log::print);
-        
-        
+
         Iter.find(asList.stream().iterator(), it);
         bench.executeBench(times, "Stream iter", () -> {
             Iter.find(asList.stream().iterator(), it);
@@ -95,17 +99,15 @@ public class IteratorTest {
 
         bench.executeBench(times, "pure stream ", () -> {
             IntegerValue val = new IntegerValue(0);
-            asList.stream().filter(f -> it.visit(val.getAndIncrement(), f)).findFirst();
+            asList.stream().forEach(f -> it.visit(val.getAndIncrement(), f));
         }).print(Log::print);
         bench.executeBench(times, "ROI array", () -> {
             Iter.find(new ArrayROI<>(arr), it);
         }).print(Log::print);
-        
-        
-        
+
         bench.executeBench(times, "Stream array", () -> {
             IntegerValue val = new IntegerValue(0);
-            Stream.of(arr).filter(f -> it.visit(val.getAndIncrement(), f)).findFirst();
+            Stream.of(arr).forEach(f -> it.visit(val.getAndIncrement(), f));
         }).print(Log::print);
         bench.executeBench(times, "Array   ", () -> {
             Iter.find(arr, it);
@@ -118,9 +120,38 @@ public class IteratorTest {
                 }
             }
         }).print(Log::print);
+        
+        //NEW 
+        
+        
+        bench.executeBench(times, "New For List", () -> {
+            For.elements().find(asList, it);
+        }).print(Log::print);
 
-//        Log.print(() -> ReflectionUtils.reflectionString(Log.main(), 2));
-        Log.await(1, TimeUnit.HOURS);
+        bench.executeBench(times, "New For Collection", () -> {
+            For.elements().find(col, it);
+        }).print(Log::print);
+        bench.executeBench(times, "New For ROI list", () -> {
+            For.elements().find(ReadOnlyIterator.of(asList), it);
+        }).print(Log::print);
+        bench.executeBench(times, "New For ROI stream ", () -> {
+            For.elements().find(ReadOnlyIterator.of(asList.stream()), it);
+        }).print(Log::print);
+
+        For.elements().find(asList.stream().iterator(), it);
+        bench.executeBench(times, "New For Stream iter", () -> {
+            For.elements().find(asList.stream().iterator(), it);
+        }).print(Log::print);
+
+        bench.executeBench(times, "New For ROI array", () -> {
+            For.elements().find(new ArrayROI<>(arr), it);
+        }).print(Log::print);
+
+        bench.executeBench(times, "New For Array   ", () -> {
+            For.elements().find(arr, it);
+        }).print(Log::print);
+        
+
     }
 
 }

@@ -23,12 +23,12 @@ public interface Iter<Type> {
      * @param value
      * @return true = break, false = continue
      */
-    public Boolean visit(Integer index, Type value);
+    public boolean visit(Integer index, Type value);
 
     public static interface IterNoStop<T> extends Iter<T> {
 
         @Override
-        public default Boolean visit(Integer index, T value) {
+        public default boolean visit(Integer index, T value) {
             this.continuedVisit(index, value);
             return false;
         }
@@ -38,13 +38,13 @@ public interface Iter<Type> {
 
     public static interface IterMap<K, V> {
 
-        public Boolean visit(K key, V value);
+        public boolean visit(K key, V value);
     }
 
     public static interface IterMapNoStop<K, V> extends IterMap<K, V> {
 
         @Override
-        public default Boolean visit(K key, V value) {
+        public default boolean visit(K key, V value) {
             this.continuedVisit(key, value);
             return false;
         }

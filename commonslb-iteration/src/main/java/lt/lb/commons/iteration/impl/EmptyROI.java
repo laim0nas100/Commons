@@ -21,7 +21,7 @@ public class EmptyROI<T> implements ReadOnlyBidirectionalIterator<T>, ListIterat
     }
 
     @Override
-    public Integer getCurrentIndex() {
+    public int getCurrentIndex() {
         return -1;
     }
 
