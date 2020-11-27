@@ -20,6 +20,10 @@
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-misc</artifactId>
         </dependency>
         <dependency>
@@ -63,12 +67,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <version>1.9</version>
-        </dependency>
-        <dependency>
-            <groupId>lt.lb.commons</groupId>
-            <artifactId>commonslb-iteration</artifactId>
-            <version>local-jar</version>
-            <type>jar</type>
         </dependency>
     </dependencies>
     
