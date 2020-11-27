@@ -1,5 +1,7 @@
 package lt.lb.commons.iteration.general.impl;
 
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -55,7 +57,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
 
         int lastSize = 0;
         int index = -1;
-        LinkedList<IterIterableResult<T>> lastBuffer = null;
+        LinkedList<T> lastBuffer = null;
         if (onlyIncludingLast > 0) {
             lastBuffer = new LinkedList<>();
             boolean reachedEnd = false;
@@ -69,21 +71,23 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
                     reachedEnd = true;
                     break;
                 }
-                IterIterableResult<T> res = new IterIterableResult<>(index, next);
                 if (lastSize >= onlyIncludingLast) {
-                    lastBuffer.addLast(res);
+                    lastBuffer.addLast(next);
                     lastBuffer.removeFirst();
                 } else {
-                    lastBuffer.addLast(res);
+                    lastBuffer.addLast(next);
                     lastSize++;
                 }
 
             }
+
+            int lastIndex = index - lastSize;
             // just iterate through the last elements
-            for (IterIterableResult<T> res : lastBuffer) {
-                if (iter.visit(res.index, res.val)) {
-                    return Optional.of(res);
+            for (T res : lastBuffer) {
+                if (iter.visit(lastIndex, res)) {
+                    return Optional.of(new IterIterableResult<>(lastIndex, res));
                 }
+                lastIndex++;
             }
 
         } else {
@@ -122,9 +126,9 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
         ListIterator<T> iterator = list.listIterator(to);
         to--;
 
-        while (iterator.hasPrevious() && from >= to) {
+        while (iterator.hasPrevious() && from <= to) {
             T next = iterator.previous();
-            if (iter.visit(from, next)) {
+            if (iter.visit(to, next)) {
                 return Optional.of(new IterIterableResult<>(to, next));
             }
             to--;
@@ -156,14 +160,14 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
         if (onlyIncludingFirst >= 0) {
             int size = to - from;
             if (size >= onlyIncludingFirst) {
-                to = size - onlyIncludingFirst;
+                to = from + onlyIncludingFirst;
             }
         }
 
         if (onlyIncludingLast >= 0) {
             int size = to - from;
             if (size >= onlyIncludingLast) {
-                from = size - onlyIncludingLast;
+                from = to - onlyIncludingLast;
             }
         }
 
@@ -216,6 +220,36 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
                 return Optional.of(new IterIterableResult<>(from, next));
             }
             from++;
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public <T> Optional<IterIterableResult<T>> findBackwards(Deque<T> deque, Iter<T> iter) {
+        int size = deque.size();
+        Iterator<T> descendingIterator = deque.descendingIterator();
+        int[] bound = workoutBounds(size);
+        int from = bound[0];
+        int to = bound[1];
+        int index = size;
+        while (descendingIterator.hasNext()) {
+            index--;
+            T next = descendingIterator.next();
+            if(index >= to){
+                continue;
+            }
+            
+            if(index < from){
+                break;
+            }
+            
+            if (iter.visit(index, next)) {
+                return Optional.of(new IterIterableResult<>(index, next));
+            }
+            
+            
+            
         }
 
         return Optional.empty();

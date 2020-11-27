@@ -11,6 +11,15 @@ import lt.lb.commons.iteration.general.result.IterMapResult;
  */
 public interface IterationMap<E extends IterationMap<E>> extends IterationAbstract<E> {
 
+    /**
+     * Iterate through map entries
+     *
+     * @param <K> Key
+     * @param <V> Value
+     * @param map map instance
+     * @param iter iteration logic
+     * @return
+     */
     public <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, Iter.IterMap<K, V> iter);
 
     public default <K, V> void iterate(Map<K, V> map, Iter.IterMapNoStop<K, V> iter) {

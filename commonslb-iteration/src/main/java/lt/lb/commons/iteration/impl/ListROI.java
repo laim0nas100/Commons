@@ -8,7 +8,7 @@ import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
  *
  * @author laim0nas100
  */
-public class ListROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIterator<T>{
+public class ListROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIterator<T> {
 
     protected ListIterator<T> iter;
 
@@ -27,13 +27,11 @@ public class ListROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalItera
         index++;
         return setCurrent(iter.next());
     }
-    
 
     @Override
     public boolean hasPrevious() {
         return iter.hasPrevious();
     }
-
 
     @Override
     public T previous() {
@@ -44,5 +42,15 @@ public class ListROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalItera
     @Override
     public void close() {
     }
-    
+
+    @Override
+    public int nextIndex() {
+        return iter.nextIndex();
+    }
+
+    @Override
+    public int previousIndex() {
+        return iter.previousIndex();
+    }
+
 }

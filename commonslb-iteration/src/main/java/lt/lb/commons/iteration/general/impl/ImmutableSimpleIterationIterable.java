@@ -1,5 +1,7 @@
 package lt.lb.commons.iteration.general.impl;
 
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
@@ -105,6 +107,25 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
                 return Optional.of(new IterIterableResult<>(i, array[i]));
             }
         }
+        return Optional.empty();
+    }
+    
+    @Override
+    public <T> Optional<IterIterableResult<T>> findBackwards(Deque<T> deque, Iter<T> iter) {
+        int size = deque.size();
+        Iterator<T> descendingIterator = deque.descendingIterator();
+        int index = size - 1;
+        while (descendingIterator.hasNext()) {
+            T next = descendingIterator.next();
+            
+            if (iter.visit(index, next)) {
+                return Optional.of(new IterIterableResult<>(index, next));
+            }
+            
+            index--;
+            
+        }
+
         return Optional.empty();
     }
 
