@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import lt.lb.commons.FastIDGen.FastID;
 import lt.lb.commons.containers.tables.CellTable.CellFormatIndexCollector;
 
 /**
@@ -24,7 +25,7 @@ public class CellFormatBuilder<T> {
     }
     protected CellTable<T> table;
     protected Set<CellPrep<T>> cells;
-    protected Map<Long, List<Consumer>> formatters = new HashMap<>();
+    protected Map<FastID, List<Consumer>> formatters = new HashMap<>();
 
     /**
      * Define formatting action for currently selected cells
@@ -123,7 +124,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public Map<Long, List<Consumer>> getFormatterMap() {
+    public Map<FastID, List<Consumer>> getFormatterMap() {
         return this.formatters;
     }
 
@@ -132,7 +133,7 @@ public class CellFormatBuilder<T> {
      * @param cons
      * @return 
      */
-    public CellFormatBuilder<T> withFormatterMap(Consumer<? super Map<Long, ? extends List<Consumer>>> cons) {
+    public CellFormatBuilder<T> withFormatterMap(Consumer<? super Map<FastID, ? extends List<Consumer>>> cons) {
         cons.accept(this.getFormatterMap());
         return this;
 

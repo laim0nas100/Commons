@@ -4,11 +4,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lt.lb.commons.F;
+import lt.lb.commons.FastIDGen;
 import lt.lb.commons.misc.NestedException;
 
 /**
@@ -116,7 +116,7 @@ public class BindingValue<T> extends Value<T> {
         val2.unbind(val1.id);
     }
 
-    private static final AtomicLong idGen = new AtomicLong(0L);
+    private static final FastIDGen idGen = new FastIDGen(8);
 
     public static String nextId() {
         return "BindingValue-" + idGen.getAndIncrement();

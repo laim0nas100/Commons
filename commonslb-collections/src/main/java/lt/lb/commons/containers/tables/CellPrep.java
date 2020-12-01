@@ -2,8 +2,9 @@ package lt.lb.commons.containers.tables;
 
 import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import lt.lb.commons.FastIDGen;
+import lt.lb.commons.FastIDGen.FastID;
 
 /**
  *
@@ -12,9 +13,9 @@ import java.util.function.Function;
 public class CellPrep<T> {
     
 
-    private static final AtomicLong idInc = new AtomicLong(0);
+    private static final FastIDGen idInc = new FastIDGen(4);
     
-    public final long id = idInc.getAndIncrement();
+    public final FastID id = idInc.getAndIncrement();
     protected Optional<T> content;
     protected TableCellMerge verticalMerge = TableCellMerge.NONE;
     protected TableCellMerge horizontalMerge = TableCellMerge.NONE;

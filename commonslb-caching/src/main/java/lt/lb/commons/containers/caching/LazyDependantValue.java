@@ -2,6 +2,8 @@ package lt.lb.commons.containers.caching;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
+import lt.lb.commons.FastIDGen;
+import lt.lb.commons.FastIDGen.FastID;
 
 /**
  *
@@ -47,7 +49,7 @@ public class LazyDependantValue<T> extends LazyValue<T> {
     public <U, L extends LazyValue<U>> L createDependantChild(L child, boolean parentInSupply) {
         LazyDependantValue<T> me = this;
         child.addContinion(() -> me.isLoaded());
-        child.addContinion(() -> me.getLoadedTime() <= child.getLoadedTime());
+        child.addContinion(() -> FastID.compare(me.getLoaded(),child.getLoaded()) <= 0);
 
         if (parentInSupply) {
             child.addDependency(me);

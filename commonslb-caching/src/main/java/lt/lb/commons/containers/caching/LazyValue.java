@@ -4,6 +4,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+import lt.lb.commons.FastIDGen;
+import lt.lb.commons.FastIDGen.FastID;
 import lt.lb.commons.containers.values.Value;
 
 /**
@@ -15,9 +17,9 @@ import lt.lb.commons.containers.values.Value;
 public class LazyValue<T> extends Value<T> {
     //should be good for a really long time
 
-    public static AtomicLong counter = new AtomicLong(Long.MIN_VALUE);
+    public static FastIDGen counter = new FastIDGen(8);
 
-    protected AtomicLong loaded = new AtomicLong(Long.MAX_VALUE);
+    protected Value<FastID> loaded = new Value<>();
     protected Deque<Condition> conditions = new ArrayDeque<>();
     protected Supplier<T> supply;
     protected Deque<Supplier> dependants;
@@ -25,9 +27,10 @@ public class LazyValue<T> extends Value<T> {
     public LazyValue(Supplier<T> supply) {
         this.supply = supply;
         conditions.add(() -> {
-            long val = loaded.get();
-            long c = counter.get();
-            return (c > val && c == Math.max(val, c));//ensure counter always the max
+            FastID val = loaded.get();
+            FastID c = counter.get();
+            return FastID.compare(val, c)<0;
+//            return (c > val && c == Math.max(val, c));//ensure counter always the max
         });
 
     }
@@ -100,9 +103,9 @@ public class LazyValue<T> extends Value<T> {
 
     /**
      *
-     * @return time this value was set, returned by internal call counter
+     * @return the ID of this value that was set, returned by internal call counter
      */
-    public Long getLoadedTime() {
+    public FastID getLoaded() {
         return loaded.get();
     }
 
@@ -119,7 +122,7 @@ public class LazyValue<T> extends Value<T> {
      * Invalidates value (needs recomputing)
      */
     public void invalidate() {
-        loaded.set(Long.MAX_VALUE);
+        loaded.set(null);
     }
 
 }

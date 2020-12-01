@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import lt.lb.commons.containers.tables.CellFormatBuilder;
 import lt.lb.commons.containers.tables.CellTable;
 import lt.lb.commons.F;
+import lt.lb.commons.FastIDGen.FastID;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.Iter;
 import org.junit.Test;
@@ -21,7 +22,7 @@ import org.junit.Test;
  */
 public class DocTableTest {
 
-//    @Test
+    @Test
     public void test() throws Exception {
         CellTable<String> table = new CellTable<>();
 
@@ -29,7 +30,7 @@ public class DocTableTest {
         table.addRow("A", "B", "C");
         table.mergeHorizontal(0, 2, 1);
 
-        Map<Long, List<Consumer>> formatterMap = table.selectCells()
+        Map<FastID, List<Consumer>> formatterMap = table.selectCells()
                 .withRectangleStartingAt(0, 1)
                 .toRightBottomCornerAt(1, 1)
                 .forEachCell(c -> {

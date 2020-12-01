@@ -7,11 +7,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lt.lb.commons.F;
+import lt.lb.commons.FastIDGen.FastID;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Pair;
@@ -293,7 +295,7 @@ public class CellTable<T> {
          * @param collection
          * @return 
          */
-        public CellFormatBuilder<T> withCellIds(Collection<Long> collection) {
+        public CellFormatBuilder<T> withCellIds(Collection<FastID> collection) {
             List<CellPrep<T>> collect = collection.stream()
                     .distinct()
                     .map(m -> this.table.findCell(m))
@@ -592,7 +594,7 @@ public class CellTable<T> {
      * @param id
      * @return
      */
-    public Optional<Pair<Integer>> findCellLocation(long id) {
+    public Optional<Pair<Integer>> findCellLocation(FastID id) {
         return findCellById(id).map(m -> m.g1);
     }
 
@@ -602,7 +604,7 @@ public class CellTable<T> {
      * @param id
      * @return
      */
-    public Optional<CellPrep<T>> findCell(long id) {
+    public Optional<CellPrep<T>> findCell(FastID id) {
         return findCellById(id).map(m -> m.g2);
     }
 
@@ -617,11 +619,11 @@ public class CellTable<T> {
         return SafeOpt.of(this).map(m -> getCellAt(m, ri, ci)).asOptional();
     }
 
-    private Optional<Tuple<Pair<Integer>, CellPrep<T>>> findCellById(long id) {
+    private Optional<Tuple<Pair<Integer>, CellPrep<T>>> findCellById(FastID id) {
         IntegerValue ri = new IntegerValue(0);
         for (Row<T> row : this.rows) {
             Optional<Tuple<Pair<Integer>, CellPrep<T>>> map
-                    = Iter.find(row.cells, (ci, cell) -> cell.id == id)
+                    = Iter.find(row.cells, (ci, cell) -> Objects.equals(id, cell.id))
                             .map(m -> Tuples.create(new Pair<>(ri.get(), m.g1), m.g2));
             if (map.isPresent()) {
                 return map;
