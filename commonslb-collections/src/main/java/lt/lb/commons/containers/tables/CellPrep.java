@@ -13,7 +13,7 @@ import lt.lb.commons.FastIDGen.FastID;
 public class CellPrep<T> {
     
 
-    private static final FastIDGen idInc = new FastIDGen(4);
+    private static final FastIDGen idInc = new FastIDGen();
     
     public final FastID id = idInc.getAndIncrement();
     protected Optional<T> content;

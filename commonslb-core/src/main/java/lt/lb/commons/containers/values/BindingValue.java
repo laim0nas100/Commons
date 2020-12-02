@@ -116,7 +116,7 @@ public class BindingValue<T> extends Value<T> {
         val2.unbind(val1.id);
     }
 
-    private static final FastIDGen idGen = new FastIDGen(8);
+    private static final FastIDGen idGen = new FastIDGen();
 
     public static String nextId() {
         return "BindingValue-" + idGen.getAndIncrement();

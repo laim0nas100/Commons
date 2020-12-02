@@ -17,7 +17,7 @@ import lt.lb.commons.containers.values.Value;
 public class LazyValue<T> extends Value<T> {
     //should be good for a really long time
 
-    public static FastIDGen counter = new FastIDGen(8);
+    public static FastIDGen counter = new FastIDGen();
 
     protected Value<FastID> loaded = new Value<>();
     protected Deque<Condition> conditions = new ArrayDeque<>();
