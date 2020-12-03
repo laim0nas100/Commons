@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import lt.lb.commons.F;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.Log;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.rng.FastRandom;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.misc.rng.XorShiftRNG;
@@ -32,7 +32,7 @@ public class StackTraceTest {
 
         Log.print("Test boi");
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        Iter.iterate(stackTrace, (i, st) -> {
+        For.elements().iterate(stackTrace, (i, st) -> {
             Log.print(i, st);
         });
         Log.print("Test gril");

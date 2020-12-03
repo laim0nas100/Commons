@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.Interval;
 
@@ -91,7 +91,7 @@ public class RandomRanges<T> {
         }
         
         ArrayList<T> res = new ArrayList<>(amount);
-        Iter.iterate(list, (i,item)->{
+        For.elements().iterate(list, (i,item)->{
             res.add(item.get());
             item.disabled = false;
         });

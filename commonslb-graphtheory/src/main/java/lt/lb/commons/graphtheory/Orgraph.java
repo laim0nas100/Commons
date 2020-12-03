@@ -7,10 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import lt.lb.commons.F;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.containers.collections.CollectionOp;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 
 /**
  *
@@ -176,7 +175,7 @@ public class Orgraph {
     }
 
     public void sanityCheck() {
-        Iter.iterate(links, (p, link) -> {
+        For.entries().iterate(links, (p, link) -> {
             GNode from = nodes.get(link.nodeFrom);
             GNode to = nodes.get(link.nodeTo);
             if (!from.linksTo.contains(link.nodeTo)) {
@@ -188,13 +187,13 @@ public class Orgraph {
         });
         //link -> nodes OK
 
-        Iter.iterate(nodes, (idFrom, node) -> {
-            Iter.iterate(node.linksTo, (otherI, ID) -> {
+        For.entries().iterate(nodes, (idFrom, node) -> {
+            For.elements().iterate(node.linksTo, (otherI, ID) -> {
                 if (!this.linkExists(idFrom, ID)) {
                     throw new IllegalStateException("Nodes has link: " + idFrom + " -> " + ID + " but no such link info");
                 }
             });
-            Iter.iterate(node.linkedFrom, (otherI, ID) -> {
+            For.elements().iterate(node.linkedFrom, (otherI, ID) -> {
                 if (!this.linkExists(ID, idFrom)) {
                     throw new IllegalStateException("Nodes has link: " + ID + " -> " + idFrom + " but no such link info");
                 }

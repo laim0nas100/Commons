@@ -11,7 +11,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import static lt.lb.commons.rows.BasicUpdates.*;
@@ -162,7 +162,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     public List<Integer> getVisibleIndices() {
         ArrayList<Integer> list = new ArrayList<>();
-        Iter.iterate(cells, (i, cell) -> {
+        For.elements().iterate(cells, (i, cell) -> {
             if (cell.isVisible()) {
                 list.add(i);
             }
@@ -173,7 +173,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     public List<Integer> getPreferedColSpanOfVisible() {
         ArrayList<Integer> prefVis = new ArrayList<>();
-        Iter.iterate(cells, (i, cell) -> {
+        For.elements().iterate(cells, (i, cell) -> {
             if (cell.isVisible()) {
                 prefVis.add(getPreferedColSpan().get(i));
             }
@@ -224,7 +224,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         double mult = maxColSpan / preferedTotal;
 
         Integer[] colApply = new Integer[preferedColSpan.size()];
-        Iter.iterate(preferedColSpan, (i, pref) -> {
+        For.elements().iterate(preferedColSpan, (i, pref) -> {
             colApply[i] = (int) Math.floor(pref * mult);
         });
 
@@ -303,7 +303,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         int beforeIndex = comps[0];
         int afterIndex = comps[comps.length - 1];
 
-        Iter.iterate(mainIterator(), (i, tup) -> {
+        For.elements().iterate(mainIterator(), (i, tup) -> {
             C cell = tup.g1;
             Integer colSpan = cell.getColSpan();
             Tuple<Integer, C> tuple = Tuples.create(colSpan, cell);
@@ -325,7 +325,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         });
         //insert before merged
 
-        Iter.iterate(before, (i, tup) -> {
+        For.elements().iterate(before, (i, tup) -> {
             C cell = tup.getG2();
             cell.setColSpan(tup.g1);
             newCells.add(cell);
@@ -342,7 +342,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         C finalCell = this.finalAdd(-1, mergedNodes, enclosing.get(), newCells, mergedColspan);
         finalCell.setMerged(true);
         //insert after merged
-        Iter.iterate(after, (i, tup) -> {
+        For.elements().iterate(after, (i, tup) -> {
             C cell = tup.getG2();
             cell.setColSpan(tup.g1);
             newCells.add(cell);
@@ -371,7 +371,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     public R withPreferedColspan(Integer... spans) {
         R me = me();
         addOnDisplayAndRunIfDone(() -> {
-            Iter.iterate(spans, (i, spa) -> {
+            For.elements().iterate(spans, (i, spa) -> {
                 C cell = this.getCell(i);
                 cell.setColSpan(spa);
 
@@ -453,23 +453,23 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     public Supplier<C> getCellSupplier(Predicate<Tuple<Integer, N>> pred) {
         return () -> {
-            return Iter.find(mainIterator(), (i, tuple) -> pred.test(Tuples.create(i, tuple.g2)))
-                    .map(m -> m.g2.g1).orElse(null);
+            return For.elements().find(mainIterator(), (i, tuple) -> pred.test(Tuples.create(i, tuple.g2)))
+                    .map(m -> m.val.g1).orElse(null);
         };
     }
 
     public Supplier<N> getNodeSupplier(Integer i) {
         return () -> {
-            return Iter.find(mainIterator(), (j, tuple) -> Objects.equals(i, j))
-                    .map(m -> m.g2.g2).orElse(null);
+            return For.elements().find(mainIterator(), (j, tuple) -> Objects.equals(i, j))
+                    .map(m -> m.val.g2).orElse(null);
         };
     }
 
     public Supplier<N> getNodeSupplier(Predicate<N> pred) {
 
         return () -> {
-            return Iter.find(mainIterator(), (j, tuple) -> pred.test(tuple.g2))
-                    .map(m -> m.g2.g2).orElse(null);
+            return For.elements().find(mainIterator(), (j, tuple) -> pred.test(tuple.g2))
+                    .map(m -> m.val.g2).orElse(null);
         };
     }
 

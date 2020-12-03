@@ -3,7 +3,7 @@ package lt.lb.commons.misc.rng;
 import java.util.*;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.tuples.Tuple;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.numbers.OverflowCheck;
 
 /**
@@ -336,7 +336,7 @@ public interface RandomDistribution {
     public default <T> LinkedList<T> pickRandom(Collection<T> col, int amount) {
 
         ArrayList<RandomRange<T>> rrList = new ArrayList<>();
-        Iter.iterate(col, (i, item) -> {
+        For.elements().iterate(col, (i, item) -> {
             rrList.add(new RandomRange(item, 1d));
         });
         RandomRanges<T> rrr = new RandomRanges(rrList);
@@ -362,7 +362,7 @@ public interface RandomDistribution {
      * @return return random element
      */
     public default <T> T pickRandom(Collection<T> col) {
-        return Iter.find(col, nextInt(col.size()), (i, item) -> true).get().getG2();
+        return For.elements().startingFrom(nextInt(col.size())).find(col, (i, item) -> true).get().val;
     }
 
     /**
@@ -396,7 +396,7 @@ public interface RandomDistribution {
      */
     public default <T> LinkedList<T> pickRandomDistributed(int amount, Collection<Tuple<Double, T>> tuples) {
         ArrayList<RandomRange<T>> rrList = new ArrayList<>(tuples.size());
-        Iter.iterate(tuples, (i, item) -> {
+        For.elements().iterate(tuples, (i, item) -> {
             rrList.add(new RandomRange(item.getG2(), item.g1));
         });
         RandomRanges<T> rrr = new RandomRanges(rrList);

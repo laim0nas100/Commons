@@ -24,7 +24,7 @@ import lt.lb.commons.io.blobify.Blobbys;
 import lt.lb.commons.io.blobify.bytes.Bytes;
 import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;
 import lt.lb.commons.io.blobify.bytes.WriteableBytes;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class ZipTest {
             ArrayList<? extends ZipEntry> list = ReadOnlyIterator.of(zip.stream()).toArrayList();
 //            Collections.shuffle(list);
 
-            Iter.iterate(list, (i, entry) -> {
+            For.elements().iterate(list, (i, entry) -> {
 
                 F.unsafeRun(() -> {
 //                    ZipFile newZip = new ZipFile(Paths.get(zipboi).toFile());

@@ -12,14 +12,13 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import lt.lb.commons.F;
 import lt.lb.commons.FastIDGen.FastID;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.IntRange;
 
 /**
@@ -106,9 +105,10 @@ public class CellTable<T> {
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (int r = startRow; r < lastRow + 1; r++) {
                 Row<T> row = getRow(table, r);
-                Iter.iterate(row.cells, startCol, lastCol + 1, (i, cell) -> {
-                    cells.add(cell);
-                });
+                For.elements().withInterval(startCol, lastCol + 1)
+                        .iterate(row.cells, (i, cell) -> {
+                            cells.add(cell);
+                        });
             }
             return appendOrNew(cells);
         }
@@ -162,9 +162,10 @@ public class CellTable<T> {
             IntRange.of(index, endIndex).assertRangeIsValid();
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (Row<T> row : table.rows) {
-                Iter.iterate(row.cells, index, endIndex + 1, (i, cell) -> {
-                    cells.add(cell);
-                });
+                For.elements().withInterval(index, endIndex + 1)
+                        .iterate(row.cells, (i, cell) -> {
+                            cells.add(cell);
+                        });
             }
             return appendOrNew(cells);
         }
@@ -292,8 +293,9 @@ public class CellTable<T> {
 
         /**
          * Specify explicit cell ids
+         *
          * @param collection
-         * @return 
+         * @return
          */
         public CellFormatBuilder<T> withCellIds(Collection<FastID> collection) {
             List<CellPrep<T>> collect = collection.stream()
@@ -357,7 +359,7 @@ public class CellTable<T> {
         Row<T> row = getRow(this, ri);
         row.cells.forEach(c -> c.content = Optional.empty());
         row.modifyToSize(content.length);
-        Iter.iterate(row.cells, (i, cell) -> {
+        For.elements().iterate(row.cells, (i, cell) -> {
             cell.content = Optional.ofNullable(content[i]);
         });
         return this;
@@ -400,7 +402,7 @@ public class CellTable<T> {
      */
     public CellTable<T> mergeVertical(int from, int to, int column) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
-        Iter.iterate(rows, from, to + 1, (i, row) -> {
+        For.elements().withInterval(from, to + 1).iterate(rows, (i, row) -> {
             CellPrep<T> cell = row.cells.get(column);
             if (cell.verticalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(i, column) + " clean existing merge first");
@@ -470,10 +472,9 @@ public class CellTable<T> {
      */
     public CellTable<T> mergeLastEmpty() {
         Row<T> row = rows.get(this.getLastRowIndex());
-        Optional<Integer> firstIndex = Iter.findBackwards(row.cells, (i, cell) -> {
+        For.elements().findBackwards(row.cells, (i, cell) -> {
             return cell.content.isPresent();
-        }).map(m -> m.g1);
-        firstIndex.ifPresent(from -> {
+        }).map(m -> m.index).ifPresent(from -> {
             this.mergeHorizontal(from, row.cells.size() - 1, rows.size() - 1);
         });
         return this;
@@ -622,9 +623,9 @@ public class CellTable<T> {
     private Optional<Tuple<Pair<Integer>, CellPrep<T>>> findCellById(FastID id) {
         IntegerValue ri = new IntegerValue(0);
         for (Row<T> row : this.rows) {
-            Optional<Tuple<Pair<Integer>, CellPrep<T>>> map
-                    = Iter.find(row.cells, (ci, cell) -> Objects.equals(id, cell.id))
-                            .map(m -> Tuples.create(new Pair<>(ri.get(), m.g1), m.g2));
+            Optional<Tuple<Pair<Integer>, CellPrep<T>>> map = For.elements().find(row.cells, (ci, cell) -> {
+                return Objects.equals(id, cell.id);
+            }).map(m -> Tuples.create(new Pair<>(ri.get(), m.index), m.val));
             if (map.isPresent()) {
                 return map;
             }

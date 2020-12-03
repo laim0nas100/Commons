@@ -3,10 +3,9 @@ package lt.lb.commons.reflect.pure;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import lt.lb.commons.F;
 import lt.lb.commons.Predicates;
 import lt.lb.commons.containers.caching.LazyValue;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.reflect.FieldFactory;
 import lt.lb.commons.reflect.FieldHolder;
 import lt.lb.commons.reflect.FullFieldHolder;
@@ -41,7 +40,7 @@ public class PureReflectNode {
         });
         compositeChildNodes = new LazyValue<>(() -> {
             Map<String, PureReflectNode> children = new HashMap<>();
-            Iter.iterate(getLocalCompositeFields(), (name, field) -> {
+            For.entries().iterate(getLocalCompositeFields(), (name, field) -> {
                 Class type = field.getType();
                 PureReflectNode child = cache.computeIfAbsent(type, (c) -> {
                     return new PureReflectNode(cache, c);

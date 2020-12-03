@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package regression.core;
 
 import java.util.ArrayList;
@@ -14,18 +9,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.containers.collections.CollectionOp;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.datafill.NumberFill;
-import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMapperEnder;
 import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.Equator;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
+import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
 import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,13 +36,13 @@ public class CollectionOpTest {
         List<Integer> list = Arrays.asList(array);
         Stream<Integer> stream = list.stream();
 
-        Iter<Integer> f = (i, value) -> value == toFind;
-        Optional<Integer> find1 = Iter.find(array, f).map(m -> m.g1);
-        Optional<Integer> find2 = Iter.find(list, f).map(m -> m.g1);
-        Optional<Integer> find3 = Iter.find(stream, f).map(m -> m.g1);
+        IterIterableBiCons<Integer> f = (i, value) -> value == toFind;
+        Optional<Integer> find1 = For.elements().find(array, f).map(m -> m.index);
+        Optional<Integer> find2 = For.elements().find(list, f).map(m -> m.index);
+        Optional<Integer> find3 = For.elements().find(stream, f).map(m -> m.index);
 
-        Optional<Integer> find4 = Iter.findBackwards(array, f).map(m -> m.g1);
-        Optional<Integer> find5 = Iter.findBackwards(list, f).map(m -> m.g1);
+        Optional<Integer> find4 = For.elements().findBackwards(array, f).map(m -> m.index);
+        Optional<Integer> find5 = For.elements().findBackwards(list, f).map(m -> m.index);
 
         int indexOf = list.indexOf(toFind);
         assertThat(Optional.of(indexOf))
@@ -69,29 +63,29 @@ public class CollectionOpTest {
         IntegerValue count2 = new IntegerValue(0);
         IntegerValue count3 = new IntegerValue(0);
 
-        Optional<Integer> find1 = Iter.find(array, (i, a) -> {
+        Optional<Integer> find1 = For.elements().find(array, (i, a) -> {
             count1.incrementAndGet();
             return a == randomPick;
-        }).map(m -> m.g1);
-        Optional<Integer> find2 = Iter.find(list, (i, a) -> {
+        }).map(m -> m.index);
+        Optional<Integer> find2 = For.elements().find(list, (i, a) -> {
             count2.incrementAndGet();
             return a == randomPick;
-        }).map(m -> m.g1);
-        Optional<Integer> find3 = Iter.find(stream, (i, a) -> {
+        }).map(m -> m.index);
+        Optional<Integer> find3 = For.elements().find(stream, (i, a) -> {
             count3.incrementAndGet();
             return a == randomPick;
-        }).map(m -> m.g1);
+        }).map(m -> m.index);
 
         IntegerValue count4 = new IntegerValue(0);
         IntegerValue count5 = new IntegerValue(0);
-        Optional<Integer> find4 = Iter.findBackwards(array, (i, a) -> {
+        Optional<Integer> find4 = For.elements().findBackwards(array, (i, a) -> {
             count4.incrementAndGet();
             return a == randomPick;
-        }).map(m -> m.g1);
-        Optional<Integer> find5 = Iter.findBackwards(list, (i, a) -> {
+        }).map(m -> m.index);
+        Optional<Integer> find5 = For.elements().findBackwards(list, (i, a) -> {
             count5.incrementAndGet();
             return a == randomPick;
-        }).map(m -> m.g1);
+        }).map(m -> m.index);
 
         assertThat(Optional.of(list.indexOf(randomPick)))
                 .isEqualTo(find1)

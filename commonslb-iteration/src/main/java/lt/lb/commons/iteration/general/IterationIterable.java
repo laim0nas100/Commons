@@ -45,32 +45,32 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter);
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public <T> Optional<IterIterableResult<T>> find(List<T> list, IterIterableCons<T> iter);
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public <T> Optional<IterIterableResult<T>> find(T[] array, IterIterableCons<T> iter);
 
     /**
-     * Linear backward iteration of the given interval until Iter logic returns
-     * true, or iteration exhausts all elements
+     * Linear backward iteration of the given interval until logic returns true,
+     * or iteration exhausts all elements
      */
     public <T> Optional<IterIterableResult<T>> findBackwards(List<T> list, IterIterableCons<T> iter);
 
     /**
-     * Linear backward iteration of the given interval until Iter logic returns
-     * true, or iteration exhausts all elements
+     * Linear backward iteration of the given interval until logic returns true,
+     * or iteration exhausts all elements
      */
     public <T> Optional<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableCons<T> iter);
 
@@ -83,8 +83,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear backward iteration of the given interval until Iter logic returns
-     * true, or iteration exhausts all elements
+     * Linear backward iteration of the given interval until logic returns true,
+     * or iteration exhausts all elements
      */
     public <T> Optional<IterIterableResult<T>> findBackwards(T[] array, IterIterableCons<T> iter);
 
@@ -121,7 +121,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableCons<T> iter) {
@@ -129,7 +129,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter) {
@@ -137,7 +137,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Stream<T> stream, IterIterableCons<T> iter) {
@@ -193,7 +193,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableBiCons<T> iter) {
@@ -201,7 +201,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(List<T> list, IterIterableBiCons<T> iter) {
@@ -209,7 +209,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(T[] array, IterIterableBiCons<T> iter) {
@@ -217,16 +217,16 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear backward iteration of the given interval until Iter logic returns
-     * true, or iteration exhausts all elements
+     * Linear backward iteration of the given interval until logic returns true,
+     * or iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> findBackwards(List<T> list, IterIterableBiCons<T> iter) {
         return findBackwards(list, (IterIterableCons<T>) iter);
     }
 
     /**
-     * Linear backward iteration of the given interval until Iter logic returns
-     * true, or iteration exhausts all elements
+     * Linear backward iteration of the given interval until logic returns true,
+     * or iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableBiCons<T> iter) {
         return findBackwards(deque, (IterIterableCons<T>) iter);
@@ -241,8 +241,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear backward iteration of the given interval until Iter logic returns
-     * true, or iteration exhausts all elements
+     * Linear backward iteration of the given interval until logic returns true,
+     * or iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> findBackwards(T[] array, IterIterableBiCons<T> iter) {
         return findBackwards(array, (IterIterableCons<T>) iter);
@@ -281,7 +281,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableBiCons<T> iter) {
@@ -289,7 +289,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableBiCons<T> iter) {
@@ -297,7 +297,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     }
 
     /**
-     * Linear iteration of the given interval until Iter logic returns true, or
+     * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Stream<T> stream, IterIterableBiCons<T> iter) {

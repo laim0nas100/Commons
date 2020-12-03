@@ -20,8 +20,7 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
-import lt.lb.commons.F;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 
 /**
  *
@@ -159,7 +158,7 @@ public abstract class FieldFactory {
         Class currentClass = startingClass;
         while (currentClass != null) {
             FieldHolder holder = this.getFieldHolder(currentClass);
-            Iter.iterate(holder.getFields(), (k, v) -> {
+            For.entries().iterate(holder.getFields(), (k, v) -> {
                 fields.computeIfAbsent(k, key -> new LinkedList<>()).add(v);
             });
             currentClass = currentClass.getSuperclass();
@@ -440,7 +439,7 @@ public abstract class FieldFactory {
 
     private IFieldResolver recursiveResolverCached(final Class startingClass) {
         Map<String, IFieldResolver> resolverMap = new HashMap<>();
-        Iter.iterate(this.getAllFieldsWithShadowing(startingClass), (key, list) -> {
+        For.entries().iterate(this.getAllFieldsWithShadowing(startingClass), (key, list) -> {
             IFieldResolver finalResolver = IFieldResolver.empty();
             for (Field f : list) {
                 f.setAccessible(true);

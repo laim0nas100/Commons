@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Random;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.CastIndexedList;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.IterProvider;
 import lt.lb.commons.iteration.NestingIteration;
 import lt.lb.commons.iteration.ReadOnlyIterator;
@@ -33,7 +33,7 @@ public class NestingIterationTest {
             }
 
             Iterator<CastIndexedList<Integer>> iterator = NestingIteration.iterator(list, false);
-            Iter.iterate(iterator, (i, c) -> {
+            For.elements().iterate(iterator, (i, c) -> {
                 assertCast(sizes, c);
             });
 
@@ -47,7 +47,7 @@ public class NestingIterationTest {
                 list.add(upToIter(sizes[i]));
             }
             Iterator<CastIndexedList<Integer>> iterator = NestingIteration.lazyInitIterator(list, false);
-            Iter.iterate(iterator, (i, c) -> {
+            For.elements().iterate(iterator, (i, c) -> {
                 assertCast(sizes, c);
             });
         });

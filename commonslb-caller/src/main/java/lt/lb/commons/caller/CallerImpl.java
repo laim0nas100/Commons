@@ -17,7 +17,7 @@ import static lt.lb.commons.caller.Caller.CallerType.FUNCTION;
 import static lt.lb.commons.caller.Caller.CallerType.RESULT;
 import static lt.lb.commons.caller.Caller.CallerType.SHARED;
 import static lt.lb.commons.caller.CallerFlowControl.CallerForType.*;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.threads.Promise;
@@ -149,7 +149,7 @@ public class CallerImpl {
 
         CallerBuilder<T> b = new CallerBuilder<>();
 
-        Iter.iterate(iterator, (i, item) -> {
+        For.elements().iterate(iterator, (i, item) -> {
             b.withDependencyCall(args -> func.apply(i, item));
         });
 

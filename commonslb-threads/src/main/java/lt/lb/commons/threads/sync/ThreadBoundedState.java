@@ -7,7 +7,7 @@ import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMapperEnder;
 import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.Equator;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.Range;
 
 /**
@@ -34,7 +34,7 @@ public class ThreadBoundedState {
      */
     public ThreadBoundedState(int stateCount, int maxThreads) {
         states = new StateInfo[stateCount];
-        Iter.iterate(states, (i, NULL) -> {
+        For.elements().iterate(states, (i, NULL) -> {
             states[i] = new StateInfo();
             states[i].name = "State " + i;
             states[i].threadBound = maxThreads;
@@ -88,7 +88,7 @@ public class ThreadBoundedState {
      * @return
      */
     public Optional<Integer> nameToStateIndex(String stateName) {
-        return Iter.find(states, (i, st) -> Objects.equals(st.name, stateName)).map(t -> t.g1);
+        return For.elements().find(states, (i, st) -> Objects.equals(st.name, stateName)).map(t -> t.index);
     }
 
     /**

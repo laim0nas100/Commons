@@ -3,8 +3,6 @@ package lt.lb.commons.rows;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.F;
-
 import lt.lb.commons.datasync.DataSyncDisplay;
 import lt.lb.commons.datasync.DataSyncManaged;
 import lt.lb.commons.datasync.DataSyncManagedValidation;
@@ -14,7 +12,7 @@ import lt.lb.commons.datasync.PersistValidation;
 import lt.lb.commons.datasync.SyncAndValidationAggregator;
 import lt.lb.commons.datasync.SyncValidation;
 import lt.lb.commons.datasync.Valid;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 
 /**
  *
@@ -163,27 +161,27 @@ public abstract class SyncDrow<C extends CellInfo<N>,
     }
 
     public <T extends DataSyncPersist> T getPersistenceSync(int index) {
-        return (T) Iter.find(getSyncAggregator().getPersists(), (i, item) -> {
+        return (T) For.elements().find(getSyncAggregator().getPersists(), (i, item) -> {
             return i == index;
-        }).map(m -> m.g2).orElse(null);
+        }).map(m -> m.val).orElse(null);
     }
 
     public <T extends DataSyncDisplay> T getDisplaySync(int index) {
-        return (T) Iter.find(getSyncAggregator().getDisplays(), (i, item) -> {
+        return (T) For.elements().find(getSyncAggregator().getDisplays(), (i, item) -> {
             return i == index;
-        }).map(m -> m.g2).orElse(null);
+        }).map(m -> m.val).orElse(null);
     }
 
     public <T extends PersistValidation> T getPersistenceValid(int index) {
-        return (T) Iter.find(getSyncAggregator().getPersistValidations(), (i, item) -> {
+        return (T) For.elements().find(getSyncAggregator().getPersistValidations(), (i, item) -> {
             return i == index;
-        }).map(m -> m.g2).orElse(null);
+        }).map(m -> m.val).orElse(null);
     }
 
     public <T extends DisplayValidation> T getDisplaySyncValid(int index) {
-        return (T) Iter.find(getSyncAggregator().getDisplayValidations(), (i, item) -> {
+        return (T) For.elements().find(getSyncAggregator().getDisplayValidations(), (i, item) -> {
             return i == index;
-        }).map(m -> m.g2).orElse(null);
+        }).map(m -> m.val).orElse(null);
     }
 
     @Override

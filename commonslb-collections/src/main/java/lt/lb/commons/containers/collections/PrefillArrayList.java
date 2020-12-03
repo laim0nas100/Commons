@@ -7,7 +7,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.ListIterators.SkippingListIterator;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 
 /**
  *
@@ -233,7 +233,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public int indexOf(Object o) {
-        return Iter.find(list, (i, ob) -> ob.g1 && Objects.equals(o, ob.g2)).map(m -> m.g1).orElse(-1);
+        return For.elements().find(list, (i, ob) -> ob.g1 && Objects.equals(o, ob.g2)).map(m -> m.index).orElse(-1);
     }
 
     /**
@@ -241,7 +241,7 @@ public class PrefillArrayList<T> implements List<T>, Collection<T>, RandomAccess
      */
     @Override
     public int lastIndexOf(Object o) {
-        return Iter.findBackwards(list, (i, ob) -> ob.g1 && Objects.equals(o, ob.g2)).map(m -> m.g1).orElse(-1);
+        return For.elements().findBackwards(list, (i, ob) -> ob.g1 && Objects.equals(o, ob.g2)).map(m -> m.index).orElse(-1);
     }
 
     /**

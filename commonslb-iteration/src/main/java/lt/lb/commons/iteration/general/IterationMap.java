@@ -23,10 +23,23 @@ public interface IterationMap<E extends IterationMap<E>> extends IterationAbstra
      */
     public <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter);
 
+    /**
+     * Iterate through map entries
+     *
+     * @param <K> Key
+     * @param <V> Value
+     * @param map map instance
+     * @param iter iteration logic
+     * @return
+     */
+    public default <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapBiCons<K, V> iter) {
+        return find(map, (IterMapCons<K, V>) iter);
+    }
+
     public default <K, V> void iterate(Map<K, V> map, IterMapCons.IterMapConsNoStop<K, V> iter) {
         find(map, iter);
     }
-    
+
     public default <K, V> void iterate(Map<K, V> map, IterMapBiCons.IterMapBiConsNoStop<K, V> iter) {
         find(map, iter);
     }

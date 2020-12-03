@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lt.lb.commons.graphtheory.Orgraph;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.CollectionOp;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.GNode;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
+import lt.lb.commons.iteration.general.result.IterMapResult;
 import lt.lb.commons.misc.rng.RandomDistribution;
 
 /**
@@ -42,13 +42,13 @@ public class GraphGenerator {
 
     public static void addSomeBidirectionalLinksToAllNodes(RandomDistribution rnd, Orgraph gr, int minNodeDegree, Supplier<Double> linkWeight) {
         while (true) {
-            Optional<Tuple<Long, GNode>> find = Iter.find(gr.nodes, (ID, node) -> {
+            Optional<GNode> find = For.entries().find(gr.nodes, (ID, node) -> {
                 return node.degree() < minNodeDegree;
-            });
+            }).map(m->m.val);
             if (!find.isPresent()) {
                 return;
             }
-            GraphGenerator.addSomeBidirectionalLinksToNode(rnd, gr, find.get().g2.ID, minNodeDegree, linkWeight);
+            GraphGenerator.addSomeBidirectionalLinksToNode(rnd, gr, find.get().ID, minNodeDegree, linkWeight);
         }
     }
 
@@ -70,7 +70,7 @@ public class GraphGenerator {
         
         int howMany = minNodeDegree - node.degree();
         
-        Iter.iterate(rnd.pickRandom(candidates, howMany), (i, can) -> {
+        For.elements().iterate(rnd.pickRandom(candidates, howMany), (i, can) -> {
             gr.add2wayLink(new GLink(node.ID, can, linkWeight.get()));
         });
 

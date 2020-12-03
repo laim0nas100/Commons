@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.caching.LazyDependantValue;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 
 /**
  *
@@ -73,12 +73,12 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
 
             Map<Integer, List> composed = new HashMap<>();
 
-            Iter.iterate(this.composable, (k, rows) -> {
+            For.entries().iterate(this.composable, (k, rows) -> {
                 int indexKey = Math.max(m.getOrDefault(k, 10000), 0);
                 composed.computeIfAbsent(indexKey, i -> new LinkedList<>()).add(rows);
             });
 
-            Iter.iterate(rowsInOrder.get(), (index, row) -> {
+            For.elements().iterate(rowsInOrder.get(), (index, row) -> {
                 String k = row.getKey();
                 int indexKey = Math.max(m.getOrDefault(k, 10000), 0);
                 composed.computeIfAbsent(indexKey, i -> new LinkedList<>()).add(row);

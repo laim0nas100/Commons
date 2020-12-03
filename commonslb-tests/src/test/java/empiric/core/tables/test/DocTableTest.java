@@ -13,7 +13,7 @@ import lt.lb.commons.containers.tables.CellTable;
 import lt.lb.commons.F;
 import lt.lb.commons.FastIDGen.FastID;
 import lt.lb.commons.func.Lambda;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import org.junit.Test;
 
 /**
@@ -55,7 +55,7 @@ public class DocTableTest {
 
         table.renderRows((ri, cells) -> {
 
-            Iter.iterate(cells, (i, c) -> {
+            For.elements().iterate(cells, (i, c) -> {
                 if (i != 0) {
                     System.out.print(" ");
                 }

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
@@ -50,12 +50,10 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
 
     @Override
     public <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter) {
-        int index = 0;
         IterIterableAccessor accessor = resolveAccessor(iter);
         while (iterator.hasNext()) {
-            index++;
             T next = iterator.next();
-            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(index, next, iter);
+            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(iterator.getCurrentIndex(), next, iter);
             if (tryVisit.isPresent()) {
                 return tryVisit;
             }

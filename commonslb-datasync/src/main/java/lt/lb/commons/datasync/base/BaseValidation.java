@@ -3,11 +3,10 @@ package lt.lb.commons.datasync.base;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.datasync.PersistAndDisplayValidation;
 import lt.lb.commons.datasync.Valid;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 
 /**
  *
@@ -74,10 +73,10 @@ public abstract class BaseValidation<M, V extends Valid<M>> implements PersistAn
 
         if (full) {
             BooleanValue found = BooleanValue.FALSE();
-            Iter.iterate(list, (i, item) -> found.setOr(satisfied.test(item)));
+            For.elements().iterate(list, (i, item) -> found.setOr(satisfied.test(item)));
             return found.get();
         } else {
-            return Iter.find(list, (i, item) -> satisfied.test(item)).isPresent();
+            return For.elements().find(list, (i, item) -> satisfied.test(item)).isPresent();
         }
     }
 
