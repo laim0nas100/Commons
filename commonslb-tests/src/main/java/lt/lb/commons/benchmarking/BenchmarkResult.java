@@ -18,13 +18,7 @@ public class BenchmarkResult {
     @Override
     public String toString() {
         double mil = 1000000;
-        String nameSuff = name;
-        int left = 32 - name.length();
-        while (left > 0) {
-            nameSuff += "\t";
-            left -= 8;
-        }
-        return String.format(nameSuff + " Times(ms) Avg: %.5f Min: %.5f Max: %.5f Total(s): %.5f", averageTime / mil, minTime / mil, maxTime / mil, totalTime / (mil * 1000));
+        return String.format(" Times(ms) Avg: %.5f Min: %.5f Max: %.5f Total(s): %.5f", averageTime / mil, minTime / mil, maxTime / mil, totalTime / (mil * 1000))+"\t"+name;
     }
 
     public BenchmarkResult print(Consumer<String> printer) {

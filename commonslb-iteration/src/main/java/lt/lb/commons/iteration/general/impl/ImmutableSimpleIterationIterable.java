@@ -49,14 +49,16 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
     }
 
     @Override
-    public <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter) {
+    public <T> Optional<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter) {
         IterIterableAccessor accessor = resolveAccessor(iter);
+        int index = 0;
         while (iterator.hasNext()) {
             T next = iterator.next();
-            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(iterator.getCurrentIndex(), next, iter);
+            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(index, next, iter);
             if (tryVisit.isPresent()) {
                 return tryVisit;
             }
+            index++;
         }
         return Optional.empty();
     }

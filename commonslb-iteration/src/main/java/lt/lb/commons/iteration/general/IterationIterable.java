@@ -48,7 +48,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter);
+    public <T> Optional<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter);
 
     /**
      * Linear iteration of the given interval until logic returns true, or
@@ -125,15 +125,15 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableCons<T> iter) {
-        return find(ReadOnlyIterator.of(iterable), iter);
+        return find(iterable.iterator(), iter);
     }
 
     /**
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> Optional<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter) {
-        return find(ReadOnlyIterator.of(iterator), iter);
+    public default <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter) {
+        return find((Iterator) iterator, iter);
     }
 
     /**
@@ -165,15 +165,15 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> void iterate(Iterator<T> iterator, IterIterableCons.IterIterableConsNoStop<T> iter) {
-        find(ReadOnlyIterator.of(iterator), iter);
+        find(iterator, iter);
     }
 
     /**
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> void iterate(Iterable<T> list, IterIterableCons.IterIterableConsNoStop<T> iter) {
-        find(ReadOnlyIterator.of(list), iter);
+    public default <T> void iterate(Iterable<T> iterable, IterIterableCons.IterIterableConsNoStop<T> iter) {
+        find(iterable.iterator(), iter);
     }
 
     /**
@@ -189,7 +189,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> void iterate(Stream<T> stream, IterIterableCons.IterIterableConsNoStop<T> iter) {
-        find(ReadOnlyIterator.of(stream), iter);
+        find(stream.iterator(), iter);
     }
 
     /**
@@ -285,7 +285,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableBiCons<T> iter) {
-        return find(ReadOnlyIterator.of(iterable), iter);
+        return find(iterable.iterator(), iter);
     }
 
     /**
@@ -293,7 +293,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableBiCons<T> iter) {
-        return find(ReadOnlyIterator.of(iterator), iter);
+        return find(iterator, (IterIterableCons<T>) iter);
     }
 
     /**
@@ -301,7 +301,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> Optional<IterIterableResult<T>> find(Stream<T> stream, IterIterableBiCons<T> iter) {
-        return find(ReadOnlyIterator.of(stream), iter);
+        return find(stream.iterator(), iter);
     }
 
     /**
@@ -325,15 +325,15 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> void iterate(Iterator<T> iterator, IterIterableBiCons.IterIterableBiConsNoStop<T> iter) {
-        find(ReadOnlyIterator.of(iterator), iter);
+        find(iterator, iter);
     }
 
     /**
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> void iterate(Iterable<T> list, IterIterableBiCons.IterIterableBiConsNoStop<T> iter) {
-        find(ReadOnlyIterator.of(list), iter);
+    public default <T> void iterate(Iterable<T> iterable, IterIterableBiCons.IterIterableBiConsNoStop<T> iter) {
+        find(iterable.iterator(), iter);
     }
 
     /**
@@ -349,7 +349,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> void iterate(Stream<T> stream, IterIterableBiCons.IterIterableBiConsNoStop<T> iter) {
-        find(ReadOnlyIterator.of(stream), iter);
+        find(stream.iterator(), iter);
     }
 
 }

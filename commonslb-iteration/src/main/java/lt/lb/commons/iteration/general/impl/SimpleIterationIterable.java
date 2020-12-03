@@ -34,7 +34,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
     }
 
     @Override
-    public <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter) {
+    public <T> Optional<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter) {
         int to;
         if (endingBefore < 0) {
             to = -1;
@@ -66,7 +66,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
             while (iterator.hasNext() && !reachedEnd) {
                 index++;
                 T next = iterator.next();
-                if (from >= 0 && index < from) {
+                if (index < from) {
                     continue;
                 }
                 if (to >= 0 && index >= to) {
@@ -98,11 +98,11 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
             while (iterator.hasNext()) {
                 index++;
                 T next = iterator.next();
+                if (index < from) {
+                    continue;
+                }
                 if (to >= 0 && index >= to) {
                     return Optional.empty();
-                }
-                if (from >= 0 && index < from) {
-                    continue;
                 }
                 if (onlyIncludingFirst > 0) {
                     if (firstToInclude > 0) {
