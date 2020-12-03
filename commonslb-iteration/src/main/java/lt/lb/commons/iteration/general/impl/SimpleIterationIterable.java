@@ -9,6 +9,7 @@ import java.util.Optional;
 import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.general.IterationIterable;
+import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
 
 /**
@@ -33,7 +34,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
     }
 
     @Override
-    public <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, Iter<T> iter) {
+    public <T> Optional<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter) {
         int to;
         if (endingBefore < 0) {
             to = -1;
@@ -58,6 +59,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
         int lastSize = 0;
         int index = -1;
         LinkedList<T> lastBuffer = null;
+        IterIterableAccessor accessor = resolveAccessor(iter);
         if (onlyIncludingLast > 0) {
             lastBuffer = new LinkedList<>();
             boolean reachedEnd = false;
@@ -84,8 +86,9 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
             int lastIndex = index - lastSize;
             // just iterate through the last elements
             for (T res : lastBuffer) {
-                if (iter.visit(lastIndex, res)) {
-                    return Optional.of(new IterIterableResult<>(lastIndex, res));
+                Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(lastIndex, res, iter);
+                if (tryVisit.isPresent()) {
+                    return tryVisit;
                 }
                 lastIndex++;
             }
@@ -108,9 +111,12 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
                         return Optional.empty();
                     }
                 }
-                if (iter.visit(index, next)) {
-                    return Optional.of(new IterIterableResult<>(index, next));
+
+                Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(index, next, iter);
+                if (tryVisit.isPresent()) {
+                    return tryVisit;
                 }
+
             }
         }
 
@@ -119,17 +125,19 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
     }
 
     @Override
-    public <T> Optional<IterIterableResult<T>> findBackwards(List<T> list, Iter<T> iter) {
+    public <T> Optional<IterIterableResult<T>> findBackwards(List<T> list, IterIterableCons<T> iter) {
         int[] bound = workoutBounds(list.size());
         int from = bound[0];
         int to = bound[1];
         ListIterator<T> iterator = list.listIterator(to);
         to--;
-
+        IterIterableAccessor accessor = resolveAccessor(iter);
         while (iterator.hasPrevious() && from <= to) {
             T next = iterator.previous();
-            if (iter.visit(to, next)) {
-                return Optional.of(new IterIterableResult<>(to, next));
+
+            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(to, next, iter);
+            if (tryVisit.isPresent()) {
+                return tryVisit;
             }
             to--;
         }
@@ -175,13 +183,15 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
     }
 
     @Override
-    public <T> Optional<IterIterableResult<T>> findBackwards(T[] array, Iter<T> iter) {
+    public <T> Optional<IterIterableResult<T>> findBackwards(T[] array, IterIterableCons<T> iter) {
         int[] bound = workoutBounds(array.length);
         int from = bound[0];
         int to = bound[1];
+        IterIterableAccessor accessor = resolveAccessor(iter);
         for (int i = to - 1; i >= from; i--) {
-            if (iter.visit(i, array[i])) {
-                return Optional.of(new IterIterableResult<>(i, array[i]));
+            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(i, array[i], iter);
+            if (tryVisit.isPresent()) {
+                return tryVisit;
             }
         }
 
@@ -189,13 +199,15 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
     }
 
     @Override
-    public <T> Optional<IterIterableResult<T>> find(T[] array, Iter<T> iter) {
+    public <T> Optional<IterIterableResult<T>> find(T[] array, IterIterableCons<T> iter) {
         int[] bound = workoutBounds(array.length);
         int from = bound[0];
         int to = bound[1];
+        IterIterableAccessor accessor = resolveAccessor(iter);
         for (int i = from; i < to; i++) {
-            if (iter.visit(i, array[i])) {
-                return Optional.of(new IterIterableResult<>(i, array[i]));
+            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(i, array[i], iter);
+            if (tryVisit.isPresent()) {
+                return tryVisit;
             }
         }
 
@@ -209,15 +221,18 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
     }
 
     @Override
-    public <T> Optional<IterIterableResult<T>> find(List<T> list, Iter<T> iter) {
+    public <T> Optional<IterIterableResult<T>> find(List<T> list, IterIterableCons<T> iter) {
         int[] bound = workoutBounds(list.size());
         int from = bound[0];
         int to = bound[1];
         ListIterator<T> iterator = list.listIterator(from);
+        IterIterableAccessor accessor = resolveAccessor(iter);
         while (iterator.hasNext() && from < to) {
             T next = iterator.next();
-            if (iter.visit(from, next)) {
-                return Optional.of(new IterIterableResult<>(from, next));
+
+            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(from, next, iter);
+            if (tryVisit.isPresent()) {
+                return tryVisit;
             }
             from++;
         }
@@ -226,30 +241,29 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
     }
 
     @Override
-    public <T> Optional<IterIterableResult<T>> findBackwards(Deque<T> deque, Iter<T> iter) {
+    public <T> Optional<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableCons<T> iter) {
         int size = deque.size();
         Iterator<T> descendingIterator = deque.descendingIterator();
         int[] bound = workoutBounds(size);
         int from = bound[0];
         int to = bound[1];
         int index = size;
+        IterIterableAccessor accessor = resolveAccessor(iter);
         while (descendingIterator.hasNext()) {
             index--;
             T next = descendingIterator.next();
-            if(index >= to){
+            if (index >= to) {
                 continue;
             }
-            
-            if(index < from){
+
+            if (index < from) {
                 break;
             }
-            
-            if (iter.visit(index, next)) {
-                return Optional.of(new IterIterableResult<>(index, next));
+
+            Optional<IterIterableResult<T>> tryVisit = accessor.tryVisit(index, next, iter);
+            if (tryVisit.isPresent()) {
+                return tryVisit;
             }
-            
-            
-            
         }
 
         return Optional.empty();

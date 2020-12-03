@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.RandomAccess;
 import java.util.function.Consumer;
 import lt.lb.commons.containers.values.Value;
-import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.For;
 
 /**
  *
@@ -642,12 +642,12 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
 
         @Override
         public default int indexOf(Object o) {
-            return Iter.find(getDeque().iterator(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.g1).orElse(-1);
+            return For.elements().find(getDeque(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.index).orElse(-1);
         }
 
         @Override
         public default int lastIndexOf(Object o) {
-            return Iter.find(getDeque().descendingIterator(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.g1).orElse(-1);
+            return For.elements().findBackwards(getDeque(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.index).orElse(-1);
         }
 
         @Override
@@ -658,7 +658,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         public default Iterator<T> resolve(boolean forw, int index) {
             if (forw) {
                 Iterator<T> iterator = getDeque().iterator();
-                for (int i = 0; i <index; i++) {
+                for (int i = 0; i < index; i++) {
                     iterator.next();
                 }
                 return iterator;
@@ -694,12 +694,12 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
                 public T next() {
                     forward = true;
                     b = null;
-                    if(hasNext()){
+                    if (hasNext()) {
                         T next = f.next();
                         lastCalled = cursor;
                         cursor++;
                         return next;
-                    }else{
+                    } else {
                         throw new NoSuchElementException();
                     }
                 }
@@ -716,12 +716,12 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
                 public T previous() {
                     forward = false;
                     f = null;
-                    if(hasPrevious()){
+                    if (hasPrevious()) {
                         T next = b.next();
                         lastCalled = cursor;
                         cursor++;
                         return next;
-                    }else{
+                    } else {
                         throw new NoSuchElementException();
                     }
                 }
@@ -738,12 +738,12 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
 
                 @Override
                 public void remove() {
-                    if(lastCalled == -1){
+                    if (lastCalled == -1) {
                         throw new IllegalStateException();
                     }
-                    if(forward){
+                    if (forward) {
                         f.remove();
-                    }else{
+                    } else {
                         b.remove();
                     }
                     lastCalled = -1;
@@ -751,19 +751,19 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
 
                 @Override
                 public void set(T e) {
-                    if(lastCalled == -1){
+                    if (lastCalled == -1) {
                         throw new IllegalStateException();
                     }
-                    me.set(lastCalled,e);
+                    me.set(lastCalled, e);
                     lastCalled = -1;
                 }
 
                 @Override
                 public void add(T e) {
-                    if(lastCalled == -1){
+                    if (lastCalled == -1) {
                         throw new IllegalStateException();
                     }
-                    me.add(lastCalled,e);
+                    me.add(lastCalled, e);
                     lastCalled = -1;
                 }
             };

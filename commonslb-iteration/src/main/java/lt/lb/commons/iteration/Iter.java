@@ -15,6 +15,7 @@ import lt.lb.commons.containers.tuples.Tuple;
  * Iterator which passes index and value
  *
  */
+@Deprecated
 public interface Iter<Type> {
 
     /**

@@ -16,6 +16,7 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.Iter;
+import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
 import lt.lb.commons.iteration.general.impl.SimpleIterationIterable;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
 import static org.assertj.core.api.Assertions.*;
@@ -27,7 +28,7 @@ import org.junit.Test;
  */
 public class IterationTest {
 
-    public static class ExtIter<T> implements Iter<T> {
+    public static class ExtIter<T> implements IterIterableBiCons<T> {
 
         public ExtIter(T valueToFind) {
             this.valueToFind = valueToFind;

@@ -4,7 +4,7 @@ package lt.lb.commons.iteration.general.impl;
  *
  * @author laim0nas100
  */
-public class ImmutableSimpleMapIterable extends SimpleMapIterable{
+public class ImmutableSimpleMapIterable extends SimpleMapIterable {
 
     @Override
     protected SimpleMapIterable me() {

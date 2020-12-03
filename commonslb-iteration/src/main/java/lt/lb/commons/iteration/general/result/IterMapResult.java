@@ -10,8 +10,10 @@ public class IterMapResult<K, V> {
 
     public final V val;
     public final K key;
+    public final Integer index;
 
-    public IterMapResult(K key, V val) {
+    public IterMapResult(Integer index, K key, V val) {
+        this.index = index;
         this.val = val;
         this.key = key;
     }
@@ -19,8 +21,9 @@ public class IterMapResult<K, V> {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.val);
-        hash = 23 * hash + Objects.hashCode(this.key);
+        hash = 41 * hash + Objects.hashCode(this.val);
+        hash = 41 * hash + Objects.hashCode(this.key);
+        hash = 41 * hash + Objects.hashCode(this.index);
         return hash;
     }
 
@@ -42,12 +45,15 @@ public class IterMapResult<K, V> {
         if (!Objects.equals(this.key, other.key)) {
             return false;
         }
+        if (!Objects.equals(this.index, other.index)) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public String toString() {
-        return key + ":" + val;
+        return index + ":" + key + ":" + val;
     }
 
 }

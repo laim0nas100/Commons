@@ -2,7 +2,6 @@ package lt.lb.commons.iteration;
 
 import lt.lb.commons.iteration.general.impl.ImmutableSimpleIterationIterable;
 import lt.lb.commons.iteration.general.impl.ImmutableSimpleMapIterable;
-import lt.lb.commons.iteration.general.impl.SimpleAbstractIteration;
 import lt.lb.commons.iteration.general.impl.SimpleIterationIterable;
 import lt.lb.commons.iteration.general.impl.SimpleMapIterable;
 

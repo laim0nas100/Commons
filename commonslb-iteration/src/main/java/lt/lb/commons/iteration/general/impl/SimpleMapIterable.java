@@ -4,8 +4,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
-import lt.lb.commons.iteration.Iter;
 import lt.lb.commons.iteration.general.IterationMap;
+import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
 
 /**
@@ -15,7 +15,7 @@ import lt.lb.commons.iteration.general.result.IterMapResult;
 public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable> implements IterationMap<SimpleMapIterable> {
 
     @Override
-    public <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, Iter.IterMap<K, V> iter) {
+    public <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter) {
         Iterator<Map.Entry<K, V>> iterator = map.entrySet().iterator();
 
         if (onlyIncludingFirst == 0 || onlyIncludingLast == 0) {
@@ -26,12 +26,16 @@ public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable
         }
 
         int lastSize = 0;
+        int index = -1;
+        
+        IterMapAccessor accessor = resolveAccessor(iter);
         LinkedList<Map.Entry<K, V>> lastBuffer = null;
         if (onlyIncludingLast > 0) {
             lastBuffer = new LinkedList<>();
             boolean reachedEnd = false;
             while (iterator.hasNext() && !reachedEnd) {
 
+                index++;
                 Map.Entry<K, V> entry = iterator.next();
 
                 if (lastSize >= onlyIncludingLast) {
@@ -43,16 +47,20 @@ public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable
                 }
 
             }
+            int lastIndex = index - lastSize;
             // just iterate through the last elements
             for (Map.Entry<K, V> ent : lastBuffer) {
-                if (iter.visit(ent.getKey(), ent.getValue())) {
-                    return Optional.of(new IterMapResult<>(ent.getKey(), ent.getValue()));
+                Optional<IterMapResult<K, V>> tryVisit = accessor.tryVisit(lastIndex, ent.getKey(), ent.getValue(), iter);
+                if(tryVisit.isPresent()){
+                    return tryVisit;
                 }
+                lastIndex++;
             }
 
         } else {
             int firstToInclude = onlyIncludingFirst;
             while (iterator.hasNext()) {
+                index++;
                 Map.Entry<K, V> entry = iterator.next();
                 if (onlyIncludingFirst > 0) {
                     if (firstToInclude > 0) {
@@ -61,10 +69,9 @@ public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable
                         return Optional.empty();
                     }
                 }
-                K key = entry.getKey();
-                V val = entry.getValue();
-                if (iter.visit(key, val)) {
-                    return Optional.of(new IterMapResult<>(key, val));
+                Optional<IterMapResult<K, V>> tryVisit = accessor.tryVisit(index, entry.getKey(), entry.getValue(), iter);
+                if(tryVisit.isPresent()){
+                    return tryVisit;
                 }
             }
         }
