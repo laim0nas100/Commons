@@ -163,7 +163,7 @@ public class MutablePartialMapper {
                     MutableMapOrder k1 = e1.getKey();
                     MutableMapOrder k2 = e2.getKey();
                     int cmp = Ins.typeComparator.compare(k1.from, k2.from);
-                    if (cmp != 0) {
+                    if (cmp == 0) {
                         return Integer.compare(k1.order, k2.order);
                     } else {
                         return cmp;

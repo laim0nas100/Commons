@@ -5,7 +5,7 @@ import java.util.Objects;
 
 /**
  *
- * Dynamic instanceOf operation, with either Class or Object (but not both)
+ * Dynamic, null-safe instanceOf operation, with either Class or Object (but not both)
  *
  * @author laim0nas100
  */
@@ -312,7 +312,6 @@ public class Ins<T> {
         } else {
             return primitivePromotion ? instanceOfClassPrimitivePromotion(clazz, c) : instanceOfClass(clazz, c);
         }
-
     }
 
     /**
