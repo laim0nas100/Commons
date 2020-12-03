@@ -2,10 +2,9 @@ package lt.lb.commons.containers.caching;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-import lt.lb.commons.FastIDGen;
-import lt.lb.commons.FastIDGen.FastID;
+import lt.lb.commons.Java;
+import lt.lb.commons.containers.values.LongValue;
 import lt.lb.commons.containers.values.Value;
 
 /**
@@ -17,9 +16,7 @@ import lt.lb.commons.containers.values.Value;
 public class LazyValue<T> extends Value<T> {
     //should be good for a really long time
 
-    public static FastIDGen counter = new FastIDGen();
-
-    protected Value<FastID> loaded = new Value<>();
+    protected LongValue loaded = new LongValue(Long.MAX_VALUE);
     protected Deque<Condition> conditions = new ArrayDeque<>();
     protected Supplier<T> supply;
     protected Deque<Supplier> dependants;
@@ -27,10 +24,10 @@ public class LazyValue<T> extends Value<T> {
     public LazyValue(Supplier<T> supply) {
         this.supply = supply;
         conditions.add(() -> {
-            FastID val = loaded.get();
-            FastID c = counter.get();
-            return FastID.compare(val, c)<0;
-//            return (c > val && c == Math.max(val, c));//ensure counter always the max
+            long val = loaded.get();
+            long c = Java.getNanoTime();
+//            return FastID.compare(val, c)<0;
+            return (c > val);//ensure counter always the max
         });
 
     }
@@ -58,7 +55,7 @@ public class LazyValue<T> extends Value<T> {
     @Override
     public void set(T val) {
         super.set(val);
-        loaded.set(counter.getAndIncrement());
+        loaded.set(Java.getNanoTime());
     }
 
     /**
@@ -105,7 +102,7 @@ public class LazyValue<T> extends Value<T> {
      *
      * @return the ID of this value that was set, returned by internal call counter
      */
-    public FastID getLoaded() {
+    public long getLoaded() {
         return loaded.get();
     }
 
@@ -122,7 +119,7 @@ public class LazyValue<T> extends Value<T> {
      * Invalidates value (needs recomputing)
      */
     public void invalidate() {
-        loaded.set(null);
+        loaded.set(Long.MAX_VALUE);
     }
 
 }
