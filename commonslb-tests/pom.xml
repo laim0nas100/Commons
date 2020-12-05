@@ -51,109 +51,86 @@
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-core</artifactId>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-iteration</artifactId>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-misc</artifactId>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-io</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-collections</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-lexing</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-graphtheory</artifactId>
             <version>local-jar</version>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>uk.com.robust-it</groupId>
             <artifactId>cloning</artifactId>
             <version>1.9.10</version>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-reflection</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-caller</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-refmodel</artifactId>
             <scope>test</scope>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>lt.lb.commons</groupId>
-            <artifactId>commonslb-jobs</artifactId>
-            <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-email</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-log</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-caching</artifactId>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-threads</artifactId>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-datasync</artifactId>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.8.6</version>
             <scope>test</scope>
-            <type>jar</type>
         </dependency>
         
         <dependency>
@@ -164,9 +141,9 @@
         </dependency>
         
         <dependency>
-            <groupId>lt.lb</groupId>
+            <groupId>com.github.laim0nas100</groupId>
             <artifactId>JobSystem</artifactId>
-            <version>local-jar</version>
+            <version>1f5857c238bf430233df3386cec3f198f92b3e80</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -6,13 +6,38 @@ package lt.lb.commons.datasync;
  */
 public interface Valid<M> {
 
-        public boolean isValid(M from);
+    /**
+     * Test if condition is valid with given parameter, which can be empty,
+     * depends on the implementation. Does not invoke a validation message.
+     *
+     * @param from
+     * @return
+     */
+    public boolean isValid(M from);
 
-        public default boolean isInvalid(M from) {
-            return !isValid(from);
-        }
-
-        public void showInvalidation(M from);
-
-        public void clearInvalidation(M from);
+    /**
+     * Analogous to isValid, but negated
+     *
+     * @param from
+     * @return
+     */
+    public default boolean isInvalid(M from) {
+        return !isValid(from);
     }
+
+    /**
+     * Show validation with given parameter. Message can change depending on the
+     * parameter.
+     *
+     * @param from
+     */
+    public void showInvalidation(M from);
+
+    /**
+     * Clear validation, depending on the parameter. Usually the parameter is
+     * ignored, but can depend on the implementation.
+     *
+     * @param from
+     */
+    public void clearInvalidation(M from);
+}

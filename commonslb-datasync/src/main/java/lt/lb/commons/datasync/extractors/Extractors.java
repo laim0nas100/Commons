@@ -1,13 +1,9 @@
 package lt.lb.commons.datasync.extractors;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Locale;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.SimpleDataSyncDisplay;
@@ -15,6 +11,7 @@ import lt.lb.commons.datasync.base.SimpleDataSyncPersist;
 import lt.lb.commons.func.unchecked.UnsafeConsumer;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.func.unchecked.UnsafeSupplier;
+import lt.lb.commons.reflect.beans.BasicBeanPropertyAccess;
 import lt.lb.commons.reflect.FieldChain;
 import lt.lb.commons.reflect.Refl;
 
@@ -153,104 +150,6 @@ public abstract class Extractors {
         public void set(T v) {
             proxy.set(v);
         }
-    }
-
-    public static class BasicBeanReadPropertyAccess<V, T> implements Supplier<T> {
-
-        protected V object;
-        protected Method read;
-        protected String readMethodName;
-
-        @Override
-        public T get() {
-            return F.unsafeCall(() -> (T) read.invoke(object));
-        }
-
-        public BasicBeanReadPropertyAccess(V object, String property) {
-            this.object = object;
-            Class clazz = object.getClass();
-            String cap = BasicBeanPropertyAccess.capitalize(property);
-            String simpleReadName = "get" + cap;
-
-            Optional<Method> firstTry = Stream.of(clazz.getMethods())
-                    .filter(p -> p.getName().equals(simpleReadName))
-                    .filter(p -> p.getParameterCount() == 0)
-                    .findFirst();
-
-            if (!firstTry.isPresent()) {
-                readMethodName = "is" + BasicBeanPropertyAccess.capitalize(property);
-                read = Stream.of(clazz.getMethods())
-                        .filter(p -> p.getName().equals(readMethodName))
-                        .filter(p -> p.getParameterCount() == 0)
-                        .findFirst().orElseThrow(() -> new IllegalArgumentException("Failed to find read method of name:" + simpleReadName + " or " + readMethodName));
-            } else {
-                read = firstTry.get();
-                readMethodName = simpleReadName;
-            }
-
-        }
-    }
-
-    public static class BasicBeanWritePropertyAccess<V, T> implements Consumer<T> {
-
-        protected V object;
-        protected Method write;
-        protected String writeMethodName;
-
-        @Override
-        public void accept(T v) {
-            F.unsafeRun(() -> {
-                write.invoke(object, v);
-            });
-        }
-
-        public void set(T v) {
-            accept(v);
-        }
-
-        public BasicBeanWritePropertyAccess(V object, String property) {
-            this.object = object;
-            Class clazz = object.getClass();
-            //try simple then boolean
-            writeMethodName = "set" + BasicBeanPropertyAccess.capitalize(property);
-
-            write = Stream.of(clazz.getMethods())
-                    .filter(p -> p.getName().equals(writeMethodName))
-                    .filter(p -> p.getParameterCount() == 1)
-                    .findFirst().orElseThrow(() -> new IllegalArgumentException("Failed to find write method of name:" + writeMethodName));
-        }
-    }
-
-    public static class BasicBeanPropertyAccess<V, T> implements ValueProxy<T> {
-
-        protected BasicBeanWritePropertyAccess<V, T> write;
-        protected BasicBeanReadPropertyAccess<V, T> read;
-
-        @Override
-        public T get() {
-            return read.get();
-        }
-
-        @Override
-        public void set(T v) {
-            write.accept(v);
-        }
-
-        public BasicBeanPropertyAccess(V object, String property) {
-            write = new BasicBeanWritePropertyAccess<>(object, property);
-            read = new BasicBeanReadPropertyAccess<>(object, property);
-        }
-
-        /**
-         * Returns a String which capitalizes the first letter of the string.
-         */
-        public static String capitalize(String name) {
-            if (name == null || name.length() == 0) {
-                return name;
-            }
-            return name.substring(0, 1).toUpperCase(Locale.ENGLISH) + name.substring(1);
-        }
-
     }
 
     public static <T> ValueProxy<T> ofReflected(Object ob, String fieldName) {

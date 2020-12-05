@@ -1,7 +1,6 @@
 package regression.datasync;
 
-import lt.lb.commons.datasync.extractors.Extractors;
-import lt.lb.commons.datasync.extractors.Extractors.BasicBeanPropertyAccess;
+import lt.lb.commons.reflect.beans.BasicBeanPropertyAccess;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,14 +55,14 @@ public class PropertyAccessTest {
         s.myName = "SOME NAME";
         s.CapName ="CAP NAME";
         
-        BasicBeanPropertyAccess<SimpleClass,Boolean> propBoolean = new Extractors.BasicBeanPropertyAccess<>(s,"ok");
+        BasicBeanPropertyAccess<SimpleClass,Boolean> propBoolean = new BasicBeanPropertyAccess<>(s,"ok");
         
         propBoolean.set(false);
         assertThat(s.ok).isFalse();
-        BasicBeanPropertyAccess<SimpleClass,String> propName = new Extractors.BasicBeanPropertyAccess<>(s,"myName");
+        BasicBeanPropertyAccess<SimpleClass,String> propName = new BasicBeanPropertyAccess<>(s,"myName");
         propName.set("CHANGED NAME");
         assertThat(s.myName).isEqualTo("CHANGED NAME");
-        BasicBeanPropertyAccess<SimpleClass,String> capName = new Extractors.BasicBeanPropertyAccess<>(s,"CapName");
+        BasicBeanPropertyAccess<SimpleClass,String> capName = new BasicBeanPropertyAccess<>(s,"CapName");
         capName.set("CHANGED CAP NAME");
         assertThat(s.CapName).isEqualTo("CHANGED CAP NAME");
         

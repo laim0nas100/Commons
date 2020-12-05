@@ -81,14 +81,11 @@ public abstract class BaseValidation<M, V extends Valid<M>> implements PersistAn
     }
 
     public static <T extends Valid<M>, M> void clearValidation(List<T> list, M managed) {
-        iterateFindFirst(list, true, c -> {
-            c.clearInvalidation(managed);
-            return false;
-        });
+        For.elements().iterate(list, (i, c) -> c.clearInvalidation(managed));
     }
 
     public static <T extends Valid<M>, M> boolean checkValidation(List<T> list, M managed) {
-        return !iterateFindFirst(list, false, c -> c.isInvalid(managed));//find first invalid
+        return !For.elements().find(list, (i, c) -> c.isInvalid(managed)).isPresent();//find first invalid
     }
 
     public static <T extends Valid<M>, M> boolean doValidation(List<T> list, boolean full, M managed) {

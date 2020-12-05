@@ -7,12 +7,16 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.DataSyncDisplay;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
  * @author laim0nas100
  */
-public abstract class ExplicitDataSyncDisplay <D,M> implements DataSyncDisplay<D,M> {
+public abstract class ExplicitDataSyncDisplay<D, M> implements DataSyncDisplay<D, M> {
+
+    private static Logger logger = LogManager.getLogger(ExplicitDataSyncDisplay.class);
 
     public ExplicitDataSyncDisplay(ValueProxy<D> displaySync) {
         withDisplayProxy(displaySync);
@@ -21,19 +25,16 @@ public abstract class ExplicitDataSyncDisplay <D,M> implements DataSyncDisplay<D
     public ExplicitDataSyncDisplay() {
     }
 
-    
     protected Value<Supplier<? extends D>> displaySupp = new Value<>();
     protected Value<Consumer<? super D>> displaySync = new Value<>();
     protected Value<Function<? super D, ? extends M>> displayGet = new Value<>();
     protected Value<Function<? super M, ? extends D>> displaySet = new Value<>();
 
-    
     @Override
     public void withDisplaySync(Consumer<? super D> displaySync) {
         this.displaySync.set(displaySync);
     }
 
-    
     public void withDisplayProxy(ValueProxy<D> proxy) {
         this.displaySupp.set(proxy);
         this.displaySync.set(proxy);
@@ -49,12 +50,11 @@ public abstract class ExplicitDataSyncDisplay <D,M> implements DataSyncDisplay<D
         return this.displaySupp.get();
     }
 
-    
     @Override
     public void withDisplaySup(Supplier<? extends D> displaySup) {
         this.displaySupp.set(displaySup);
     }
-    
+
     @Override
     public void withDisplayGet(Function<? super D, ? extends M> func) {
         this.displayGet.set(func);
@@ -65,7 +65,6 @@ public abstract class ExplicitDataSyncDisplay <D,M> implements DataSyncDisplay<D
         this.displaySet.set(func);
     }
 
-    
     @Override
     public void syncDisplay() {
         if (this.displaySet.isNotNull() && this.displaySync.isNotNull()) {
@@ -73,9 +72,7 @@ public abstract class ExplicitDataSyncDisplay <D,M> implements DataSyncDisplay<D
             D newDisplay = toDisplay.apply(this.getManaged());
             this.displaySync.get().accept(newDisplay);
         } else {
-            //explicitly launch to throw exceptions
-            this.displaySet.get();
-            this.displaySync.get();
+            logger.debug("Empty functors at syncDisplay");
         }
     }
 
@@ -90,9 +87,7 @@ public abstract class ExplicitDataSyncDisplay <D,M> implements DataSyncDisplay<D
             this.setManaged(newManaged);
 
         } else {
-            //explicitly launch to throw exceptions
-            this.displayGet.get();
-            this.displaySupp.get();
+           logger.debug("Empty functors at syncManagedFromDisplay");
         }
     }
 

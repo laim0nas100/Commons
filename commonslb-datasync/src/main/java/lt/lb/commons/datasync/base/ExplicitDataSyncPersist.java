@@ -7,6 +7,8 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.DataSyncPersist;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -14,6 +16,9 @@ import lt.lb.commons.datasync.DataSyncPersist;
  */
 public abstract class ExplicitDataSyncPersist<P, M> implements DataSyncPersist<P, M> {
 
+     private static Logger logger = LogManager.getLogger(ExplicitDataSyncPersist.class);
+
+    
     protected Value<Supplier<? extends P>> persistenceSupp = new Value<>();
     protected Value<Consumer<? super P>> persistenceSync = new Value<>();
     protected Value<Function<? super P, ? extends M>> persistGet = new Value<>();
@@ -70,9 +75,7 @@ public abstract class ExplicitDataSyncPersist<P, M> implements DataSyncPersist<P
             P newPersist = toPersist.apply(this.getManaged());
             this.persistenceSync.get().accept(newPersist);
         } else {
-            //explicitly launch to throw exceptions
-            this.persistSet.get();
-            this.persistenceSync.get();
+            logger.debug("Empty functors at syncPersist");
         }
     }
 
@@ -86,9 +89,7 @@ public abstract class ExplicitDataSyncPersist<P, M> implements DataSyncPersist<P
             M newManaged = toManaged.apply(persist);
             this.setManaged(newManaged);
         } else {
-            //explicitly launch to throw exceptions
-            persistGet.get();
-            persistenceSupp.get();
+            logger.debug("Empty functors at syncManagedFromPersist");
         }
     }
 
