@@ -41,15 +41,15 @@ public class LazyDependantValue<T> extends LazyValue<T> {
      * @param <U>
      * @param <L>
      * @param child
-     * @param parentInSupply wether this calls getter in supply
+     * @param addParentInSupply wether child gets this value as an explicit
+     * dependency
      * @return
      */
-    public <U, L extends LazyValue<U>> L createDependantChild(L child, boolean parentInSupply) {
+    public <U, L extends LazyValue<U>> L createDependantChild(L child, boolean addParentInSupply) {
         LazyDependantValue<T> me = this;
-        child.addContinion(() -> me.isLoaded());
-        child.addContinion(() -> me.getLoaded() <= child.getLoaded());
+        child.addCondition(() -> me.isLoaded() && me.getLoaded() <= child.getLoaded());
 
-        if (parentInSupply) {
+        if (addParentInSupply) {
             child.addDependency(me);
         }
         return child;

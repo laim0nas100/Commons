@@ -36,7 +36,7 @@ public class LazyValue<T> extends Value<T> {
         this(() -> value);
     }
 
-    public void addContinion(Condition con) {
+    public void addCondition(Condition con) {
         conditions.add(con);
     }
 
