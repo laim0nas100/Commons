@@ -39,7 +39,7 @@ public class PosEqTest {
                 .map(m -> m + "")
                 .map(m -> m.substring(m.length() - 1 - indexFromEnd, m.length() - indexFromEnd))
                 .flatMap(m -> NumberParsing.parseInt(m))
-                .orElse(0);
+                .orElseThrow(() -> new IllegalArgumentException(num + " failed to extract digit:" + indexFromEnd + " form:" + num));
     }
 
     @Test
@@ -63,18 +63,17 @@ public class PosEqTest {
         Assertions.assertThat(ones.eq(1, 2, 3, 4, 5, 6)).isFalse();
         Assertions.assertThat(ones.any(1, 2, 3, 4, 5, 6)).isTrue();
         Assertions.assertThat(ones.any(2, 1)).isFalse();
-        Assertions.assertThat(ones.all(0,9,8,7,6)).isTrue();
-        Assertions.assertThat(ones.all(0,9,8,7,6,7,6,9)).isTrue();
+        Assertions.assertThat(ones.all(0, 9, 8, 7, 6)).isTrue();
+        Assertions.assertThat(ones.all(0, 9, 8, 7, 6, 7, 6, 9)).isTrue();
         Assertions.assertThat(ones.any(5, 5, 4, 3, 3, 2, 0)).isTrue();
-        
-        
+
         Assertions.assertThat(tens.eq(10, 20, 30, 40, 50)).isTrue();
         Assertions.assertThat(tens.eq(10, 20, 30, 40, 50, 60)).isFalse();
         Assertions.assertThat(tens.any(10, 20, 30, 40, 50, 60)).isTrue();
         Assertions.assertThat(tens.any(70, 60)).isFalse();
         Assertions.assertThat(tens.all(50, 40, 30, 20, 10)).isTrue();
         Assertions.assertThat(tens.all(50, 50, 40, 30, 30, 20, 10)).isTrue();
-        Assertions.assertThat(tens.any(50, 50, 40, 30, 30, 20,99)).isTrue();
+        Assertions.assertThat(tens.any(50, 50, 40, 30, 30, 20, 99)).isTrue();
 
     }
 }
