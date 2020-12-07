@@ -13,10 +13,10 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.caching.LazyDependantValue;
 import lt.lb.commons.iteration.For;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -119,7 +119,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
 
     @Override
     public String[] defaultUpdateNames() {
-        return ArrayOp.addAll(UpdateAware.super.defaultUpdateNames(), BasicUpdates.INVALIDATE, BasicUpdates.INVALIDATE_VISIBILITY);
+        return ArrayUtils.addAll(UpdateAware.super.defaultUpdateNames(), BasicUpdates.INVALIDATE, BasicUpdates.INVALIDATE_VISIBILITY);
     }
 
     @Override

@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.iteration.For;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -32,14 +33,14 @@ public abstract class FieldFactory {
     public static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class};
     public static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class};
     public static final Class[] OTHER_IMMUTABLE_TYPES = {String.class, UUID.class, Pattern.class, BigDecimal.class, BigInteger.class};
-    public static final Class[] WRAPPER_TYPES = ArrayOp.addAll(NUMBER_TYPES, Boolean.class, Character.class);
+    public static final Class[] WRAPPER_TYPES = ArrayUtils.addAll(NUMBER_TYPES, Boolean.class, Character.class);
     public static final Class[] JVM_IMMUTABLE_TYPES = ArrayOp.merge(WRAPPER_TYPES, OTHER_IMMUTABLE_TYPES, DATE_TYPES);
     private static final HashSet<Class> JVM_IMMUTABLE_SET = new HashSet<>(Arrays.asList(JVM_IMMUTABLE_TYPES));
     public static final Predicate<Class> isJVMImmutable = (Class cls) -> {
         if (cls.isPrimitive()) {
             return true;
         }
-        return ArrayOp.contains(JVM_IMMUTABLE_TYPES, cls);
+        return ArrayUtils.contains(JVM_IMMUTABLE_TYPES, cls);
     };
 
     protected IFieldResolver makeImmutableFieldResolver(Field f) {
@@ -243,7 +244,7 @@ public abstract class FieldFactory {
     }
 
     public static Object defaultPrimitiveWrapper(Class cls) {
-        if (ArrayOp.contains(WRAPPER_TYPES, cls)) {
+        if (ArrayUtils.contains(WRAPPER_TYPES, cls)) {
             if (Byte.class.equals(cls)) {
                 return (byte) 0x00;
             }

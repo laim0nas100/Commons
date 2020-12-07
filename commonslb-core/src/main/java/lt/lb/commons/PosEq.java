@@ -64,7 +64,6 @@ public class PosEq {
         return true;
     }
 
-
     /**
      * Every object is equal to this objects array at the respected position
      *
@@ -93,7 +92,9 @@ public class PosEq {
      * @return
      */
     public boolean any(Object... objs) {
-
+        if (ArrayOp.isEmpty(objs)) {
+            return false;
+        }
         for (Object myElem : this.objs) {
             for (Object yourElem : objs) {
                 if (Equator.deepEquals(eq, myElem, yourElem)) {
@@ -124,15 +125,28 @@ public class PosEq {
         if (isEmpty()) {
             return false;
         }
-        for (Object myElem : this.objs) {
-            for (Object yourElem : objs) {
-                if (!Equator.deepEquals(eq, myElem, yourElem)) {
-                    return false;
-                }
+        if (ArrayOp.isEmpty(objs)) {
+            return false;
+        }
+        for (Object elem : objs) {
+            if (!contains(elem)) {
+                return false;
             }
         }
         return true;
+    }
 
+    public boolean contains(Object element) {
+        if (isEmpty()) {
+            return false;
+        }
+        for (Object myElem : this.objs) {
+            if (Equator.deepEquals(eq, myElem, element)) {
+                return true;
+            }
+
+        }
+        return false;
     }
 
     /**
@@ -162,6 +176,7 @@ public class PosEq {
     public boolean allNull() {
         return all(ob -> ob == null);
     }
+
     /**
      * All elements satisfy predicate
      *
@@ -171,7 +186,6 @@ public class PosEq {
     public boolean all(Predicate pred) {
         return Stream.of(objs).allMatch(pred);
     }
-    
 
     /**
      * None elements satisfy predicate
@@ -182,7 +196,7 @@ public class PosEq {
     public boolean none(Predicate pred) {
         return Stream.of(objs).noneMatch(pred);
     }
-    
+
     /**
      * None null elements
      *

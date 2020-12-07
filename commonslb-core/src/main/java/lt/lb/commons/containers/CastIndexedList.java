@@ -27,7 +27,7 @@ public class CastIndexedList<T> extends CastList<T> {
     }
     
     public List<Integer> asIndexList(){
-        return new ArrayList<>(Arrays.asList(ArrayOp.toObject(indexes)));
+        return new ArrayList<>(Arrays.asList(ArrayOp.mapInt(indexes)));
     }
     
     

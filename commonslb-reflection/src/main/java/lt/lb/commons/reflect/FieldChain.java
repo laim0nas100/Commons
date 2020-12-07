@@ -8,6 +8,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.parsing.StringOp;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -71,7 +72,7 @@ public class FieldChain {
                 throw new NoSuchFieldException(fieldName + " on class hierarchy " + cls);
             }
             chain.current = findField.get();
-            chain.path = ArrayOp.subarray(steps, i, steps.length);
+            chain.path = ArrayUtils.subarray(steps, i, steps.length);
             cls = chain.current.getType();
             chain.next = new FieldChain();
             chain = chain.next;

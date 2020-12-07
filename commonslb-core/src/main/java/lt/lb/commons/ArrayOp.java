@@ -1,5 +1,6 @@
 package lt.lb.commons;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -10,7 +11,7 @@ import org.apache.commons.lang3.ArrayUtils;
  *
  * @author laim0nas100
  */
-public class ArrayOp extends ArrayUtils {
+public class ArrayOp {
 
     /**
      * Alternative to using chained &&. Empty/null array results in false.
@@ -31,7 +32,18 @@ public class ArrayOp extends ArrayUtils {
     public static boolean any(Boolean... array) {
         return any(t -> t, array);
     }
+    
+    public static boolean isEmpty(final Object[] array) {
+        return getLength(array) == 0;
+    }
 
+    public static int getLength(final Object array) {
+        if (array == null) {
+            return 0;
+        }
+        return Array.getLength(array);
+    }
+    
     /**
      * Checks wether any on the values satisfies given predicate. Empty/null
      * array results in false.
@@ -95,7 +107,7 @@ public class ArrayOp extends ArrayUtils {
     }
 
     /**
-     * Use {@link addAll}
+     * Use {@link ArrayUtils.addAll}
      *
      * @param <T>
      * @param one
@@ -105,7 +117,7 @@ public class ArrayOp extends ArrayUtils {
      */
     @Deprecated
     public static <T> T[] merge(T[] one, T... two) {
-        return ArrayOp.addAll(one, two);
+        return ArrayUtils.addAll(one, two);
     }
 
     /**
@@ -238,7 +250,7 @@ public class ArrayOp extends ArrayUtils {
     }
 
     /**
-     * Use {@link removeElements}
+     * Use {@link ArrayUtils.removeElements}
      *
      * @param <T>
      * @param one
@@ -248,11 +260,11 @@ public class ArrayOp extends ArrayUtils {
      */
     @Deprecated
     public static <T> T[] remove(T[] one, T... two) {
-        return ArrayOp.removeElements(one, two);
+        return ArrayUtils.removeElements(one, two);
     }
 
     /**
-     * Use {@link removeAll}
+     * Use {@link ArrayUtils.removeAll}
      *
      * @param <T>
      * @param one
@@ -260,11 +272,11 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static <T> T[] removeByIndex(T[] one, Integer... two) {
-        return ArrayOp.removeAll(one, toPrimitive(two));
+        return ArrayUtils.removeAll(one, ArrayUtils.toPrimitive(two));
     }
 
     /**
-     * Use {@link insert}
+     * Use {@link ArrayUtils.insert}
      *
      * @param <T>
      * @param one
@@ -274,7 +286,7 @@ public class ArrayOp extends ArrayUtils {
      */
     @Deprecated
     public static <T> T[] addAt(T[] one, Integer where, T... what) {
-        return insert(where, one, what);
+        return ArrayUtils.insert(where, one, what);
     }
 
     /**
@@ -384,7 +396,7 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static Integer[] mapInt(int... arr) {
-        return toObject(arr);
+        return ArrayUtils.toObject(arr);
     }
 
     /**
@@ -394,7 +406,7 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static Long[] mapLong(long... arr) {
-        return toObject(arr);
+        return ArrayUtils.toObject(arr);
     }
 
     /**
@@ -404,7 +416,7 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static Short[] mapShort(short... arr) {
-        return toObject(arr);
+        return ArrayUtils.toObject(arr);
     }
 
     /**
@@ -414,7 +426,7 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static Byte[] mapByte(byte... arr) {
-        return toObject(arr);
+        return ArrayUtils.toObject(arr);
     }
 
     /**
@@ -424,7 +436,7 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static Double[] mapDouble(double... arr) {
-        return toObject(arr);
+        return ArrayUtils.toObject(arr);
     }
 
     /**
@@ -434,7 +446,7 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static Float[] mapFloat(float... arr) {
-        return toObject(arr);
+        return ArrayUtils.toObject(arr);
     }
 
     /**
@@ -444,7 +456,7 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static Boolean[] mapBoolean(boolean... arr) {
-        return toObject(arr);
+        return ArrayUtils.toObject(arr);
     }
 
     /**
@@ -454,7 +466,7 @@ public class ArrayOp extends ArrayUtils {
      * @return
      */
     public static Character[] mapChar(char... arr) {
-        return toObject(arr);
+        return ArrayUtils.toObject(arr);
     }
 
 }

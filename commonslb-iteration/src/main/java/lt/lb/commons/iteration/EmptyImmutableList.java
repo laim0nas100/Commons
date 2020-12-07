@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ListIterator;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.iteration.impl.EmptyROI;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Does what it says in the name.
@@ -135,7 +136,7 @@ public class EmptyImmutableList<T> implements List<T> {
 
     @Override
     public Object[] toArray() {
-        return ArrayOp.EMPTY_OBJECT_ARRAY;
+        return ArrayUtils.EMPTY_OBJECT_ARRAY;
     }
 
     @Override

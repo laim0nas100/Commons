@@ -22,12 +22,14 @@ import lt.lb.commons.Equator;
 import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  *
  * @author laim0nas100
  */
 public class CollectionOp {
+
     public static <T> void swap(T[] arr, int i, int j) {
         T tmp = arr[i];
         arr[i] = arr[j];
@@ -38,7 +40,7 @@ public class CollectionOp {
         arr.set(i, arr.set(j, arr.get(i)));
     }
 
-    public static <T> void merge(List<T> l1, List<T> l2, List<T> addTo, Comparator<T> cmp) {
+    public static <T> void merge(Iterable<T> l1, Iterable<T> l2, Collection<T> addTo, Comparator<T> cmp) {
         Iterator<T> i1 = l1.iterator();
         Iterator<T> i2 = l2.iterator();
         Integer c = null;
@@ -72,7 +74,7 @@ public class CollectionOp {
         }
 
     }
-    
+
     /**
      *
      * @param <T> object type
@@ -136,7 +138,6 @@ public class CollectionOp {
             exe.execute(task);
             i++;
         }
-        
 
         F.unsafeRun(() -> {
             for (Future future : deque) {
@@ -242,7 +243,7 @@ public class CollectionOp {
             common.add(new Pair<>(pro.getValue(), null));
         }
         int i = 0;
-        for(Equator.EqualityProxy<T> pro:m2){
+        for (Equator.EqualityProxy<T> pro : m2) {
             common.get(i).setG2(pro.getValue());
             i++;
         }
@@ -298,5 +299,112 @@ public class CollectionOp {
         HashSet<T> set = new HashSet<>(c1);
         set.retainAll(c2);
         return set;
+    }
+
+    public static <T> boolean containsAny(Collection master, Iterable... iterables) {
+        if(isEmpty(master)){
+            return false;
+        }
+
+        if (isEmpty(iterables)) {
+            return false;
+        }
+
+        for (Iterable iter : iterables) {
+            for (Object ob : iter) {
+                if (master.contains(ob)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsAny(Collection master, Object[]... arrays) {
+        if(isEmpty(master)){
+            return false;
+        }
+        if (isEmpty(arrays)) {
+            return false;
+        }
+
+        for (Object[] array : arrays) {
+            for (Object t : array) {
+                if (master.contains(t)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isEmpty(Object[]... arrays) {
+        if (arrays == null) {
+            return true;
+        }
+        if (arrays.length == 0) {
+            return true;
+        }
+        for (Object[] array : arrays) {
+            if (array != null && array.length > 0) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isEmpty(Iterable... iterables) {
+        if (iterables == null) {
+            return true;
+        }
+        if (iterables.length == 0) {
+            return true;
+        }
+        for (Iterable iterable : iterables) {
+            if (iterable != null) {
+                for (Object o : iterable) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsAll(Collection master, Iterable... iterables) {
+        if(isEmpty(master)){
+            return false;
+        }
+
+        if (isEmpty(iterables)) {
+            return false;
+        }
+
+        for (Iterable iter : iterables) {
+            for (Object ob : iter) {
+                if (!master.contains(ob)) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsAll(Collection master, Object[]... arrays) {
+        if(isEmpty(master)){
+            return false;
+        }
+
+        if (isEmpty(arrays)) {
+            return false;
+        }
+
+        for (Object[] array : arrays) {
+            for (Object t : array) {
+                if (!master.contains(t)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

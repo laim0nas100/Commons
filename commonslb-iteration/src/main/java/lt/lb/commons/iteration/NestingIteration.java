@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.containers.CastIndexedList;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -54,9 +55,9 @@ public class NestingIteration<T> {
                         }
 
                     }
-                    int[] indexes = ArrayOp.clone(listIndex);
+                    int[] indexes = ArrayUtils.clone(listIndex);
                     if (revPrint) {
-                        ArrayOp.reverse(indexes);
+                        ArrayUtils.reverse(indexes);
                         Collections.reverse(args);
                     }
                     onConsume();
@@ -150,9 +151,9 @@ public class NestingIteration<T> {
                         }
                         args.add(item);
                     }
-                    int[] indexes = ArrayOp.clone(listIndex);
+                    int[] indexes = ArrayUtils.clone(listIndex);
                     if (revPrint) {
-                        ArrayOp.reverse(indexes);
+                        ArrayUtils.reverse(indexes);
                         Collections.reverse(args);
                     }
                     onConsume();

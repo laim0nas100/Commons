@@ -26,6 +26,7 @@ import javafx.util.StringConverter;
 import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.values.BooleanValue;
+import lt.lb.commons.containers.values.StringValue;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.misc.Range;
 import lt.lb.commons.parsing.NumberParsing;
@@ -99,6 +100,18 @@ public abstract class FXDefs {
             });
         }
     }
+    
+    public static void applyOnTextChangeOrEnter(TextField tf, Consumer<TextField> consumer) {
+        StringValue value = new StringValue();
+        tf.textProperty().addListener((FXDefs.SimpleChangeListener<String>) s -> {
+            value.set(tf.getText());
+            consumer.accept(tf);
+        });
+        tf.setOnAction(eh -> {
+            consumer.accept(tf);
+        });
+    }
+    
 
     public static void applyOnFocusChange(TextField tf, Consumer<TextField> consumer) {
         BooleanValue hasChanges = BooleanValue.FALSE();
