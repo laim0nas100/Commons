@@ -16,12 +16,17 @@ public interface BaseController<T extends BaseController> extends Initializable 
     }
 
     /**
-     * Default implementation doesn't call close on the MultiStageManager, calls exit on frame that is being closed (via onCloseRequest).
+     * Default implementation doesn't call close on the MultiStageManager, calls
+     * exit on frame that is being closed (via onCloseRequest). This way closing
+     * logic is unified, from calling this method, or pressing X on the window.
      */
     public default void exit() {
     }
 
     public default void init(Consumer<T> cons) {
+        if (cons == null) {
+            throw new IllegalArgumentException("Passed a null consumer, pass empty if you want to explicitly do no initialization");
+        }
         cons.accept((T) this);
     }
 }

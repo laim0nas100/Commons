@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import lt.lb.commons.Ins;
+import lt.lb.commons.Ins.InsCl;
 
 /**
  *
@@ -42,8 +45,8 @@ public class MultiStageManager {
     public List<Frame> getFrames() {
         return new ArrayList<>(frames.values());
     }
-    
-    public int getFrameCount(){
+
+    public int getFrameCount() {
         return frames.size();
     }
 
@@ -65,7 +68,7 @@ public class MultiStageManager {
             StageFrame frame = new StageFrame(stage, finalID, title);
             frames.put(finalID, frame);
             stage.setOnCloseRequest((WindowEvent we) -> {
-               onExit.accept(frame);
+                onExit.accept(frame);
             });
             for (FrameDecorate fdec : decorators) {
                 fdec.applyDecorators(FrameDecorate.FrameState.CREATE, frame);
@@ -132,6 +135,16 @@ public class MultiStageManager {
         FutureTask<FXMLFrame> ftask = new FutureTask<>(call);
         FX.submit(ftask);
         return ftask.get();
+
+    }
+
+    public <T extends BaseController<T>> Stream<T> getAllControllers(Class<T> clazz) {
+        return getFrames().stream()
+                .filter(frame -> frame instanceof FXMLFrame)
+                .map(frame -> (FXMLFrame) frame)
+                .map(frame -> frame.getController())
+                .filter(control -> Ins.ofNullable(control).instanceOf(clazz))
+                .map(control -> (T) control);
 
     }
 
