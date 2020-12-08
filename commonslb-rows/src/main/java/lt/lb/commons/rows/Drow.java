@@ -52,6 +52,15 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         return 500;
     }
 
+    /**
+     * After derender, do the deletion of the row, if it's marked as deleted.
+     *
+     * @return
+     */
+    public int getDeleteOrder() {
+        return getRenderOrder() + 1000;
+    }
+
     public Drow(L line, Conf config, String key) {
         this.config = config;
         this.key = key;
@@ -117,8 +126,14 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         return deleted;
     }
 
-    public R setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    /**
+     * Will delete after this row calls render, because there might be some
+     * nodes that need to be de-rendered before the deletion.
+     *
+     * @return
+     */
+    public R delete() {
+        this.deleted = true;
         return me();
     }
 
@@ -127,8 +142,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     }
 
     /**
-     * Alias active.
-     * Visible, displayed and not deleted.
+     * Alias active. Visible, displayed and not deleted.
      *
      * @return
      */
@@ -566,8 +580,8 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
             }
         });
     }
-    
-    public R withRowDecorator(Consumer<R> r){
+
+    public R withRowDecorator(Consumer<R> r) {
         r.accept(me());
         return me();
     }

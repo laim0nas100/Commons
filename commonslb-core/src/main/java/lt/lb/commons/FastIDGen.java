@@ -37,14 +37,20 @@ public class FastIDGen {
         public static final String NUMBER = "N";
 
         public FastID(String str) {
-            int M = str.indexOf(MARKER);
-            int T = str.indexOf(THREAD_ID);
+
             int N = str.indexOf(NUMBER);
+            int T = str.indexOf(THREAD_ID);
+            int M = str.indexOf(MARKER);
 
-            this.mark = Long.parseLong(str.substring(M + 1, T));
-            this.threadId = Long.parseLong(str.substring(T + 1, N));
-            this.num = Long.parseLong(str.substring(N + 1));
+            this.mark = Long.parseLong(str.substring(M + 1));
+            this.threadId = Long.parseLong(str.substring(T + 1, M));
+            this.num = Long.parseLong(str.substring(N + 1, T));
 
+        }
+
+        @Override
+        public String toString() {
+            return NUMBER + num + THREAD_ID + threadId + MARKER + mark;
         }
 
         public long getMark() {
@@ -72,24 +78,23 @@ public class FastIDGen {
                 return false;
             }
             final FastID other = (FastID) obj;
-            if (this.mark != other.mark) {
+            if (this.num != other.num) {
                 return false;
             }
             if (this.threadId != other.threadId) {
                 return false;
             }
 
-            return this.num == other.num;
-        }
-
-        @Override
-        public String toString() {
-            return MARKER + mark + THREAD_ID + threadId + NUMBER + num;
+            return this.mark == other.mark;
         }
 
         @Override
         public int compareTo(FastID o) {
-            return Long.compare(num, o.num);
+            if (this.threadId == o.threadId && this.mark == o.mark) {
+                return Long.compare(num, o.num);
+            }
+            return 0;
+
         }
 
         public static int compare(FastID a, FastID b) {
@@ -118,5 +123,5 @@ public class FastIDGen {
     public FastID getAndIncrement() {
         return new FastID(marker, Thread.currentThread().getId(), counter.get().getAndIncrement());
     }
-    
+
 }

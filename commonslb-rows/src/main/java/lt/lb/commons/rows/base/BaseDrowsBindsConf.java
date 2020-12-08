@@ -33,7 +33,7 @@ public abstract class BaseDrowsBindsConf<DR extends Drows, R extends Drow, U ext
 
     @Override
     public String getNextRowID() {
-        return "Drow-"+idgen.getAndIncrement();
+        return idgen.getAndIncrement()+"-Drow";
     }
 
     @Override

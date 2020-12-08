@@ -24,11 +24,8 @@ import lt.lb.commons.iteration.For;
  * @param <Conf>
  * @param <R>
  */
-public abstract class SyncDrow<C extends CellInfo<N>,
-        N, L, U extends Updates<U>,
-        Conf extends SyncDrowConf<R, C, N, L, U>,
-        R extends SyncDrow<C, N, L, U, Conf, R>>
-        extends Drow<C, N, L, U, Conf, R> implements SyncValidation{
+public abstract class SyncDrow<C extends CellInfo<N>, N, L, U extends Updates<U>, Conf extends SyncDrowConf<R, C, N, L, U>, R extends SyncDrow<C, N, L, U, Conf, R>>
+        extends Drow<C, N, L, U, Conf, R> implements SyncValidation {
 
     protected SyncAndValidationAggregator agg;
 
@@ -45,7 +42,7 @@ public abstract class SyncDrow<C extends CellInfo<N>,
     }
 
     public R addDataSyncValidation(DataSyncManagedValidation sync) {
-       return addOnDisplayAndRunIfDone(() -> {
+        return addOnDisplayAndRunIfDone(() -> {
             agg.addDataSyncValidation(sync);
         });
     }
@@ -125,6 +122,14 @@ public abstract class SyncDrow<C extends CellInfo<N>,
             addValidationDisplay(valid);
         });
 
+    }
+
+    public R addValidationPersistPredicate(String msg, Predicate<R> isValid) {
+        return addValidationPersistPredicate(() -> msg, isValid);
+    }
+
+    public R addValidationDisplayPredicate(String msg, Predicate<R> isValid) {
+        return addValidationDisplayPredicate(() -> msg, isValid);
     }
 
     public R addValidationPersist(Supplier<String> msg, Predicate<R> isValid, Supplier<N> nodeSupplier) {

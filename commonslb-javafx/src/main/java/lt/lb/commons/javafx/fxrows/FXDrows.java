@@ -16,7 +16,7 @@ public class FXDrows extends SyncDrows<FXDrow, FXLine, FXDrows, FXUpdates> {
     
 
     public FXDrows(GridPane grid, DrowsConf<FXDrows, FXDrow, FXUpdates> conf, int numCols) {
-        this(grid, "FXDrows-"+idGen.getAndIncrement(), conf, numCols);
+        this(grid, idGen.getAndIncrement()+"-FXDrows", conf, numCols);
     }
 
     public FXDrows(GridPane grid, String key, DrowsConf<FXDrows, FXDrow, FXUpdates> conf, int numCols) {

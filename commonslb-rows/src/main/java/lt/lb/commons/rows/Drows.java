@@ -205,11 +205,17 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         if (!rowMap.containsKey(key)) {
             throw new IllegalArgumentException("Row with key:" + key + " is not present");
         }
-        R remove = rowMap.remove(key);
-        remove.setDeleted(true);
-        removeKey(key);
-        rowAndComposedKeyOrder.invalidate();
-        conf.removeRowDecorate(me(), remove);
+        R remove = rowMap.get(key);
+        remove.delete();
+
+        remove.withUpdateRender(remove.getDeleteOrder(), row -> {
+
+            removeKey(key);
+            rowMap.remove(key);
+            rowAndComposedKeyOrder.invalidate();
+            conf.removeRowDecorate(me(), remove); // remove while derendering
+        });
+
     }
 
     protected void invalidateMeAndParent() {
