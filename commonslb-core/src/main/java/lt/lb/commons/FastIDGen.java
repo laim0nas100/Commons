@@ -13,7 +13,7 @@ import lt.lb.commons.containers.values.LongValue;
 public class FastIDGen {
 
     private static AtomicLong markerCounter = new AtomicLong(0L);
-    private static final ThreadLocal<FastIDGen> threadLocal = ThreadLocal.withInitial(() -> new FastIDGen(Thread.currentThread().getId()));
+    private static final ThreadLocal<FastIDGen> threadLocal = ThreadLocal.withInitial(() -> new FastIDGen());
     private long marker;
 
     public static class FastID implements Comparable<FastID> {
@@ -118,5 +118,5 @@ public class FastIDGen {
     public FastID getAndIncrement() {
         return new FastID(marker, Thread.currentThread().getId(), counter.get().getAndIncrement());
     }
-
+    
 }

@@ -2,7 +2,7 @@ package lt.lb.commons.rows.base;
 
 import java.util.HashMap;
 import java.util.Map;
-import lt.lb.commons.misc.UUIDgenerator;
+import lt.lb.commons.FastIDGen;
 import lt.lb.commons.rows.Drow;
 import lt.lb.commons.rows.Drows;
 import lt.lb.commons.rows.DrowsConf;
@@ -17,6 +17,7 @@ import lt.lb.commons.rows.Updates;
  */
 public abstract class BaseDrowsBindsConf<DR extends Drows, R extends Drow, U extends Updates> implements DrowsConf<DR, R, U>  {
 
+    protected static FastIDGen idgen = new FastIDGen();
     protected Map<String,U> updateMap = new HashMap<>();
     
     
@@ -32,7 +33,7 @@ public abstract class BaseDrowsBindsConf<DR extends Drows, R extends Drow, U ext
 
     @Override
     public String getNextRowID() {
-        return UUIDgenerator.nextUUID("Drow");
+        return "Drow-"+idgen.getAndIncrement();
     }
 
     @Override
