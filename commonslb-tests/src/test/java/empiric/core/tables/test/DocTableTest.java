@@ -22,7 +22,6 @@ import org.junit.Test;
  */
 public class DocTableTest {
 
-    @Test
     public void test() throws Exception {
         CellTable<String> table = new CellTable<>();
 

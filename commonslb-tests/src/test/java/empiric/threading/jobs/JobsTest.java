@@ -1,7 +1,8 @@
 package empiric.threading.jobs;
 
-
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +24,7 @@ import lt.lb.jobsystem.events.SystemJobEventName;
 public class JobsTest {
 
     static FastWaitingExecutor fastExe = new FastWaitingExecutor(1);
+
     public static class Log {
 
         public static void print(Object... obs) {
@@ -33,15 +35,23 @@ public class JobsTest {
             if (sb.length() > 0) {
                 sb.removeFromEnd(1);
             }
-            fastExe.execute(()->{
+            fastExe.execute(() -> {
                 System.out.println(sb);
             });
-            
 
         }
     }
 
     static RandomDistribution rng = RandomDistribution.uniform(new Random());
+
+    public static void addEventLogListeners(Job job) {
+        EnumSet<SystemJobEventName> enums = EnumSet.allOf(SystemJobEventName.class);
+        enums.forEach(val -> {
+            job.addListener(val, e -> {
+                Log.print(val.name() + " " + e.getCreator().getUUID());
+            });
+        });
+    }
 
     public static Job makeJob(String txt, List<Job> jobs) {
         Job<Number> job = new Job<>(txt, (UnsafeFunction) j -> {
@@ -54,36 +64,14 @@ public class JobsTest {
             return nextLong;
 
         });
-        job.addListener(SystemJobEventName.ON_FAILED_TO_START, e -> {
-            Log.print("Failed to start ", e.getCreator().getUUID());
-        });
+        
+        addEventLogListeners(job);
 
-        job.addListener(SystemJobEventName.ON_EXECUTE, e -> {
-            Log.print("Execute ", e.getCreator().getUUID());
-        });
-
-        job.addListener(SystemJobEventName.ON_CANCEL, e -> {
-            Log.print("Cancel ", e.getCreator().getUUID());
-        });
-
-        job.addListener(SystemJobEventName.ON_DONE, e -> {
-            Log.print("Done", e.getCreator().getUUID());
-        });
-        job.addListener(SystemJobEventName.ON_SUCCESSFUL, e -> {
-            Log.print("Success", e.getCreator().getUUID());
-        });
         job.addListener(SystemJobEventName.ON_EXCEPTIONAL, e -> {
             Log.print("Failed, cancelling", e.getCreator().getUUID());
             e.getCreator().cancel();
         });
 
-        job.addListener(SystemJobEventName.ON_SCHEDULED, e -> {
-            Log.print("Scheduled", e.getCreator().getUUID());
-        });
-
-        job.addListener(SystemJobEventName.ON_DISCARDED, e -> {
-            Log.print("Discarded", e.getCreator().getUUID());
-        });
         ArrayList<Dependency> deps = new ArrayList<>();
 
         deps.add(j -> new Random().nextBoolean());
@@ -123,7 +111,7 @@ public class JobsTest {
 //        Dependencies.mutuallyExclusive(jobs);
         jobs.forEach(exe::submit);
 
-        exe.awaitJobEmptiness(1,TimeUnit.HOURS);
+        exe.awaitJobEmptiness(1, TimeUnit.HOURS);
         exe.shutdown();
 
     }
