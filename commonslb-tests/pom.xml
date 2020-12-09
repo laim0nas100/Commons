@@ -141,9 +141,9 @@
         </dependency>
         
         <dependency>
-            <groupId>com.github.laim0nas100</groupId>
+            <groupId>lt.lb</groupId>
             <artifactId>JobSystem</artifactId>
-            <version>1f5857c238bf430233df3386cec3f198f92b3e80</version>
+            <version>local-jar</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

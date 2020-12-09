@@ -10,8 +10,6 @@ import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
-import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.jobsystem.Dependencies;
 import lt.lb.jobsystem.Job;
 import lt.lb.jobsystem.JobExecutor;
 import lt.lb.jobsystem.ScheduledJobExecutor;
@@ -88,8 +86,8 @@ public class JobsTest {
         });
         ArrayList<Dependency> deps = new ArrayList<>();
 
-        deps.add(() -> new Random().nextBoolean());
-        deps.add(() -> {
+        deps.add(j -> new Random().nextBoolean());
+        deps.add(j -> {
             Log.print("Dep check " + txt);
             return true;
         });
