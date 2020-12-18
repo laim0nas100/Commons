@@ -3,23 +3,28 @@ package lt.lb.commons.datasync;
 import lt.lb.commons.datasync.base.BaseValidation;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
  *
  * @author laim0nas100
  */
-public class SyncValidationAggregator implements SyncAndValidationAggregator {
+public class SyncValidationAggregator<E extends SyncAndValidationAggregator<E>> implements SyncAndValidationAggregator<E> {
 
     protected Collection<DataSyncPersist> persists = new LinkedHashSet<>();
     protected Collection<DataSyncDisplay> displays = new LinkedHashSet<>();
     protected Collection<DisplayValidation> displayValidations = new LinkedHashSet<>();
     protected Collection<PersistValidation> persistValidations = new LinkedHashSet<>();
     protected Function<Supplier, PersistAndDisplayValidation> factory;
+    protected BiFunction<Predicate, Function<?, String>, Valid> validationFactory;
+    protected final E me;
 
-    public SyncValidationAggregator(Function<Supplier, PersistAndDisplayValidation> factory) {
+    public SyncValidationAggregator(E me, Function<Supplier, PersistAndDisplayValidation> factory) {
         this.factory = factory;
+        this.me = me;
     }
 
     @Override
@@ -78,26 +83,6 @@ public class SyncValidationAggregator implements SyncAndValidationAggregator {
     }
 
     @Override
-    public boolean validDisplay() {
-        return !invalidDisplay(false);
-    }
-
-    @Override
-    public boolean validDisplayFull() {
-        return !invalidDisplay(true);
-    }
-
-    @Override
-    public boolean isValidDisplay(Object from) {
-        return !BaseValidation.iterateFindFirst(displayValidations, false, p -> p.isInvalidDisplay(from));
-    }
-
-    @Override
-    public void clearInvalidationDisplay(Object from) {
-        displayValidations.forEach(m -> m.clearInvalidationDisplay(from));
-    }
-
-    @Override
     public void withPersistValidation(Valid validation) {
         PersistAndDisplayValidation unmanaged = createBaseSyncValidationUnmanaged();
         unmanaged.withPersistValidation(validation);
@@ -105,88 +90,42 @@ public class SyncValidationAggregator implements SyncAndValidationAggregator {
     }
 
     @Override
-    public boolean validPersist() {
-        return !invalidPersist(false);
-    }
-
-    public boolean invalidPersist(boolean full) {
-        boolean invalid = false;
-
-        for (PersistValidation validation : persistValidations) {
-            if (!full) {
-                invalid = invalid || validation.invalidPersist();
-                if (invalid) {
-                    return invalid;
-                }
-            } else {
-                invalid = invalid || validation.invalidPersistFull();
-            }
-        }
-
-        return invalid;
-
-    }
-
-    @Override
-    public boolean validPersistFull() {
-        return !invalidPersist(true);
-    }
-
-    @Override
-    public boolean isValidPersist(Object from) {
-        return !BaseValidation.iterateFindFirst(persistValidations, false, p -> p.isInvalidPersist(from));
-    }
-
-    @Override
-    public void clearInvalidationPersist(Object from) {
-        persistValidations.forEach(m -> m.clearInvalidationPersist(from));
-    }
-
-    public boolean invalidDisplay(boolean full) {
-        boolean invalid = false;
-        for (DisplayValidation validation : displayValidations) {
-            if (!full) {
-                invalid = invalid || validation.invalidDisplay();
-                if (invalid) {
-                    return invalid;
-                }
-            } else {
-                invalid = invalid || validation.invalidDisplayFull();
-            }
-        }
-
-        return invalid;
-
-    }
-
-    @Override
-    public void addSyncDisplay(DataSyncDisplay sync) {
+    public E addSyncDisplay(DataSyncDisplay sync) {
         displays.add(sync);
+        return me();
     }
 
     @Override
-    public void addSyncPersist(DataSyncPersist sync) {
+    public E addSyncPersist(DataSyncPersist sync) {
         persists.add(sync);
+        return me();
     }
 
     @Override
-    public void addDisplayValidation(DisplayValidation valid) {
+    public E addDisplayValidation(DisplayValidation valid) {
         displayValidations.add(valid);
+        return me();
     }
 
     @Override
-    public void addPersistValidation(PersistValidation valid) {
+    public E addPersistValidation(PersistValidation valid) {
         persistValidations.add(valid);
-    }
-
-    @Override
-    public <M, V extends Valid<M>> PersistAndDisplayValidation<M, V> createBaseSyncValidationUnmanaged() {
-        return factory.apply(()->null);
+        return me();
     }
 
     @Override
     public <M, V extends Valid<M>> PersistAndDisplayValidation<M, V> createBaseSyncValidationManaged(Supplier<M> supl) {
         return factory.apply(supl);
+    }
+
+    @Override
+    public E me() {
+        return me;
+    }
+
+    @Override
+    public <M> Valid createValidation(Predicate<M> pred, Function<? super M, String> errorFunc) {
+        return validationFactory.apply(pred, errorFunc);
     }
 
 }

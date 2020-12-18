@@ -19,6 +19,7 @@ import lt.lb.jobsystem.JobExecutor;
 import lt.lb.jobsystem.ScheduledJobExecutor;
 import lt.lb.jobsystem.VoidJob;
 import lt.lb.jobsystem.dependency.Dependency;
+import lt.lb.jobsystem.dependency.MutuallyExclusivePointCAS;
 import lt.lb.jobsystem.dependency.MutuallyExclusivePoint;
 import lt.lb.jobsystem.events.SystemJobEventName;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,12 +39,6 @@ public class JobTest {
             }
         });
 
-//        return new Job<>((Job<Void> j) -> {
-//            for (int i = 0; i < increments; i++) {
-//                val.incrementAndGet();
-//            }
-//            
-//        });
     }
 
     public static void doIncrement(int jobs, Consumer<ArrayList<Job>> jobDepModifier) throws InterruptedException {
@@ -99,79 +94,83 @@ public class JobTest {
     @Test
     public void exclusiveInterestPointTest() throws InterruptedException {
         Log.main().stackTrace = false;
-        JobExecutor executor = new ScheduledJobExecutor(new FastWaitingExecutor(Java.getAvailableProcessors()));
-        AtomicLong atomLong = new AtomicLong(0L);
-        LongValue longVal1 = new LongValue(0L);
-        LongValue longVal2 = new LongValue(0L);
-        ThreadLocal<RandomDistribution> rng = ThreadLocal.withInitial(() -> RandomDistribution.uniform(new FastRandom()));
 
-        Integer jobs = rng.get().nextInt(20, 25);
-        int middle = rng.get().nextInt(jobs - 15, jobs - 10);
+        for (int t = 0; t < 10; t++) {
 
-        Integer range = rng.get().nextInt(50000, 100000);
+            JobExecutor executor = new ScheduledJobExecutor(new FastWaitingExecutor(Java.getAvailableProcessors()));
+            AtomicLong atomLong = new AtomicLong(0L);
+            LongValue longVal1 = new LongValue(0L);
+            LongValue longVal2 = new LongValue(0L);
+            ThreadLocal<RandomDistribution> rng = ThreadLocal.withInitial(() -> RandomDistribution.uniform(new FastRandom(1337)));
 
-        MutuallyExclusivePoint point1 = new MutuallyExclusivePoint();
+            Integer jobs = rng.get().nextInt(25, 30);
+            int middle = rng.get().nextInt(jobs - 20, jobs - 15);
 
-        MutuallyExclusivePoint point2 = new MutuallyExclusivePoint();
+            Integer range = rng.get().nextInt(50000, 100000);
 
-        Dependency randomDep = j -> {
+            MutuallyExclusivePoint point1 = new MutuallyExclusivePoint();
+
+            MutuallyExclusivePoint point2 = new MutuallyExclusivePoint();
+
+            Dependency randomDep = j -> {
 //            Log.print(j.getUUID() + "-DEP CHECK");
-            return true;
-        };
+                return true;
+            };
 
-        ArrayDeque<Job> allJobs = new ArrayDeque<>();
-        for (int i = 0; i < jobs; i++) {
-            if (i < middle) {
-                VoidJob jobBoth = new VoidJob(getID() + "B", job -> {
+            ArrayDeque<Job> allJobs = new ArrayDeque<>();
+            for (int i = 0; i < jobs; i++) {
+                if (i < middle) {
+                    VoidJob jobBoth = new VoidJob(getID() + "B", job -> {
+                        for (int j = 0; j < range; j++) {
+                            longVal1.incrementAndGet();
+                            longVal2.incrementAndGet();
+                        }
+                    });
+                    allJobs.add(jobBoth);
+                    jobBoth.addDependency(randomDep);
+                    point1.addSharingJob(jobBoth);
+                    point2.addSharingJob(jobBoth);
+
+                } else {
+                    VoidJob jobEx1 = new VoidJob(getID() + "E1", job -> {
+                        for (int j = 0; j < range; j++) {
+                            longVal1.incrementAndGet();
+                        }
+                    });
+                    allJobs.add(jobEx1);
+                    jobEx1.addDependency(randomDep);
+                    point1.addSharingJob(jobEx1);
+
+                    VoidJob jobEx2 = new VoidJob(getID() + "E2", job -> {
+                        for (int j = 0; j < range; j++) {
+                            longVal2.incrementAndGet();
+                        }
+                    });
+                    allJobs.add(jobEx2);
+                    jobEx2.addDependency(randomDep);
+                    point2.addSharingJob(jobEx2);
+
+                }
+
+                VoidJob jobSimple = new VoidJob(getID(), job -> {
                     for (int j = 0; j < range; j++) {
-                        longVal1.incrementAndGet();
-                        longVal2.incrementAndGet();
+                        atomLong.incrementAndGet();
                     }
                 });
-                allJobs.add(jobBoth);
-                jobBoth.addDependency(randomDep);
-                point1.addSharingJob(jobBoth);
-                point2.addSharingJob(jobBoth);
+                jobSimple.addDependency(randomDep);
 
-            } else {
-                VoidJob jobEx1 = new VoidJob(getID() + "E1", job -> {
-                    for (int j = 0; j < range; j++) {
-                        longVal1.incrementAndGet();
-                    }
-                });
-                allJobs.add(jobEx1);
-                jobEx1.addDependency(randomDep);
-                point1.addSharingJob(jobEx1);
-
-                VoidJob jobEx2 = new VoidJob(getID() + "E2", job -> {
-                    for (int j = 0; j < range; j++) {
-                        longVal2.incrementAndGet();
-                    }
-                });
-                allJobs.add(jobEx2);
-                jobEx2.addDependency(randomDep);
-                point2.addSharingJob(jobEx2);
+                allJobs.add(jobSimple);
 
             }
+//            allJobs.forEach(j -> {
+//                addEventLogListeners(j);
+//            });
+executor.submitAll(allJobs);
 
-            VoidJob jobSimple = new VoidJob(getID(), job -> {
-                for (int j = 0; j < range; j++) {
-                    atomLong.incrementAndGet();
-                }
-            });
-            jobSimple.addDependency(randomDep);
-
-            allJobs.add(jobSimple);
-
+//        executor.submitAll(allJobs);
+            executor.awaitJobEmptiness(1, TimeUnit.DAYS);
+            assertThat(atomLong.get()).isEqualTo(longVal1.get()).isEqualTo(longVal2.get());
         }
-        allJobs.forEach(j -> {
-//            addEventLogListeners(j);
-        });
-
-        executor.submitAll(allJobs);
-
-        executor.awaitJobEmptiness(1, TimeUnit.DAYS);
-        assertThat(atomLong.get()).isEqualTo(longVal1.get()).isEqualTo(longVal2.get());
 
     }
 

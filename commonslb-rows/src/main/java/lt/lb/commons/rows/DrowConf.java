@@ -1,6 +1,7 @@
 package lt.lb.commons.rows;
 
 import java.util.List;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -26,7 +27,7 @@ public interface DrowConf<R extends Drow, C, N, L, U extends Updates> extends Up
     /**
      * Used to calculate if colspan ratio difference is close enough, so no need
      * to resize colspans of this row. We are doing floating point number math,
-     * so still need to use this to see id difference is close to zero.
+     * so still need to use this to see if difference is close to zero.
      *
      * @param diff
      * @return
@@ -36,7 +37,6 @@ public interface DrowConf<R extends Drow, C, N, L, U extends Updates> extends Up
     }
 
 //    public CellInfo<C, N> getCellInfo(R drow);
-
     public N getEnclosingNode(R drow);
 
     public C createCell(List<N> nodes, N enclosingNode, R drow);
@@ -47,5 +47,18 @@ public interface DrowConf<R extends Drow, C, N, L, U extends Updates> extends Up
      * @param row
      */
     public void renderRow(R row);
+
+    /**
+     * Override this for different distribution of cell widths after hiding or
+     * removing a cell in a row
+     *
+     * @param drow may customize for specific row
+     * @param columnSpan
+     * @param surplus
+     * @return
+     */
+    public default Integer[] distributeSurplus(R drow, Integer[] columnSpan, int surplus) {
+        return DrowUtils.ColSpan.distributeSurplusLeft(columnSpan, surplus);
+    }
 
 }

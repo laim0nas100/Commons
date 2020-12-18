@@ -35,30 +35,48 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     protected boolean displayed = false;
 
-//    protected List<Integer> cellColSpan = new ArrayList<>();
     protected List<C> cells = new ArrayList<>();
     protected Conf config;
     protected L line;
     protected String key;
     protected Map<String, U> updates = new HashMap<>();
-    protected Set<String> tags = new HashSet<>();
+    protected Set<String> tags;
 
     @Override
     public Conf getConfig() {
         return config;
     }
 
+    /**
+     * In ON_RENDER event, the order at which rendering is processed.
+     *
+     * Can add more events after or before that.
+     *
+     * After derender, do the deletion of the row, if it's marked as deleted.
+     * Only <b>active</b> rows are processed, so if you delete a row, it must be
+     * derendered and only then deactivated and cleaned up.
+     *
+     * @return
+     */
     public int getRenderOrder() {
-        return 500;
+        return 10000;
     }
 
     /**
+     * In ON_RENDER event, the order at which deletion is processed.
+     *
+     *
+     * Can add more events after or before that.
+     *
      * After derender, do the deletion of the row, if it's marked as deleted.
+     * Only <b>active</b> rows are processed, so if you delete a row, it must be
+     * derendered and only then deactivated and cleaned up. Must be bigger than
+     * render order.
      *
      * @return
      */
     public int getDeleteOrder() {
-        return getRenderOrder() + 1000;
+        return getRenderOrder() + 10000;
     }
 
     public Drow(L line, Conf config, String key) {
@@ -113,15 +131,33 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         return update(UPDATES_ON_VISIBLE);
     }
 
+    /**
+     * Whether this row is currently disabled.
+     *
+     * @return
+     */
     public boolean isDisabled() {
         return disabled;
     }
 
+    /**
+     * Set the disabled status. Also fires all the updates that are configured
+     * for disabled event.
+     *
+     * @param disabled
+     * @return
+     */
     public R setDisabled(boolean disabled) {
         this.disabled = disabled;
         return update(UPDATES_ON_DISABLE);
     }
 
+    /**
+     * Sets the deleted status. Usually don't use this, because it is used by
+     * parent object that is managing the rows.
+     *
+     * @return
+     */
     public boolean isDeleted() {
         return deleted;
     }
@@ -137,43 +173,85 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         return me();
     }
 
+    /**
+     * Whether this row has been displayed (method {@link #display(boolean)} or
+     * {@link #display} has been called)
+     *
+     * @return
+     */
     public boolean isDisplayed() {
         return displayed;
     }
 
     /**
-     * Alias active. Visible, displayed and not deleted.
+     *
+     * Visible, displayed and not deleted.
      *
      * @return
      */
-    public boolean isRendable() {
+    public boolean isActive() {
         return isDisplayed() && isVisible() && !isDeleted();
     }
 
+    /**
+     * A render component that is associated with this row
+     *
+     * @return
+     */
     public L getLine() {
         return line;
     }
 
+    /**
+     * Unique key of this row.
+     *
+     * @return
+     */
     public String getKey() {
         return key;
     }
 
+    /**
+     * Gets working list of cells, can modify directly.
+     *
+     * @return
+     */
     public List<C> getCells() {
         return this.cells;
     }
 
+    /**
+     * Gets a sum of colspan of each cell in this row.
+     *
+     * @return
+     */
     public int getTotalColSpan() {
         return getCells().stream().mapToInt(m -> m.getColSpan()).sum();
     }
 
+    /**
+     * Gets a sum of colspan of each visible cell in this row.
+     *
+     * @return
+     */
     public int getTotalColSpanVisible() {
         return getVisibleCells().stream().mapToInt(m -> m.getColSpan()).sum();
     }
 
+    /**
+     * Gets a List of visible cells
+     *
+     * @return
+     */
     public List<C> getVisibleCells() {
         return getCells().stream().filter(c -> c.isVisible()).collect(Collectors.toList());
     }
 
+    /**
+     * Gets a List of indices of cells that are visible in this row
+     *
+     * @return
+     */
     public List<Integer> getVisibleIndices() {
         ArrayList<Integer> list = new ArrayList<>();
         For.elements().iterate(cells, (i, cell) -> {
@@ -187,19 +265,33 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     public List<Integer> getPreferedColSpanOfVisible() {
         ArrayList<Integer> prefVis = new ArrayList<>();
+        List<Integer> preferedColSpan = getPreferedColSpan();
         For.elements().iterate(cells, (i, cell) -> {
             if (cell.isVisible()) {
-                prefVis.add(getPreferedColSpan().get(i));
+                prefVis.add(preferedColSpan.get(i));
             }
         });
         return prefVis;
     }
 
+    /**
+     * Returns the working cell at given index.
+     *
+     * @param index
+     * @return
+     */
     public C getCell(int index) {
         return cells.get(index);
     }
 
-    public boolean needUpdate(int maxVisibleRowSpan) {
+    /**
+     * System method, usually don't use this. Decide whether row needs update
+     * the column spans of the cells.
+     *
+     * @param maxVisibleRowSpan
+     * @return
+     */
+    protected boolean needUpdate(int maxVisibleRowSpan) {
         int totalVisible = this.getTotalColSpanVisible();
 
         if (maxVisibleRowSpan != totalVisible || totalVisible > config.getMaxColSpan(me())) {
@@ -223,7 +315,11 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         return false;
     }
 
-    public void reorderColSpans() {
+    /**
+     * System method, usually don't use this. Rewrite colspans of the cells,
+     * based on surplus redistributing policy.
+     */
+    protected void reorderColSpans() {
 
         int maxColSpan = config.getMaxColSpan(me());
         if (!this.needUpdate(maxColSpan)) {
@@ -246,34 +342,54 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
         int surplus = maxColSpan - newTotalColspan;
 
-        while (surplus > 0) {
-            for (int i = 0; i < colApply.length; i++) {
-                if (surplus <= 0) {
-                    break;
-                }
-                colApply[i] += 1;
-                surplus--;
-            }
-        }
+        For.elements().iterate(config.distributeSurplus(me(), colApply, surplus), (i, span) -> {
+            visibleCells.get(i).setColSpan(span);
+        });
 
         for (int i = 0; i < colApply.length; i++) {
             visibleCells.get(i).setColSpan(colApply[i]);
         }
     }
 
+    /**
+     * Override the {@code this} method
+     *
+     * @return
+     */
     @Override
     public abstract R me();
 
+    /**
+     * Add a node at the end of the row.
+     *
+     * @param node
+     * @return
+     */
     public R add(N node) {
         return add(-1, node);
     }
 
+    /**
+     * Add a node at given index.
+     *
+     * @param index
+     * @param node
+     * @return
+     */
     public R add(int index, N node) {
         R me = me();
         finalAdd(index, Arrays.asList(node), config.getEnclosingNode(me), cells, 1);
         return me;
     }
 
+    /**
+     * Merge last cells in the row, with given component to hold the merged
+     * cells.
+     *
+     * @param enclosing
+     * @param lastCount
+     * @return
+     */
     public R mergeLast(Supplier<? extends N> enclosing, int lastCount) {
         int[] indexes = new int[lastCount];
         int lastIndex = this.getNodeCount() - 1;
@@ -289,6 +405,14 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     }
 
+    /**
+     * Merge cells with given <b>consecutive</b> indices, with given component
+     * to hold the merged cells.
+     *
+     * @param enclosing
+     * @param comps
+     * @return
+     */
     public R merge(Supplier<? extends N> enclosing, int... comps) {
         if (comps.length <= 1) {// no op
             return me();
@@ -368,6 +492,16 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     }
 
+    /**
+     * System method, usually don't use this.
+     *
+     * @param index index at which to add the cell.
+     * @param nodes nodes to add (usually just one)
+     * @param enclosing node to enclose the given nodes, can be null.
+     * @param cellArray the array to add given cell.
+     * @param colSpan
+     * @return
+     */
     protected C finalAdd(int index, List<N> nodes, N enclosing, List<C> cellArray, int colSpan) {
 
         C cell = config.createCell(nodes, enclosing, me());
@@ -382,6 +516,13 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     }
 
+    /**
+     * Change the colspan ratio of the cells. Must specify colspan for every
+     * cell in the row.
+     *
+     * @param spans
+     * @return
+     */
     public R withPreferedColspan(Integer... spans) {
         R me = me();
         addOnDisplayAndRunIfDone(() -> {
@@ -396,11 +537,23 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         return me;
     }
 
+    /**
+     * Gets a count of the nodes. Can be bigger than the cell count, because
+     * cell can hold multiple nodes.
+     *
+     * @return
+     */
     public int getNodeCount() {
         return cells.stream().mapToInt(m -> m.getNodes().size()).sum();
     }
 
-    private ReadOnlyIterator<Tuple<C, N>> mainIterator() {
+    /**
+     * System method, usually don't use this. Iterator of each tuple with cell
+     * and a node. Each cell can hold multiple nodes.
+     *
+     * @return
+     */
+    protected ReadOnlyIterator<Tuple<C, N>> mainIterator() {
         ArrayList<C> cellCopy = new ArrayList<>(cells);
         int total = getNodeCount();
         return new ReadOnlyIterator<Tuple<C, N>>() {
@@ -461,36 +614,76 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         };
     }
 
+    /**
+     * Gets every node in this row, can change the nodes directly, but not the
+     * order.
+     *
+     * @return
+     */
     public List<N> getNodes() {
         return mainIterator().map(m -> m.g2).toArrayList();
     }
 
+    /**
+     * Supplier that returns a cell, that satisfy the given node-index and node
+     * predicate.
+     *
+     * @param pred
+     * @return
+     */
     public Supplier<C> getCellSupplier(Predicate<Tuple<Integer, N>> pred) {
         return () -> {
-            return For.elements().find(mainIterator(), (i, tuple) -> pred.test(Tuples.create(i, tuple.g2)))
-                    .map(m -> m.val.g1).orElse(null);
+            return For.elements().find(
+                    mainIterator(), (i, tuple) -> pred.test(Tuples.create(i, tuple.g2))
+            ).map(m -> m.val.g1).orElse(null);
         };
     }
 
+    /**
+     * Supplier that returns a node, at given node-index
+     *
+     * @param i
+     * @return
+     */
     public Supplier<N> getNodeSupplier(Integer i) {
         return () -> {
-            return For.elements().find(mainIterator(), (j, tuple) -> Objects.equals(i, j))
-                    .map(m -> m.val.g2).orElse(null);
+            return For.elements().find(
+                    mainIterator(), (j, tuple) -> Objects.equals(i, j)
+            ).map(m -> m.val.g2).orElse(null);
         };
     }
 
+    /**
+     * Supplier that returns a node, that satisfy the given node predicate.
+     *
+     * @param pred
+     * @return
+     */
     public Supplier<N> getNodeSupplier(Predicate<N> pred) {
 
         return () -> {
-            return For.elements().find(mainIterator(), (j, tuple) -> pred.test(tuple.g2))
-                    .map(m -> m.val.g2).orElse(null);
+            return For.elements().find(
+                    mainIterator(), (j, tuple) -> pred.test(tuple.g2)
+            ).map(m -> m.val.g2).orElse(null);
         };
     }
 
+    /**
+     * Returns a node, that satisfy the given node predicate.
+     *
+     * @param pred
+     * @return
+     */
     public <T extends N> T getNode(Predicate<N> pred) {
         return F.cast(getNodeSupplier(pred).get());
     }
 
+    /**
+     * Supplier that returns a node, that satisfy the given node-index.
+     *
+     * @param i
+     * @return
+     */
     public <T extends N> T getNode(Integer i) {
         return F.cast(getNodeSupplier(i).get());
     }
@@ -529,17 +722,40 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     }
 
+    /**
+     * Add a custom tag for this row, to mark for something to differentiate on.
+     *
+     * @param tag
+     * @return
+     */
     public R withTag(String... tag) {
+        if (tags == null) {
+            tags = new HashSet<>();
+        }
         for (String t : tag) {
             this.tags.add(t);
         }
         return me();
     }
 
+    /**
+     * Check if row has been marked with a tag.
+     *
+     * @param tag
+     * @return
+     */
     public boolean hasTag(String tag) {
+        if (tags == null) {
+            return false;
+        }
         return tags.contains(tag);
     }
 
+    /**
+     * Set display to false, and remove every cell.
+     *
+     * @return
+     */
     public R clear() {
         displayed = false;
         cells.clear();
@@ -581,11 +797,25 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         });
     }
 
+    /**
+     * Pass a decorator to modify this row.
+     *
+     * @param r
+     * @return
+     */
     public R withRowDecorator(Consumer<R> r) {
         r.accept(me());
         return me();
     }
 
+    /**
+     * Pass a decorator that only applies to different nodes in this row.
+     *
+     * @param <T>
+     * @param type
+     * @param cons
+     * @return
+     */
     public <T extends N> R withNodesOfTypeDo(Class<T> type, Consumer<T> cons) {
         Ins.InsCl<T> cl = Ins.of(type);
         getNodes().stream().filter(n -> cl.superClassOf(n)).map(m -> (T) m).forEach(cons);
@@ -593,8 +823,8 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     }
 
     protected RecursiveRedirection redirection = new RecursiveRedirection()
-            .setFirstRedirect(run -> {
-                if (displayed) {
+            .setFirstRedirect(run -> { // only add an update if this is the first call. Update itself cannot add another update.
+                if (isDisplayed()) {
                     run.run();
                 }
                 updates.get(UPDATES_ON_DISPLAY).addUpdate(run.asExecutedIn(1));

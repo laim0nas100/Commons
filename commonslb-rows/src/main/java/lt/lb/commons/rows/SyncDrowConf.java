@@ -34,8 +34,8 @@ public interface SyncDrowConf<R extends SyncDrow, C, N, L, U extends Updates> ex
         return baseValidation;
     }
 
-    public default SyncAndValidationAggregator createAggregator() {
-        return new SyncValidationAggregator(ob -> createBaseSyncValidation(ob));
+    public default SyncAndValidationAggregator<R> createAggregator(R row) {
+        return new SyncValidationAggregator<>(row,ob -> createBaseSyncValidation(ob));
     }
 
 }

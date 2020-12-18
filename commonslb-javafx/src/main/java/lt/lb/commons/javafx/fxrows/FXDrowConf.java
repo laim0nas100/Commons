@@ -78,7 +78,7 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
             line.getRenderedNodes().clear();
         });
 
-        if (!row.isRendable()) {
+        if (!row.isActive()) {
             return; // nothing else to do here
         }
         Integer rowIndex = rows.getVisibleRowIndex(row.getKey());

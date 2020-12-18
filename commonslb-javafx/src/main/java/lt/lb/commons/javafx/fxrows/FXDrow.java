@@ -5,7 +5,6 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import lt.lb.commons.rows.Drow;
 import lt.lb.commons.rows.SyncDrow;
 
 /**

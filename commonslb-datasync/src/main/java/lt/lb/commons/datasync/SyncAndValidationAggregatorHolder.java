@@ -1,15 +1,17 @@
 package lt.lb.commons.datasync;
 
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
  *
  * @author laim0nas100
  */
-public interface SyncAndValidationAggregatorHolder extends SyncAndValidationAggregator{
+public interface SyncAndValidationAggregatorHolder<E extends SyncAndValidationAggregatorHolder<E>> extends SyncAndValidationAggregator<E> {
 
-    public SyncAndValidationAggregator getAggregator();
-    
+    public SyncAndValidationAggregator<E> getAggregator();
+
     @Override
     public default Iterable<DataSyncPersist> getPersists() {
         return getAggregator().getPersists();
@@ -31,24 +33,31 @@ public interface SyncAndValidationAggregatorHolder extends SyncAndValidationAggr
     }
 
     @Override
-    public default void addSyncDisplay(DataSyncDisplay sync) {
-        getAggregator().addSyncDisplay(sync);
+    public default E addSyncDisplay(DataSyncDisplay sync) {
+        return getAggregator().addSyncDisplay(sync);
     }
 
     @Override
-    public default void addSyncPersist(DataSyncPersist sync) {
-        getAggregator().addSyncPersist(sync);
+    public default E addSyncPersist(DataSyncPersist sync) {
+        return getAggregator().addSyncPersist(sync);
     }
 
     @Override
-    public default void addDisplayValidation(DisplayValidation valid) {
-        getAggregator().addDisplayValidation(valid);
+    public default E addDisplayValidation(DisplayValidation valid) {
+        return getAggregator().addDisplayValidation(valid);
     }
 
     @Override
-    public default void addPersistValidation(PersistValidation valid) {
-        getAggregator().addPersistValidation(valid);
+    public default E addPersistValidation(PersistValidation valid) {
+        return getAggregator().addPersistValidation(valid);
     }
+
+    @Override
+    public default <M> Valid createValidation(Predicate<M> pred, Function<? super M, String> errorFunc) {
+        return getAggregator().createValidation(pred, errorFunc);
+    }
+    
+    
 
     @Override
     public default <M, V extends Valid<M>> PersistAndDisplayValidation<M, V> createBaseSyncValidationUnmanaged() {
@@ -129,5 +138,5 @@ public interface SyncAndValidationAggregatorHolder extends SyncAndValidationAggr
     public default void syncManagedFromPersist() {
         getAggregator().syncManagedFromPersist();
     }
-    
+
 }

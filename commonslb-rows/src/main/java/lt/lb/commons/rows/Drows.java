@@ -107,7 +107,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
             Map<String, Integer> map = new HashMap<>();
             int index = 0;
             for (R row : list) {
-                if (row.isRendable()) {
+                if (row.isActive()) {
                     map.put(row.getKey(), index);
                     index++;
                 }
@@ -168,11 +168,11 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
     }
 
     public List<R> getActiveRows() {
-        return getRowsInOrder().stream().filter(f -> f.isRendable()).collect(Collectors.toList());
+        return getRowsInOrder().stream().filter(f -> f.isActive()).collect(Collectors.toList());
     }
 
     public List<R> getActiveRowsNested() {
-        return getRowsInOrderNested().stream().filter(f -> f.isRendable()).collect(Collectors.toList());
+        return getRowsInOrderNested().stream().filter(f -> f.isActive()).collect(Collectors.toList());
     }
 
     public List<R> getRowsInOrderNested() {
@@ -430,5 +430,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
             }
         }
     }
+    
+    
 
 }
