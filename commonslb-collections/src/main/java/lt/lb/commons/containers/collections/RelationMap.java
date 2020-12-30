@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.caller.Caller;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
@@ -111,22 +110,25 @@ public class RelationMap<K, V> implements Map<K, V> {
         return root.val;
     }
 
-    // to avoid recursion
-    private static <K, V> Caller<Rnode<K, V>> traverse(Rnode<K, V> from, K to, BiFunction<K, K, Boolean> rel) {
-        LinkedList<Rnode<K, V>> filled = from.links.values().stream().filter(n -> rel.apply(to, n.key)).collect(Collectors.toCollection(LinkedList::new));
-
-        if (filled.size() > 1) {
-            StringBuilder b = new StringBuilder();
-            ArrayList<String> violations = filled.stream().map(m -> m.nodeLevel() + " :" + m.key).collect(Collectors.toCollection(ArrayList::new));
-            b.append("Multiple relations satisfied with [").append(from.key).append("] > ").append(violations);
-            throw new IllegalArgumentException(b.toString() + " Terminating to prevent undefined behaviour.");
+    private static <K, V> Rnode<K, V> traverse(final Rnode<K, V> from, final K to, BiFunction<K, K, Boolean> rel) {
+        Rnode<K, V> iter = from;
+        while (true) {
+            LinkedList<Rnode<K, V>> filled = iter.links.values().stream()
+                    .filter(n -> rel.apply(to, n.key))
+                    .collect(Collectors.toCollection(LinkedList::new));
+            if (filled.size() > 1) {
+                StringBuilder b = new StringBuilder();
+                ArrayList<String> violations = filled.stream().map(m -> m.nodeLevel() + " :" + m.key).collect(Collectors.toCollection(ArrayList::new));
+                b.append("Multiple relations satisfied with [").append(iter.key).append("] > ").append(violations);
+                throw new IllegalArgumentException(b.toString() + " Terminating to prevent undefined behaviour.");
+            }
+            if (filled.isEmpty()) {
+                return iter;
+            } else {
+                iter = filled.getFirst();
+            }
         }
-        if (filled.isEmpty()) {
-            return Caller.ofResult(from);
-        } else {
-            return Caller.ofFunction(args -> traverse(filled.getFirst(), to, rel));
 
-        }
     }
 
     private static <K, V> void assertRelation(K key, Rnode<K, V> r, BiFunction<K, K, Boolean> rel) {
@@ -160,7 +162,7 @@ public class RelationMap<K, V> implements Map<K, V> {
 
     private static <K, V> Rnode<K, V> traverseBegin(K key, Rnode<K, V> r, BiFunction<K, K, Boolean> rel) {
         assertRelation(key, r, rel);
-        return traverse(r, key, rel).resolve();
+        return traverse(r, key, rel);
     }
 
     public V getBestFit(K key) {
