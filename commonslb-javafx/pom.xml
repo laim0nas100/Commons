@@ -46,7 +46,10 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
         </dependency>
-        
+        <dependency>
+            <groupId>com.github.laim0nas100</groupId>
+            <artifactId>FastID</artifactId>
+        </dependency>
     </dependencies>
     
     <profiles>

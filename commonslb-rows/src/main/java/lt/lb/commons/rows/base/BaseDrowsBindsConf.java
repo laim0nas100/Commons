@@ -2,7 +2,7 @@ package lt.lb.commons.rows.base;
 
 import java.util.HashMap;
 import java.util.Map;
-import lt.lb.commons.FastIDGen;
+import lt.lb.fastid.FastIDGen;
 import lt.lb.commons.rows.Drow;
 import lt.lb.commons.rows.Drows;
 import lt.lb.commons.rows.DrowsConf;

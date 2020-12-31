@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import lt.lb.commons.FastIDGen.FastID;
+import lt.lb.fastid.FastID;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Pair;

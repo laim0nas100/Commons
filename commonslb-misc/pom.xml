@@ -19,6 +19,10 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-iteration</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.laim0nas100</groupId>
+            <artifactId>FastID</artifactId>
+        </dependency>
     </dependencies>
     
 </project>

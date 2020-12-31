@@ -11,9 +11,9 @@ import java.util.function.Consumer;
 import lt.lb.commons.containers.tables.CellFormatBuilder;
 import lt.lb.commons.containers.tables.CellTable;
 import lt.lb.commons.F;
-import lt.lb.commons.FastIDGen.FastID;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.For;
+import lt.lb.fastid.FastID;
 import org.junit.Test;
 
 /**

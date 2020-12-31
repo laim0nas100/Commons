@@ -3,8 +3,8 @@ package lt.lb.commons.containers.tables;
 import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
 import java.util.Optional;
 import java.util.function.Function;
-import lt.lb.commons.FastIDGen;
-import lt.lb.commons.FastIDGen.FastID;
+import lt.lb.fastid.FastIDGen;
+import lt.lb.fastid.FastID;
 
 /**
  *

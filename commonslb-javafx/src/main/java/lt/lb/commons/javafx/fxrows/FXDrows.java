@@ -2,9 +2,9 @@ package lt.lb.commons.javafx.fxrows;
 
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import lt.lb.commons.FastIDGen;
 import lt.lb.commons.rows.DrowsConf;
 import lt.lb.commons.rows.SyncDrows;
+import lt.lb.fastid.FastIDGen;
 
 /**
  *

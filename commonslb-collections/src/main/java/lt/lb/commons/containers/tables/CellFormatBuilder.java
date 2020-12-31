@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import lt.lb.commons.FastIDGen.FastID;
+import lt.lb.fastid.FastID;
 import lt.lb.commons.containers.tables.CellTable.CellFormatIndexCollector;
 
 /**
