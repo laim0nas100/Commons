@@ -12,8 +12,6 @@
         
         <apache.commons.version>3.9</apache.commons.version>
 
-        <!--<maven.compiler.source>1.8</maven.compiler.source>-->
-        <!--<maven.compiler.target>1.8</maven.compiler.target>-->
     </properties>
     <name>CommonsLB</name>
     <modules>
@@ -23,7 +21,6 @@
         <module>commonslb-datasync</module>
         <module>commonslb-collections</module>
         <module>commonslb-caching</module>
-        <module>commonslb-caller</module>
         <module>commonslb-log</module>
         <module>commonslb-lexing</module>
         <module>commonslb-refmodel</module>
@@ -37,7 +34,12 @@
         <module>commonslb-email</module>
         <module>commonslb-tests</module>
     </modules>
-    
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -63,11 +65,6 @@
             <dependency>
                 <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-rows</artifactId>
-                <version>${project.production.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>lt.lb.commons</groupId>
-                <artifactId>commonslb-caller</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
@@ -134,6 +131,12 @@
                 <groupId>lt.lb.commons</groupId>
                 <artifactId>commonslb-caching</artifactId>
                 <version>${project.production.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>com.github.laim0nas100</groupId>
+                <artifactId>FastID</artifactId>
+                <version>1.0.1</version>
             </dependency>
             
             

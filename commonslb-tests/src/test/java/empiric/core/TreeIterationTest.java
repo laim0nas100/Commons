@@ -21,8 +21,6 @@ import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import org.junit.Test;
-import static regression.caller.CallerTest.DFSCaller;
-import static regression.caller.CallerTest.PostOrderCaller;
 
 /**
  *
@@ -193,10 +191,6 @@ public class TreeIterationTest {
                 TreeVisitorImpl.DFSIterative(it, root, Optional.empty());
             }).print(Log::print);
             
-            bench.executeBench(times, "DFS cal", () -> {
-                DFSCaller(it, root, Optional.empty()).resolve();
-            }).print(Log::print);
-            
             bench.executeBench(times, "Pos rec", () -> {
                 TreeVisitorImpl.PostOrder(it, root, Optional.empty());
             }).print(Log::print);
@@ -205,9 +199,6 @@ public class TreeIterationTest {
                 TreeVisitorImpl.PostOrderIterative(it, root, Optional.empty());
             }).print(Log::print);
             
-            bench.executeBench(times, "Pos cal", () -> {
-                PostOrderCaller(it, root, Optional.empty()).resolve();
-            }).print(Log::print);
         }
 
     }

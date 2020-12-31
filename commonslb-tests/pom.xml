@@ -85,17 +85,11 @@
         <dependency>
             <groupId>uk.com.robust-it</groupId>
             <artifactId>cloning</artifactId>
-            <version>1.9.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-reflection</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>lt.lb.commons</groupId>
-            <artifactId>commonslb-caller</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -142,7 +136,7 @@
         
         <dependency>
             <groupId>lt.lb</groupId>
-            <artifactId>JobSystem</artifactId>
+            <artifactId>CallerFramework</artifactId>
             <version>local-jar</version>
             <scope>test</scope>
         </dependency>
