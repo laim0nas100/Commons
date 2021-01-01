@@ -39,10 +39,12 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
         });
     }
 
-
     @Override
     public Node getEnclosingNode(FXDrow r) {
-        return new VBox();
+        VBox vBox = new VBox();
+        vBox.setFillWidth(true);
+        vBox.setAlignment(Pos.CENTER);
+        return vBox;
     }
 
     @Override
@@ -58,6 +60,7 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
     public FXUpdates createUpdates(String type, FXDrow r) {
         return new FXUpdates(type);
     }
+
     @Override
     public void doUpdates(FXUpdates updates, FXDrow drow) {
         updates.commit();
@@ -112,6 +115,8 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
             GridPane.setRowIndex(nodeCell, rowIndex);
             GridPane.setRowSpan(nodeCell, 1);
             GridPane.setValignment(nodeCell, defaultGridVPos);
+            GridPane.setHalignment(nodeCell, cell.getAlign());
+
             colIndex += cell.getColSpan();
         }
 
@@ -139,9 +144,15 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
 
     protected void conditionalAlligment(Node n, HPos pos) {
         SafeOpt<Node> of = SafeOpt.of(n);
-        of.ifPresent(m -> GridPane.setHalignment(m, pos));
-        of.select(VBox.class).ifPresent(m -> m.setAlignment(aligment(pos)));
-        of.select(HBox.class).ifPresent(m -> m.setAlignment(aligment(pos)));
+        HPos halignment = GridPane.getHalignment(n);
+        if (halignment == null) {//set default
+            of.ifPresent(m -> GridPane.setHalignment(m, pos));
+            of.select(VBox.class).ifPresent(m -> m.setAlignment(aligment(pos)));
+            of.select(HBox.class).ifPresent(m -> m.setAlignment(aligment(pos)));
+        } else { // set given
+            of.select(VBox.class).ifPresent(m -> m.setAlignment(aligment(halignment)));
+            of.select(HBox.class).ifPresent(m -> m.setAlignment(aligment(halignment)));
+        }
 
     }
 

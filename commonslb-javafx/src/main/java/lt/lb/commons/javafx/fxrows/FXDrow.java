@@ -2,9 +2,11 @@ package lt.lb.commons.javafx.fxrows;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.HPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import lt.lb.commons.iteration.For;
 import lt.lb.commons.rows.SyncDrow;
 
 /**
@@ -36,8 +38,19 @@ public class FXDrow extends SyncDrow<FXCell, Node, FXLine, FXUpdates, FXDrowConf
     public FXDrow display() {
         return display(false);
     }
-    
-    
+
+    public FXDrow withPreferedAlign(HPos... pos) {
+        addOnDisplayAndRunIfDone(() -> {
+            For.elements().iterate(pos, (i, spa) -> {
+                FXCell cell = this.getCell(i);
+                cell.setAlign(spa);
+
+            });
+            update();
+        });
+
+        return this;
+    }
 
     @Override
     public FXDrow me() {
