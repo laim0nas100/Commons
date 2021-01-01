@@ -7,13 +7,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.func.unchecked.UnsafeSupplier;
 
 /**
  * Mappable future. Easier and less cluttered version of CompletableFuture.
@@ -22,8 +19,9 @@ import lt.lb.commons.func.unchecked.UnsafeSupplier;
  * Mapping is lazy by default (if get is never called, why bother doing the work
  * of mapping the data?).
  *
- * Eager behavior is achieved by feeding the {@link Future#get() } operation
- * into the one of executors. By default it is the common ForkJoin pool.
+ * Eager mapping behavior is achieved by feeding the {@link Future#get() }
+ * operation into the one of executors. By default it is the common ForkJoin
+ * pool.
  *
  * @author laim0nas100
  */
