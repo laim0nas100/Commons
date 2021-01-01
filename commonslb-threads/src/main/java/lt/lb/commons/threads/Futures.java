@@ -36,7 +36,7 @@ public class Futures {
             return null;
         });
     }
-    
+
     public static void executeAsync(Runnable run, Executor exe) {
         exe.execute(run);
     }
@@ -52,10 +52,14 @@ public class Futures {
     public static void awaitAsync(Future future) {
         awaitAsync(future, ForkJoinPool.commonPool());
     }
-    
+
     public static <V, R> Future<R> mappedEager(Future<V> future, Function<? super V, ? extends R> func) {
+        return mappedEager(future, func, ForkJoinPool.commonPool());
+    }
+
+    public static <V, R> Future<R> mappedEager(Future<V> future, Function<? super V, ? extends R> func, Executor exe) {
         Future<R> mapped = mapped(future, func);
-        awaitAsync(mapped);
+        awaitAsync(mapped, exe);
         return mapped;
     }
 
