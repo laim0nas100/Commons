@@ -1,7 +1,6 @@
 package lt.lb.commons.threads;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -37,6 +36,14 @@ public class Futures {
             return null;
         });
     }
+    
+    public static void executeAsync(Runnable run, Executor exe) {
+        exe.execute(run);
+    }
+
+    public static void executeAsync(Runnable run) {
+        executeAsync(run, ForkJoinPool.commonPool());
+    }
 
     public static void awaitAsync(Future future, Executor exe) {
         exe.execute((UnsafeRunnable) () -> future.get());
@@ -44,6 +51,12 @@ public class Futures {
 
     public static void awaitAsync(Future future) {
         awaitAsync(future, ForkJoinPool.commonPool());
+    }
+    
+    public static <V, R> Future<R> mappedEager(Future<V> future, Function<? super V, ? extends R> func) {
+        Future<R> mapped = mapped(future, func);
+        awaitAsync(mapped);
+        return mapped;
     }
 
     public static <V, R> Future<R> mapped(Future<V> future, Function<? super V, ? extends R> func) {
@@ -76,11 +89,9 @@ public class Futures {
 
             @Override
             public R get() throws InterruptedException, ExecutionException {
-
                 if (mapping.compareAndSet(false, true)) {
                     complete(() -> future.get());
                 }
-
                 return compl.get();
             }
 
