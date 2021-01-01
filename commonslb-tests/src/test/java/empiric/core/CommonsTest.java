@@ -315,33 +315,4 @@ public class CommonsTest {
 
     }
 
-//    @Test
-    public void memoizerTest() {
-        Lambda.L1R<Long, BigInteger> of = Lambda.of(StackOverflowTest.RecursionBuilder::fibb2);
-
-        Memoized memoized = new Memoized();
-        Lambda.L1R<Long, BigInteger> memoize = memoized.memoize(of);
-
-        Log.print("RUN");
-        UnsafeRunnable r1 = () -> {
-            for (Integer i = 10; i < 35; i++) {
-                of.apply(i.longValue());
-            }
-        };
-
-        UnsafeRunnable r2 = () -> {
-            for (Integer i = 10; i < 35; i++) {
-                memoize.apply(i.longValue());
-            }
-        };
-
-        Benchmark b = new Benchmark();
-        b.executeBench(10, "DEF", r1).print(Log::print);
-        b.executeBench(10, "MEM", r2).print(Log::print);
-        b.executeBench(10, "DEF", r1).print(Log::print);
-        b.executeBench(10, "MEM", r2).print(Log::print);
-
-        Log.print("END RUN");
-
-    }
 }
