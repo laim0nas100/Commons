@@ -11,7 +11,7 @@ import lt.lb.commons.containers.ForwardingMap;
  *
  * @author laim0nas100
  */
-public class Props extends ForwardingMap<String, Object> implements Map<String, Object> {
+public class Props implements ForwardingMap<String, Object> {
 
     protected Map<String, Object> map;
 
@@ -47,7 +47,7 @@ public class Props extends ForwardingMap<String, Object> implements Map<String, 
     }
 
     @Override
-    protected Map<String, Object> delegate() {
+    public Map<String, Object> delegate() {
         return map;
     }
 

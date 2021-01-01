@@ -112,7 +112,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
             }
 
             @Override
-            protected Stream<T> delegate() {
+            public Stream<T> delegate() {
                 return stream;
             }
         };

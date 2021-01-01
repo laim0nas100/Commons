@@ -8,67 +8,67 @@ import java.util.Set;
  *
  * @author laim0nas100
  */
-public abstract class ForwardingMap<K, V> implements Map<K, V> {
+public interface ForwardingMap<K, V> extends Map<K, V> {
 
-    protected abstract Map<K, V> delegate();
+    Map<K, V> delegate();
 
     @Override
-    public int size() {
+    public default int size() {
         return delegate().size();
     }
 
     @Override
-    public boolean isEmpty() {
+    public default boolean isEmpty() {
         return delegate().isEmpty();
     }
 
     @Override
-    public boolean containsKey(Object key) {
+    public default boolean containsKey(Object key) {
         return delegate().containsKey(key);
     }
 
     @Override
-    public boolean containsValue(Object value) {
+    public default boolean containsValue(Object value) {
         return delegate().containsValue(value);
     }
 
     @Override
-    public V get(Object key) {
+    public default V get(Object key) {
         return delegate().get(key);
     }
 
     @Override
-    public V put(K key, V value) {
+    public default V put(K key, V value) {
         return delegate().put(key, value);
     }
 
     @Override
-    public V remove(Object key) {
+    public default V remove(Object key) {
         return delegate().remove(key);
     }
 
     @Override
-    public void putAll(Map<? extends K, ? extends V> m) {
+    public default void putAll(Map<? extends K, ? extends V> m) {
         delegate().putAll(m);
     }
 
     @Override
-    public void clear() {
+    public default void clear() {
         delegate().clear();
     }
 
     @Override
-    public Set<K> keySet() {
+    public default Set<K> keySet() {
         return delegate().keySet();
     }
 
     @Override
-    public Collection<V> values() {
+    public default Collection<V> values() {
         return delegate().values();
     }
 
     @Override
-    public Set<Entry<K, V>> entrySet() {
+    public default Set<Entry<K, V>> entrySet() {
         return delegate().entrySet();
     }
 
