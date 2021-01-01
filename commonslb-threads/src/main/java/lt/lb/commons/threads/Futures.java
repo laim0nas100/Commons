@@ -1,8 +1,8 @@
 package lt.lb.commons.threads;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -10,11 +10,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.func.unchecked.UnsafeSupplier;
 
 /**
  *
@@ -53,62 +50,37 @@ public class Futures {
         awaitAsync(future, ForkJoinPool.commonPool());
     }
 
-    public static <V, R> Future<R> mappedEager(Future<V> future, Function<? super V, ? extends R> func) {
-        return mappedEager(future, func, ForkJoinPool.commonPool());
+    public static <V> MappableFuture<V> mappable(Future<V> future) {
+        return (MappableFuture.MappableForwardingFuture<V>) () -> future;
     }
 
-    public static <V, R> Future<R> mappedEager(Future<V> future, Function<? super V, ? extends R> func, Executor exe) {
-        Future<R> mapped = mapped(future, func);
-        awaitAsync(mapped, exe);
-        return mapped;
-    }
+    public static <V> MappableFuture<Iterable<V>> mappableForAll(Iterable<Future<V>> futures) {
 
-    public static <V, R> Future<R> mapped(Future<V> future, Function<? super V, ? extends R> func) {
-        CompletableFuture<R> compl = new CompletableFuture();
-        AtomicBoolean mapping = new AtomicBoolean(false);
-        return new Future<R>() {
+        FutureTask<Iterable<V>> task = new FutureTask<>(() -> {
+            ArrayList<V> list = new ArrayList<>();
+            for (Future<V> f : futures) {
+                list.add(f.get());
+            }
+            return list;
+        });
+        return new MappableFuture.MappableForwardingFuture<Iterable<V>>() {
             @Override
-            public boolean cancel(boolean mayInterruptIfRunning) {
-                return future.cancel(mayInterruptIfRunning);
+            public Iterable<V> get() throws InterruptedException, ExecutionException {
+                task.run();
+                return task.get();
             }
 
             @Override
-            public boolean isCancelled() {
-                return future.isCancelled();
+            public Iterable<V> get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                task.run();
+                return task.get(timeout, unit);
             }
 
             @Override
-            public boolean isDone() {
-                return future.isDone();
-            }
-
-            private void complete(UnsafeSupplier<V> supl) {
-                try {
-                    compl.complete(func.apply(supl.unsafeGet()));
-                } catch (Throwable th) {
-                    mapping.compareAndSet(true, false);
-                    compl.completeExceptionally(th);
-                }
-            }
-
-            @Override
-            public R get() throws InterruptedException, ExecutionException {
-                if (mapping.compareAndSet(false, true)) {
-                    complete(() -> future.get());
-                }
-                return compl.get();
-            }
-
-            @Override
-            public R get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-                if (mapping.compareAndSet(false, true)) {
-                    complete(() -> future.get(timeout, unit));
-                }
-
-                return compl.get();
+            public Future<Iterable<V>> delegate() {
+                return task;
             }
         };
-
     }
 
     public static <V> FutureTask<V> empty() {

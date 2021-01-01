@@ -4,18 +4,19 @@ import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.*;
+import lt.lb.commons.func.unchecked.UnsafeFunction;
 
 /**
  *
  * @author laim0nas100
  * @param <Type> return type
  */
-public class Promise<Type> extends FutureTask<Type> {
+public class Promise<Type> extends FutureTask<Type> implements MappableFuture<Type> {
 
-    public Promise(Future<Type> future){
-        this(()->future.get());
+    public Promise(Future<Type> future) {
+        this(() -> future.get());
     }
-    
+
     public Promise(Callable<Type> clbl) {
         super(clbl);
     }
@@ -85,6 +86,33 @@ public class Promise<Type> extends FutureTask<Type> {
 
     public Promise<Type> collect(Collection<Promise<Type>> collection) {
         collection.add(this);
+        return this;
+    }
+
+    @Override
+    public <R> Promise<R> map(UnsafeFunction<? super Type, ? extends R> func) {
+        return new Promise(MappableFuture.super.map(func));
+    }
+
+    @Override
+    public <R> Promise<R> mapEager(Executor exe, UnsafeFunction<? super Type, ? extends R> func) {
+        return new Promise(MappableFuture.super.mapEager(exe, func)); 
+    }
+
+    @Override
+    public <R> Promise<R> mapEager(UnsafeFunction<? super Type, ? extends R> func) {
+        return new Promise(MappableFuture.super.mapEager(func)); 
+    }
+
+    @Override
+    public Promise<Type> awaitAsync() {
+        MappableFuture.super.awaitAsync();
+        return this;
+    }
+
+    @Override
+    public Promise<Type> awaitAsync(Executor exe) {
+        MappableFuture.super.awaitAsync(exe);
         return this;
     }
 
