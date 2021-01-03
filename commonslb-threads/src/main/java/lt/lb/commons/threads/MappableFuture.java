@@ -9,8 +9,12 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import lt.lb.commons.F;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.func.unchecked.UnsafeFunction;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UnsafeSupplier;
+import lt.lb.commons.misc.NestedException;
 
 /**
  * Mappable future. Easier and less cluttered version of CompletableFuture.
@@ -30,18 +34,22 @@ public interface MappableFuture<T> extends Future<T> {
     public interface MappableForwardingFuture<T> extends MappableFuture<T>, ForwardingFuture<T> {
     }
 
+    public default Executor getDefaultExecutor() {
+        return ForkJoinPool.commonPool();
+    }
+
     public default MappableFuture<T> awaitAsync(Executor exe) {
         exe.execute((UnsafeRunnable) () -> this.get());
         return this;
     }
 
     public default MappableFuture<T> awaitAsync() {
-        awaitAsync(ForkJoinPool.commonPool());
+        awaitAsync(getDefaultExecutor());
         return this;
     }
 
     public default <R> MappableFuture<R> mapEager(UnsafeFunction<? super T, ? extends R> func) {
-        return mapEager(ForkJoinPool.commonPool(), func);
+        return mapEager(getDefaultExecutor(), func);
     }
 
     public default <R> MappableFuture<R> mapEager(Executor exe, UnsafeFunction<? super T, ? extends R> func) {
@@ -50,14 +58,46 @@ public interface MappableFuture<T> extends Future<T> {
         return mapped;
     }
 
+    /**
+     * Await and get result masking exceptions in
+     * {@link lt.lb.commons.misc.NestedException}
+     *
+     * @return
+     */
+    public default T justGet() throws NestedException {
+        return F.unsafeCall(() -> get());
+    }
+
+    /**
+     * Await and get result or exception boxed in a {@link SafeOpt}
+     *
+     * @return
+     */
+    public default SafeOpt<T> safeGet() {
+        return SafeOpt.ofGet((UnsafeSupplier<T>) () -> get());
+    }
+
     public default <R> MappableFuture<R> map(UnsafeFunction<? super T, ? extends R> func) {
         Objects.requireNonNull(func);
         CompletableFuture<R> compl = new CompletableFuture();
         MappableFuture<T> me = this;
-        // in case we recieve multiple 'get' calls, but only one can actually do work, so
+        // in case we recieve multiple 'get' calls before mapping is done, but only one can actually do the work
         ArrayBlockingQueue q = new ArrayBlockingQueue(1, true);
         final Object dummy = new Object();
         q.add(dummy);
+
+        final AsyncUtil.AsyncTokenSupport atsBasic = new AsyncUtil.AsyncTokenSupport() {
+            @Override
+            public boolean getToken() throws InterruptedException, TimeoutException {
+                return q.take() != null;
+            }
+
+            @Override
+            public boolean returnToken() throws InterruptedException, TimeoutException {
+                return q.offer(dummy);
+            }
+        };
+
         return new MappableFuture<R>() {
             @Override
             public boolean cancel(boolean mayInterruptIfRunning) {
@@ -76,81 +116,40 @@ public interface MappableFuture<T> extends Future<T> {
 
             @Override
             public R get() throws InterruptedException, ExecutionException {
-                if (compl.isDone()) { //allready mapped, just get
-                    return compl.get();
+
+                try {
+                    return AsyncUtil.waitedRetrieve(compl, atsBasic, () -> {
+                        return func.applyUnsafe(me.get());
+                    });
+                } catch (TimeoutException timeout) {
+                    throw new IllegalStateException("Impossible timeout", timeout);
                 }
-                Object poll = q.take();
-                if (poll == null) { // should never happen
-                    if (compl.isDone()) { //allready mapped while we were waiting, just get
-                        return compl.get();
-                    }
-                    throw new IllegalStateException("Interrupted an uniterruptable wait.");
-                } else { // we are mapping
-                    if (compl.isDone()) { //allready mapped while we were waiting, just get
-                        q.offer(poll);// rescue other waiters
-                        return compl.get();
-                    }
-                    try {
-                        T unmapped = me.get();
-
-                        try {
-                            R mapped = func.applyUnsafe(unmapped);
-                            compl.complete(mapped);
-                        } catch (Throwable th) { // mapping related exception, same as exception exception
-                            compl.completeExceptionally(th);
-                        }
-
-                    } catch (InterruptedException ex) {
-
-                        q.offer(poll);// non execution related exception, just pass is through and give a chance another thread to map.
-                        throw ex;
-                    } catch (ExecutionException ex) { // execution related exception
-                        compl.completeExceptionally(ex);
-                    }
-
-                    q.offer(poll);// rescue other waiters
-                }
-
-                return compl.get();
             }
 
             @Override
             public R get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-                if (compl.isDone()) { //allready mapped, just get
-                    return compl.get();
-                }
-                Object poll = q.poll(timeout, unit);
-                if (poll == null) { // timed out
-                    if (compl.isDone()) { //allready mapped while we were waiting, just get
-                        return compl.get();
-                    }
-                    throw new TimeoutException("Timeout");
-                } else { // we are mapping
-                    if (compl.isDone()) { //allready mapped while we were waiting, just get
-                        q.offer(poll);// rescue other waiters
-                        return compl.get();
-                    }
-                    try {
-                        T unmapped = me.get(timeout, unit);
+                final long nanos = unit.toNanos(timeout);
 
-                        try {
-                            R mapped = func.applyUnsafe(unmapped);
-                            compl.complete(mapped);
-                        } catch (Throwable th) { // mapping related exception, same as exception exception
-                            compl.completeExceptionally(th);
-                        }
-                    } catch (TimeoutException | InterruptedException ex) {
-
-                        q.offer(poll);// non execution related exception, just pass is through and give a chance another thread to map.
-                        throw ex;
-                    } catch (Throwable ex) { // execution related exception
-                        compl.completeExceptionally(ex);
+                AsyncUtil.AsyncTokenSupport ats = new AsyncUtil.AsyncTokenSupport() {
+                    @Override
+                    public boolean getToken() throws InterruptedException, TimeoutException {
+                        return q.poll(nanos, TimeUnit.NANOSECONDS) != null;
                     }
 
-                    q.offer(poll);// rescue other waiters
-                }
+                    @Override
+                    public boolean returnToken() throws InterruptedException, TimeoutException {
+                        return q.offer(dummy);
+                    }
+                };
 
-                return compl.get();
+                final long calledAt = System.nanoTime();
+                //waiting for mapping queue and waiting for value should share the same time
+                return AsyncUtil.waitedRetrieve(compl, ats, () -> {
+                    long toWait = nanos - (System.nanoTime() - calledAt);
+                    T unmapped = me.get(toWait, TimeUnit.NANOSECONDS);
+                    R mapped = func.applyUnsafe(unmapped);
+                    return mapped;
+                });
             }
         };
 
