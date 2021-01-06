@@ -23,7 +23,7 @@ import lt.lb.commons.MonadicBuilders.StringWithInitialBuilder;
  */
 public class MenuBuilders {
 
-    public static class MenuBuilder extends BaseMenuItemBuilder<Menu, MenuBuilder> {
+    public static class MenuBuilder extends BaseMenuBuilder<Menu, MenuBuilder> {
 
         public MenuBuilder() {
             this(Menu::new);
@@ -45,7 +45,7 @@ public class MenuBuilders {
                 menu.getItems().add(newMb.build());
             });
         }
-
+        
     }
 
     public static class MenuItemBuilder extends BaseMenuItemBuilder<MenuItem, MenuItemBuilder> {
@@ -93,6 +93,10 @@ public class MenuBuilders {
         public ContextMenuBuilder addItemMenu(MenuBuilder builder) {
             return thenCon(c -> c.getItems().add(builder.build()));
         }
+        
+        public ContextMenuBuilder addItem(MenuItem menuItem) {
+            return thenCon(c -> c.getItems().add(menuItem));
+        }
 
         public ContextMenuBuilder addNestedVisibilityBind() {
             return thenCon("visibility", c -> {
@@ -108,7 +112,7 @@ public class MenuBuilders {
 
     }
 
-    public static class SelectMenuBuilder extends BaseMenuItemBuilder<Menu, SelectMenuBuilder> {
+    public static class SelectMenuBuilder extends BaseMenuBuilder<Menu, SelectMenuBuilder> {
 
         protected MultipleSelectionModel model;
         protected Supplier<? extends MenuItem> menuItem;
