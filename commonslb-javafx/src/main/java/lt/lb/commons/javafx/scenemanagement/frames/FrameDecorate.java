@@ -1,11 +1,9 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.stream.Stream;
-import lt.lb.commons.javafx.scenemanagement.FrameManager.FrameState;
+import lt.lb.commons.containers.collections.RelationMap;
 
 /**
  *
@@ -13,15 +11,17 @@ import lt.lb.commons.javafx.scenemanagement.FrameManager.FrameState;
  */
 public class FrameDecorate {
 
-    protected EnumMap<FrameState, List<FrameDecorator>> decorators = new EnumMap<>(FrameState.class);
-    private static List<FrameDecorator> emptyList = Arrays.asList();
+    protected RelationMap<Class, List<FrameDecorator>> decorators = RelationMap.newTypeMap(FrameState.class, new ArrayList<>(0));
+
+    public FrameDecorate() {
+    }
 
     public void addFrameDecorator(FrameState state, FrameDecorator decorator) {
-        decorators.computeIfAbsent(state, k -> new ArrayList<>(1)).add(decorator);
+        decorators.computeIfAbsent(state.getClass(), k -> new ArrayList<>(1)).add(decorator);
     }
 
     public Stream<FrameDecorator> getDecorators(FrameState state) {
-        return decorators.getOrDefault(state, emptyList).stream();
+        return decorators.getBestFit(state.getClass()).stream();
     }
 
 }

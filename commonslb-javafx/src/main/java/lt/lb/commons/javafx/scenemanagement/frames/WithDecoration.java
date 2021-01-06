@@ -1,7 +1,5 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
-import lt.lb.commons.javafx.scenemanagement.FrameManager.FrameState;
-
 /**
  *
  * @author laim0nas100

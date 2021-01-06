@@ -2,7 +2,6 @@ package lt.lb.commons.interfaces;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;

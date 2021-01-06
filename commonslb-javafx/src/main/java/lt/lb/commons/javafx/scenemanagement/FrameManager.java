@@ -4,24 +4,18 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import lt.lb.commons.F;
 import lt.lb.commons.Ins;
-import lt.lb.commons.javafx.FX;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorator;
-import lt.lb.commons.threads.Futures;
+import lt.lb.commons.javafx.scenemanagement.frames.FrameState;
+import lt.lb.commons.javafx.scenemanagement.frames.Util;
 import lt.lb.fastid.FastID;
 
 /**
@@ -30,17 +24,13 @@ import lt.lb.fastid.FastID;
  */
 public interface FrameManager {
 
-    public static enum FrameState {
-        CREATE, CLOSE
-    }
-
     public default boolean closeFrame(String ID) {
         Frame frame = getFrameMap().remove(ID);
 
         if (frame == null) {
             return false;
         }
-        for (FrameDecorator fdec : getFrameDecorators(FrameState.CLOSE)) {
+        for (FrameDecorator fdec : getFrameDecorators(FrameState.FrameStateClose.instance)) {
             fdec.accept(frame);
         }
         Stage stage = frame.getStage();
@@ -68,82 +58,26 @@ public interface FrameManager {
     }
 
     public default Future<StageFrame> newStageFrame(String ID, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException {
-        Objects.requireNonNull(onExit);
-        Objects.requireNonNull(constructor);
-        Objects.requireNonNull(ID);
-        if (getFrameMap().containsKey(ID)) {
-            throw new FrameException("Frame:" + ID + " Allready exists");
-        }
-        final String finalID = ID;
-        FutureTask<StageFrame> task = Futures.ofCallable(() -> {
-
-            Stage stage = new Stage();
-            Scene scene = new Scene(constructor.get());
-            stage.setScene(scene);
-            stage.setTitle(title);
-            StageFrame frame = new StageFrame(this, stage, finalID, title);
-            getFrameMap().put(finalID, frame);
-            stage.setOnCloseRequest((WindowEvent we) -> {
-                onExit.accept(frame);
-            });
-            for (FrameDecorator fdec : getFrameDecorators(FrameState.CREATE)) {
-                fdec.accept(frame);
-            }
-            return frame;
-        });
-        FX.submit(task);
-        return task;
+        return Util.newStageFrame(getFrameMap(), this, ID, title, constructor, onExit);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame> newFxmlFrame(URL resource, String ID, String title, Consumer<T> cons) throws FrameException {
-        Objects.requireNonNull(resource);
-        Objects.requireNonNull(ID);
-        Objects.requireNonNull(cons);
-        if (getFrameMap().containsKey(ID)) {
-            throw new FrameException("Frame:" + ID + " Allready exists");
-        }
-        final String finalID = ID;
-
-        FutureTask<FXMLFrame> task = Futures.ofCallable(() -> {
-            FXMLLoader loader = new FXMLLoader(resource);
-            ResourceBundle rb = loader.getResources();
-            Parent root = loader.load();
-            Stage stage = new Stage();
-
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-            BaseController controller = loader.getController();
-
-            stage.setOnCloseRequest((WindowEvent we) -> {
-                controller.exit();
-            });
-
-            FXMLFrame frame = new FXMLFrame(this, stage, controller, resource, finalID);
-            getFrameMap().put(finalID, frame);
-
-            // optional inject
-            if (controller instanceof InjectableController) {
-                InjectableController inj = F.cast(controller);
-                inj.inject(frame, resource, rb);
-            }
-
-            for (FrameDecorator fdec : getFrameDecorators(FrameState.CREATE)) {
-                fdec.accept(frame);
-            }
-            controller.init(cons);
-
-            return frame;
-        });
-        FX.submit(task);
-        return task;
-
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title) throws FrameException {
+        return Util.newFxmlFrame(getFrameMap(), this, resource, ID, title, Util.emptyConsumer);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame> newFxmlFrameSingleton(URL resource, String title, Consumer<T> decorator) throws FrameException {
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title, Consumer<T> cons) throws FrameException {
+        return Util.newFxmlFrame(getFrameMap(), this, resource, ID, title, cons);
+    }
+
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title, Consumer<T> decorator) throws FrameException {
         return newFxmlFrame(resource, title, title, decorator);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame> newFxmlFrame(URL resource, String title, Consumer<T> decorator) {
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title) throws FrameException {
+        return newFxmlFrame(resource, title, title, Util.emptyConsumer);
+    }
+
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String title, Consumer<T> decorator) {
         return F.unsafeCall(() -> newFxmlFrame(resource, getAvailableId(), title, decorator));
     }
 

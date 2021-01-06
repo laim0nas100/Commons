@@ -13,9 +13,9 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.Ins;
-import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.compare.ExtComparator;
 

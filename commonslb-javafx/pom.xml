@@ -30,6 +30,10 @@
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-threads</artifactId>
         </dependency>
         <dependency>

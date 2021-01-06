@@ -3,13 +3,10 @@ package lt.lb.commons.threads;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
 
@@ -22,7 +19,7 @@ public class Futures {
     public static <V> FutureTask<V> ofCallable(Callable<V> call) {
         return new FutureTask<>(call);
     }
-
+    
     public static <V> FutureTask<V> ofSupplier(Supplier<V> call) {
         return new FutureTask<>(call::get);
     }
@@ -55,7 +52,10 @@ public class Futures {
     }
 
     public static <V> MappableFuture<Iterable<V>> mappableForAll(Iterable<Future<V>> futures) {
+        return mappableForAll(futures, ForkJoinPool.commonPool());
+    }
 
+    public static <V> MappableFuture<Iterable<V>> mappableForAll(Iterable<Future<V>> futures, Executor exe) {
         FutureTask<Iterable<V>> task = new FutureTask<>(() -> {
             ArrayList<V> list = new ArrayList<>();
             for (Future<V> f : futures) {
@@ -63,24 +63,9 @@ public class Futures {
             }
             return list;
         });
-        return new MappableFuture.MappableForwardingFuture<Iterable<V>>() {
-            @Override
-            public Iterable<V> get() throws InterruptedException, ExecutionException {
-                task.run();
-                return task.get();
-            }
 
-            @Override
-            public Iterable<V> get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-                task.run();
-                return task.get(timeout, unit);
-            }
-
-            @Override
-            public Future<Iterable<V>> delegate() {
-                return task;
-            }
-        };
+        exe.execute(task);
+        return mappable(task);
     }
 
     public static <V> FutureTask<V> empty() {

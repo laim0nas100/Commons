@@ -7,7 +7,6 @@ import lt.lb.commons.containers.values.Props;
 import lt.lb.commons.containers.values.Props.PropGet;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.javafx.scenemanagement.Frame;
-import lt.lb.commons.javafx.scenemanagement.FrameManager.FrameState;
 import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
 
 /**
@@ -24,11 +23,11 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
     public HashMap<String, Props> memoryMap = new HashMap<>();
 
     public WithFrameTypeMemorySize() {
-        addFrameDecorator(FrameState.CREATE, this::decorateCreate);
-        addFrameDecorator(FrameState.CLOSE, this::decorateClose);
+        addFrameDecorator(FrameState.FrameStateOpen.instance, this::decorateOpen);
+        addFrameDecorator(FrameState.FrameStateClose.instance, this::decorateClose);
     }
 
-    public void decorateCreate(Frame frame) {
+    public void decorateOpen(Frame frame) {
         String type = frame.getType();
         Stage stage = frame.getStage();
 
