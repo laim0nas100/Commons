@@ -312,7 +312,7 @@ public class RelationMap<K, V> implements Map<K, V> {
      * @return
      */
     public static <T> RelationMap<Class, T> newTypeMap(Class rootClass, T root) {
-        return new RelationMap<>(rootClass, root, (k1, k2) -> Ins.instanceOf(k1, k2));
+        return new RelationMap<>(rootClass, root, (k1, k2) -> Ins.instanceOfClass(k1, k2));
     }
 
     /**
