@@ -8,6 +8,7 @@ import javafx.fxml.Initializable;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public interface BaseController<T extends BaseController> extends Initializable {
 

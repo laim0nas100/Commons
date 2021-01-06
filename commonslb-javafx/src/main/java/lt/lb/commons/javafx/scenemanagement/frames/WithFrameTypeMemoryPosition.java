@@ -7,6 +7,7 @@ import lt.lb.commons.containers.values.Props;
 import lt.lb.commons.containers.values.Props.PropGet;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.javafx.scenemanagement.Frame;
+import lt.lb.commons.javafx.scenemanagement.FrameManager.FrameState;
 import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
 
 /**

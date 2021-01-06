@@ -2,6 +2,7 @@ package lt.lb.commons.javafx.scenemanagement.frames;
 
 import java.util.function.Consumer;
 import javafx.stage.Stage;
+import lt.lb.commons.javafx.scenemanagement.FrameManager.FrameState;
 
 /**
  *
@@ -10,7 +11,7 @@ import javafx.stage.Stage;
 public class WithDefaultStageProperties extends FrameDecorate {
     
     public WithDefaultStageProperties(Consumer<Stage> stageCons) {
-        this.addFrameDecorator(FrameDecorate.FrameState.CREATE, fd -> {
+        this.addFrameDecorator(FrameState.CREATE, fd -> {
             stageCons.accept(fd.getStage());
         });
     }

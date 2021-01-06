@@ -16,6 +16,8 @@ public interface Frame {
     
     public String getType();
     
+    public FrameManager getManager();
+    
     public default Scene getScene() {
         return getStage().getScene();
     }

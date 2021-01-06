@@ -7,13 +7,13 @@ import javafx.stage.Stage;
  *
  * @author laim0nas100
  */
-public class FXMLFrame extends StageFrame {
+public class FXMLFrame<T> extends StageFrame {
 
     protected final BaseController controller;
     protected final URL resource;
 
-    public FXMLFrame(Stage stage, BaseController controller, URL resource, String ID) {
-        super(stage, ID, resource.toString());
+    public FXMLFrame(FrameManager manager, Stage stage, BaseController controller, URL resource, String ID) {
+        super(manager, stage, ID, resource.toString());
         this.controller = controller;
         this.resource = resource;
 
