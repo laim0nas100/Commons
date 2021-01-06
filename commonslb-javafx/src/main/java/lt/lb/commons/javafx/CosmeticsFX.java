@@ -127,7 +127,7 @@ public class CosmeticsFX {
             CosmeticsFX.selectInverted(table.getSelectionModel());
         }
 
-        public ExtTask asynchronousSortTask(ObservableList backingList) {
+        public ExtTask asynchronousSortTask(List backingList) {
             Runnable run = () -> {
                 updateContentsAndSort(backingList);
             };
@@ -136,9 +136,9 @@ public class CosmeticsFX {
                 protected Object call() throws Exception {
                     try {
                         do {
-                            FX.submit(run);
-                            Thread.sleep(500);
-                        } while (!this.canceled.get());
+                            FX.submit(run).get();
+                            Thread.sleep(100);
+                        } while (!this.canceled.get() && !this.done.get());
                     } catch (InterruptedException e) {
                     }
 

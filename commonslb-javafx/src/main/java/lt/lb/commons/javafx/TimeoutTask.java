@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.javafx;
 
 import java.util.ArrayList;
@@ -10,6 +5,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import lt.lb.commons.Java;
 
 /**
  *
@@ -69,7 +65,7 @@ public class TimeoutTask {
         for (Runnable r : this.onUpdate) {
             r.run();
         }
-        this.initTime = System.currentTimeMillis();
+        this.initTime = Java.getNanoTime();
 //       Log.print("Init time "+this.initTime);
         if (!thread.isAlive()) {
 //           Log.print("Start new thread cus old is dead");
@@ -100,7 +96,8 @@ public class TimeoutTask {
     }
 
     private long getTimeLeft() {
-        return timeout - (System.currentTimeMillis() - this.initTime) + epsilon;
+        long nanoTime = Java.getNanoTime();
+        return timeout - (nanoTime - this.initTime) / 1000000 + epsilon;
     }
 
     public boolean isInAction() {
