@@ -12,11 +12,12 @@ import java.util.stream.Stream;
  */
 public class PosEq {
 
+
     public final Object[] objs;
     public final Equator eq;
 
     private PosEq(Object[] objs) {
-        this(objs, Equator.simpleHashEquator());
+        this(objs, null);
     }
 
     public boolean isEmpty() {
@@ -25,7 +26,7 @@ public class PosEq {
 
     private PosEq(Object[] objs, Equator eq) {
         this.objs = Objects.requireNonNull(objs);
-        this.eq = Objects.requireNonNull(eq);
+        this.eq = eq;
     }
 
     public PosEq withEquator(Equator eq) {
@@ -38,9 +39,7 @@ public class PosEq {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 59 * hash + Equator.deepHashCode(eq, objs);
-        return hash;
+        return Equator.deepHashCode(eq, objs);
     }
 
     @Override
@@ -71,7 +70,7 @@ public class PosEq {
      * @return
      */
     public boolean eq(Object... objs) {
-        return Equator.deepEqualsArray(eq, this.objs, objs);
+        return Equator.deepEquals(eq, this.objs, objs);
     }
 
     /**

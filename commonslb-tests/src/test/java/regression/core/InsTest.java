@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import lt.lb.commons.Ins;
 import lt.lb.commons.misc.compare.ExtComparable;
-import lt.lb.commons.misc.compare.ExtComparator;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 

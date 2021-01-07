@@ -8,6 +8,8 @@ import java.util.function.Function;
 /**
  *
  * @author laim0nas100
+ * @param <T>
+ * @param <M>
  */
 public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T, M>> {
 
@@ -86,15 +88,6 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
             }
             return finalCmp;
         }
-    }
-
-    /**
-     * Construct a ext comparator of given configurations
-     *
-     * @return
-     */
-    public ExtComparator<T> buildExt() {
-        return ExtComparator.of(build());
     }
 
     /**
@@ -246,8 +239,9 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
      * Decorate with advanced mapping constructing another builder inside.
      *
      * @param <V>
+     * @param <N>
      * @param func how to map to mapped value
-     * @param decorator how to decorate the inner builder
+     * @param builder
      * @return
      */
     public <V, N extends ComparatorBuilderBase<V, N>> M mapped(Function<? super T, ? extends V> func, N builder) {

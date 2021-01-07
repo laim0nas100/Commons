@@ -2,7 +2,7 @@ package lt.lb.commons.misc.compare;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ComparatorBuilder<T> extends ComparatorBuilderBase<T, ComparatorBuilder<T>> {
 

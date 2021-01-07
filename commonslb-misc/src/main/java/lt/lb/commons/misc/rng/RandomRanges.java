@@ -3,10 +3,10 @@ package lt.lb.commons.misc.rng;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.Interval;
 
 /**
@@ -41,7 +41,7 @@ public class RandomRanges<T> {
         }
     }
 
-    private final ExtComparator<RandomRange> cmp = (r1, r2) -> Double.compare(r1.span, r2.span);
+    private final Comparator<RandomRange> cmp = (r1, r2) -> Double.compare(r1.span, r2.span);
 
     public RandomRange<T> pickMax() {
         return Collections.max(this.ranges, cmp);

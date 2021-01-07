@@ -4,14 +4,14 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * redefine objects "equals" and "hashCode" methods, to change what it means to
+ * Redefine objects "equals" and "hashCode" methods, to change what it means to
  * be equal. Primarily to use with hash maps or sets, to find intersections by
- * defined property
+ * defined property.
  *
  * @author laim0nas100
  * @param <T> type
  */
-public interface Equator<T> {
+public interface Equator<T> extends org.apache.commons.collections4.Equator<T> {
 
     /**
      * Class to redefine objects "equals" and "hashCode" methods, to change what
@@ -26,7 +26,7 @@ public interface Equator<T> {
 
         public EqualityProxy(T value, Equator<T> eq) {
             this.value = value;
-            this.eq = eq;
+            this.eq = Objects.requireNonNull(eq);
         }
 
         public T getValue() {
@@ -35,7 +35,7 @@ public interface Equator<T> {
 
         @Override
         public int hashCode() {
-            return eq.hashCode(value);
+            return eq.hash(value);
         }
 
         @Override
@@ -48,7 +48,7 @@ public interface Equator<T> {
             }
             if (obj instanceof EqualityProxy) {
                 final EqualityProxy<T> other = (EqualityProxy<T>) obj;
-                return eq.equals(value, other.value);
+                return eq.equate(value, other.value);
             } else {
                 return false;
             }
@@ -63,7 +63,8 @@ public interface Equator<T> {
      * @param value2
      * @return
      */
-    public boolean equals(T value1, T value2);
+    @Override
+    public boolean equate(T value1, T value2);
 
     /**
      * Custom hash code (0 by default to all values)
@@ -71,8 +72,35 @@ public interface Equator<T> {
      * @param value
      * @return
      */
-    public default int hashCode(T value) {
+    @Override
+    public default int hash(T value) {
         return 0;
+    }
+
+    /**
+     * Null-friendly hash code. Defaults to {@link Objects#hashCode(java.lang.Object)
+     * } when equator is null;
+     *
+     * @param eq
+     * @param element
+     * @return
+     */
+    public static int hashCode(Equator eq, Object element) {
+        return eq == null ? Objects.hashCode(element) : eq.hash(element);
+    }
+
+    /**
+     * Null-friendly equals.Defaults to
+     * {@link Objects#equals(java.lang.Object, java.lang.Object)} when equator
+     * is null;
+     *
+     * @param eq equator
+     * @param element1 first element
+     * @param element2 second element
+     * @return
+     */
+    public static boolean equals(Equator eq, Object element1, Object element2) {
+        return eq == null ? Objects.equals(element1, element2) : eq.equate(element1, element2);
     }
 
     public static int deepHashCode(Equator eq, Object a[]) {
@@ -88,7 +116,7 @@ public interface Equator<T> {
             if (element == null) {
                 elementHash = 0;
             } else if ((cl = element.getClass().getComponentType()) == null) {
-                elementHash = eq.hashCode(element);
+                elementHash = hashCode(eq, element);
             } else if (element instanceof Object[]) {
                 elementHash = deepHashCode(eq, (Object[]) element);
             } else {
@@ -137,7 +165,7 @@ public interface Equator<T> {
 
         for (int i = 0; i < length; i++) {
             // Figure out whether the two elements are equal
-            if(!deepEquals(equator, a1[i], a2[i])){
+            if (!deepEquals(equator, a1[i], a2[i])) {
                 return false;
             }
         }
@@ -165,7 +193,7 @@ public interface Equator<T> {
         } else if (e1 instanceof boolean[] && e2 instanceof boolean[]) {
             eq = deepEqualsArray(equator, ArrayOp.mapBoolean((boolean[]) e1), ArrayOp.mapBoolean((boolean[]) e2));
         } else {
-            eq = equator.equals(e1, e2);
+            eq = equals(equator, e1, e2);
         }
         return eq;
     }
@@ -178,7 +206,7 @@ public interface Equator<T> {
     public static interface SimpleEquator<T> extends Equator<T> {
 
         @Override
-        public default boolean equals(T value1, T value2) {
+        public default boolean equate(T value1, T value2) {
             return Objects.equals(value1, value2);
         }
 
@@ -192,12 +220,12 @@ public interface Equator<T> {
     public static interface SimpleHashEquator<T> extends Equator<T> {
 
         @Override
-        public default int hashCode(T val) {
+        public default int hash(T val) {
             return Objects.hashCode(val);
         }
 
         @Override
-        public default boolean equals(T value1, T value2) {
+        public default boolean equate(T value1, T value2) {
             return Objects.equals(value1, value2);
         }
     }
@@ -211,7 +239,7 @@ public interface Equator<T> {
     public static interface ValueEquator<T, V> extends Equator<T>, Function<T, V> {
 
         @Override
-        public default boolean equals(T value1, T value2) {
+        public default boolean equate(T value1, T value2) {
             return Objects.equals(apply(value1), apply(value2));
         }
     }
@@ -225,7 +253,7 @@ public interface Equator<T> {
     public static interface ValueHashEquator<T, V> extends ValueEquator<T, V> {
 
         @Override
-        public default int hashCode(T value) {
+        public default int hash(T value) {
             return Objects.hashCode(apply(value));
         }
 

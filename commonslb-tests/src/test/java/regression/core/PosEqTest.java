@@ -47,14 +47,14 @@ public class PosEqTest {
         PosEq of = PosEq.of(16, 27, 38, 49, 50);
         PosEq ones = of.withEquator(new Equator<Integer>() {
             @Override
-            public boolean equals(Integer value1, Integer value2) {
+            public boolean equate(Integer value1, Integer value2) {
                 return Objects.equals(digit(value1, 0), digit(value2, 0));
             }
         });
 
         PosEq tens = of.withEquator(new Equator<Integer>() {
             @Override
-            public boolean equals(Integer value1, Integer value2) {
+            public boolean equate(Integer value1, Integer value2) {
                 return Objects.equals(digit(value1, 1), digit(value2, 1));
             }
         });

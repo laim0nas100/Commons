@@ -14,6 +14,7 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
 /**
  *
  * @author laim0nas100
+ * @param <E>
  */
 public interface IterationIterable<E extends IterationIterable<E>> extends IterationAbstract<E> {
 

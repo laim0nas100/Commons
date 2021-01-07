@@ -13,7 +13,6 @@ import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.wekaparsing.WekaDefaultParsers.WekaTransformer;
 
@@ -27,7 +26,7 @@ public class WekaParser<T> {
     protected HashMap<Class, WekaTransformer> printers = new HashMap<>();
     protected Class<T> cls;
     protected String className;
-    
+
     protected int typeInfoLengthMin = 30;
     protected int fieldNameLengthMin = 30;
     protected int spaceLength = 3;
@@ -89,7 +88,7 @@ public class WekaParser<T> {
                 arr.add(field);
             }
         });
-        ExtComparator<Field> ofFieldName = ExtComparator.ofValue(Field::getName, String.CASE_INSENSITIVE_ORDER);
+        Comparator<Field> ofFieldName = Comparator.comparing(Field::getName, String.CASE_INSENSITIVE_ORDER);
         Collections.sort(arr, ofFieldName);
         if (classField.get() != null) { // importat to be last
             arr.add(classField.get());

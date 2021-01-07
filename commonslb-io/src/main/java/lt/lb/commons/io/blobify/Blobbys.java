@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -19,12 +20,12 @@ import java.util.stream.Stream;
 import lt.lb.commons.io.DirectoryTreeVisitor;
 import lt.lb.commons.io.blobify.bytes.Bytes;
 import lt.lb.commons.io.blobify.bytes.ChunkyBytes;
-import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.NestedException;
-import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;
 import lt.lb.commons.io.blobify.bytes.WriteableBytes;
-import lt.lb.commons.misc.compare.ExtComparator;
+import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.misc.NestedException;
+import lt.lb.commons.misc.compare.ComparatorBuilder;
+import lt.lb.commons.parsing.StringOp;
 
 /**
  *
@@ -123,16 +124,14 @@ public class Blobbys {
         return ReadOnlyIterator.of(getInOrder().filter(f -> f.isLoaded()));
     }
     
-    private static ExtComparator<Blobby> getCmp() {
-        
-        return ExtComparator.basis(Blobby.class)
-                .thenComparing(v -> v.getOffset())
-                .thenComparing(v -> v.getLength())
-                .thenComparing(v -> v.getRelativePath());
-    }
+    private static final Comparator<Blobby> blobbyCmp = new ComparatorBuilder<Blobby>()
+                .thenComparingValue(v -> v.getOffset())
+                .thenComparingValue(v -> v.getLength())
+                .thenComparingValue(v -> v.getRelativePath())
+                .build();
     
     public Stream<Blobby> getInOrder() {
-        return objects.values().stream().sorted(getCmp());
+        return objects.values().stream().sorted(blobbyCmp);
     }
     
     public Stream<String> getKeys() {
@@ -182,7 +181,7 @@ public class Blobbys {
     
     private long calculateNextOffset() {
         return objects.values().stream()
-                .max(ExtComparator.ofValue(v -> v.getOffset()))
+                .max(Comparator.comparing(v -> v.getOffset()))
                 .map(m -> m.getLength() + m.getOffset()).orElse(0L);
     }
     

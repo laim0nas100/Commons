@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.email.props;
 
 import java.util.ArrayList;
@@ -13,6 +8,7 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
+import lt.lb.commons.PosEq;
 
 /**
  *
@@ -31,6 +27,7 @@ public abstract class IMAPOrPOP3Props extends SearchableEmailProps {
     }
 
     public void setFolderOpenMode(int openMode) {
+        PosEq.of(Folder.READ_ONLY, Folder.READ_WRITE).any(openMode);
         if (ArrayOp.any((i) -> i == openMode, Folder.READ_ONLY, Folder.READ_WRITE)) {
             folderOpenMode = openMode;
         } else {

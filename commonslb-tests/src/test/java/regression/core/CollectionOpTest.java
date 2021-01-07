@@ -20,7 +20,8 @@ import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.Equator;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
-import lt.lb.commons.misc.compare.ExtComparator;
+import lt.lb.commons.misc.compare.Compare;
+import lt.lb.commons.misc.compare.Compare.CompareNull;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.util.Lists;
@@ -187,23 +188,43 @@ public class CollectionOpTest {
 
     }
 
-    public void testFilter(Predicate<Integer> filter, Predicate<Integer> filter2) {
+    @Test
+    public void testCompareNull() {
         RandomDistribution rng = RandomDistribution.uniform(new Random());
 
-        Integer[] array = NumberFill.fillArray(133, rng.getIntegerSupplier(10), Integer.class);
-        for (int i = 0; i < 5; i++) {
+        Integer[] array = NumberFill.fillArray(rng.nextInt(100, 200), rng.getIntegerSupplier(20), Integer.class);
+        int nulls = rng.nextInt(5, 10);
+        for (int i = 0; i < nulls; i++) {
+
             Integer nextInt = rng.nextInt(array.length);
+            while (array[nextInt] == null) {
+                nextInt = rng.nextInt(array.length);
+            }
             array[nextInt] = null;
         }
 
         List<Integer> list = Arrays.asList(array);
+        List<Integer> dis1 = list.stream().parallel().sorted(Compare.of(CompareNull.NULL_FIRST)).collect(Collectors.toList());
+        List<Integer> dis2 = list.stream().parallel().sorted(Compare.of(CompareNull.NULL_LAST)).collect(Collectors.toList());
 
-        for (int i = 0; i < 10; i++) {
-            List<Integer> dis1 = list.stream().parallel().sorted(ExtComparator.ofComparable(true)).filter(filter).collect(Collectors.toList());
-            List<Integer> dis2 = list.stream().parallel().sorted(ExtComparator.ofComparable(true)).filter(filter2).collect(Collectors.toList());
-            assertThat(dis1)
-                    .isEqualTo(dis2);
-        }
+        List<Integer> fil1 = new ArrayList<>();
+        List<Integer> fil2 = new ArrayList<>();
+        For.elements().startingFrom(0).endingBefore(nulls).iterate(dis1, (i, item) -> {
+            fil1.add(item);
+        });
+        For.elements().startingFrom(dis2.size() - nulls).iterate(dis2, (i, item) -> {
+            fil2.add(item);
+        });
+
+        assertThat(fil1).isEqualTo(fil2);
+        
+        For.elements().first(nulls).iterate(dis1, (i, item) -> {
+            fil1.add(item);
+        });
+        For.elements().last(nulls).iterate(dis2, (i, item) -> {
+            fil2.add(item);
+        });
+        assertThat(fil1).isEqualTo(fil2);
     }
 
 }

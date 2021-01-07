@@ -13,26 +13,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.misc.ArrayBasedCounter;
-import lt.lb.commons.Log;
-import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.Equator;
 import lt.lb.commons.F;
-import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.Log;
 import lt.lb.commons.containers.collections.CollectionOp;
 import lt.lb.commons.containers.values.Value;
-import lt.lb.commons.func.Lambda;
+import lt.lb.commons.io.CommentParser;
+import lt.lb.commons.io.TextFileIO;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.compare.ExtComparator;
-import lt.lb.commons.misc.Memoized;
-import lt.lb.commons.io.CommentParser;
+import lt.lb.commons.misc.ArrayBasedCounter;
 import lt.lb.commons.threads.executors.FastExecutor;
 import org.junit.*;
 
@@ -305,7 +301,7 @@ public class CommonsTest {
             vals.add(gen.next());
         }
 
-        ExtComparator<Value<Integer>> of = ExtComparator.of((Value<Integer> o1, Value<Integer> o2) -> Integer.compare(o1.get(), o2.get()));
+        Comparator<Value<Integer>> of = ((Value<Integer> o1, Value<Integer> o2) -> Integer.compare(o1.get(), o2.get()));
 
         Collections.sort(vals, of);
         Log.printLines(vals);

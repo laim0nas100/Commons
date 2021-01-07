@@ -1,8 +1,6 @@
 package lt.lb.commons.misc;
 
-import lt.lb.commons.misc.compare.ExtComparator;
 import java.util.Comparator;
-import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 /**
@@ -17,7 +15,7 @@ public class IntRange extends Range<Integer> {
     }
 
     public static IntRange of(Integer min, Integer max) {
-        return new IntRange(min, max, ExtComparator.ofComparable());
+        return new IntRange(min, max, Comparator.naturalOrder());
     }
 
     /**

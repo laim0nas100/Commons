@@ -3,6 +3,7 @@ package lt.lb.commons.containers.collections;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -17,7 +18,6 @@ import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.misc.compare.ExtComparator;
 
 /**
  *
@@ -237,7 +237,7 @@ public class RelationMap<K, V> implements Map<K, V> {
                 }
             });
         });
-        ExtComparator<Tuple<K, V>> ofValue = ExtComparator.ofValue(n -> satisfiedRelationMap.getOrDefault(n.g1, new IntegerValue(0)).get());
+        Comparator<Tuple<K, V>> ofValue = Comparator.comparing(n -> satisfiedRelationMap.getOrDefault(n.g1, new IntegerValue(0)).get());
         Collections.sort(nodes, ofValue.reversed());
         For.elements().iterate(nodes, (i, n) -> {
             put(n.g1, n.g2, newMap, newRoot, relation);

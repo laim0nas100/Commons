@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -37,7 +38,6 @@ import lt.lb.commons.email.props.IMAPEmailProps;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.executors.TaskBatcher;
@@ -95,7 +95,7 @@ public class JavaMailTest {
                 this.setProperty("mail.imaps.socketFactory.fallback", "false");
                 this.setProperty("mail.imaps.port", "993");
                 this.setProperty("mail.imaps.socketFactory.port", "993");
-                this.setProperty( "mail.store.protocol", "imaps");
+                this.setProperty("mail.store.protocol", "imaps");
 
             }
         };
@@ -371,9 +371,9 @@ public class JavaMailTest {
 
             ArrayList<String> distinctWords = new ArrayList<>();
             distinctWords.addAll(map.keySet());
-
-            em.maxWordLength = distinctWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable().reversed()).findFirst().get();
-            em.minWordLength = distinctWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable()).findFirst().get();
+            Comparator<Integer> intComp = Comparator.naturalOrder();
+            em.maxWordLength = distinctWords.stream().map(m -> m.length()).sorted(intComp.reversed()).findFirst().get();
+            em.minWordLength = distinctWords.stream().map(m -> m.length()).sorted(intComp).findFirst().get();
 
             Double charCount = countMatcher(Pattern.compile("\\p{ASCII}").matcher(all)).doubleValue();
 
@@ -389,8 +389,8 @@ public class JavaMailTest {
             ArrayList<String> distinctCapitalWords = new ArrayList<>();
             distinctCapitalWords.addAll(capMap.keySet());
 
-            em.maxCapitalRun = distinctCapitalWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable().reversed()).findFirst().get();
-            em.minCapitalRun = distinctCapitalWords.stream().map(m -> m.length()).sorted(ExtComparator.ofComparable()).findFirst().get();
+            em.maxCapitalRun = distinctCapitalWords.stream().map(m -> m.length()).sorted(intComp.reversed()).findFirst().get();
+            em.minCapitalRun = distinctCapitalWords.stream().map(m -> m.length()).sorted(intComp).findFirst().get();
 
             em.capitalRunTotal = (double) capitalChars.get() / wordCount.get();
             em.capitalCharTotal = capitalChars.get() / charCount;
@@ -405,8 +405,12 @@ public class JavaMailTest {
             em.charSeq8 = countWordsOfLength(map.keySet().stream(), 8) / wordCount.get();
             em.charSeq9 = countWordsOfLength(map.keySet().stream(), 9) / wordCount.get();
 
-            em.maxRepeatedCapitalWordCount = distinctCapitalWords.stream().sorted(ExtComparator.ofValue(f -> capMap.get(f).get()).reversed()).findFirst().get().length();
-            em.maxRepeatedWordCount = distinctWords.stream().sorted(ExtComparator.ofValue(f -> map.get(f).get()).reversed()).findFirst().get().length();
+            em.maxRepeatedCapitalWordCount = distinctCapitalWords.stream()
+                    .sorted(Comparator.comparing((String f) -> capMap.get(f).get()).reversed())
+                    .findFirst().get().length();
+            em.maxRepeatedWordCount = distinctWords.stream()
+                    .sorted(Comparator.comparing((String f) -> map.get(f).get()).reversed())
+                    .findFirst().get().length();
 
         });
 

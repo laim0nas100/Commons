@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public interface ExtComparable<T> extends Comparable<T>, Supplier<T> {
 

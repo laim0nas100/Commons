@@ -3,6 +3,7 @@ package empiric.core;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Map;
@@ -17,7 +18,6 @@ import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.misc.compare.ExtComparator;
 import lt.lb.commons.misc.rng.FastRandom;
 import org.junit.Test;
 
@@ -144,7 +144,7 @@ public class CollectionTest {
 //    @Test
     public void testComprator() throws InterruptedException {
         Log.main().async = false; 
-        ExtComparator<NumberValue<Integer>> ofValue = ExtComparator.ofValue(f -> f.getValue());
+        Comparator<NumberValue<Integer>> ofValue = Comparator.comparing(f -> f.getValue());
         PriorityBlockingQueue<NumberValue<Integer>> list = new PriorityBlockingQueue<>(1,ofValue.reversed());
         
         for (int i = 0; i < 10; i++) {

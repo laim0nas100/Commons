@@ -121,10 +121,10 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
 
     public static <T, E> Predicate<E> validatorUnique(boolean in, Collection<T> list, Function<? super T, ? extends E> func, Equator<E> eq) {
         if (in) {
-            return selected -> list.stream().map(func).anyMatch(entry -> eq.equals(entry, selected));
+            return selected -> list.stream().map(func).anyMatch(entry -> eq.equate(entry, selected));
 
         } else {
-            return selected -> list.stream().map(func).noneMatch(entry -> eq.equals(entry, selected));
+            return selected -> list.stream().map(func).noneMatch(entry -> eq.equate(entry, selected));
         }
     }
 }

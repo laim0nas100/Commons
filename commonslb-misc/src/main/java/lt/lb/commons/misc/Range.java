@@ -1,8 +1,10 @@
 package lt.lb.commons.misc;
 
-import lt.lb.commons.misc.compare.ExtComparator;
 import java.util.Comparator;
-import lt.lb.commons.func.Lambda;
+import lt.lb.commons.misc.compare.Compare;
+import lt.lb.commons.misc.compare.Compare.CompareNull;
+import lt.lb.commons.misc.compare.Compare.CompareOperator;
+import lt.lb.commons.misc.compare.Compare.SimpleCompare;
 
 /**
  *
@@ -10,29 +12,30 @@ import lt.lb.commons.func.Lambda;
  */
 public class Range<T> extends MinMax<T> {
 
-    protected ExtComparator<T> cmp;
+    protected SimpleCompare<T> simpleCmp;
 
     public Range(T min, T max, Comparator<T> cmp) {
         super(min, max);
-        this.cmp = ExtComparator.of(cmp);
+        this.simpleCmp = Compare.of(CompareNull.NULL_THROW, cmp);
     }
-    
+
     public static <T extends Comparable> Range<T> of(T min, T max) {
-        return new Range(min, max, ExtComparator.ofComparable());
+        return new Range(min, max, Comparator.naturalOrder());
     }
 
     public boolean inRange(T val, boolean minInclusive, boolean maxInclusive) {
-        Lambda.L2R<T, T, Boolean> cmpLess = maxInclusive ? cmp::lessThanOrEq : cmp::lessThan;
-        Lambda.L2R<T, T, Boolean> cmpMore = minInclusive ? cmp::greaterThanOrEq : cmp::greaterThan;
+        CompareOperator maxOp = maxInclusive ? CompareOperator.LESS_EQ : CompareOperator.LESS;
+        CompareOperator minOp = minInclusive ? CompareOperator.GREATER_EQ : CompareOperator.GREATER;
 
-        return cmpLess.apply(val, max) && cmpMore.apply(val, min);
-
+        return simpleCmp.compare(val, maxOp, max) // val < max or val <= max
+                && simpleCmp.compare(val, minOp, min);  // val > min or val >= min
     }
 
     /**
      * inside (min,max)
+     *
      * @param val
-     * @return 
+     * @return
      */
     public boolean inRangeExclusive(T val) {
         return this.inRange(val, false, false);
@@ -40,8 +43,9 @@ public class Range<T> extends MinMax<T> {
 
     /**
      * inside [min,max]
+     *
      * @param val
-     * @return 
+     * @return
      */
     public boolean inRangeInclusive(T val) {
         return this.inRange(val, true, true);
@@ -49,8 +53,9 @@ public class Range<T> extends MinMax<T> {
 
     /**
      * inside [min,max)
+     *
      * @param val
-     * @return 
+     * @return
      */
     public boolean inRangeIncExc(T val) {
         return this.inRange(val, true, false);
@@ -58,8 +63,9 @@ public class Range<T> extends MinMax<T> {
 
     /**
      * inside (min,max]
+     *
      * @param val
-     * @return 
+     * @return
      */
     public boolean inRangeExcInc(T val) {
         return this.inRange(val, false, true);
@@ -67,19 +73,21 @@ public class Range<T> extends MinMax<T> {
 
     /**
      * Return the value, or the limit, if not in bounds. Inclusive.
+     *
      * @param val
-     * @return 
+     * @return
      */
     public T clamp(T val) {
-        return cmp.min(cmp.max(val, min), max);
+        return simpleCmp.min(simpleCmp.max(val, min), max);
     }
 
     /**
      * Return new Range of expanded limits, if given value is not in range.
+     *
      * @param val
-     * @return 
+     * @return
      */
     public Range<T> expand(T val) {
-        return new Range(cmp.min(val, min), cmp.max(val, max), cmp);
+        return new Range(simpleCmp.min(val, min), simpleCmp.max(val, max), simpleCmp.cmp);
     }
 }
