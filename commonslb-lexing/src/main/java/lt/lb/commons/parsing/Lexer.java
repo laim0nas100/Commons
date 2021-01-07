@@ -1,17 +1,17 @@
 package lt.lb.commons.parsing;
 
 import java.util.ArrayDeque;
-import lt.lb.commons.containers.collections.SelfSortingMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Optional;
+import lt.lb.commons.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.Equator;
+import lt.lb.commons.containers.collections.SelfSortingMap;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
@@ -355,7 +355,7 @@ public class Lexer {
                 break;
             }
         }
-        return eq.equals(explicit, readSymbols);
+        return eq.equate(explicit, readSymbols);
     }
 
     protected void advanceByTokenKey(String key) {
@@ -368,7 +368,7 @@ public class Lexer {
 
     protected Token literal(String value, int[] pos) {
         for (String token : this.keywords.getOrderedList()) {
-            if (equator.equals(value, token)) {
+            if (equator.equate(value, token)) {
                 return keywords.get(token).produce(token, pos);
             }
         }
