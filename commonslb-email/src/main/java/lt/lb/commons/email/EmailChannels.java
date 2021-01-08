@@ -9,6 +9,8 @@ import javax.mail.internet.MimeMessage;
  */
 public class EmailChannels {
 
-    public Consumer<MimeMessage> inputChannel = (m)-> {};
-    public Consumer<Throwable> errorChannel = (e)->{};
+    public Consumer<MimeMessage> inputChannel = (m) -> {
+    };
+    public Consumer<Throwable> errorChannel = (e) -> {
+    };
 }
