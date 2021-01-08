@@ -86,10 +86,11 @@ public class SafeOpt<T> implements Supplier<T> {
      * Returns an empty {@code SafeOpt} instance with given error.
      *
      * @param <T> Type of the non-existent value
+     * @param error
      * @return an empty {@code SafeOpt} with an error.
      */
-    private static <T> SafeOpt<T> empty(Throwable error) {
-        return new SafeOpt<>(null, error);
+    public static <T> SafeOpt<T> empty(Throwable error) {
+        return new SafeOpt<>(null, Objects.requireNonNull(error));
     }
 
     /**
@@ -122,13 +123,27 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
-     * Returns an {@code Optional} of current {@code SafeOpt} dropping
-     * exception.
+     * Returns an {@code Optional} of current {@code SafeOpt}. This operation
+     * prompts re-throwing previously caught exception (if one exists).
      *
      * @return an {@code Optional} with a present value if the specified value
      * is non-null, otherwise an empty {@code Optional}
      */
-    public Optional<T> asOptional() {
+    public Optional<T> asOptional() throws NestedException {
+        if (hasError()) {
+            throw NestedException.of(threw);
+        }
+        return Optional.ofNullable(val);
+    }
+
+    /**
+     * Returns an {@code Optional} of current {@code SafeOpt}. This operation
+     * ignores previously caught exception (if one exists).
+     *
+     * @return an {@code Optional} with a present value if the specified value
+     * is non-null, otherwise an empty {@code Optional}
+     */
+    public Optional<T> ignoringException() {
         return Optional.ofNullable(val);
     }
 
@@ -139,6 +154,24 @@ public class SafeOpt<T> implements Supplier<T> {
      */
     public boolean isPresent() {
         return val != null;
+    }
+
+    /**
+     *
+     * @return {@code true} if there is a exception present, otherwise
+     * {@code false}
+     */
+    public boolean hasError() {
+        return threw != null;
+    }
+
+    /**
+     *
+     * @return {@code true} if there is a exception or value present, otherwise
+     * {@code false}
+     */
+    public boolean hasValueOrError() {
+        return threw != null || val != null;
     }
 
     /**
@@ -197,7 +230,8 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param action the action to be performed
      * @return this object
      * @throws NullPointerException if a value is present and the given action
-     * is {@code null}. It is up to the caller to ensure that a passed default value is not null.
+     * is {@code null}. It is up to the caller to ensure that a passed default
+     * value is not null.
      */
     public SafeOpt<T> ifPresentOrDefault(T def, Consumer<? super T> action) {
         action.accept(val != null ? val : def);
@@ -285,17 +319,17 @@ public class SafeOpt<T> implements Supplier<T> {
         return filter(clazz::isInstance).map(t -> (U) t);
     }
 
-    
     /**
      * Analogous to flatMap, but with explicit exception ignoring
+     *
      * @param <U>
      * @param mapper
-     * @return 
+     * @return
      */
     public <U> SafeOpt<U> flatMap(UnsafeFunction<? super T, SafeOpt<U>> mapper) {
-        return flatMap((Function<? super T, SafeOpt<U>>)mapper);
+        return flatMap((Function<? super T, SafeOpt<U>>) mapper);
     }
-    
+
     /**
      * If a value is present, apply the provided {@code SafeOpt}-bearing mapping
      * function to it, return that result, otherwise return an empty
@@ -313,7 +347,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws NullPointerException if the mapping function is null
      */
     public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
-        Objects.requireNonNull(mapper,"Mapping function was null");
+        Objects.requireNonNull(mapper, "Mapping function was null");
         if (!isPresent()) {
             return SafeOpt.empty(threw);
         } else {
@@ -346,7 +380,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws NullPointerException if the mapping function is null
      */
     public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
-        Objects.requireNonNull(mapper,"Mapping function was null");
+        Objects.requireNonNull(mapper, "Mapping function was null");
         if (!isPresent()) {
             return SafeOpt.empty(threw);
         } else {
@@ -357,15 +391,16 @@ public class SafeOpt<T> implements Supplier<T> {
             }
         }
     }
-    
+
     /**
      * Analogous to flatMapOpt, but with explicit exception ignoring
+     *
      * @param <U>
      * @param mapper
-     * @return 
+     * @return
      */
     public <U> SafeOpt<U> flatMapOpt(UnsafeFunction<? super T, Optional<U>> mapper) {
-        return flatMapOpt((Function<? super T, Optional<U>>)mapper);
+        return flatMapOpt((Function<? super T, Optional<U>>) mapper);
     }
 
     /**
@@ -379,7 +414,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws NullPointerException if the supplying function is {@code null}
      */
     public SafeOpt<T> orGetOpt(Supplier<? extends Optional<T>> supplier) {
-        Objects.requireNonNull(supplier,"Supplier was null");
+        Objects.requireNonNull(supplier, "Supplier was null");
         if (isPresent()) {
             return this;
         } else {
@@ -398,15 +433,13 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws NullPointerException if the supplying function is {@code null}
      */
     public SafeOpt<T> orGet(Supplier<? extends T> supplier) {
-        Objects.requireNonNull(supplier,"Supplier was null");
+        Objects.requireNonNull(supplier, "Supplier was null");
         if (isPresent()) {
             return this;
         } else {
             return SafeOpt.READY.map(m -> supplier.get());
         }
     }
-    
-    
 
     /**
      * If both values are present (in this {@code SafeOpt} and provided
@@ -569,21 +602,22 @@ public class SafeOpt<T> implements Supplier<T> {
         }
         return get();
     }
-    
+
     /**
-     * If error have occurred, terminate by throwing such error wrapped in NestedException
+     * If error have occurred, terminate by throwing such error wrapped in
+     * NestedException
      *
      * @return returns an {@code SafeOpt} describing the value of this
      * {@code SafeOpt}, if a value is present
      * @throws NestedException if any error was present
      */
     public SafeOpt<T> throwIfErrorNested() {
-        if(threw != null){
-           throw NestedException.of(threw);
+        if (threw != null) {
+            throw NestedException.of(threw);
         }
         return this;
     }
-    
+
     /**
      * Throw matching type of exception if present
      *
@@ -602,14 +636,23 @@ public class SafeOpt<T> implements Supplier<T> {
         }
         return this;
     }
-    
+
     /**
      * Shorthand for filter and isPresent operation
+     *
      * @param predicate
-     * @return 
+     * @return
      */
-    public boolean isPresentWhen(Predicate<? super T> predicate){
+    public boolean isPresentWhen(Predicate<? super T> predicate) {
         return filter(predicate).isPresent();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 23 * hash + Objects.hashCode(this.val);
+        hash = 23 * hash + Objects.hashCode(this.threw);
+        return hash;
     }
 
     @Override
@@ -617,18 +660,20 @@ public class SafeOpt<T> implements Supplier<T> {
         if (this == obj) {
             return true;
         }
-
-        if (!(obj instanceof SafeOpt)) {
+        if (obj == null) {
             return false;
         }
-
-        SafeOpt<?> other = (SafeOpt<?>) obj;
-        return Objects.equals(val, other.val);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(val);
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SafeOpt<?> other = (SafeOpt<?>) obj;
+        if (!Objects.equals(this.val, other.val)) {
+            return false;
+        }
+        if (!Objects.equals(this.threw, other.threw)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

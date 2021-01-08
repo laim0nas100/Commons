@@ -3,9 +3,7 @@ package regression.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
@@ -18,6 +16,7 @@ import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMapperEnder;
 import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.Equator;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
 import lt.lb.commons.misc.compare.Compare;
@@ -38,15 +37,15 @@ public class CollectionOpTest {
         Stream<Integer> stream = list.stream();
 
         IterIterableBiCons<Integer> f = (i, value) -> value == toFind;
-        Optional<Integer> find1 = For.elements().find(array, f).map(m -> m.index);
-        Optional<Integer> find2 = For.elements().find(list, f).map(m -> m.index);
-        Optional<Integer> find3 = For.elements().find(stream, f).map(m -> m.index);
+        SafeOpt<Integer> find1 = For.elements().find(array, f).map(m -> m.index);
+        SafeOpt<Integer> find2 = For.elements().find(list, f).map(m -> m.index);
+        SafeOpt<Integer> find3 = For.elements().find(stream, f).map(m -> m.index);
 
-        Optional<Integer> find4 = For.elements().findBackwards(array, f).map(m -> m.index);
-        Optional<Integer> find5 = For.elements().findBackwards(list, f).map(m -> m.index);
+        SafeOpt<Integer> find4 = For.elements().findBackwards(array, f).map(m -> m.index);
+        SafeOpt<Integer> find5 = For.elements().findBackwards(list, f).map(m -> m.index);
 
         int indexOf = list.indexOf(toFind);
-        assertThat(Optional.of(indexOf))
+        assertThat(SafeOpt.of(indexOf))
                 .isEqualTo(find1)
                 .isEqualTo(find2)
                 .isEqualTo(find3)
@@ -64,36 +63,36 @@ public class CollectionOpTest {
         IntegerValue count2 = new IntegerValue(0);
         IntegerValue count3 = new IntegerValue(0);
 
-        Optional<Integer> find1 = For.elements().find(array, (i, a) -> {
+        SafeOpt<Integer> find1 = For.elements().find(array, (i, a) -> {
             count1.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
-        Optional<Integer> find2 = For.elements().find(list, (i, a) -> {
+        SafeOpt<Integer> find2 = For.elements().find(list, (i, a) -> {
             count2.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
-        Optional<Integer> find3 = For.elements().find(stream, (i, a) -> {
+        SafeOpt<Integer> find3 = For.elements().find(stream, (i, a) -> {
             count3.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
 
         IntegerValue count4 = new IntegerValue(0);
         IntegerValue count5 = new IntegerValue(0);
-        Optional<Integer> find4 = For.elements().findBackwards(array, (i, a) -> {
+        SafeOpt<Integer> find4 = For.elements().findBackwards(array, (i, a) -> {
             count4.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
-        Optional<Integer> find5 = For.elements().findBackwards(list, (i, a) -> {
+        SafeOpt<Integer> find5 = For.elements().findBackwards(list, (i, a) -> {
             count5.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
 
-        assertThat(Optional.of(list.indexOf(randomPick)))
+        assertThat(SafeOpt.of(list.indexOf(randomPick)))
                 .isEqualTo(find1)
                 .isEqualTo(find2)
                 .isEqualTo(find3);
 
-        assertThat(Optional.of(list.lastIndexOf(randomPick)))
+        assertThat(SafeOpt.of(list.lastIndexOf(randomPick)))
                 .isEqualTo(find4)
                 .isEqualTo(find5);
 
@@ -217,7 +216,7 @@ public class CollectionOpTest {
         });
 
         assertThat(fil1).isEqualTo(fil2);
-        
+
         For.elements().first(nulls).iterate(dis1, (i, item) -> {
             fil1.add(item);
         });

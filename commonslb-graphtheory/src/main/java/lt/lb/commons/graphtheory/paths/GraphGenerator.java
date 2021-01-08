@@ -44,7 +44,7 @@ public class GraphGenerator {
         while (true) {
             Optional<GNode> find = For.entries().find(gr.nodes, (ID, node) -> {
                 return node.degree() < minNodeDegree;
-            }).map(m->m.val);
+            }).map(m -> m.val).asOptional();
             if (!find.isPresent()) {
                 return;
             }
@@ -67,9 +67,9 @@ public class GraphGenerator {
         CollectionOp.filterInPlace(candidates, n -> {
             return !(node.linkedFrom.contains(n) || node.linksTo.contains(n));
         });
-        
+
         int howMany = minNodeDegree - node.degree();
-        
+
         For.elements().iterate(rnd.pickRandom(candidates, howMany), (i, can) -> {
             gr.add2wayLink(new GLink(node.ID, can, linkWeight.get()));
         });

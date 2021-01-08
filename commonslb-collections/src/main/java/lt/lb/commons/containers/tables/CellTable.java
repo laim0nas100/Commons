@@ -12,14 +12,14 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import lt.lb.fastid.FastID;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.IntRange;
+import lt.lb.fastid.FastID;
 
 /**
  * Easy formatting table generator with cell merges and optional content.
@@ -595,7 +595,7 @@ public class CellTable<T> {
      * @param id
      * @return
      */
-    public Optional<Pair<Integer>> findCellLocation(FastID id) {
+    public SafeOpt<Pair<Integer>> findCellLocation(FastID id) {
         return findCellById(id).map(m -> m.g1);
     }
 
@@ -605,7 +605,7 @@ public class CellTable<T> {
      * @param id
      * @return
      */
-    public Optional<CellPrep<T>> findCell(FastID id) {
+    public SafeOpt<CellPrep<T>> findCell(FastID id) {
         return findCellById(id).map(m -> m.g2);
     }
 
@@ -616,14 +616,14 @@ public class CellTable<T> {
      * @param ci
      * @return
      */
-    public Optional<CellPrep<T>> findCell(int ri, int ci) {
-        return SafeOpt.of(this).map(m -> getCellAt(m, ri, ci)).asOptional();
+    public SafeOpt<CellPrep<T>> findCell(int ri, int ci) {
+        return SafeOpt.of(this).map(m -> getCellAt(m, ri, ci));
     }
 
-    private Optional<Tuple<Pair<Integer>, CellPrep<T>>> findCellById(FastID id) {
+    private SafeOpt<Tuple<Pair<Integer>, CellPrep<T>>> findCellById(FastID id) {
         IntegerValue ri = new IntegerValue(0);
         for (Row<T> row : this.rows) {
-            Optional<Tuple<Pair<Integer>, CellPrep<T>>> map = For.elements().find(row.cells, (ci, cell) -> {
+            SafeOpt<Tuple<Pair<Integer>, CellPrep<T>>> map = For.elements().find(row.cells, (ci, cell) -> {
                 return Objects.equals(id, cell.id);
             }).map(m -> Tuples.create(new Pair<>(ri.get(), m.index), m.val));
             if (map.isPresent()) {
@@ -631,7 +631,7 @@ public class CellTable<T> {
             }
             ri.incrementAndGet();
         }
-        return Optional.empty();
+        return SafeOpt.empty();
     }
 
 }

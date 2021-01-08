@@ -2,7 +2,6 @@ package regression.core;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import lt.lb.commons.Log;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.misc.NestedException;
@@ -30,7 +29,8 @@ public class SafeOptTest {
         SafeOpt<Integer> mapEx = map.map(m -> m + new IntegerValue().get());
         ThrowableTypeAssert<NoSuchElementException> noSuchElement = Assertions.assertThatExceptionOfType(NoSuchElementException.class);
         noSuchElement.isThrownBy(() -> mapEx.get());
-        noSuchElement.isThrownBy(() -> mapEx.asOptional().get());
+        ThrowableTypeAssert<NestedException> nestedException = Assertions.assertThatExceptionOfType(NestedException.class);
+        nestedException.isThrownBy(() -> mapEx.asOptional().get());
 
         ThrowableTypeAssert<NestedException> nested = Assertions.assertThatExceptionOfType(NestedException.class);
 

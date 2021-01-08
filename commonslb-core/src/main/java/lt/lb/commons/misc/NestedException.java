@@ -2,9 +2,13 @@ package lt.lb.commons.misc;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.Objects;
 import lt.lb.commons.Ins;
 
 /**
+ *
+ * Zero-cost nested exception (ignores stack filling). Use this to mask checked
+ * exceptions.
  *
  * @author laim0nas100
  */
@@ -13,21 +17,25 @@ public class NestedException extends RuntimeException {
     protected Throwable error;
 
     /**
-     * Throws NestedException of given throwable
+     * Throws {@link NestedException} of given {@link Throwable}, unless it's null.
      *
      * @param t
      */
     public static void nestedThrow(Throwable t) {
+        if (t == null) {
+            return;
+        }
         throw NestedException.of(t);
     }
 
     /**
      *
      * @param t
-     * @return Wrapped exception, unless provided Throwable already is
-     * NestedException
+     * @return Wrapped exception, unless provided {@link Throwable} already is
+     * {@link NestedException}
      */
     public static NestedException of(Throwable t) {
+        Objects.requireNonNull(t);
         if (t instanceof NestedException) {
             return (NestedException) t;
         } else {
@@ -38,7 +46,7 @@ public class NestedException extends RuntimeException {
     /**
      *
      * @param t
-     * @return real exception, if given NestedException.
+     * @return real exception, if given {@link NestedException}.
      */
     public static Throwable unwrap(Throwable t) {
         if (t instanceof NestedException) {
@@ -49,8 +57,8 @@ public class NestedException extends RuntimeException {
     }
 
     /**
-     * Unwraps Nested exception, if such exists. Then compares exception to
-     * allowed types and throws if any of the types matches.
+     * Unwraps {@link NestedException}, if such exists. Then compares exception
+     * to allowed types and throws if any of the types matches.
      *
      * @param <X>
      * @param th
@@ -58,7 +66,6 @@ public class NestedException extends RuntimeException {
      * @throws X
      */
     public static <X extends Throwable> void unwrappedThrowIf(Throwable th, Class<X>... ex) throws X {
-
         Throwable t = unwrap(th);
         if (Ins.ofNullable(t).instanceOfAny(ex)) {
             throw (X) t;

@@ -11,15 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-//import lt.lb.commons.Log;
-import lt.lb.commons.misc.UUIDgenerator;
-import lt.lb.commons.containers.tuples.Tuple;
-import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.F;
-import lt.lb.commons.interfaces.StringBuilderActions;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.iteration.general.result.IterMapResult;
+import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.misc.UUIDgenerator;
 import lt.lb.commons.parsing.Literal;
 import lt.lb.commons.parsing.Token;
 
@@ -310,7 +307,7 @@ public class TokenFiniteAutomata {
             resList.add(res);
 
             if (t != null) {
-                Optional<TGraph> find = For.entries().find(this.connectedGraphs, (k, g) -> g.matches(t)).map(m->m.val);
+                SafeOpt<TGraph> find = For.entries().find(this.connectedGraphs, (k, g) -> g.matches(t)).map(m->m.val);
                 if (find.isPresent()) {
                     TGraph nextGraph = find.get();
 
