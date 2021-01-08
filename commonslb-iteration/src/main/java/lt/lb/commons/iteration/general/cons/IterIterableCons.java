@@ -5,26 +5,39 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
 /**
  *
  * @author laim0nas100
+ * @param <Type>
  */
 @FunctionalInterface
 public interface IterIterableCons<Type> {
 
-    
-    public boolean visit(IterIterableResult<Type> i);
-    
-    
+    /**
+     * 
+     * @param i
+     * @return
+     * @throws Exception 
+     */
+    public boolean visit(IterIterableResult<Type> i) throws Exception;
+
     public static interface IterIterableConsNoStop<Type> extends IterIterableCons<Type> {
 
         /**
          *
+         * @param i
          * @return true = break, false = continue
+         * @throws java.lang.Exception
          */
-        public default boolean visit(IterIterableResult<Type> i) {
+        @Override
+        public default boolean visit(IterIterableResult<Type> i) throws Exception {
             continuedVisit(i);
             return false;
         }
-        
-        public void continuedVisit(IterIterableResult<Type> i);
+
+        /**
+         * 
+         * @param i
+         * @throws Exception 
+         */
+        public void continuedVisit(IterIterableResult<Type> i) throws Exception;
     }
-    
+
 }

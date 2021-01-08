@@ -14,11 +14,12 @@ public interface IterIterableBiCons<Type> extends IterIterableCons<Type> {
      * @param index
      * @param value
      * @return true = break, false = continue
+     * @throws java.lang.Exception
      */
-    public boolean visit(Integer index, Type value);
+    public boolean visit(Integer index, Type value) throws Exception;
 
     @Override
-    public default boolean visit(IterIterableResult<Type> i) {
+    public default boolean visit(IterIterableResult<Type> i) throws Exception {
         return visit(i.index, i.val);
     }
 
@@ -31,12 +32,12 @@ public interface IterIterableBiCons<Type> extends IterIterableCons<Type> {
          * @return true = break, false = continue
          */
         @Override
-        public default boolean visit(Integer index, Type value) {
+        public default boolean visit(Integer index, Type value) throws Exception {
             continuedVisit(index, value);
             return false;
         }
 
-        public void continuedVisit(Integer index, Type value);
+        public void continuedVisit(Integer index, Type value) throws Exception;
     }
 
 }

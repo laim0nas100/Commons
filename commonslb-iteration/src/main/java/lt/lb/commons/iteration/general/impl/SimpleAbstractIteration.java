@@ -2,6 +2,7 @@ package lt.lb.commons.iteration.general.impl;
 
 import java.util.Optional;
 import lt.lb.commons.F;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.general.IterationAbstract;
 import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
@@ -71,17 +72,21 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
 
     public static interface IterIterableAccessor {
 
-        public <T> Optional<IterIterableResult<T>> tryVisit(int index, T val, IterIterableCons<T> iter);
+        public <T> SafeOpt<IterIterableResult<T>> tryVisit(int index, T val, IterIterableCons<T> iter);
 
         public static class IterableConsAccessor implements IterIterableAccessor {
 
             @Override
-            public <T> Optional<IterIterableResult<T>> tryVisit(int index, T val, IterIterableCons<T> iter) {
+            public <T> SafeOpt<IterIterableResult<T>> tryVisit(int index, T val, IterIterableCons<T> iter) {
                 IterIterableResult<T> res = new IterIterableResult<>(index, val);
-                if (iter.visit(res)) {
-                    return Optional.of(res);
-                } else {
-                    return Optional.empty();
+                try {
+                    if (iter.visit(res)) {
+                        return SafeOpt.of(res);
+                    } else {
+                        return SafeOpt.empty();
+                    }
+                } catch (Exception ex) {
+                    return SafeOpt.empty(ex);
                 }
             }
 
@@ -90,12 +95,16 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
         public static class IterableBiConsAccessor implements IterIterableAccessor {
 
             @Override
-            public <T> Optional<IterIterableResult<T>> tryVisit(int index, T val, IterIterableCons<T> iter) {
+            public <T> SafeOpt<IterIterableResult<T>> tryVisit(int index, T val, IterIterableCons<T> iter) {
                 IterIterableBiCons<T> iterBi = F.cast(iter);
-                if (iterBi.visit(index, val)) {
-                    return Optional.of(new IterIterableResult<>(index, val));
-                } else {
-                    return Optional.empty();
+                try {
+                    if (iterBi.visit(index, val)) {
+                        return SafeOpt.of(new IterIterableResult<>(index, val));
+                    } else {
+                        return SafeOpt.empty();
+                    }
+                } catch (Exception ex) {
+                   return SafeOpt.empty(ex);
                 }
             }
 
@@ -105,17 +114,21 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
 
     public static interface IterMapAccessor {
 
-        public <K, V> Optional<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter);
+        public <K, V> SafeOpt<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter);
 
         public static class MapConsAccessor implements IterMapAccessor {
 
             @Override
-            public <K, V> Optional<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter) {
+            public <K, V> SafeOpt<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter) {
                 IterMapResult<K, V> res = new IterMapResult<>(index, key, val);
-                if (iter.visit(res)) {
-                    return Optional.of(res);
-                } else {
-                    return Optional.empty();
+                try {
+                    if (iter.visit(res)) {
+                        return SafeOpt.of(res);
+                    } else {
+                        return SafeOpt.empty();
+                    }
+                } catch (Exception ex) {
+                    return SafeOpt.empty(ex);
                 }
             }
 
@@ -124,12 +137,16 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
         public static class MapBiConsAccessor implements IterMapAccessor {
 
             @Override
-            public <K, V> Optional<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter) {
+            public <K, V> SafeOpt<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter) {
                 IterMapBiCons<K, V> iterBi = F.cast(iter);
-                if (iterBi.visit(key, val)) {
-                    return Optional.of(new IterMapResult<>(index, key, val));
-                } else {
-                    return Optional.empty();
+                try {
+                    if (iterBi.visit(key, val)) {
+                        return SafeOpt.of(new IterMapResult<>(index, key, val));
+                    } else {
+                        return SafeOpt.empty();
+                    }
+                } catch (Exception ex) {
+                    return SafeOpt.empty(ex);
                 }
             }
 

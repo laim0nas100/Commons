@@ -1,7 +1,7 @@
 package lt.lb.commons.iteration.general;
 
 import java.util.Map;
-import java.util.Optional;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.general.cons.IterMapBiCons;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
@@ -21,7 +21,7 @@ public interface IterationMap<E extends IterationMap<E>> extends IterationAbstra
      * @param iter iteration logic
      * @return
      */
-    public <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter);
+    public <K, V> SafeOpt<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter);
 
     /**
      * Iterate through map entries
@@ -32,7 +32,7 @@ public interface IterationMap<E extends IterationMap<E>> extends IterationAbstra
      * @param iter iteration logic
      * @return
      */
-    public default <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapBiCons<K, V> iter) {
+    public default <K, V> SafeOpt<IterMapResult<K, V>> find(Map<K, V> map, IterMapBiCons<K, V> iter) {
         return find(map, (IterMapCons<K, V>) iter);
     }
 

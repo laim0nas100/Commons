@@ -3,7 +3,7 @@ package lt.lb.commons.iteration.general.impl;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Optional;
+import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.general.IterationMap;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
@@ -15,11 +15,11 @@ import lt.lb.commons.iteration.general.result.IterMapResult;
 public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable> implements IterationMap<SimpleMapIterable> {
 
     @Override
-    public <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter) {
+    public <K, V> SafeOpt<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter) {
         Iterator<Map.Entry<K, V>> iterator = map.entrySet().iterator();
 
         if (onlyIncludingFirst == 0 || onlyIncludingLast == 0) {
-            return Optional.empty();
+            return SafeOpt.empty();
         }
         if (onlyIncludingFirst > 0 && onlyIncludingLast > 0) {
             throw new IllegalArgumentException("Can't include only first AND only last, please pick one or the other");
@@ -27,7 +27,7 @@ public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable
 
         int lastSize = 0;
         int index = -1;
-        
+
         IterMapAccessor accessor = resolveAccessor(iter);
         LinkedList<Map.Entry<K, V>> lastBuffer = null;
         if (onlyIncludingLast > 0) {
@@ -50,8 +50,8 @@ public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable
             int lastIndex = index - lastSize;
             // just iterate through the last elements
             for (Map.Entry<K, V> ent : lastBuffer) {
-                Optional<IterMapResult<K, V>> tryVisit = accessor.tryVisit(lastIndex, ent.getKey(), ent.getValue(), iter);
-                if(tryVisit.isPresent()){
+                SafeOpt<IterMapResult<K, V>> tryVisit = accessor.tryVisit(lastIndex, ent.getKey(), ent.getValue(), iter);
+                if (tryVisit.hasValueOrError()) {
                     return tryVisit;
                 }
                 lastIndex++;
@@ -66,17 +66,17 @@ public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable
                     if (firstToInclude > 0) {
                         firstToInclude--;
                     } else {
-                        return Optional.empty();
+                        return SafeOpt.empty();
                     }
                 }
-                Optional<IterMapResult<K, V>> tryVisit = accessor.tryVisit(index, entry.getKey(), entry.getValue(), iter);
-                if(tryVisit.isPresent()){
+                SafeOpt<IterMapResult<K, V>> tryVisit = accessor.tryVisit(index, entry.getKey(), entry.getValue(), iter);
+                if (tryVisit.hasValueOrError()) {
                     return tryVisit;
                 }
             }
         }
 
-        return Optional.empty();
+        return SafeOpt.empty();
     }
 
     @Override
