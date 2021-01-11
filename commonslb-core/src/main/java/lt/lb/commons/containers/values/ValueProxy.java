@@ -63,7 +63,7 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
      * @param func new value
      * @return updated value
      */
-    public default T setAndGet(Supplier<T> func) {
+    public default T setAndGet(Supplier<? extends T> func) {
         set(func.get());
         return get();
     }
@@ -72,7 +72,7 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
      * @param func new value
      * @return old value
      */
-    public default T getAndSet(Supplier<T> func) {
+    public default T getAndSet(Supplier<? extends T> func) {
         T got = this.get();
         set(func.get());
         return got;
