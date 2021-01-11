@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.func.unchecked.UnsafeBiFunction;
 import lt.lb.commons.func.unchecked.UnsafeFunction;
+import lt.lb.commons.func.unchecked.UnsafeSupplier;
 import lt.lb.commons.misc.NestedException;
 
 /**
@@ -69,6 +70,22 @@ public class SafeOpt<T> implements Supplier<T> {
      * exception will be returned
      */
     public static <T> SafeOpt<T> ofGet(Supplier<T> sup) {
+        Objects.requireNonNull(sup);
+        return READY.map(m -> sup.get());
+    }
+
+    /**
+     * Returns an {@code SafeOpt} with the specified present non-null value.
+     *
+     * @param <T> the class of the value
+     * @param sup the value supplier to be present
+     * @return an {@code SafeOpt} with the value present, or an empty
+     * {@code SafeOpt} if supplier or it's value is null. If exception occurred
+     * anywhere, then it will be captured and empty {@code SafeOpt} with such
+     * exception will be returned
+     */
+    public static <T> SafeOpt<T> ofGet(UnsafeSupplier<T> sup) {
+        Objects.requireNonNull(sup);
         return READY.map(m -> sup.get());
     }
 
@@ -93,6 +110,10 @@ public class SafeOpt<T> implements Supplier<T> {
         return new SafeOpt<>(null, Objects.requireNonNull(error));
     }
 
+    private static <T> SafeOpt<T> errorOrEmpty(Throwable error) {
+        return new SafeOpt<>(null, error);
+    }
+
     /**
      * Returns an {@code SafeOpt} describing the specified value, if non-null,
      * otherwise returns an empty {@code Optional}.
@@ -103,12 +124,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * non-null, otherwise an empty {@code Optional}
      */
     public static <T> SafeOpt<T> ofNullable(T val) {
-        if (val == null) {
-            return SafeOpt.empty();
-        } else {
-            return SafeOpt.of(val);
-        }
-
+        return val == null ? SafeOpt.empty() : new SafeOpt(val, null);
     }
 
     /**
@@ -119,7 +135,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @return
      */
     public static <T> SafeOpt<T> ofOptional(Optional<T> opt) {
-        return opt.map(m -> SafeOpt.of(m)).orElse(SafeOpt.empty());
+        return opt.isPresent() ? SafeOpt.of(opt.get()) : SafeOpt.empty();
     }
 
     /**
@@ -253,12 +269,12 @@ public class SafeOpt<T> implements Supplier<T> {
     public SafeOpt<T> filter(Predicate<? super T> predicate) {
         Objects.requireNonNull(predicate, "Null predicate");
         if (!isPresent()) {
-            return SafeOpt.empty(threw);
+            return SafeOpt.errorOrEmpty(threw);
         } else {
             try {
                 return predicate.test(val) ? this : empty();
             } catch (Throwable t) {
-                return SafeOpt.empty(NestedException.unwrap(t));
+                return SafeOpt.errorOrEmpty(NestedException.unwrap(t));
             }
         }
     }
@@ -279,12 +295,12 @@ public class SafeOpt<T> implements Supplier<T> {
     public <U> SafeOpt<U> map(Function<? super T, ? extends U> mapper) {
         Objects.requireNonNull(mapper, "Null map function");
         if (!isPresent()) {
-            return SafeOpt.empty(threw);
+            return SafeOpt.errorOrEmpty(threw);
         } else {
             try {
                 return SafeOpt.ofNullable(mapper.apply(val));
             } catch (Throwable t) {
-                return SafeOpt.empty(NestedException.unwrap(t));
+                return SafeOpt.errorOrEmpty(NestedException.unwrap(t));
             }
         }
     }
@@ -349,7 +365,7 @@ public class SafeOpt<T> implements Supplier<T> {
     public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
         Objects.requireNonNull(mapper, "Mapping function was null");
         if (!isPresent()) {
-            return SafeOpt.empty(threw);
+            return SafeOpt.errorOrEmpty(threw);
         } else {
             try {
                 SafeOpt<U> apply = mapper.apply(val);
@@ -357,7 +373,7 @@ public class SafeOpt<T> implements Supplier<T> {
                     return apply;
                 }
             } catch (Throwable t) {
-                return SafeOpt.empty(NestedException.unwrap(t));
+                return SafeOpt.errorOrEmpty(NestedException.unwrap(t));
             }
             return SafeOpt.empty();
         }
@@ -382,12 +398,12 @@ public class SafeOpt<T> implements Supplier<T> {
     public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
         Objects.requireNonNull(mapper, "Mapping function was null");
         if (!isPresent()) {
-            return SafeOpt.empty(threw);
+            return SafeOpt.errorOrEmpty(threw);
         } else {
             try {
                 return SafeOpt.ofOptional(mapper.apply(val));
             } catch (Throwable t) {
-                return SafeOpt.empty(t);
+                return SafeOpt.errorOrEmpty(t);
             }
         }
     }
@@ -474,14 +490,14 @@ public class SafeOpt<T> implements Supplier<T> {
         Objects.requireNonNull(mapper, "Null map function");
 
         if (!isPresent()) {
-            return SafeOpt.empty(threw);
+            return SafeOpt.errorOrEmpty(threw);
         } else if (!with.isPresent()) {
-            return SafeOpt.empty(with.threw);
+            return SafeOpt.errorOrEmpty(with.threw);
         } else {
             try {
                 return SafeOpt.ofNullable(mapper.apply(val, with.val));
             } catch (Throwable t) {
-                return SafeOpt.empty(NestedException.unwrap(t));
+                return SafeOpt.errorOrEmpty(NestedException.unwrap(t));
             }
         }
     }
