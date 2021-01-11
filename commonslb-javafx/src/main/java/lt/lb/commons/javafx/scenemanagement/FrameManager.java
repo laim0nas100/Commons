@@ -11,8 +11,8 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
-import lt.lb.commons.F;
 import lt.lb.commons.Ins;
+import lt.lb.commons.javafx.scenemanagement.frameloading.StageFrameLoad;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorator;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameState;
 import lt.lb.commons.javafx.scenemanagement.frames.Util;
@@ -52,9 +52,14 @@ public interface FrameManager {
             }
         }
     }
+    
 
     public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
-        return F.unsafeCall(() -> newStageFrame(getAvailableId(), title, constructor, onExit));
+        try {
+            return newStageFrame(getAvailableId(), title, constructor, onExit);
+        } catch (FrameException ex) {
+            throw new IllegalArgumentException(ex);
+        }
     }
 
     public default Future<StageFrame> newStageFrame(String ID, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException {
@@ -78,7 +83,11 @@ public interface FrameManager {
     }
 
     public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String title, Consumer<T> decorator) {
-        return F.unsafeCall(() -> newFxmlFrame(resource, getAvailableId(), title, decorator));
+        try {
+            return newFxmlFrame(resource, getAvailableId(), title, decorator);
+        } catch (FrameException ex) {
+            throw new IllegalArgumentException(ex);
+        }
     }
 
     public default <T extends BaseController<T>> Stream<T> getAllControllers(Class<T> clazz) {

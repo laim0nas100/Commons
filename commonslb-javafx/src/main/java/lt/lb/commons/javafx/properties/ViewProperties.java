@@ -1,4 +1,4 @@
-package lt.lb.commons.javafx;
+package lt.lb.commons.javafx.properties;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;

@@ -12,14 +12,14 @@ public class FXMLFrame<T> extends StageFrame {
     protected final BaseController controller;
     protected final URL resource;
 
-    public FXMLFrame(FrameManager manager, Stage stage, BaseController controller, URL resource, String ID) {
-        super(manager, stage, ID, resource.toString());
+    public FXMLFrame(FrameManager manager, Stage stage, BaseController controller, URL resource, String type, String ID) {
+        super(manager, stage, ID, type);
         this.controller = controller;
         this.resource = resource;
 
     }
 
-    public <T extends BaseController> T getController() {
+    public T getController() {
         return (T) this.controller;
     }
 

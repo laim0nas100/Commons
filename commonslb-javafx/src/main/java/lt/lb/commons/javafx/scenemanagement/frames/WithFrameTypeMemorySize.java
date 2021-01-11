@@ -7,10 +7,8 @@ import lt.lb.commons.containers.values.Props;
 import lt.lb.commons.containers.values.Props.PropGet;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.javafx.scenemanagement.Frame;
-import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
 
 /**
- *
  * @author laim0nas100
  */
 public class WithFrameTypeMemorySize extends FrameDecorateProps {
@@ -47,8 +45,8 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
 
         Props props = getFrameProps(frame);
 
-        stage.widthProperty().addListener(prop_width_listen.insertGet(props, listenerUpdating(width)));
-        stage.heightProperty().addListener(prop_height_listen.insertGet(props, listenerUpdating(height)));
+        stage.widthProperty().addListener(prop_width_listen.insertGet(props, Util.listenerUpdating(width)));
+        stage.heightProperty().addListener(prop_height_listen.insertGet(props, Util.listenerUpdating(height)));
 
     }
 

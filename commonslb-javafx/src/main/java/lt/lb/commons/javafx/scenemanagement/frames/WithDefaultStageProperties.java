@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 import javafx.stage.Stage;
 
 /**
- *
  * @author laim0nas100
  */
 public class WithDefaultStageProperties extends FrameDecorate {

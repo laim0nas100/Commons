@@ -10,8 +10,6 @@ import lt.lb.commons.javafx.scenemanagement.Frame;
 import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
 
 /**
- *
- *
  * @author laim0nas100
  */
 public class WithFrameTypeMemoryPosition extends FrameDecorateProps {

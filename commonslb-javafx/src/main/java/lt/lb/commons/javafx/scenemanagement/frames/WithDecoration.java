@@ -1,7 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
 /**
- *
  * @author laim0nas100
  */
 public class WithDecoration extends FrameDecorate {
@@ -10,7 +9,5 @@ public class WithDecoration extends FrameDecorate {
         for (FrameDecorator dec : decorator) {
             addFrameDecorator(state, dec);
         }
-
     }
-
 }

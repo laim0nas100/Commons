@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
@@ -33,6 +32,9 @@ import lt.lb.commons.javafx.scenemanagement.FrameException;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;
 import lt.lb.commons.javafx.scenemanagement.InjectableController;
 import lt.lb.commons.javafx.scenemanagement.StageFrame;
+import lt.lb.commons.javafx.scenemanagement.frameloading.FXMLFrameLoad;
+import lt.lb.commons.javafx.scenemanagement.frameloading.FrameLoad;
+import lt.lb.commons.javafx.scenemanagement.frameloading.StageFrameLoad;
 import lt.lb.commons.threads.Futures;
 
 /**
@@ -53,6 +55,32 @@ public abstract class Util {
         };
     }
 
+    public static <FR extends Frame> Future<FR> newFrame(Map<String, Frame> frameMap, FrameManager manager, FrameLoad<FR> frameLoader, String ID, String type) throws FrameException {
+        Objects.requireNonNull(ID);
+        if (frameMap.containsKey(ID)) {
+            throw new FrameException("Frame:" + ID + " Allready exists");
+        }
+//        final String finalID = ID;
+
+        FutureTask<FR> task = Futures.ofCallable(() -> {
+            FR frame = frameLoader.getFrame(manager, ID, type);
+            if (frameMap.containsKey(ID)) {
+                throw new FrameException("Frame:" + ID + " Allready exists");
+            }
+            frameMap.put(ID, frame);
+            frameLoader.hookStageEvents();
+            for (FrameDecorator fdec : manager.getFrameDecorators(FrameState.FrameStateOpen.instance)) {
+                fdec.accept(frame);
+            }
+            frameLoader.decorateAfter();
+
+            return frame;
+        });
+        FX.submit(task);
+        return task;
+
+    }
+
     public static <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(Map<String, Frame> frameMap, FrameManager manager, URL resource, String ID, String title, Consumer<T> cons) throws FrameException {
         Objects.requireNonNull(resource);
         Objects.requireNonNull(ID);
@@ -60,43 +88,26 @@ public abstract class Util {
         if (frameMap.containsKey(ID)) {
             throw new FrameException("Frame:" + ID + " Allready exists");
         }
-        final String finalID = ID;
 
-        FutureTask<FXMLFrame<T>> task = Futures.ofCallable(() -> {
-            FXMLLoader loader = new FXMLLoader(resource);
-            ResourceBundle rb = loader.getResources();
-            Parent root = loader.load();
-            Stage stage = new Stage();
+        FXMLFrameLoad<T> load = new FXMLFrameLoad<>(resource);
 
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-            BaseController controller = loader.getController();
-
-            stage.setOnCloseRequest((WindowEvent we) -> {
-                controller.exit();
-            });
-
-            FXMLFrame frame = new FXMLFrame(manager, stage, controller, resource, finalID);
-            if (frameMap.containsKey(ID)) {
-                throw new FrameException("Frame:" + ID + " Allready exists");
-            }
-            frameMap.put(finalID, frame);
-
-            // optional inject
+        load.addDecorator(f -> f.getStage().setTitle(title));
+        load.addDecorator(f -> {
+            T controller = f.getController();
             if (controller instanceof InjectableController) {
-                InjectableController inj = F.cast(controller);
-                inj.inject(frame, resource, rb);
+                InjectableController inject = F.cast(controller);
+                inject.inject(f, load.getResource(), load.getResourceBundle());
             }
-
-            for (FrameDecorator fdec : manager.getFrameDecorators(FrameState.FrameStateOpen.instance)) {
-                fdec.accept(frame);
-            }
-            controller.init(cons);
-
-            return frame;
         });
-        FX.submit(task);
-        return task;
+        load.addDecorator(f -> {
+            f.getController().init(cons);
+        });
+        load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> load.getControllerSafe().ifPresent(c -> c.exit()));
+        load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> manager.closeFrame(ID));
+        load.addStageEvent(WindowEvent.WINDOW_HIDDEN, ev -> load.getControllerSafe().ifPresent(c -> c.hide()));
+        load.addStageEvent(WindowEvent.WINDOW_SHOWN, ev -> load.getControllerSafe().ifPresent(c -> c.show()));
+
+        return newFrame(frameMap, manager, load, ID, resource.toString());
 
     }
 
@@ -107,28 +118,13 @@ public abstract class Util {
         if (frameMap.containsKey(ID)) {
             throw new FrameException("Frame:" + ID + " Allready exists");
         }
-        final String finalID = ID;
-        FutureTask<StageFrame> task = Futures.ofCallable(() -> {
 
-            Stage stage = new Stage();
-            Scene scene = new Scene(constructor.get());
-            stage.setScene(scene);
-            stage.setTitle(title);
-            StageFrame frame = new StageFrame(manager, stage, finalID, title);
-            if (frameMap.containsKey(ID)) {
-                throw new FrameException("Frame:" + ID + " Allready exists");
-            }
-            frameMap.put(finalID, frame);
-            stage.setOnCloseRequest((WindowEvent we) -> {
-                onExit.accept(frame);
-            });
-            for (FrameDecorator fdec : manager.getFrameDecorators(FrameState.FrameStateOpen.instance)) {
-                fdec.accept(frame);
-            }
-            return frame;
-        });
-        FX.submit(task);
-        return task;
+        StageFrameLoad load = StageFrameLoad.of(constructor);
+        load.addDecorator(f -> f.getStage().setTitle(title));
+        load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> onExit.accept(load.getLoadedFrameOrNull()));
+        load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> manager.closeFrame(ID));
+
+        return newFrame(frameMap, manager, load, ID, title);
     }
 
     public static Future<Dialog> newFormDialog(String title, FXDrows rows, Runnable onAccept) {
@@ -171,7 +167,7 @@ public abstract class Util {
             ScrollPane scroll = new ScrollPane(rows.grid);
             scroll.setFitToHeight(true);
             scroll.setFitToWidth(true);
-            StageFrame frame = manager.newStageFrame(title, () -> scroll, d -> manager.closeFrame(d.getID())).get();
+            StageFrame frame = manager.newStageFrame(title, () -> scroll, d -> d.close()).get();
             rows.getNew()
                     .addButton("Apply", eh -> {
                         rows.syncManagedFromDisplay();
@@ -180,10 +176,10 @@ public abstract class Util {
                         }
                         rows.syncPersist();
                         onAccept.run();
-                        manager.closeFrame(frame.getID());
+                        frame.close();
                     })
                     .addButton("Cancel", eh -> {
-                        manager.closeFrame(frame.getID());
+                        frame.close();
                     })
                     .display();
 

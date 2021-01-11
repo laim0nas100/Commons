@@ -22,11 +22,11 @@ public interface FrameManagerCL extends FrameManager {
         return newFxmlFrame(getClassLoader().getResource(resource), title, Util.emptyConsumer);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFrameSingleton(String resource, String title, Consumer<T> cons) throws FrameException {
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(String resource, String title, Consumer<T> cons) throws FrameException {
         return newFxmlFrameSingleton(getClassLoader().getResource(resource), title, cons);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFrameSingleton(String resource, String title) throws FrameException {
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(String resource, String title) throws FrameException {
         return newFxmlFrameSingleton(getClassLoader().getResource(resource), title, Util.emptyConsumer);
     }
 

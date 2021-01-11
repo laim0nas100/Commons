@@ -2,7 +2,7 @@ package lt.lb.commons.javafx.scenemanagement.frames;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public interface FrameState {
 
