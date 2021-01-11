@@ -9,7 +9,8 @@ import lt.lb.commons.Java;
 
 /**
  *
- * @author laim0nas100 Time aware FutureTask using Java.getNanoTime for time
+ * @author laim0nas100 Time aware FutureTask using Java.getNanoTime or any
+ * custom incrementing counter/timer.
  */
 public class TimeAwareFutureTask<T> extends FutureTask<T> {
 
@@ -29,12 +30,13 @@ public class TimeAwareFutureTask<T> extends FutureTask<T> {
     }
 
     public TimeAwareFutureTask() {
-        this(() -> {});
+        this(() -> {
+        });
     }
 
     @Override
     public void run() {
-        if(this.isDone()){
+        if (this.isDone()) {
             return;
         }
         startAt.set(timeCheck.get());

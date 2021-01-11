@@ -7,6 +7,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -15,19 +16,17 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class SynchronizedValueSupplier<T> {
 
-    private AtomicLong counter = new AtomicLong(0);
+    private AtomicLong counter = new AtomicLong(Long.MIN_VALUE);
     private Callable<T> call;
     private Executor executor;
 
-    private volatile TimeAwareFutureTask<T> future;
-
-    private volatile long lastExecuteCall = -1;
+    private AtomicReference<TimeAwareFutureTask<T>> future = new AtomicReference();
 
     public SynchronizedValueSupplier(T initial, Callable<T> call, Executor executor) {
         this.call = call;
         this.executor = executor;
-        future = new TimeAwareFutureTask<>(() -> initial, this::inc, Long.MIN_VALUE);
-        future.run();
+        future.set(new TimeAwareFutureTask<>(() -> initial, this::inc, Long.MIN_VALUE));
+        future.get().run();
     }
 
     private long inc() {
@@ -40,12 +39,14 @@ public class SynchronizedValueSupplier<T> {
      * @return
      */
     public Future<T> execute() {
-        lastExecuteCall = this.inc();
+        TimeAwareFutureTask<T> prev = future.get();
         TimeAwareFutureTask<T> timeAwareFutureTask = new TimeAwareFutureTask<>(call, this::inc, Long.MIN_VALUE);
-        future = timeAwareFutureTask;
-
-        executor.execute(future);
-        return timeAwareFutureTask;
+        if (future.compareAndSet(prev, timeAwareFutureTask)) { // successfully exchanged with new future
+            executor.execute(timeAwareFutureTask);
+            return timeAwareFutureTask;
+        } else { // someone executed before us
+            return future.get();
+        }
     }
 
     /**
@@ -57,8 +58,8 @@ public class SynchronizedValueSupplier<T> {
      */
     private TimeAwareFutureTask waitUntilAvailable(long when) {
         while (true) { // need refresh 
-            TimeAwareFutureTask<T> local = future;
-            if (local.startAt() > when || lastExecuteCall >= when) {
+            TimeAwareFutureTask<T> local = future.get();
+            if (local.startAt() > when) {
                 return local;
             }
             LockSupport.parkNanos(1);
@@ -66,7 +67,8 @@ public class SynchronizedValueSupplier<T> {
     }
 
     private TimeAwareFutureTask<T> resolveGet(long when, boolean update) {
-        if (lastExecuteCall > when) { // called after we, so just get
+        TimeAwareFutureTask<T> task = future.get();
+        if (task.startAt() > when || task.finishedAt() > when) { // called after we, so just get
             return this.waitUntilAvailable(when);
         }
 
@@ -75,10 +77,7 @@ public class SynchronizedValueSupplier<T> {
             execute();
             return waitUntilAvailable(when);
         } else {
-            if (lastExecuteCall == -1) { // was never called before, maybe wants the initial value (non-updated)
-                return future;
-            }
-            return this.waitUntilAvailable(lastExecuteCall);
+            return future.get();
         }
 
     }
@@ -139,13 +138,16 @@ public class SynchronizedValueSupplier<T> {
 
     /**
      * Manually update current future value.
-     * @param val 
+     *
+     * @param val
      */
     public void set(T val) {
-        lastExecuteCall = inc();
+
+        TimeAwareFutureTask<T> prev = future.get();
         TimeAwareFutureTask<T> timeAwareFutureTask = new TimeAwareFutureTask<>(() -> val, this::inc, Long.MIN_VALUE);
-        future = timeAwareFutureTask;
-        timeAwareFutureTask.run();
+        if (future.compareAndSet(prev, timeAwareFutureTask)) { // successfully exchanged with new future
+            timeAwareFutureTask.run();
+        }
 
     }
 
