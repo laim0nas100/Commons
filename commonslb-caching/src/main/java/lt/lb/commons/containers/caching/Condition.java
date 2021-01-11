@@ -1,6 +1,5 @@
 package lt.lb.commons.containers.caching;
 
-import java.util.function.Supplier;
 
 /**
  *
@@ -9,16 +8,12 @@ import java.util.function.Supplier;
  * @author laim0nas100
  */
 @FunctionalInterface
-public interface Condition extends Supplier<Boolean> {
+public interface Condition {
 
-    public boolean isTrue();
+    public boolean isTrue(long now);
 
-    @Override
-    public default Boolean get() {
-        return isTrue();
+    public default boolean isFalse(long now) {
+        return !isTrue(now);
     }
 
-    public default boolean isFalse() {
-        return !isTrue();
-    }
 }

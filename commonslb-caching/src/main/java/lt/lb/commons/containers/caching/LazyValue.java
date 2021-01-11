@@ -18,17 +18,12 @@ public class LazyValue<T> extends Value<T> {
 
     protected LongValue loaded = new LongValue(Long.MAX_VALUE);
     protected Deque<Condition> conditions = new ArrayDeque<>();
-    protected Supplier<T> supply;
+    protected Supplier<? extends T> supply;
     protected Deque<Supplier> dependants;
 
-    public LazyValue(Supplier<T> supply) {
+    public LazyValue(Supplier<? extends T> supply) {
         this.supply = supply;
-        conditions.add(() -> {
-            long val = loaded.get();
-            long c = Java.getNanoTime();
-//            return FastID.compare(val, c)<0;
-            return (c > val);//ensure counter always the max
-        });
+        conditions.add(now -> now > loaded.get());
 
     }
 
@@ -65,21 +60,33 @@ public class LazyValue<T> extends Value<T> {
      */
     @Override
     public T get() {
-        if (!isLoaded()) {
-            return syncGet();
+        long now = Java.getNanoTime();
+        if (!isLoadedBefore(now)) {
+            return syncGet(now);
         }
         return super.get();
     }
 
     /**
-     * check wether this LazyValue is loaded based on given conditions (must
-     * satisfy all of them)
+     * If this LazyValue is loaded based on given conditions (must satisfy all
+     * of them)
      *
      * @return
      */
     public boolean isLoaded() {
+        return isLoadedBefore(Java.getNanoTime());
+    }
+
+    /**
+     * If this LazyValue is loaded based on given conditions and given check
+     * time (must satisfy all of them)
+     *
+     * @param now check time returned by {@link Java#getNanoTime() }
+     * @return
+     */
+    public boolean isLoadedBefore(long now) {
         for (Condition check : conditions) {
-            if (check.isFalse()) {
+            if (check.isFalse(now)) {
                 return false;
             }
         }
@@ -100,14 +107,15 @@ public class LazyValue<T> extends Value<T> {
 
     /**
      *
-     * @return the ID of this value that was set, returned by internal call counter
+     * @return the ID of this value that was set, returned by internal call
+     * counter
      */
     public long getLoaded() {
         return loaded.get();
     }
 
-    protected synchronized T syncGet() {
-        if (!isLoaded()) {
+    protected synchronized T syncGet(long now) {
+        if (!isLoadedBefore(now)) {
             syncDependencies();
             return super.setAndGet(supply);
         }

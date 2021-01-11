@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  */
 public class LazyDependantValue<T> extends LazyValue<T> {
 
-    public LazyDependantValue(Supplier<T> supply) {
+    public LazyDependantValue(Supplier<? extends T> supply) {
         super(supply);
     }
 
@@ -47,7 +47,7 @@ public class LazyDependantValue<T> extends LazyValue<T> {
      */
     public <U, L extends LazyValue<U>> L createDependantChild(L child, boolean addParentInSupply) {
         LazyDependantValue<T> me = this;
-        child.addCondition(() -> me.isLoaded() && me.getLoaded() <= child.getLoaded());
+        child.addCondition(now -> me.isLoadedBefore(now)&& me.getLoaded() <= child.getLoaded());
 
         if (addParentInSupply) {
             child.addDependency(me);

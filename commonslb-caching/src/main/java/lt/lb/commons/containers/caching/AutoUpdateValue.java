@@ -1,11 +1,12 @@
 package lt.lb.commons.containers.caching;
 
-import lt.lb.commons.threads.sync.SynchronizedValueSupplier;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.values.ValueProxy;
+import lt.lb.commons.misc.NestedException;
+import lt.lb.commons.threads.sync.SynchronizedValueSupplier;
 
 /**
  *
@@ -46,19 +47,21 @@ public class AutoUpdateValue<T> implements ValueProxy<T> {
      */
     public T get(boolean forceUpdate) {
 
-        if (forceUpdate) {
-            return F.unsafeCall(() -> {
-                return suppl.getUpdate();
-            });
+        try {
+            if (forceUpdate) {
 
-        } else {
-            return F.unsafeCall(() -> {
+                return suppl.getUpdate();
+
+            } else {
                 T get = this.suppl.get();
                 this.suppl.execute();
                 return get;
-            });
 
+            }
+        } catch (InterruptedException | ExecutionException ex) {
+            throw NestedException.of(ex);
         }
+
     }
 
     /**
