@@ -694,9 +694,13 @@ public class SafeOpt<T> implements Supplier<T> {
 
     @Override
     public String toString() {
-        return val != null
-                ? String.format("SafeOpt[%s]", val)
-                : "SafeOpt.empty";
+        if (val != null) {
+            return String.format("SafeOpt[%s]", val);
+        }
+        if (threw != null) {
+            return String.format("SafeOpt.error[%s]", threw);
+        }
+        return "SafeOpt.empty";
     }
 
     public SafeOpt<Throwable> getError() {
