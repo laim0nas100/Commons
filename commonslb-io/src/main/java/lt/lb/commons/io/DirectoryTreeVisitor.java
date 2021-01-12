@@ -14,7 +14,7 @@ import lt.lb.commons.iteration.TreeVisitor;
 public interface DirectoryTreeVisitor extends TreeVisitor<Path> {
 
     @Override
-    public default ReadOnlyIterator<Path> getChildrenIterator(Path item) {
+    public default ReadOnlyIterator<Path> getChildren(Path item) {
         if (Files.isDirectory(item)) {
             return F.unsafeCall(() -> {
                 DirectoryStream<Path> newDirectoryStream = Files.newDirectoryStream(item);

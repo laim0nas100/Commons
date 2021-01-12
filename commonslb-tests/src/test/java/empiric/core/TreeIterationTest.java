@@ -142,7 +142,7 @@ public class TreeIterationTest {
 //                        .map(m -> m.get());
 //            }
             @Override
-            public ReadOnlyIterator<GNode> getChildrenIterator(GNode item) {
+            public ReadOnlyIterator<GNode> getChildren(GNode item) {
                 return ReadOnlyIterator.of(item.linksTo).map(id -> gr.getNode(id).get());
             }
         };
@@ -164,7 +164,7 @@ public class TreeIterationTest {
 //                        .map(m -> m.get());
 //            }
             @Override
-            public ReadOnlyIterator<GNode> getChildrenIterator(GNode item) {
+            public ReadOnlyIterator<GNode> getChildren(GNode item) {
                 return ReadOnlyIterator.of(item.linksTo).map(id -> gr.getNode(id).get());
             }
         };

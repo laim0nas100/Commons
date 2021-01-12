@@ -121,7 +121,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
         return TreeVisitorImpl.PostOrderIterative(this, root, Optional.ofNullable(set));
     }
 
-    public static <T> TreeVisitor<T> of(Visitor<T> visit, Function<? super T, ReadOnlyIterator<T>> childrenGetter) {
+    public static <T> TreeVisitor<T> of(Visitor<T> visit, Function<? super T, Iterable<T>> childrenGetter) {
         return new TreeVisitor<T>() {
             @Override
             public Boolean find(T item) {
@@ -129,13 +129,13 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
             }
 
             @Override
-            public ReadOnlyIterator<T> getChildrenIterator(T item) {
+            public Iterable<T> getChildren(T item) {
                 return childrenGetter.apply(item);
             }
         };
     }
 
-    public static <T> TreeVisitor<T> ofAll(Consumer<T> cons, Function<? super T, ReadOnlyIterator<T>> childrenGetter) {
+    public static <T> TreeVisitor<T> ofAll(Consumer<T> cons, Function<? super T, Iterable<T>> childrenGetter) {
         return new TreeVisitor<T>() {
             @Override
             public Boolean find(T item) {
@@ -144,7 +144,7 @@ public interface TreeVisitor<T> extends Visitor<T>, ChildrenIteratorProvider<T> 
             }
 
             @Override
-            public ReadOnlyIterator<T> getChildrenIterator(T item) {
+            public Iterable<T> getChildren(T item) {
                 return childrenGetter.apply(item);
             }
         };

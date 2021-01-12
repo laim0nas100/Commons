@@ -2,7 +2,6 @@ package lt.lb.commons.iteration;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 
 /**
@@ -17,7 +16,7 @@ public interface ChildrenIteratorProvider<T> {
      * @param item
      * @return
      */
-    public ReadOnlyIterator<T> getChildrenIterator(T item);
+    public Iterable<T> getChildren(T item);
 
     /**
      * Lazy populated iterator in breath-first search order.
@@ -100,8 +99,8 @@ public interface ChildrenIteratorProvider<T> {
             }
 
             @Override
-            public ReadOnlyIterator<T> getChildrenIterator(T item) {
-                return me.getChildrenIterator(item);
+            public Iterable<T> getChildren(T item) {
+                return me.getChildren(item);
             }
         };
     }

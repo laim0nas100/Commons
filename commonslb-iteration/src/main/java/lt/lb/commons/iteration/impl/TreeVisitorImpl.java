@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lt.lb.commons.containers.tuples.Tuple;
-import lt.lb.commons.containers.tuples.Tuples;
+import java.util.stream.StreamSupport;
 import lt.lb.commons.iteration.ChildrenIteratorProvider;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
@@ -28,7 +27,7 @@ public abstract class TreeVisitorImpl {
         if (visitor.find(root)) {
             return Optional.ofNullable(root);
         } else {
-            for (T child : visitor.getChildrenIterator(root)) {
+            for (T child : visitor.getChildren(root)) {
                 Optional<T> dfs = DFS(visitor, child, visited);
                 if (dfs.isPresent()) {
                     return dfs;
@@ -65,7 +64,7 @@ public abstract class TreeVisitorImpl {
             if (visitor.find(newRoot)) {
                 return Optional.ofNullable(newRoot);
             }
-            stack.addFirst(visitor.getChildrenIterator(newRoot));
+            stack.addFirst(ReadOnlyIterator.of(visitor.getChildren(newRoot)));
 
         }
         return Optional.empty();
@@ -82,7 +81,7 @@ public abstract class TreeVisitorImpl {
                 if (visitor.find(newRoot)) {
                     return Optional.ofNullable(newRoot);
                 }
-                nextIteration.add(visitor.getChildrenIterator(newRoot));
+                nextIteration.add(ReadOnlyIterator.of(visitor.getChildren(newRoot)));
             }
             composite = ReadOnlyIterator.composite(nextIteration);
         }
@@ -109,7 +108,7 @@ public abstract class TreeVisitorImpl {
                     throw new NoSuchElementException("No next value");
                 }
                 T next = stack.pollFirst();
-                ReadOnlyIterator<T> childrenIterator = visitor.getChildrenIterator(next);
+                Iterable<T> childrenIterator = visitor.getChildren(next);
                 for (T child : childrenIterator) {
                     if (visitedCheck(child, visited)) {
                         continue;
@@ -142,8 +141,8 @@ public abstract class TreeVisitorImpl {
                     throw new NoSuchElementException("No next value");
                 }
                 T next = stack.pollFirst();
-                List<T> collect = visitor.getChildrenIterator(next)
-                        .toStream()
+
+                List<T> collect = StreamSupport.stream(visitor.getChildren(next).spliterator(), false)
                         .filter(child -> !visitedCheck(child, visited))
                         .collect(Collectors.toList());
                 stack.addAll(0, collect);
@@ -154,12 +153,33 @@ public abstract class TreeVisitorImpl {
         return ReadOnlyIterator.of(iterator);
     }
 
+    private static class PostOrderInner<T> {
+
+        public T root;
+        public Iterator<T> iterator;
+
+        public PostOrderInner(T root, Iterable<T> iterable) {
+            this.root = root;
+            this.iterator = iterable.iterator();
+        }
+        
+        public boolean hasNext(){
+            return iterator.hasNext();
+        }
+        
+        public T next(){
+            return iterator.next();
+        }
+
+    }
+
     public static <T> ReadOnlyIterator<T> PostOrderIterator(ChildrenIteratorProvider<T> visitor, T root, Optional<Collection<T>> visited) {
         if (visitedCheck(root, visited)) {
             return ReadOnlyIterator.of();
         }
-        ArrayDeque<Tuple<T, ReadOnlyIterator<T>>> stack = new ArrayDeque<>();
-        stack.addFirst(Tuples.create(root, visitor.getChildrenIterator(root)));
+        ArrayDeque<PostOrderInner<T>> stack = new ArrayDeque<>();
+        stack.addFirst(new PostOrderInner<>(root, visitor.getChildren(root)));
+
         Iterator<T> iterator = new Iterator<T>() {
 
             @Override
@@ -170,12 +190,13 @@ public abstract class TreeVisitorImpl {
             @Override
             public T next() {
                 while (hasNext()) { // this can be very lengthy, but such is the Post-order way
-                    if (!stack.getFirst().getG2().hasNext()) { // has no more nodes, send in parent of those nodes
-                        return stack.pollFirst().g1; // the only way to correctly exit loop
+                    if (!stack.getFirst().hasNext()) { // has no more nodes, send in parent of those nodes
+                        return stack.pollFirst().root; // the only way to correctly exit loop
                     }
-                    T newRoot = stack.getFirst().getG2().getNext();
+                    
+                     T newRoot = stack.getFirst().next();
                     if (!visitedCheck(newRoot, visited)) {
-                        stack.addFirst(Tuples.create(newRoot, visitor.getChildrenIterator(newRoot)));
+                        stack.addFirst(new PostOrderInner<>(newRoot, visitor.getChildren(newRoot)));
                     }
                 }
                 throw new NoSuchElementException("No next value");
@@ -191,21 +212,22 @@ public abstract class TreeVisitorImpl {
         if (visitedCheck(root, visited)) {
             return Optional.empty();//empty, root is allready visited
         }
-        ArrayDeque<Tuple<T, ReadOnlyIterator<T>>> stack = new ArrayDeque<>();
-        stack.addFirst(Tuples.create(root, visitor.getChildrenIterator(root)));
+        
+        ArrayDeque<PostOrderInner<T>> stack = new ArrayDeque<>();
+        stack.addFirst(new PostOrderInner<>(root, visitor.getChildren(root)));
         while (!stack.isEmpty()) {
-            if (!stack.getFirst().getG2().hasNext()) { // has no more nodes, do now we send in parent of those nodes
-                Tuple<T, ReadOnlyIterator<T>> pollFirst = stack.pollFirst();
-                if (visitor.find(pollFirst.getG1())) {
-                    return Optional.ofNullable(pollFirst.getG1());
+            if (!stack.getFirst().hasNext()) { // has no more nodes, do now we send in parent of those nodes
+                PostOrderInner<T> pollFirst = stack.pollFirst();
+                if (visitor.find(pollFirst.root)) {
+                    return Optional.ofNullable(pollFirst.root);
                 }
                 continue;
             }
-            T newRoot = stack.getFirst().getG2().getNext();
+            T newRoot = stack.getFirst().next();
             if (visitedCheck(newRoot, visited)) {
                 continue;
             }
-            stack.addFirst(Tuples.create(newRoot, visitor.getChildrenIterator(newRoot)));
+            stack.addFirst(new PostOrderInner<>(newRoot, visitor.getChildren(newRoot)));
 
         }
         return Optional.empty();
@@ -215,7 +237,7 @@ public abstract class TreeVisitorImpl {
         if (visitedCheck(root, visited)) {
             return Optional.empty();
         }
-        for (T child : visitor.getChildrenIterator(root)) {
+        for (T child : visitor.getChildren(root)) {
             Optional<T> dfs = PostOrder(visitor, child, visited);
             if (dfs.isPresent()) {
                 return dfs;

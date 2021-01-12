@@ -279,7 +279,7 @@ public class NestedFileWatch {
             }
 
             @Override
-            public ReadOnlyIterator<NestedFileWatch> getChildrenIterator(NestedFileWatch parent) {
+            public ReadOnlyIterator<NestedFileWatch> getChildren(NestedFileWatch parent) {
                 try {
                     return parent.collectFolders(collect).map(folder -> {
                         NestedFileWatch nestedFileWatch = createNew(folder);

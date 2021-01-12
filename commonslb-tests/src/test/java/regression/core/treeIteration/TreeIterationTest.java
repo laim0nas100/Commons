@@ -25,9 +25,8 @@ public class TreeIterationTest {
     }
 
     public TreeVisitor<GNode> nodeCollector(Orgraph graph, List<Integer> ids) {
-        return TreeVisitor.ofAll(
-                item -> ids.add((int) item.ID),
-                makeChildrenIterator(graph)::getChildrenIterator
+        return TreeVisitor.ofAll(item -> ids.add((int) item.ID),
+                makeChildrenIterator(graph)::getChildren
         );
     }
 
