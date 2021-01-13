@@ -1,6 +1,5 @@
 package lt.lb.commons.threads.sync;
 
-import lt.lb.commons.threads.executors.layers.BoundedNestedTaskExecutorLayer;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -9,9 +8,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
 import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.threads.executors.layers.BoundedNestedTaskExecutorLayer;
 
 /**
  *
@@ -20,6 +21,12 @@ import lt.lb.commons.func.unchecked.UnsafeRunnable;
 public class EventQueue {
     
     private Executor nested;
+    public boolean preventSelfTagCancel = true;
+    private ConcurrentLinkedDeque<Event> running = new ConcurrentLinkedDeque<>();
+    public Consumer<Event> eventCallbackBefore = ev -> {
+    };
+    public Consumer<Event> eventCallbackAfter = ev -> {
+    };
     
     private int autoCleanUpAfter = 100;
     
@@ -29,25 +36,36 @@ public class EventQueue {
     
     public static final String defaultTag = "DEFAULT";
     
-    private static class Event extends FutureTask<Void> {
+    public static class Event extends FutureTask<Void> {
         
-        public String tag = "DEFAULT";
+        public final String tag;
+        public final EventQueue queue;
         
-        public Event(Callable call, String tag) {
+        public Event(EventQueue q, Callable call, String tag) {
             super(call);
+            this.queue = q;
             this.tag = tag;
         }
         
-        public Event(Runnable run, String tag) {
-            this(Executors.callable(run), tag);
+        public Event(EventQueue q, Runnable run, String tag) {
+            this(q, Executors.callable(run), tag);
         }
         
-        public Event(UnsafeRunnable run, String tag) {
-            this(UnsafeRunnable.toCallable(run), tag);
+        public Event(EventQueue q, UnsafeRunnable run, String tag) {
+            this(q, UnsafeRunnable.toCallable(run), tag);
         }
         
+        @Override
         public void run() {
+            queue.running.add(this);
+            F.checkedRun(() -> {
+                queue.eventCallbackBefore.accept(this);
+            });
             super.run();
+            F.checkedRun(() -> {
+                queue.eventCallbackAfter.accept(this);
+            });
+            queue.running.remove(this);
         }
     }
     
@@ -68,15 +86,15 @@ public class EventQueue {
     }
     
     public Future add(String tag, UnsafeRunnable run) {
-        return add(new Event(run, tag));
+        return add(new Event(this, run, tag));
     }
     
     public Future add(String tag, Runnable run) {
-        return add(new Event(run, tag));
+        return add(new Event(this, run, tag));
     }
     
     public Future add(String tag, Callable run) {
-        return add(new Event(run, tag));
+        return add(new Event(this, run, tag));
     }
     
     private AtomicInteger ai = new AtomicInteger(1);
@@ -90,9 +108,9 @@ public class EventQueue {
         if (ai.getAndIncrement() % autoCleanUpAfter == 0) {
             ai.set(1);
             Iterator<Event> iterator = events.iterator();
-            while(iterator.hasNext()){
+            while (iterator.hasNext()) {
                 Event next = iterator.next();
-                if(next.isDone()){
+                if (next.isDone()) {
                     iterator.remove();
                 }
             }
@@ -115,11 +133,23 @@ public class EventQueue {
         this.cancelAll(false, tags);
     }
     
+    private boolean runningContainsTag(String... tags) {
+        for (Event ev : running) {
+            if (containsAny(tags).test(ev)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public void cancelAll(boolean interupt, String... tags) {
         Iterator<Event> it = events.iterator();
         Predicate<Event> containsAny = containsAny(tags);
         while (it.hasNext()) {
             Event next = it.next();
+            if (preventSelfTagCancel && runningContainsTag(tags)) {
+                continue;
+            }
             if (containsAny.test(next)) {
                 next.cancel(interupt);
                 it.remove();
@@ -127,7 +157,7 @@ public class EventQueue {
         }
     }
     
-    public void forceShutdown(){
+    public void forceShutdown() {
         shutdown = true;
         events.forEach(ev -> {
             ev.cancel(true);

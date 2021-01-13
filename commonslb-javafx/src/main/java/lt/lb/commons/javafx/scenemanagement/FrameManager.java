@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
 import lt.lb.commons.Ins;
-import lt.lb.commons.javafx.scenemanagement.frameloading.StageFrameLoad;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorator;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameState;
 import lt.lb.commons.javafx.scenemanagement.frames.Util;
@@ -52,7 +51,10 @@ public interface FrameManager {
             }
         }
     }
-    
+
+    public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor) {
+        return newStageFrame(title, constructor, Util.emptyConsumer);
+    }
 
     public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
         try {
@@ -70,8 +72,8 @@ public interface FrameManager {
         return Util.newFxmlFrame(getFrameMap(), this, resource, ID, title, Util.emptyConsumer);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title, Consumer<T> cons) throws FrameException {
-        return Util.newFxmlFrame(getFrameMap(), this, resource, ID, title, cons);
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title, Consumer<T> decorator) throws FrameException {
+        return Util.newFxmlFrame(getFrameMap(), this, resource, ID, title, decorator);
     }
 
     public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title, Consumer<T> decorator) throws FrameException {
