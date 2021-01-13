@@ -9,11 +9,7 @@
         <groupId>lt.lb.commons</groupId>
         <artifactId>Commons</artifactId>
         <version>local-jar</version>
-        
     </parent>
-    <properties>
-        <javafx.version>11</javafx.version>
-    </properties>
     <dependencies>
         
         <dependency>
@@ -58,54 +54,60 @@
     
     <profiles>
         <profile>
-            <id>java11+</id>
+            <id>java8compat</id>
+        </profile>
+        <profile>
+            <!--Current LTS-->
+            <id>java11compat</id>
             <activation>
-                <property>
-                    <name>!java8compat</name>
-                </property>
+                <activeByDefault>true</activeByDefault>
             </activation>
-            <build>
-                
-            </build>
             <dependencies>
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-base</artifactId>
-                    <version>${javafx.version}</version>
+                    <version>11</version>
                 </dependency>
-        
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-controls</artifactId>
-                    <version>${javafx.version}</version>
+                    <version>11</version>
                 </dependency>
-        
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-fxml</artifactId>
-                    <version>${javafx.version}</version>
+                    <version>11</version>
                 </dependency>
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-swing</artifactId>
-                    <version>${javafx.version}</version>
+                    <version>11</version>
                 </dependency>
-
-
-
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-graphics</artifactId>
-                    <version>${javafx.version}</version>
+                    <version>11</version>
                 </dependency>
         
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-web</artifactId>
-                    <version>${javafx.version}</version>
+                    <version>11</version>
                 </dependency>
             </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <configuration>
+                            <source>${javafx.compat.version}</source>
+                            <target>${javafx.compat.version}</target>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
-        
     </profiles>    
 </project>

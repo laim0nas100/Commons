@@ -8,6 +8,7 @@
                 <goal>1C</goal>
                 <goal>clean</goal>
                 <goal>install</goal>
+                <goal>help:active-profiles</goal>
             </goals>
         </action>
         <action>
@@ -31,18 +32,6 @@
                 <goal>install</goal>
                 <goal>-U</goal>
                 <goal>-DskipTests</goal>
-            </goals>
-        </action>
-         <action>
-            <actionName>CUSTOM-clean install update java 8</actionName>
-            <displayName>clean install update java 8</displayName>
-            <goals>
-                <goal>-T</goal>
-                <goal>1C</goal>
-                <goal>clean</goal>
-                <goal>install</goal>
-                <goal>-U</goal>
-                <goal>-Djava8compat</goal>
             </goals>
         </action>
     </actions>

@@ -11,7 +11,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <apache.commons.version>3.9</apache.commons.version>
-
+        <javafx.compat.version>1.8</javafx.compat.version>
     </properties>
     <name>CommonsLB</name>
     <modules>
@@ -40,6 +40,30 @@
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
+    
+    <profiles>
+        <profile>
+            <id>java8compat</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <javafx.compat.version>1.8</javafx.compat.version>
+            </properties>
+        </profile>
+        <!--Current LTS-->
+        <profile>
+            <id>java11compat</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <javafx.compat.version>11</javafx.compat.version>
+            </properties>
+        </profile>
+    </profiles>
+    
+    
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -206,11 +230,15 @@
     </dependencyManagement>
     <build>
         <plugins>
-            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+                <version>3.2.0</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
