@@ -53,12 +53,12 @@
         </profile>
         <!--Current LTS-->
         <profile>
-            <id>java11compat</id>
+            <id>javaLTS</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <javafx.compat.version>11</javafx.compat.version>
+                <javafx.compat.version>15</javafx.compat.version>
             </properties>
         </profile>
     </profiles>

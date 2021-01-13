@@ -58,7 +58,7 @@
         </profile>
         <profile>
             <!--Current LTS-->
-            <id>java11compat</id>
+            <id>javaLTS</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -66,48 +66,35 @@
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-base</artifactId>
-                    <version>11</version>
+                    <version>${javafx.compat.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-controls</artifactId>
-                    <version>11</version>
+                    <version>${javafx.compat.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-fxml</artifactId>
-                    <version>11</version>
+                    <version>${javafx.compat.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-swing</artifactId>
-                    <version>11</version>
+                    <version>${javafx.compat.version}</version>
                 </dependency>
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-graphics</artifactId>
-                    <version>11</version>
+                    <version>${javafx.compat.version}</version>
                 </dependency>
         
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-web</artifactId>
-                    <version>11</version>
+                    <version>${javafx.compat.version}</version>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.8.1</version>
-                        <configuration>
-                            <source>${javafx.compat.version}</source>
-                            <target>${javafx.compat.version}</target>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>    
 </project>
