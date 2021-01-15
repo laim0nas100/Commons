@@ -14,29 +14,35 @@ import lt.lb.commons.Java;
 public class ServiceTimeoutTask<V> {
 
     protected final LinkedList<Runnable> onUpdate = new LinkedList<>();
-    protected final WaitTime time;
+    protected final WaitTime timeToWait;
+    protected final AtomicLong timedRequests = new AtomicLong(0);
     protected final AtomicLong requests = new AtomicLong(0);
+    protected final long maxRequestsBeforeExecute;
     protected final Runnable decrementer;
     protected final Callable<V> call;
     protected final AtomicLong lastCompleted = new AtomicLong(Long.MIN_VALUE);
-
     protected ScheduledExecutorService service;
     protected Executor exe;
 
     /**
      *
      * @param service service to manage calls
-     * @param time how long until a timeout
+     * @param timeToWait how long to wait
+     * @param maxRequestsBeforeExecute max possible requests in total before
+     * commiting an execute
      * @param call Task to execute after timer reaches zero
      * @param exe executor that executes tasks
      */
-    public ServiceTimeoutTask(ScheduledExecutorService service, WaitTime time, Callable<V> call, Executor exe) {
+    public ServiceTimeoutTask(ScheduledExecutorService service, WaitTime timeToWait, long maxRequestsBeforeExecute, Callable<V> call, Executor exe) {
         this.service = service;
         this.exe = exe;
-        this.time = time;
+        this.timeToWait = timeToWait;
         this.call = call;
+        this.maxRequestsBeforeExecute = maxRequestsBeforeExecute;
         decrementer = () -> {
             if (onTimeoutArrive()) {
+                executeNow();
+            } else if (maxRequestsBeforeExecute <= requests.get()) {
                 executeNow();
             }
             cleanup();
@@ -51,9 +57,9 @@ public class ServiceTimeoutTask<V> {
         for (Runnable r : this.onUpdate) {
             r.run();
         }
+        timedRequests.incrementAndGet();
         requests.incrementAndGet();
-
-        service.schedule(decrementer, time.time, time.unit);
+        service.schedule(decrementer, timeToWait.time, timeToWait.unit);
     }
 
     public void addOnUpdate(Runnable run) {
@@ -61,7 +67,7 @@ public class ServiceTimeoutTask<V> {
     }
 
     protected boolean onTimeoutArrive() {
-        return requests.decrementAndGet() == 0;
+        return timedRequests.decrementAndGet() == 0;
     }
 
     protected void cleanup() {
