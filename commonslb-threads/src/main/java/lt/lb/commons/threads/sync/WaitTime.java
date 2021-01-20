@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
  * Convenient class to group TimeUnit and long for concurrent waiting.
  *
  * @author laim0nas100
@@ -45,6 +44,10 @@ public class WaitTime {
 
     public WaitTime subtract(WaitTime other) {
         return WaitTime.subtract(this, other);
+    }
+
+    public static WaitTime of(long time, TimeUnit unit) {
+        return new WaitTime(time, unit);
     }
 
     public static WaitTime ofNanos(long time) {

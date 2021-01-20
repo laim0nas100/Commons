@@ -20,8 +20,36 @@ public class ThreadBoundedState {
     private static class StateInfo {
 
         String name;
-        int threadBound;
+        volatile int threadBound;
         AtomicInteger threadCount = new AtomicInteger(0);
+
+        boolean tryEnter() {
+            if (threadBound < 0) { // unlimited
+                threadCount.incrementAndGet();
+                return true;
+            }
+            if (threadCount.incrementAndGet() > threadBound) {
+                threadCount.decrementAndGet();
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        boolean tryExit() {
+            if (threadBound < 0) {
+                threadCount.decrementAndGet();
+                return true;
+            }
+
+            if (threadCount.decrementAndGet() < 0) {
+                threadCount.incrementAndGet();
+                return false;
+            } else {
+                return true;
+            }
+        }
+
     }
 
     private volatile StateInfo[] states;
@@ -29,8 +57,7 @@ public class ThreadBoundedState {
     /**
      *
      * @param stateCount number of states starting from 0
-     * @param maxThreads number of threads. if less or equal to 0, then
-     * unbounded
+     * @param maxThreads number of threads. if less than 0, then unbounded
      */
     public ThreadBoundedState(int stateCount, int maxThreads) {
         states = new StateInfo[stateCount];
@@ -56,10 +83,10 @@ public class ThreadBoundedState {
         }
         states[stateIndex].name = alias;
     }
-    private static final StreamMapperEnder<StateInfo, StateInfo, Long> stateInfoMapper = 
-            new StreamDecorator<StateInfo>()
-            .apply(StreamMappers.distinct(Equator.valueEquator(st -> st.name)))
-            .count();
+    private static final StreamMapperEnder<StateInfo, StateInfo, Long> stateInfoMapper
+            = new StreamDecorator<StateInfo>()
+                    .apply(StreamMappers.distinct(Equator.valueEquator(st -> st.name)))
+                    .count();
 
     /**
      * set thread bound of a state
@@ -98,7 +125,7 @@ public class ThreadBoundedState {
      * @return
      */
     public boolean enter(String stateName) {
-        return enter(this.nameToIndex(stateName));
+        return enter(nameToIndex(stateName));
     }
 
     /**
@@ -108,7 +135,7 @@ public class ThreadBoundedState {
      * @return
      */
     public boolean exit(String stateName) {
-        return exit(this.nameToIndex(stateName));
+        return exit(nameToIndex(stateName));
     }
 
     /**
@@ -130,16 +157,7 @@ public class ThreadBoundedState {
      */
     public boolean enter(int state) {
         StateInfo st = states[state];
-        if (st.threadBound <= 0) {
-            st.threadCount.incrementAndGet();
-            return true;
-        }
-        if (st.threadCount.incrementAndGet() > st.threadBound) {
-            st.threadCount.decrementAndGet();
-            return false;
-        } else {
-            return true;
-        }
+        return st.tryEnter();
     }
 
     /**
@@ -150,17 +168,7 @@ public class ThreadBoundedState {
      */
     public boolean exit(int state) {
         StateInfo st = states[state];
-        if (st.threadBound <= 0) {
-            st.threadCount.decrementAndGet();
-            return true;
-        }
-
-        if (st.threadCount.decrementAndGet() < 0) {
-            st.threadCount.incrementAndGet();
-            return false;
-        } else {
-            return true;
-        }
+        return st.tryExit();
     }
 
     /**
@@ -178,44 +186,18 @@ public class ThreadBoundedState {
         StateInfo stateFrom = states[from];
         StateInfo stateTo = states[to];
 
-        boolean success = false;
-
-        boolean noBound1 = stateTo.threadBound <= 0;
-        boolean noBound2 = stateFrom.threadBound <= 0;
-
-        if (!noBound1) {
-            if (stateTo.threadCount.incrementAndGet() > stateTo.threadBound) {
-                stateTo.threadCount.decrementAndGet();
-
-            } else {
-                success = true;
-            }
-
-        } else { // we can't fail
-            stateTo.threadCount.incrementAndGet();
-            success = true;
-        }
-        if (!success) { // nothing to revert just yet
+        if (!stateTo.tryEnter()) {
             return false;
         }
 
-        //successfully modified stateTo
-        if (!noBound2) {
-            if (stateFrom.threadCount.decrementAndGet() < 0) {
-                stateFrom.threadCount.incrementAndGet();
-                // failed, revert
-                stateTo.threadCount.decrementAndGet();
-                success = false;
-            } else {
-                success = true;
-            }
+        //entered stateTo, now to exit stateFrom
+        if (stateFrom.tryExit()) {
+            return true;
         } else {
-            stateFrom.threadCount.decrementAndGet();
-            success = true;
+            //clean up stateTo
+            stateTo.threadCount.decrementAndGet();
+            return false;
         }
-
-        return success;
-
     }
 
     /**
