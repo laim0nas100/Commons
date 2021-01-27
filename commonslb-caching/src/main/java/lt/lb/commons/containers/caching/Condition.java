@@ -1,6 +1,5 @@
 package lt.lb.commons.containers.caching;
 
-
 /**
  *
  * boolean primitive condition check.
@@ -14,6 +13,17 @@ public interface Condition {
 
     public default boolean isFalse(long now) {
         return !isTrue(now);
+    }
+
+    /**
+     * Ensure that the first value is always loaded before second value.
+     *
+     * @param first
+     * @param second
+     * @return
+     */
+    public static Condition ensureLoadOrder(LazyValue first, LazyValue second) {
+        return now -> first.isLoadedBefore(now) && first.getLoaded() <= second.getLoaded();
     }
 
 }

@@ -1,13 +1,14 @@
 package lt.lb.commons.containers.caching;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import lt.lb.commons.containers.values.Value;
 
 /**
  *
- * @author laim0nas100
- *
- * LazyValue, but with dependant connections
+ * {@inheritDoc}
+ * {@link LazyValue} with dependant connections.
  */
 public class LazyDependantValue<T> extends LazyValue<T> {
 
@@ -46,11 +47,10 @@ public class LazyDependantValue<T> extends LazyValue<T> {
      * @return
      */
     public <U, L extends LazyValue<U>> L createDependantChild(L child, boolean addParentInSupply) {
-        LazyDependantValue<T> me = this;
-        child.addCondition(now -> me.isLoadedBefore(now)&& me.getLoaded() <= child.getLoaded());
+        child.addCondition(Condition.ensureLoadOrder(this, child));
 
         if (addParentInSupply) {
-            child.addDependency(me);
+            child.addDependency(this);
         }
         return child;
     }
@@ -66,6 +66,41 @@ public class LazyDependantValue<T> extends LazyValue<T> {
         LazyDependantValue<T> me = this;
         LazyDependantValue<U> lazyDepVal = new LazyDependantValue<>(() -> mapper.apply(me.get()));
         return createDependantChild(lazyDepVal, false);
+    }
+
+    /**
+     * Create explicit mapping that updates child when parent is updated. Also
+     * can decide how to update value based on currently held one.
+     *
+     * @param <U>
+     * @param startingValue
+     * @param mapper
+     * @return
+     */
+    public <U> LazyDependantValue<U> map(U startingValue, BiFunction<U, ? super T, ? extends U> mapper) {
+        LazyDependantValue<T> me = this;
+        Value<U> savedValue = new Value<>(startingValue);
+        LazyDependantValue<U> child = new LazyDependantValue<>(savedValue);
+        child.addCondition(Condition.ensureLoadOrder(me, child));
+        child.addDependency(() -> {
+            U apply = mapper.apply(savedValue.get(), me.get());
+            savedValue.set(apply);
+            return apply;
+        });
+        return child;
+    }
+
+    /**
+     * Create explicit mapping that updates child when parent is updated. Also
+     * can decide how to update value based on currently held one. Starting
+     * value is null.
+     *
+     * @param <U>
+     * @param mapper
+     * @return
+     */
+    public <U> LazyDependantValue<U> map(BiFunction<U, ? super T, ? extends U> mapper) {
+        return map(null, mapper);
     }
 
 }
