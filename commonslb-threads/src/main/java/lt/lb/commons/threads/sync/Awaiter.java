@@ -1,6 +1,6 @@
 package lt.lb.commons.threads.sync;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +23,7 @@ public interface Awaiter {
      * @throws InterruptedException if the current thread was interrupted while
      * waiting
      */
-    void await() throws InterruptedException, ExecutionException;
+    void await() throws InterruptedException, CancellationException, ExecutionException;
 
     /**
      * Waits if necessary for at most the given time for the computation to
@@ -38,7 +38,7 @@ public interface Awaiter {
      * @throws TimeoutException if the wait timed out
      */
     void await(long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException;
+            throws InterruptedException, CancellationException, ExecutionException, TimeoutException;
 
     /**
      * Creates simple {@link Awaiter} from given future.
