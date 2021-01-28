@@ -1,6 +1,5 @@
 package lt.lb.commons.iteration.general.impl;
 
-import java.util.Optional;
 import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.general.IterationAbstract;

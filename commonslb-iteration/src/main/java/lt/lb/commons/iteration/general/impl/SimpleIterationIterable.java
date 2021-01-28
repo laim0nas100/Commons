@@ -85,7 +85,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
             // just iterate through the last elements
             for (T res : lastBuffer) {
                 SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(lastIndex, res, iter);
-                if (tryVisit.isPresent()) {
+                if (tryVisit.hasValueOrError()) {
                     return tryVisit;
                 }
                 lastIndex++;
@@ -111,7 +111,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
                 }
 
                 SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(index, next, iter);
-                if (tryVisit.isPresent()) {
+                if (tryVisit.hasValueOrError()) {
                     return tryVisit;
                 }
 
@@ -134,7 +134,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
             T next = iterator.previous();
 
             SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(to, next, iter);
-            if (tryVisit.isPresent()) {
+            if (tryVisit.hasValueOrError()) {
                 return tryVisit;
             }
             to--;
@@ -188,7 +188,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
         IterIterableAccessor accessor = resolveAccessor(iter);
         for (int i = to - 1; i >= from; i--) {
             SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(i, array[i], iter);
-            if (tryVisit.isPresent()) {
+            if (tryVisit.hasValueOrError()) {
                 return tryVisit;
             }
         }
@@ -204,7 +204,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
         IterIterableAccessor accessor = resolveAccessor(iter);
         for (int i = from; i < to; i++) {
             SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(i, array[i], iter);
-            if (tryVisit.isPresent()) {
+            if (tryVisit.hasValueOrError()) {
                 return tryVisit;
             }
         }
@@ -229,7 +229,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
             T next = iterator.next();
 
             SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(from, next, iter);
-            if (tryVisit.isPresent()) {
+            if (tryVisit.hasValueOrError()) {
                 return tryVisit;
             }
             from++;
@@ -259,7 +259,7 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
             }
 
             SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(index, next, iter);
-            if (tryVisit.isPresent()) {
+            if (tryVisit.hasValueOrError()) {
                 return tryVisit;
             }
         }
