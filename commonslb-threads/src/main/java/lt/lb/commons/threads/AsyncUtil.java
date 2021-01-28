@@ -77,9 +77,10 @@ public abstract class AsyncUtil {
     /**
      * Update atomic reference, atomically. If current value is null, the use
      * the creator {@link Supplier}, else use the updater {@link Function}. If
-     * setting the reference was successful, then do nothing and return
-     * {@code true}, else invoke updateCleanup {@link Consumer} with the newly
-     * created value that was not set and return {@code false}.
+     * setting the reference was successful and the newly set reference is
+     * different that previous, then do nothing and return {@code true}, else
+     * invoke updateCleanup {@link Consumer} with the newly created value that
+     * was not set and return {@code false}.
      *
      * @param <T>
      * @param reference
@@ -93,7 +94,7 @@ public abstract class AsyncUtil {
         if (oldRef == null) {
             T newRef = creator.get();
             if (reference.compareAndSet(oldRef, newRef)) {
-                return true;
+                return newRef != oldRef;
             } else {
                 updateCleanup.accept(newRef);
                 return false;
@@ -101,7 +102,7 @@ public abstract class AsyncUtil {
         } else {
             T newRef = updater.apply(oldRef);
             if (reference.compareAndSet(oldRef, newRef)) {
-                return true;
+                return newRef != oldRef;
             } else {
                 updateCleanup.accept(newRef);
                 return false;
@@ -125,9 +126,10 @@ public abstract class AsyncUtil {
     /**
      * Update atomic reference, atomically. If current value is null, the use
      * the creator {@link IOSupplier}, else use the updater {@link IOFunction}.
-     * If setting the reference was successful, then do nothing and return
-     * {@code true}, otherwise invoke {@link Closeable#close()} with the newly
-     * created value that was not set and return {@code false}.
+     * If setting the reference was successful and the newly set reference is
+     * different that previous, then do nothing and return {@code true},
+     * otherwise invoke {@link Closeable#close()} with the newly created value
+     * that was not set and return {@code false}.
      *
      * @param <T>
      * @param reference
@@ -141,7 +143,7 @@ public abstract class AsyncUtil {
         if (oldRef == null) {
             T newRef = creator.get();
             if (reference.compareAndSet(oldRef, newRef)) {
-                return true;
+                return oldRef != newRef;
             } else {
                 newRef.close();
                 return false;
@@ -149,7 +151,7 @@ public abstract class AsyncUtil {
         } else {
             T newRef = updater.apply(oldRef);
             if (reference.compareAndSet(oldRef, newRef)) {
-                return true;
+                return oldRef != newRef;
             } else {
                 newRef.close();
                 return false;
