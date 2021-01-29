@@ -612,7 +612,7 @@ public class SafeOpt<T> implements Supplier<T> {
     public <Ex extends Throwable> T throwIfErrorOrGet(Class<Ex> type) throws Ex {
         if (threw != null) {
             Throwable t = NestedException.unwrap(threw);
-            if (Ins.ofNullable(threw).instanceOf(type)) {
+            if (Ins.ofNullable(t).instanceOf(type)) {
                 throw (Ex) t;
             }
         }
@@ -646,7 +646,7 @@ public class SafeOpt<T> implements Supplier<T> {
     public <Ex extends Throwable> SafeOpt<T> throwIfError(Class<Ex> type) throws Ex {
         if (threw != null) {
             Throwable t = NestedException.unwrap(threw);
-            if (Ins.ofNullable(threw).instanceOf(type)) {
+            if (Ins.ofNullable(t).instanceOf(type)) {
                 throw (Ex) t;
             }
         }
