@@ -24,6 +24,10 @@
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-collections</artifactId>
+        </dependency>
     </dependencies>
     
 </project>
