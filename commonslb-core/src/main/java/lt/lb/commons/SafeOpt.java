@@ -16,10 +16,14 @@ import lt.lb.commons.misc.NestedException;
 
 /**
  *
- * @author laim0nas100
- *
  * {@code Optional} equivalent and in-place replacement, but with exception
  * capturing mapping.
+ *
+ * The main idea is to do any exception-throwing operation safely, without being
+ * bombarded with exceptions. After all is set and done, do the exception
+ * handling if need be.
+ *
+ * @author laim0nas100
  */
 public class SafeOpt<T> implements Supplier<T> {
 
@@ -100,18 +104,19 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
-     * Returns an empty {@code SafeOpt} instance with given error.
+     * Returns an empty {@code SafeOpt} instance with given error. Error must be
+     * provided.
      *
      * @param <T> Type of the non-existent value
      * @param error
      * @return an empty {@code SafeOpt} with an error.
      */
-    public static <T> SafeOpt<T> empty(Throwable error) {
+    public static <T> SafeOpt<T> error(Throwable error) {
         return new SafeOpt<>(null, Objects.requireNonNull(error));
     }
 
     private static <T> SafeOpt<T> errorOrEmpty(Throwable error) {
-        return new SafeOpt<>(null, error);
+        return error == null ? empty() : new SafeOpt<>(null, error);
     }
 
     /**
@@ -535,7 +540,8 @@ public class SafeOpt<T> implements Supplier<T> {
 
     /**
      * If a value is present in this {@code SafeOpt}, returns the value,
-     * otherwise throws {@code NoSuchElementException}.
+     * otherwise throws {@code NoSuchElementException}. Also, throws any caught
+     * exception wrapped in {@link NestedException}.
      *
      * @return the non-null value held by this {@code Optional}
      * @throws NoSuchElementException if there is no value present
@@ -547,6 +553,7 @@ public class SafeOpt<T> implements Supplier<T> {
         if (isPresent()) {
             return val;
         }
+        throwIfErrorNested();
         throw new NoSuchElementException("No value present");
     }
 
