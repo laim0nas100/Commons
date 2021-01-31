@@ -63,64 +63,51 @@
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-io</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-collections</artifactId>
-            <scope>test</scope>
         </dependency>
         
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-lexing</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-graphtheory</artifactId>
-            <version>local-jar</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>uk.com.robust-it</groupId>
             <artifactId>cloning</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-reflection</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-refmodel</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-email</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-log</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-caching</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-threads</artifactId>
-             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-datasync</artifactId>
-             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

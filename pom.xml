@@ -158,6 +158,12 @@
             </dependency>
             
             <dependency>
+                <groupId>lt.lb.commons</groupId>
+                <artifactId>commonslb-graphtheory</artifactId>
+                <version>${project.production.version}</version>
+            </dependency>
+            
+            <dependency>
                 <groupId>com.github.laim0nas100</groupId>
                 <artifactId>FastID</artifactId>
                 <version>1.0.1</version>
