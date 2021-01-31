@@ -55,7 +55,7 @@ public class NumberValueTest {
         
         
         
-        F.unsafeRun(()->{
+        F.uncheckedRun(()->{
             Log.await(1, TimeUnit.HOURS);
         });
         

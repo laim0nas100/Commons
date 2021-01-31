@@ -138,7 +138,7 @@ public class WekaParser<T> {
         }
         For.elements().iterate(attributes, (i, f) -> {
             if (!StringOp.equals("?", f)) { // leave null otherwise
-                F.unsafeRun(() -> {
+                F.uncheckedRun(() -> {
                     Field field = fields.get(i);
                     WekaTransformer wek = this.ensureWekaPrinter(field.getType());
                     field.set(newInstance, wek.asObject(f));
@@ -163,7 +163,7 @@ public class WekaParser<T> {
         For.elements().iterate(col, (i, item) -> {
             String[] param = new String[fields.size()];
             For.elements().iterate(fields, (j, f) -> {
-                F.unsafeRun(() -> {
+                F.uncheckedRun(() -> {
                     param[j] = wekaAttributePrint(f.get(item));
                 });
             });

@@ -64,7 +64,7 @@ public class ProxyTest {
 
         Log.print(proxyMap.get("key1"));
         
-        F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
+        F.uncheckedRun(() -> Log.await(1, TimeUnit.HOURS));
 
     }
 

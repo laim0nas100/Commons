@@ -24,7 +24,7 @@ public class NestingIterationTest {
     public void test() {
         RandomDistribution rng = RandomDistribution.uniform(new Random());
         Integer bound = 10;
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             int[] sizes = new int[bound];
             ArrayList<IterProvider<Integer>> list = new ArrayList<>();
             for (int i = 0; i < bound; i++) {
@@ -39,7 +39,7 @@ public class NestingIterationTest {
 
         });
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ArrayList<Iterator<Integer>> list = new ArrayList<>();
             int[] sizes = new int[bound];
             for (int i = 0; i < bound; i++) {

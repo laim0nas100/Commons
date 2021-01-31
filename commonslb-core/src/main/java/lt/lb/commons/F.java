@@ -6,9 +6,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.func.unchecked.UncheckedRunnable;
 import lt.lb.commons.func.unchecked.UncheckedSupplier;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -98,7 +98,7 @@ public class F {
      * @param r
      * @throws NestedException
      */
-    public static void unsafeRun(UncheckedRunnable r) throws NestedException {
+    public static void uncheckedRun(UncheckedRunnable r) throws NestedException {
         try {
             r.uncheckedRun();
         } catch (Throwable e) {
@@ -114,7 +114,7 @@ public class F {
      * @return
      * @throws NestedException
      */
-    public static <T> T unsafeCall(UncheckedSupplier<T> call) throws NestedException {
+    public static <T> T uncheckedCall(UncheckedSupplier<T> call) throws NestedException {
         try {
             return call.uncheckedGet();
         } catch (Throwable e) {
@@ -128,7 +128,7 @@ public class F {
      * @param cons
      * @param run
      */
-    public static void unsafeRunWithHandler(Consumer<Throwable> cons, UncheckedRunnable run) {
+    public static void uncheckedRunWithHandler(Consumer<Throwable> cons, UncheckedRunnable run) {
         try {
             run.uncheckedRun();
         } catch (Throwable e) {
@@ -144,7 +144,7 @@ public class F {
      * @param call
      * @return result or {@code null} if exception was thrown
      */
-    public static <T> T unsafeCallWithHandler(Consumer<Throwable> cons, UncheckedSupplier<T> call) {
+    public static <T> T uncheckedCallWithHandler(Consumer<Throwable> cons, UncheckedSupplier<T> call) {
         try {
             return call.uncheckedGet();
         } catch (Throwable e) {

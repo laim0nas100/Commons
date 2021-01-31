@@ -52,7 +52,7 @@ public class ListTest {
             Object get1 = testing.get(i);
             this.assertEquals(i, l1, testing, get, get1);
         }
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ListIterator listIterator = l1.listIterator();
             ListIterator listIterator1 = testing.listIterator();
             int i = 0;
@@ -63,7 +63,7 @@ public class ListTest {
             }
         });
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ListIterator listIterator = l1.listIterator(size);
             ListIterator listIterator1 = testing.listIterator(size);
             int i = 0;

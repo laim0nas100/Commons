@@ -110,7 +110,7 @@ public class JavaMailTest {
         HashSet<String> ids = new HashSet<>();
         channels.errorChannel = errChannel;
         channels.inputChannel = (m -> {
-            F.unsafeRunWithHandler(errChannel, () -> {
+            F.uncheckedRunWithHandler(errChannel, () -> {
                 if (ids.contains(m.getMessageID())) {
                     return;
                 } else {
@@ -166,7 +166,7 @@ public class JavaMailTest {
         }, TimeUnit.SECONDS, 3);
 
         while (true) {
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
                 Thread.sleep(1000);
             });
         }
@@ -308,7 +308,7 @@ public class JavaMailTest {
 
     public EmailAttributes emailParser(Path file, boolean toMark) {
         Value<EmailAttributes> val = new Value<>();
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ArrayList<String> content = TextFileIO.readFromFile(file.toString());
             EmailAttributes em = new EmailAttributes();
             val.set(em);

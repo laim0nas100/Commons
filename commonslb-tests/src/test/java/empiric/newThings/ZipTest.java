@@ -44,7 +44,7 @@ public class ZipTest {
 
             For.elements().iterate(list, (i, entry) -> {
 
-                F.unsafeRun(() -> {
+                F.uncheckedRun(() -> {
 //                    ZipFile newZip = new ZipFile(Paths.get(zipboi).toFile());
                     InputStream inputStream = zip.getInputStream(entry);
                     
@@ -69,7 +69,7 @@ public class ZipTest {
         b.executeBench(16, "My boi", () -> {
             Blobbys load = Blobbys.loadFromConfig(ReadOnlyIterator.of(TextFileIO.readFromFile("E:\\DS_DATA.comp.list.txt")));
 
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
                     FileInputStream is = new FileInputStream("E:\\DS_DATA.comp");
                     load.loadAll(Bytes.readFromSeekableByteChannel(is.getChannel()));
                     is.close();

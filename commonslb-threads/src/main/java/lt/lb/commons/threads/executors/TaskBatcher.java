@@ -159,7 +159,7 @@ public class TaskBatcher implements Executor {
             this.waitingTask = new FutureTask<>(call);
 
         }
-        return F.unsafeCall(() -> {
+        return F.uncheckedCall(() -> {
             waitingTask.run();
             return waitingTask.get();
         });

@@ -359,7 +359,7 @@ public class ListBench {
                 throw new IllegalStateException("Not equal at index " + i + " list1:" + l1.get(i) + " list2:" + l2.get(i));
             }
         }
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ListIterator listIterator = l1.listIterator();
             ListIterator listIterator1 = l2.listIterator();
             int i = 0;
@@ -372,7 +372,7 @@ public class ListBench {
             }
         });
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ListIterator listIterator = l1.listIterator(size);
             ListIterator listIterator1 = l2.listIterator(size);
             int i = 0;

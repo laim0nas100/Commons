@@ -65,7 +65,7 @@ public interface MappableFuture<T> extends Future<T> {
      * @return
      */
     public default T justGet() throws NestedException {
-        return F.unsafeCall(() -> get());
+        return F.uncheckedCall(() -> get());
     }
 
     /**

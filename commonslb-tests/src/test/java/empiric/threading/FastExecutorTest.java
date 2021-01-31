@@ -35,7 +35,7 @@ public class FastExecutorTest {
     public static Runnable makeRun(String s) {
         return () -> {
 
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
 //                Optional<Throwable> execute = sb.execute(() -> {
                     Thread.sleep(100);
                     Log.print(s);
@@ -61,7 +61,7 @@ public class FastExecutorTest {
         for (int i = 0; i < 10; i++) {
             exe.execute(makeRun("" + i));
         }
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             Log.print("Sleep");
             Thread.sleep(2000);
             Log.print("End");
@@ -75,7 +75,7 @@ public class FastExecutorTest {
         Log.changeStream(Log.LogStream.STD_ERR);
         Log.print("ERROR LINE");
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             Log.print("Sleep");
             Thread.sleep(8000);
             Log.print("End");
@@ -84,7 +84,7 @@ public class FastExecutorTest {
         FutureTask<Object> empty = Futures.empty();
         exe.execute(empty);
         
-        F.unsafeRun(()->{
+        F.uncheckedRun(()->{
             empty.get();
             Thread.sleep(1000);
             

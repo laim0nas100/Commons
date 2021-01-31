@@ -43,7 +43,7 @@ public class TreeIterationTest {
         Log.print("ok");
         Log.print("Stack depth:", ReflectionUtils.getMaximumStackDepth());
 
-        F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
+        F.uncheckedRun(() -> Log.await(1, TimeUnit.HOURS));
 
     }
 
@@ -123,7 +123,7 @@ public class TreeIterationTest {
 //        Log.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),false).resolve());
 //        Log.print("DFS order 3");
 //        Log.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),true).resolve());
-        F.unsafeRun(() -> Log.await(1, TimeUnit.HOURS));
+        F.uncheckedRun(() -> Log.await(1, TimeUnit.HOURS));
 
     }
 

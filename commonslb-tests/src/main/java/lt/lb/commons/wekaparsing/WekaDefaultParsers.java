@@ -87,7 +87,7 @@ public class WekaDefaultParsers {
             @Override
             public Date asObject(String str) {
                 Value<Date> ob= new Value<>();
-                F.unsafeRun(()->{
+                F.uncheckedRun(()->{
                     ob.set(format.parse(str));
                 });
                 return ob.get();

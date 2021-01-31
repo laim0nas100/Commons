@@ -122,7 +122,7 @@ public class CommonsTest {
         Log.main().async = true;
         Log.main().threadName = false;
         Log.main().timeStamp = false;
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "/*", "*/");
 
@@ -130,7 +130,7 @@ public class CommonsTest {
             Log.print("########");
         });
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url);
 //            Log.printLines(readFromFile);
@@ -144,7 +144,7 @@ public class CommonsTest {
             Log.printLines(parsed);
         });
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             String url = desktop + "myFile2.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "**", "**");
 //            Log.printLines(readFromFile);
@@ -175,7 +175,7 @@ public class CommonsTest {
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.txt");
             int colCount = readFromFile.get(0).split(",").length;
             Log.print(colCount);
@@ -202,7 +202,7 @@ public class CommonsTest {
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.csv");
             int colCount = readFromFile.get(0).split(",").length;
             Log.print(colCount);
@@ -235,7 +235,7 @@ public class CommonsTest {
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.csv");
             int colCount = readFromFile.get(0).split(",").length;
             Log.print(colCount);
@@ -305,7 +305,7 @@ public class CommonsTest {
 
         Collections.sort(vals, of);
         Log.printLines(vals);
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             Log.await(1, TimeUnit.HOURS);
         });
 

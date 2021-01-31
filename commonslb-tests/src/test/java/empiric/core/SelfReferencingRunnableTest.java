@@ -33,7 +33,7 @@ public class SelfReferencingRunnableTest {
             }
             c.incrementAndGet();
 
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
                 Thread.sleep(1);
             });
         };
@@ -51,7 +51,7 @@ public class SelfReferencingRunnableTest {
             }
             c.incrementAndGet();
 
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
                 Thread.sleep(0,10);
             });
             
@@ -64,7 +64,7 @@ public class SelfReferencingRunnableTest {
         
         exe.execute(run);
 
-        F.unsafeRun(()->{
+        F.uncheckedRun(()->{
             Thread.sleep(10000); // sleep 10 sec
         });
         exe.close();
@@ -78,7 +78,7 @@ public class SelfReferencingRunnableTest {
             }
             c.incrementAndGet();
 
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
                 Thread.sleep(1);
             });
             r.get().run();
