@@ -10,10 +10,10 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.Java;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.threads.executors.CloseableExecutor;
 import lt.lb.commons.threads.sync.Awaiter;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -65,7 +65,7 @@ public class DelayedTaskExecutor implements CloseableExecutor {
         realExe.execute(command);
     }
 
-    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, UnsafeRunnable command) {
+    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, UncheckedRunnable command) {
         return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
     }
 
@@ -77,7 +77,7 @@ public class DelayedTaskExecutor implements CloseableExecutor {
         return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
     }
 
-    public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, UnsafeRunnable command) {
+    public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, UncheckedRunnable command) {
         return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
     }
 
@@ -129,7 +129,7 @@ public class DelayedTaskExecutor implements CloseableExecutor {
         return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
     }
 
-    public DTEScheduledFuture schedule(WaitTime time, UnsafeRunnable command) {
+    public DTEScheduledFuture schedule(WaitTime time, UncheckedRunnable command) {
         return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
     }
     

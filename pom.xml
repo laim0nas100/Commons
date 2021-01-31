@@ -11,7 +11,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <apache.commons.version>3.9</apache.commons.version>
-        <javafx.compat.version>1.8</javafx.compat.version>
+        <javafx.compat.version>11</javafx.compat.version>
     </properties>
     <name>CommonsLB</name>
     <modules>
@@ -45,17 +45,17 @@
         <profile>
             <id>java8compat</id>
             <activation>
-                <jdk>1.8</jdk>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <javafx.compat.version>1.8</javafx.compat.version>
+                <javafx.compat.version>11</javafx.compat.version>
             </properties>
         </profile>
         <!--Current LTS-->
         <profile>
             <id>javaLTS</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                
             </activation>
             <properties>
                 <javafx.compat.version>15</javafx.compat.version>

@@ -13,9 +13,9 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
 import lt.lb.commons.PosEq;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.threads.executors.layers.BoundedNestedTaskExecutorLayer;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -56,8 +56,8 @@ public class EventQueue {
             this(q, Executors.callable(run), tag);
         }
 
-        public Event(EventQueue q, UnsafeRunnable run, String[] tag) {
-            this(q, UnsafeRunnable.toCallable(run), tag);
+        public Event(EventQueue q, UncheckedRunnable run, String[] tag) {
+            this(q, UncheckedRunnable.toCallable(run), tag);
         }
 
         @Override
@@ -81,7 +81,7 @@ public class EventQueue {
 
     private volatile boolean shutdown = false;
 
-    public Future add(UnsafeRunnable run) {
+    public Future add(UncheckedRunnable run) {
         return add(defaultTag, run);
     }
 
@@ -93,7 +93,7 @@ public class EventQueue {
         return add(defaultTag, run);
     }
 
-    public Future add(String tag, UnsafeRunnable run) {
+    public Future add(String tag, UncheckedRunnable run) {
         return add(new Event(this, run, StringOp.split(tag, ",")));
     }
 

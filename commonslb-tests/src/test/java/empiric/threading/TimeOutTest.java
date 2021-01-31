@@ -11,11 +11,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Log;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.RunnableDecorators;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -28,7 +28,7 @@ public class TimeOutTest {
 
         ExecutorService exe = Executors.newScheduledThreadPool(1);
         
-        UnsafeRunnable longTask = () -> {
+        UncheckedRunnable longTask = () -> {
             Log.print("Sleep init");
             Thread.sleep(4000);
             Log.print("Sleep done");
@@ -50,7 +50,7 @@ public class TimeOutTest {
         
         Random rnd = new Random();
         RandomDistribution uniform = RandomDistribution.uniform(rnd);
-        UnsafeRunnable longTask = () -> {
+        UncheckedRunnable longTask = () -> {
             long sleeptime = uniform.nextLong(1500L, 2500L);
             Log.print("Sleep init " +sleeptime);
             
@@ -62,8 +62,8 @@ public class TimeOutTest {
         };
         
         
-        UnsafeRunnable timeOut = RunnableDecorators.withTimeoutRepeat(WaitTime.ofSeconds(2),8, longTask);
-        FutureTask<Void> of = Futures.ofCallable(UnsafeRunnable.toCallable(timeOut));
+        UncheckedRunnable timeOut = RunnableDecorators.withTimeoutRepeat(WaitTime.ofSeconds(2),8, longTask);
+        FutureTask<Void> of = Futures.ofCallable(UncheckedRunnable.toCallable(timeOut));
         exe.execute(of);
 
         of.get();

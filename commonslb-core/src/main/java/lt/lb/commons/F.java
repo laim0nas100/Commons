@@ -7,8 +7,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import lt.lb.commons.misc.NestedException;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.func.unchecked.UnsafeSupplier;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.commons.func.unchecked.UncheckedSupplier;
 
 /**
  *
@@ -98,9 +98,9 @@ public class F {
      * @param r
      * @throws NestedException
      */
-    public static void unsafeRun(UnsafeRunnable r) throws NestedException {
+    public static void unsafeRun(UncheckedRunnable r) throws NestedException {
         try {
-            r.unsafeRun();
+            r.uncheckedRun();
         } catch (Throwable e) {
             throw NestedException.of(e);
         }
@@ -114,9 +114,9 @@ public class F {
      * @return
      * @throws NestedException
      */
-    public static <T> T unsafeCall(UnsafeSupplier<T> call) throws NestedException {
+    public static <T> T unsafeCall(UncheckedSupplier<T> call) throws NestedException {
         try {
-            return call.unsafeGet();
+            return call.uncheckedGet();
         } catch (Throwable e) {
             throw NestedException.of(e);
         }
@@ -128,9 +128,9 @@ public class F {
      * @param cons
      * @param run
      */
-    public static void unsafeRunWithHandler(Consumer<Throwable> cons, UnsafeRunnable run) {
+    public static void unsafeRunWithHandler(Consumer<Throwable> cons, UncheckedRunnable run) {
         try {
-            run.unsafeRun();
+            run.uncheckedRun();
         } catch (Throwable e) {
             cons.accept(NestedException.unwrap(e));
         }
@@ -144,9 +144,9 @@ public class F {
      * @param call
      * @return result or {@code null} if exception was thrown
      */
-    public static <T> T unsafeCallWithHandler(Consumer<Throwable> cons, UnsafeSupplier<T> call) {
+    public static <T> T unsafeCallWithHandler(Consumer<Throwable> cons, UncheckedSupplier<T> call) {
         try {
-            return call.unsafeGet();
+            return call.uncheckedGet();
         } catch (Throwable e) {
             cons.accept(NestedException.unwrap(e));
         }
@@ -160,9 +160,9 @@ public class F {
      * @param call
      * @return result or {@code null} if exception was thrown
      */
-    public static <T> T checkedCallNoExceptions(UnsafeSupplier<T> call) {
+    public static <T> T checkedCallNoExceptions(UncheckedSupplier<T> call) {
         try {
-            return call.unsafeGet();
+            return call.uncheckedGet();
         } catch (Throwable e) {
         }
         return null;
@@ -174,9 +174,9 @@ public class F {
      * @param r
      * @return
      */
-    public static Optional<Throwable> checkedRun(UnsafeRunnable r) {
+    public static Optional<Throwable> checkedRun(UncheckedRunnable r) {
         try {
-            r.unsafeRun();
+            r.uncheckedRun();
             return Optional.empty();
         } catch (Throwable t) {
             return Optional.of(t).map(m -> NestedException.unwrap(m));
@@ -205,7 +205,7 @@ public class F {
      * @param call
      * @return
      */
-    public static <T> SafeOpt<T> checkedCall(UnsafeSupplier<T> call) {
+    public static <T> SafeOpt<T> checkedCall(UncheckedSupplier<T> call) {
         return SafeOpt.ofGet(call);
     }
 

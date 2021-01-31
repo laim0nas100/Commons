@@ -1,10 +1,10 @@
 package lt.lb.commons.threads;
 
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.*;
-import lt.lb.commons.func.unchecked.UnsafeFunction;
+import lt.lb.commons.func.unchecked.UncheckedFunction;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -21,7 +21,7 @@ public class Promise<Type> extends FutureTask<Type> implements MappableFuture<Ty
         super(clbl);
     }
 
-    public Promise(UnsafeRunnable run) {
+    public Promise(UncheckedRunnable run) {
         this(() -> {
             run.run();
             return null;
@@ -90,17 +90,17 @@ public class Promise<Type> extends FutureTask<Type> implements MappableFuture<Ty
     }
 
     @Override
-    public <R> Promise<R> map(UnsafeFunction<? super Type, ? extends R> func) {
+    public <R> Promise<R> map(UncheckedFunction<? super Type, ? extends R> func) {
         return new Promise(MappableFuture.super.map(func));
     }
 
     @Override
-    public <R> Promise<R> mapEager(Executor exe, UnsafeFunction<? super Type, ? extends R> func) {
+    public <R> Promise<R> mapEager(Executor exe, UncheckedFunction<? super Type, ? extends R> func) {
         return new Promise(MappableFuture.super.mapEager(exe, func)); 
     }
 
     @Override
-    public <R> Promise<R> mapEager(UnsafeFunction<? super Type, ? extends R> func) {
+    public <R> Promise<R> mapEager(UncheckedFunction<? super Type, ? extends R> func) {
         return new Promise(MappableFuture.super.mapEager(func)); 
     }
 

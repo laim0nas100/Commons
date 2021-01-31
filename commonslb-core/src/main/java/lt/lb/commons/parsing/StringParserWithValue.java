@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UnsafeFunction;
+import lt.lb.commons.func.unchecked.UncheckedFunction;
 
 /**
  *
@@ -31,7 +31,7 @@ public interface StringParserWithValue<T> extends StringParser<T>, Supplier<T> {
         return getOpt().flatMap(o -> parseOptAny(o, func));
     }
 
-    default <O> SafeOpt<O> getOptAny(UnsafeFunction<String, O> func) {
+    default <O> SafeOpt<O> getOptAny(UncheckedFunction<String, O> func) {
         return getOpt().flatMap(o -> parseOptAny(o, func));
     }
 
@@ -39,7 +39,7 @@ public interface StringParserWithValue<T> extends StringParser<T>, Supplier<T> {
         return getOpt().flatMap(o -> parseOptAny(o, func)).get();
     }
 
-    default <O> O getAny(UnsafeFunction<String, O> func) {
+    default <O> O getAny(UncheckedFunction<String, O> func) {
         return getOpt().flatMap(o -> parseOptAny(o, func)).get();
     }
 
@@ -87,7 +87,7 @@ public interface StringParserWithValue<T> extends StringParser<T>, Supplier<T> {
         return getOpt().flatMap(ob -> parseOptAnyList(ob, func));
     }
 
-    default <O> SafeOpt<List<O>> getOptAnyList(UnsafeFunction<String, O> func) {
+    default <O> SafeOpt<List<O>> getOptAnyList(UncheckedFunction<String, O> func) {
         return getOpt().flatMap(ob -> parseOptAnyList(ob, func));
     }
 
@@ -95,7 +95,7 @@ public interface StringParserWithValue<T> extends StringParser<T>, Supplier<T> {
         return getOpt().flatMap(ob -> parseOptAnyList(ob, func)).get();
     }
 
-    default <O> List<O> getAnyList(UnsafeFunction<String, O> func) {
+    default <O> List<O> getAnyList(UncheckedFunction<String, O> func) {
         return getOpt().flatMap(ob -> parseOptAnyList(ob, func)).get();
     }
 

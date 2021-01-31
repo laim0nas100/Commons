@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import lt.lb.commons.func.unchecked.UnsafeSupplier;
+import lt.lb.commons.func.unchecked.UncheckedSupplier;
 
 /**
  *
@@ -42,7 +42,7 @@ public abstract class AsyncUtil {
      * @throws ExecutionException
      * @throws TimeoutException
      */
-    public static <T> T waitedRetrieve(CompletableFuture<T> compl, AsyncTokenSupport poller, UnsafeSupplier<T> getter) throws InterruptedException, ExecutionException, TimeoutException {
+    public static <T> T waitedRetrieve(CompletableFuture<T> compl, AsyncTokenSupport poller, UncheckedSupplier<T> getter) throws InterruptedException, ExecutionException, TimeoutException {
         if (compl.isDone()) { //allready mapped, just get
             return compl.get();
         }
@@ -61,7 +61,7 @@ public abstract class AsyncUtil {
             return compl.get();
         }
         try {
-            T value = getter.unsafeGet();
+            T value = getter.uncheckedGet();
             compl.complete(value);
 
         } catch (TimeoutException | InterruptedException ex) {

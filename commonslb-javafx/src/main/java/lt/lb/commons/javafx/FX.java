@@ -10,9 +10,9 @@ import javafx.embed.swing.JFXPanel;
 import javafx.scene.control.Alert;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -55,11 +55,11 @@ public class FX {
         return CompletableFuture.runAsync(run, platformExecutor);
     }
     
-    public static CompletableFuture<Void> submit(UnsafeRunnable run) {
+    public static CompletableFuture<Void> submit(UncheckedRunnable run) {
         return CompletableFuture.runAsync(run, platformExecutor);
     }
     
-    public static CompletableFuture<Void> submit(UnsafeRunnable run, Consumer<Throwable> handler) {
+    public static CompletableFuture<Void> submit(UncheckedRunnable run, Consumer<Throwable> handler) {
         return CompletableFuture.runAsync(() -> F.unsafeRunWithHandler(handler, run), platformExecutor);
     }
     
@@ -84,7 +84,7 @@ public class FX {
         return CompletableFuture.runAsync(run, exe);
     }
     
-    public static CompletableFuture<Void> submitAsync(UnsafeRunnable run, Executor exe) {
+    public static CompletableFuture<Void> submitAsync(UncheckedRunnable run, Executor exe) {
         return CompletableFuture.runAsync(run, exe);
     }
     
@@ -102,7 +102,7 @@ public class FX {
     
     public static Logger logger = LogManager.getLogger(FX.class);
     
-    public static void withAlert(UnsafeRunnable run) {
+    public static void withAlert(UncheckedRunnable run) {
         F.checkedRun(run).ifPresent(ex -> {
             logger.error("Error in withAlert", ex);
             FX.submit(() -> {

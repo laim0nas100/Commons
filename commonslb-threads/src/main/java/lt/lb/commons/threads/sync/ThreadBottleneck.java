@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import lt.lb.commons.F;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -38,14 +38,14 @@ public class ThreadBottleneck {
     }
 
     public Optional<Throwable> execute(Callable call, WaitTime time) throws InterruptedException {
-        return execute(UnsafeRunnable.from(call), time);
+        return execute(UncheckedRunnable.from(call), time);
     }
 
     public Optional<Throwable> execute(Runnable run, WaitTime time) throws InterruptedException {
-        return execute(UnsafeRunnable.from(run), time);
+        return execute(UncheckedRunnable.from(run), time);
     }
 
-    public Optional<Throwable> execute(UnsafeRunnable run, WaitTime time) throws InterruptedException {
+    public Optional<Throwable> execute(UncheckedRunnable run, WaitTime time) throws InterruptedException {
         if (inside.get()) { // recursive call
             return F.checkedRun(run);
         }
@@ -66,7 +66,7 @@ public class ThreadBottleneck {
         }
     }
 
-    private Optional<Throwable> uniqueThreadRun(UnsafeRunnable r) {
+    private Optional<Throwable> uniqueThreadRun(UncheckedRunnable r) {
         inside.set(Boolean.TRUE);
         Optional<Throwable> result = F.checkedRun(r);
         reinsert();
@@ -83,14 +83,14 @@ public class ThreadBottleneck {
     }
 
     public Optional<Throwable> execute(Callable call) {
-        return execute(UnsafeRunnable.from(call));
+        return execute(UncheckedRunnable.from(call));
     }
 
     public Optional<Throwable> execute(Runnable run) {
-        return execute(UnsafeRunnable.from(run));
+        return execute(UncheckedRunnable.from(run));
     }
 
-    private Optional<Throwable> execute0(UnsafeRunnable run) {
+    private Optional<Throwable> execute0(UncheckedRunnable run) {
         if (inside.get()) { // recursive call
             return F.checkedRun(run);
         }
@@ -107,7 +107,7 @@ public class ThreadBottleneck {
         }
     }
 
-    public Optional<Throwable> execute(UnsafeRunnable run) {
+    public Optional<Throwable> execute(UncheckedRunnable run) {
         return execute0(run);
     }
 

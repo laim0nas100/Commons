@@ -9,10 +9,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import lt.lb.commons.func.unchecked.UnsafeBiFunction;
-import lt.lb.commons.func.unchecked.UnsafeFunction;
-import lt.lb.commons.func.unchecked.UnsafeSupplier;
 import lt.lb.commons.misc.NestedException;
+import lt.lb.commons.func.unchecked.UncheckedBiFunction;
+import lt.lb.commons.func.unchecked.UncheckedFunction;
+import lt.lb.commons.func.unchecked.UncheckedSupplier;
 
 /**
  *
@@ -88,7 +88,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * anywhere, then it will be captured and empty {@code SafeOpt} with such
      * exception will be returned
      */
-    public static <T> SafeOpt<T> ofGet(UnsafeSupplier<T> sup) {
+    public static <T> SafeOpt<T> ofGet(UncheckedSupplier<T> sup) {
         Objects.requireNonNull(sup);
         return READY.map(m -> sup.get());
     }
@@ -323,7 +323,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * otherwise an empty {@code SafeOpt}
      * @throws NullPointerException if the mapping function is null
      */
-    public <U> SafeOpt<U> map(UnsafeFunction<? super T, ? extends U> mapper) {
+    public <U> SafeOpt<U> map(UncheckedFunction<? super T, ? extends U> mapper) {
         return map((Function<T, U>) mapper);
     }
 
@@ -347,7 +347,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param mapper
      * @return
      */
-    public <U> SafeOpt<U> flatMap(UnsafeFunction<? super T, SafeOpt<U>> mapper) {
+    public <U> SafeOpt<U> flatMap(UncheckedFunction<? super T, SafeOpt<U>> mapper) {
         return flatMap((Function<? super T, SafeOpt<U>>) mapper);
     }
 
@@ -420,7 +420,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param mapper
      * @return
      */
-    public <U> SafeOpt<U> flatMapOpt(UnsafeFunction<? super T, Optional<U>> mapper) {
+    public <U> SafeOpt<U> flatMapOpt(UncheckedFunction<? super T, Optional<U>> mapper) {
         return flatMapOpt((Function<? super T, Optional<U>>) mapper);
     }
 
@@ -474,7 +474,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param mapper
      * @return
      */
-    public <U, P> SafeOpt<U> mapCombine(SafeOpt<? extends P> with, UnsafeBiFunction<? super T, ? super P, ? extends U> mapper) {
+    public <U, P> SafeOpt<U> mapCombine(SafeOpt<? extends P> with, UncheckedBiFunction<? super T, ? super P, ? extends U> mapper) {
         return mapCombine(with, (BiFunction<T, P, U>) mapper);
     }
 

@@ -17,11 +17,11 @@ import lt.lb.commons.reflect.FieldChain;
 import lt.lb.commons.reflect.ReflectionPrint;
 import lt.lb.commons.reflect.pure.EField;
 import lt.lb.commons.reflect.pure.PureReflectNode;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -329,12 +329,12 @@ public class ReflectTest {
             return cls;
         });
 
-        UnsafeRunnable useCloner = () -> {
+        UncheckedRunnable useCloner = () -> {
             t1Cls.set(cloner.deepClone(t1Cls.get()));
             t1Cls.get().packageInt += 7;
         };
 
-        UnsafeRunnable useFactory = () -> {
+        UncheckedRunnable useFactory = () -> {
             t2Cls.set(factory.reflectionClone(t2Cls.get()));
             t2Cls.get().packageInt += 7;
         };

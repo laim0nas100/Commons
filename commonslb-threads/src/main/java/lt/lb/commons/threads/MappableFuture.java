@@ -11,10 +11,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UnsafeFunction;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.func.unchecked.UnsafeSupplier;
 import lt.lb.commons.misc.NestedException;
+import lt.lb.commons.func.unchecked.UncheckedFunction;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.commons.func.unchecked.UncheckedSupplier;
 
 /**
  * Mappable future. Easier and less cluttered version of CompletableFuture.
@@ -39,7 +39,7 @@ public interface MappableFuture<T> extends Future<T> {
     }
 
     public default MappableFuture<T> awaitAsync(Executor exe) {
-        exe.execute((UnsafeRunnable) () -> this.get());
+        exe.execute((UncheckedRunnable) () -> this.get());
         return this;
     }
 
@@ -48,11 +48,11 @@ public interface MappableFuture<T> extends Future<T> {
         return this;
     }
 
-    public default <R> MappableFuture<R> mapEager(UnsafeFunction<? super T, ? extends R> func) {
+    public default <R> MappableFuture<R> mapEager(UncheckedFunction<? super T, ? extends R> func) {
         return mapEager(getDefaultExecutor(), func);
     }
 
-    public default <R> MappableFuture<R> mapEager(Executor exe, UnsafeFunction<? super T, ? extends R> func) {
+    public default <R> MappableFuture<R> mapEager(Executor exe, UncheckedFunction<? super T, ? extends R> func) {
         MappableFuture<R> mapped = map(func);
         awaitAsync(exe);
         return mapped;
@@ -74,10 +74,10 @@ public interface MappableFuture<T> extends Future<T> {
      * @return
      */
     public default SafeOpt<T> safeGet() {
-        return SafeOpt.ofGet((UnsafeSupplier<T>) () -> get());
+        return SafeOpt.ofGet((UncheckedSupplier<T>) () -> get());
     }
 
-    public default <R> MappableFuture<R> map(UnsafeFunction<? super T, ? extends R> func) {
+    public default <R> MappableFuture<R> map(UncheckedFunction<? super T, ? extends R> func) {
         Objects.requireNonNull(func);
         CompletableFuture<R> compl = new CompletableFuture();
         MappableFuture<T> me = this;
@@ -119,7 +119,7 @@ public interface MappableFuture<T> extends Future<T> {
 
                 try {
                     return AsyncUtil.waitedRetrieve(compl, atsBasic, () -> {
-                        return func.applyUnsafe(me.get());
+                        return func.applyUnchecked(me.get());
                     });
                 } catch (TimeoutException timeout) {
                     throw new IllegalStateException("Impossible timeout", timeout);
@@ -147,7 +147,7 @@ public interface MappableFuture<T> extends Future<T> {
                 return AsyncUtil.waitedRetrieve(compl, ats, () -> {
                     long toWait = nanos - (System.nanoTime() - calledAt);
                     T unmapped = me.get(toWait, TimeUnit.NANOSECONDS);
-                    R mapped = func.applyUnsafe(unmapped);
+                    R mapped = func.applyUnchecked(unmapped);
                     return mapped;
                 });
             }

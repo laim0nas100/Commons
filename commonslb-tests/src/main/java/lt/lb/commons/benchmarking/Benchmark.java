@@ -6,8 +6,8 @@ import java.util.concurrent.*;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.Timer;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.threads.Promise;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -20,7 +20,7 @@ public class Benchmark {
     public int threads = 8;
     public int warmupTimes = 5;
 
-    public BenchmarkResult executeBenchParallel(Integer times, String name, UnsafeRunnable run) {
+    public BenchmarkResult executeBenchParallel(Integer times, String name, UncheckedRunnable run) {
 
         Executor serv;
         if (threads > 1) {
@@ -66,7 +66,7 @@ public class Benchmark {
 
     }
 
-    public BenchmarkResult executeBench(Integer times, String name, UnsafeRunnable... run) {
+    public BenchmarkResult executeBench(Integer times, String name, UncheckedRunnable... run) {
 
         Executor serv;
         if (threads > 1) {
@@ -112,10 +112,10 @@ public class Benchmark {
 
     }
 
-    public long execute(Executor exe, UnsafeRunnable... run) {
+    public long execute(Executor exe, UncheckedRunnable... run) {
 
         List<Promise> promises = new LinkedList<>();
-        for (UnsafeRunnable r : run) {
+        for (UncheckedRunnable r : run) {
             promises.add(new Promise(r));
         }
         Promise waiter = new Promise().waitFor(promises);

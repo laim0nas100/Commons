@@ -8,7 +8,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Supplier;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -40,7 +40,7 @@ public class Futures {
     }
 
     public static void awaitAsync(Future future, Executor exe) {
-        exe.execute((UnsafeRunnable) () -> future.get());
+        exe.execute((UncheckedRunnable) () -> future.get());
     }
 
     public static void awaitAsync(Future future) {

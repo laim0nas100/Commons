@@ -11,10 +11,10 @@ import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.benchmarking.BenchmarkResult;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -260,9 +260,9 @@ public class ListBench {
 
     }
 
-    public <T> UnsafeRunnable makeBenchWrite(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UncheckedRunnable makeBenchWrite(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        UnsafeRunnable run = () -> {
+        UncheckedRunnable run = () -> {
 
             Object ob = new Object();
             int bound = list.size();
@@ -283,9 +283,9 @@ public class ListBench {
         }
     }
 
-    public <T> UnsafeRunnable makeBenchRead(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UncheckedRunnable makeBenchRead(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        UnsafeRunnable run = () -> {
+        UncheckedRunnable run = () -> {
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {
                 Object get = list.get(rnd.nextInt(list.size()));
@@ -295,9 +295,9 @@ public class ListBench {
         return run;
     }
 
-    public <T> UnsafeRunnable makeBenchReadWrite(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UncheckedRunnable makeBenchReadWrite(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        UnsafeRunnable run = () -> {
+        UncheckedRunnable run = () -> {
             Object ob = new Object();
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {
@@ -311,9 +311,9 @@ public class ListBench {
         return run;
     }
 
-    public <T> UnsafeRunnable makeBenchWriteRead(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UncheckedRunnable makeBenchWriteRead(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        UnsafeRunnable run = () -> {
+        UncheckedRunnable run = () -> {
             Object ob = new Object();
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {
@@ -332,9 +332,9 @@ public class ListBench {
         return run;
     }
 
-    public <T> UnsafeRunnable makeBenchRandomWriteRead(Supplier<List<T>> sup, Random rnd, int iterations) {
+    public <T> UncheckedRunnable makeBenchRandomWriteRead(Supplier<List<T>> sup, Random rnd, int iterations) {
         List list = sup.get();
-        UnsafeRunnable run = () -> {
+        UncheckedRunnable run = () -> {
             Object ob = new Object();
             int bound = list.size();
             for (int i = 0; i < iterations; i++) {

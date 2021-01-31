@@ -9,8 +9,8 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UnsafeBiFunction;
 import org.junit.Test;
+import lt.lb.commons.func.unchecked.UncheckedBiFunction;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

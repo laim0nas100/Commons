@@ -6,7 +6,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UnsafeFunction;
+import lt.lb.commons.func.unchecked.UncheckedFunction;
 
 /**
  *
@@ -22,7 +22,7 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
         return val -> SafeOpt.ofNullable(val).map(func);
     }
 
-    public static <V> StringParser<V> of(UnsafeFunction<V, String> func) {
+    public static <V> StringParser<V> of(UncheckedFunction<V, String> func) {
         return of((Function<V, String>) func);
     }
 
@@ -41,7 +41,7 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
         return parseOptString(p).map(func);
     }
 
-    default <O> SafeOpt<O> parseOptAny(T p, UnsafeFunction<String, O> func) {
+    default <O> SafeOpt<O> parseOptAny(T p, UncheckedFunction<String, O> func) {
         return parseOptAny(p, (Function<String, O>) func);
     }
 
@@ -49,7 +49,7 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
         return parseOptAny(p, func).get();
     }
 
-    default <O> O parseAny(T p, UnsafeFunction<String, O> func) {
+    default <O> O parseAny(T p, UncheckedFunction<String, O> func) {
         return parseAny(p, (Function<String, O>) func);
     }
 
@@ -107,7 +107,7 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
                 .map(stream -> stream.collect(Collectors.toList()));
     }
 
-    default <O> SafeOpt<List<O>> parseOptAnyList(T p, UnsafeFunction<String, O> func) {
+    default <O> SafeOpt<List<O>> parseOptAnyList(T p, UncheckedFunction<String, O> func) {
         return parseOptAnyList(p, (Function<String, O>) func);
     }
 
@@ -115,7 +115,7 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
         return parseOptAnyList(p, func).get();
     }
 
-    default <O> List<O> parseAnyList(T p, UnsafeFunction<String, O> func) {
+    default <O> List<O> parseAnyList(T p, UncheckedFunction<String, O> func) {
         return parseOptAnyList(p, func).get();
     }
 

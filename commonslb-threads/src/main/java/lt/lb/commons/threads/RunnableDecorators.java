@@ -6,8 +6,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lt.lb.commons.F;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -23,7 +23,7 @@ public class RunnableDecorators {
      * @param run
      * @return
      */
-    public static UnsafeRunnable withTimeout(WaitTime time, Runnable run, Runnable onInterrupt) {
+    public static UncheckedRunnable withTimeout(WaitTime time, Runnable run, Runnable onInterrupt) {
         return () -> {
             ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
             Thread toCancel = Thread.currentThread();
@@ -55,7 +55,7 @@ public class RunnableDecorators {
      * @param run
      * @return
      */
-    public static UnsafeRunnable withTimeout(WaitTime time, Runnable run) {
+    public static UncheckedRunnable withTimeout(WaitTime time, Runnable run) {
         return withTimeout(time, run, () -> {
         });
     }
@@ -73,7 +73,7 @@ public class RunnableDecorators {
      * @param onInterrupt
      * @return
      */
-    public static UnsafeRunnable withTimeoutRepeat(WaitTime time, Integer repeatTimeIfTimeout, Runnable run, Runnable onInterrupt) {
+    public static UncheckedRunnable withTimeoutRepeat(WaitTime time, Integer repeatTimeIfTimeout, Runnable run, Runnable onInterrupt) {
         return withTimeoutRepeat(time, false, repeatTimeIfTimeout, run, onInterrupt);
     }
 
@@ -85,7 +85,7 @@ public class RunnableDecorators {
      * @param run
      * @return
      */
-    public static UnsafeRunnable withTimeoutRepeat(WaitTime time, Integer repeatTimeIfTimeout, Runnable run) {
+    public static UncheckedRunnable withTimeoutRepeat(WaitTime time, Integer repeatTimeIfTimeout, Runnable run) {
         return withTimeoutRepeat(time, repeatTimeIfTimeout, run, () -> {
         });
     }
@@ -101,7 +101,7 @@ public class RunnableDecorators {
      * @param onInterrupt
      * @return
      */
-    public static UnsafeRunnable withTimeoutRepeatUntilDone(WaitTime time, Runnable run, Runnable onInterrupt) {
+    public static UncheckedRunnable withTimeoutRepeatUntilDone(WaitTime time, Runnable run, Runnable onInterrupt) {
         return withTimeoutRepeat(time, true, Integer.MAX_VALUE, run, onInterrupt);
     }
 
@@ -113,12 +113,12 @@ public class RunnableDecorators {
      * @param run
      * @return
      */
-    public static UnsafeRunnable withTimeoutRepeatUntilDone(WaitTime time, Runnable run) {
+    public static UncheckedRunnable withTimeoutRepeatUntilDone(WaitTime time, Runnable run) {
         return withTimeoutRepeatUntilDone(time, run, () -> {
         });
     }
 
-    private static UnsafeRunnable withTimeoutRepeat(WaitTime time, boolean always, Integer repeatTimeIfTimeout, Runnable run, Runnable onInterrupt) {
+    private static UncheckedRunnable withTimeoutRepeat(WaitTime time, boolean always, Integer repeatTimeIfTimeout, Runnable run, Runnable onInterrupt) {
         return () -> {
             Integer repeat = repeatTimeIfTimeout;
             ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
