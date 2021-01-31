@@ -115,10 +115,12 @@
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-threads</artifactId>
+             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-datasync</artifactId>
+             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -134,12 +136,6 @@
             <scope>test</scope>         
         </dependency>
         
-        <dependency>
-            <groupId>lt.lb</groupId>
-            <artifactId>CallerFramework</artifactId>
-            <version>local-jar</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
     <name>CommonsLB Tests</name>
 </project>
