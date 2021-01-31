@@ -7,8 +7,6 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.Java;
@@ -68,22 +66,22 @@ public class DelayedTaskExecutor implements CloseableExecutor {
     }
 
     public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, UnsafeRunnable command) {
-        return schedule(new DTELoopingLimitedScheduledFuture(condition, this, time, Executors.callable(command)));
+        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
     }
 
     public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, Runnable command) {
-        return schedule(new DTELoopingLimitedScheduledFuture(condition, this, time, Executors.callable(command)));
+        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
     }
 
     public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, Runnable command) {
-        return schedule(new DTELoopingScheduledFuture(this, time, Executors.callable(command)));
+        return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
     }
 
     public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, UnsafeRunnable command) {
-        return schedule(new DTELoopingScheduledFuture(this, time, Executors.callable(command)));
+        return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
     }
 
-    <V, T extends DTEScheduledFuture<V>> T schedule(T future) {
+    <T extends DTEScheduledFuture<?>> T schedule(T future) {
 
         if (shutdown) {
             throw new IllegalArgumentException("Shutdown has been called, can't schedule more");
