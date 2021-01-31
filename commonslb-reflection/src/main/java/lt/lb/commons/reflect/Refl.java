@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import lt.lb.commons.func.unchecked.UnsafeFunction;
+import lt.lb.commons.func.unchecked.UncheckedFunction;
 
 /**
  * Reflection methods
@@ -39,7 +39,7 @@ public class Refl {
         return list;
     }
 
-    public static <T> T fieldAccessableDo(Field field, UnsafeFunction<Field, T> function) throws Throwable {
+    public static <T> T fieldAccessableDo(Field field, UncheckedFunction<Field, T> function) throws Throwable {
         boolean inAccessible = !field.isAccessible();
         if (inAccessible) {
             field.setAccessible(true);
@@ -47,7 +47,7 @@ public class Refl {
         T val = null;
         Throwable thr = null;
         try {
-            val = function.applyUnsafe(field);
+            val = function.applyUnchecked(field);
         } catch (Throwable th) {
             thr = th;
         }
@@ -71,7 +71,7 @@ public class Refl {
         });
     }
 
-    public static <T> T methodAccessableDo(Method method, UnsafeFunction<Method, T> func) throws Throwable {
+    public static <T> T methodAccessableDo(Method method, UncheckedFunction<Method, T> func) throws Throwable {
         boolean inAccessible = !method.isAccessible();
         if (inAccessible) {
             method.setAccessible(true);
@@ -79,7 +79,7 @@ public class Refl {
         Throwable thr = null;
         T result = null;
         try {
-            result = func.applyUnsafe(method);
+            result = func.applyUnchecked(method);
         } catch (Throwable th) {
             thr = th;
         }

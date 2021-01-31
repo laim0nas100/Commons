@@ -17,7 +17,7 @@ public class UnsafeProvider {
 
     public static Unsafe getUnsafe() {
         if (THE_UNSAFE == null) {
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
 
                 Constructor<Unsafe> declaredConstructor = Unsafe.class.getDeclaredConstructor();
                 declaredConstructor.setAccessible(true);
@@ -30,6 +30,6 @@ public class UnsafeProvider {
     }
 
     public static <T> Function<Class, T> getUnsafeAllocator() {
-        return cls -> F.unsafeCall(() -> F.cast(getUnsafe().allocateInstance(cls)));
+        return cls -> F.uncheckedCall(() -> F.cast(getUnsafe().allocateInstance(cls)));
     }
 }

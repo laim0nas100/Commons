@@ -47,7 +47,7 @@ public class EmailChecker extends ScheduledDispatchExecutor {
      */
     public void checkEmail(IMAPOrPOP3Props p, EmailChannels channels, ExposedEmailConnection exposed) {
         p.populate();
-        F.unsafeRunWithHandler(channels.errorChannel, () -> {
+        F.uncheckedRunWithHandler(channels.errorChannel, () -> {
             Session emailSession = null;
             Store store = null;
             Folder emailFolder = null;

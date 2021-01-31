@@ -18,7 +18,7 @@ public class BasicBeanReadPropertyAccess<V, T> implements Supplier<T> {
 
     @Override
     public T get() {
-        return F.unsafeCall(() -> (T) read.invoke(object));
+        return F.uncheckedCall(() -> (T) read.invoke(object));
     }
 
     public BasicBeanReadPropertyAccess(V object, String property) {

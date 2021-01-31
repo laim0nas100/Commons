@@ -16,7 +16,7 @@ public interface DirectoryTreeVisitor extends TreeVisitor<Path> {
     @Override
     public default ReadOnlyIterator<Path> getChildren(Path item) {
         if (Files.isDirectory(item)) {
-            return F.unsafeCall(() -> {
+            return F.uncheckedCall(() -> {
                 DirectoryStream<Path> newDirectoryStream = Files.newDirectoryStream(item);
 
                 return ReadOnlyIterator.of(newDirectoryStream.iterator())

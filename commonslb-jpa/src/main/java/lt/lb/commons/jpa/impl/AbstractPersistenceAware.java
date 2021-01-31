@@ -10,7 +10,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 import lt.lb.commons.jpa.EntityManagerAware;
 import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.JPACommands;
@@ -23,8 +23,8 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     public abstract IDFactory getIds();
     
     @Override
-    public void executeTransaction(UnsafeRunnable run) {
-        F.unsafeRun(run);
+    public void executeTransaction(UncheckedRunnable run) {
+        F.uncheckedRun(run);
     }
 
     @Override
@@ -36,7 +36,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
 
     @Override
     public <T> T createTransient(Class<T> cls) {
-        return F.unsafeCall(() -> cls.getDeclaredConstructor().newInstance());
+        return F.uncheckedCall(() -> cls.getDeclaredConstructor().newInstance());
     }
 
     @Override
@@ -80,7 +80,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     public <T> boolean isDetached(T entity) {
-        return F.unsafeCall(() -> {
+        return F.uncheckedCall(() -> {
             if (entity == null) {
                 return true;
             }
@@ -93,7 +93,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     public <T> boolean isTransient(T entity) {
-        return F.unsafeCall(() -> {
+        return F.uncheckedCall(() -> {
             if (entity == null) {
                 return true;
             }

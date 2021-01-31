@@ -491,7 +491,7 @@ public class Lexer {
     public ReadOnlyIterator<Token> getTokenIterator() {
         Lexer me = this;
         ArrayDeque<Token> tokens = new ArrayDeque<>();
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             me.getNextToken().ifPresent(tokens::addLast);
         });
 
@@ -504,7 +504,7 @@ public class Lexer {
 
             @Override
             public Token next() {
-                F.unsafeRun(() -> {
+                F.uncheckedRun(() -> {
                     me.getNextToken().ifPresent(tokens::addLast);
                 });
                 return tokens.pollFirst();

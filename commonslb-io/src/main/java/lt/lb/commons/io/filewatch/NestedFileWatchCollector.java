@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 
 /**
@@ -31,7 +31,7 @@ public class NestedFileWatchCollector extends NestedFileWatch {
     protected ReadOnlyIterator<Path> collectFolders(Consumer<Path> paths) throws IOException {
         DirectoryStream<Path> dirStream = Files.newDirectoryStream(directory);
         Stream<Path> filtered = ReadOnlyIterator.of(dirStream.iterator()).toStream().peek(files::add).peek(paths).filter(Files::isDirectory);
-        return ReadOnlyIterator.of(filtered).withEnsuredCloseOperation((UnsafeRunnable) () -> dirStream.close());
+        return ReadOnlyIterator.of(filtered).withEnsuredCloseOperation((UncheckedRunnable) () -> dirStream.close());
     }
 
     public void tryInit(Consumer<Path> pathCollect, Supplier<Boolean> cancel) throws IOException {

@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.BooleanValue;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 import lt.lb.commons.io.filewatch.NestedFileWatchEvents.NestedWatchErrorEvent;
 import lt.lb.commons.io.filewatch.NestedFileWatchEvents.NestedWatchFileEvent;
 import lt.lb.commons.io.filewatch.NestedFileWatchListeners.ErrorNestedWatchEventListener;
@@ -295,7 +295,7 @@ public class NestedFileWatch {
 
     protected ReadOnlyIterator<Path> collectFolders(Consumer<Path> collect) throws IOException {
         DirectoryStream<Path> dirStream = Files.newDirectoryStream(directory, Files::isDirectory);
-        return ReadOnlyIterator.of(dirStream.iterator()).withEnsuredCloseOperation((UnsafeRunnable) () -> dirStream.close());
+        return ReadOnlyIterator.of(dirStream.iterator()).withEnsuredCloseOperation((UncheckedRunnable) () -> dirStream.close());
     }
     
     protected NestedFileWatch createNew(Path path){

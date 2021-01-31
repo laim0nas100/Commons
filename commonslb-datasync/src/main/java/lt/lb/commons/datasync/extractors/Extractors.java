@@ -8,9 +8,9 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.SimpleDataSyncDisplay;
 import lt.lb.commons.datasync.base.SimpleDataSyncPersist;
-import lt.lb.commons.func.unchecked.UnsafeConsumer;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.func.unchecked.UnsafeSupplier;
+import lt.lb.commons.func.unchecked.UncheckedConsumer;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.commons.func.unchecked.UncheckedSupplier;
 import lt.lb.commons.reflect.beans.BasicBeanPropertyAccess;
 import lt.lb.commons.reflect.FieldChain;
 import lt.lb.commons.reflect.Refl;
@@ -21,7 +21,7 @@ import lt.lb.commons.reflect.Refl;
  */
 public abstract class Extractors {
 
-    public static <T> ValueProxy<T> ofUnsave(UnsafeSupplier<? extends T> sup, UnsafeConsumer<? super T> con) {
+    public static <T> ValueProxy<T> ofUnsave(UncheckedSupplier<? extends T> sup, UncheckedConsumer<? super T> con) {
         return quickProxy(sup, con);
     }
 
@@ -117,12 +117,12 @@ public abstract class Extractors {
         return new ValueProxy<T>() {
             @Override
             public T get() {
-                return F.unsafeCall(() -> (T) chain.doGet(ob));
+                return F.uncheckedCall(() -> (T) chain.doGet(ob));
             }
 
             @Override
             public void set(T v) {
-                F.unsafeRun(() -> chain.doSet(ob, v));
+                F.uncheckedRun(() -> chain.doSet(ob, v));
             }
         };
     }
@@ -154,7 +154,7 @@ public abstract class Extractors {
 
     public static <T> ValueProxy<T> ofReflected(Object ob, String fieldName) {
         Class<? extends Object> aClass = ob.getClass();
-        return F.unsafeCall(() -> {
+        return F.uncheckedCall(() -> {
             Field field = aClass.getField(fieldName);
             return ofUnsave(
                     () -> (T) Refl.fieldAccessableGet(field, ob),
@@ -167,11 +167,11 @@ public abstract class Extractors {
         return new BasicBeanPropertyAccess<>(ob, property);
     }
 
-    public static SimpleDataSyncPersist ofSyncPersist(UnsafeRunnable run) {
+    public static SimpleDataSyncPersist ofSyncPersist(UncheckedRunnable run) {
         return new SimpleDataSyncPersist(ofReadIgnore(c -> run.run()));
     }
 
-    public static SimpleDataSyncDisplay ofSyncDisplay(UnsafeRunnable run) {
+    public static SimpleDataSyncDisplay ofSyncDisplay(UncheckedRunnable run) {
         return new SimpleDataSyncDisplay(ofReadIgnore(c -> run.run()));
     }
 
@@ -179,7 +179,7 @@ public abstract class Extractors {
         return new SimpleDataSyncPersist(proxy);
     }
 
-    public static <T> SimpleDataSyncPersist<T> ofSimplePersistSync(UnsafeRunnable read, UnsafeRunnable write) {
+    public static <T> SimpleDataSyncPersist<T> ofSimplePersistSync(UncheckedRunnable read, UncheckedRunnable write) {
         return new SimpleDataSyncPersist(new ValueProxy<T>() {
             @Override
             public T get() {
@@ -198,7 +198,7 @@ public abstract class Extractors {
         return new SimpleDataSyncDisplay(proxy);
     }
 
-    public static <T> SimpleDataSyncDisplay<T> ofSimpleDisplaySync(UnsafeRunnable read, UnsafeRunnable write) {
+    public static <T> SimpleDataSyncDisplay<T> ofSimpleDisplaySync(UncheckedRunnable read, UncheckedRunnable write) {
         return new SimpleDataSyncDisplay(new ValueProxy<T>() {
             @Override
             public T get() {

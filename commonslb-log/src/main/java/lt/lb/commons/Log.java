@@ -180,7 +180,7 @@ public class Log {
             }
         });
         log.exe.execute(shutdownRequest);
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             shutdownRequest.get();
             log.exe.close();
         });

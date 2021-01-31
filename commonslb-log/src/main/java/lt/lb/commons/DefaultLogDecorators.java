@@ -100,7 +100,7 @@ public class DefaultLogDecorators {
         };
     }
 
-    public static Lambda.L1R<Throwable, Supplier<String>> stackTraceUnsafeSupplier() {
+    public static Lambda.L1R<Throwable, Supplier<String>> stackTraceUncheckedSupplier() {
         LazyValue<Method> thMethod = new LazyValue<>(() -> {
             try {
                 Method declaredMethod = Throwable.class.getDeclaredMethod("getStackTraceElement", Integer.TYPE);
@@ -114,7 +114,7 @@ public class DefaultLogDecorators {
         return (th) -> {
             return () -> {
                 Value<String> trace = new Value<>();
-                F.unsafeRun(() -> {
+                F.uncheckedRun(() -> {
                     trace.set(StringOp.remove(thMethod.get().invoke(th, 3).toString(), ".java"));
                 });
                 return null;

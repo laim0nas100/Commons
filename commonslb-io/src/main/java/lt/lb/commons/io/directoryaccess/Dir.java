@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import lt.lb.commons.F;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import org.apache.commons.io.FilenameUtils;
 
@@ -23,7 +23,7 @@ public class Dir extends Fil {
     }
 
     public static <T extends Fil> T establishDirectory(String absolutePath, Class<T> cls) {
-        return F.unsafeCall(() -> Fil.create(Paths.get(absolutePath), cls));
+        return F.uncheckedCall(() -> Fil.create(Paths.get(absolutePath), cls));
     }
 
     public Dir(String absolutePath) throws Exception {
@@ -32,7 +32,7 @@ public class Dir extends Fil {
 
         DirectoryStream<Path> dirStream = Files.newDirectoryStream(getPath());
         ArrayList<Path> paths = ReadOnlyIterator.of(dirStream.iterator())
-                .withEnsuredCloseOperation((UnsafeRunnable) () -> dirStream.close())
+                .withEnsuredCloseOperation((UncheckedRunnable) () -> dirStream.close())
                 .toArrayList();
 
         for (Path path : paths) {

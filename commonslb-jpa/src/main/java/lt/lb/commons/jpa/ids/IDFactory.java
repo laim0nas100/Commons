@@ -94,6 +94,6 @@ public interface IDFactory<I> {
      * @return
      */
     public default I defaultGetId(Object ob) {
-        return F.unsafeCall(() -> (I) defaultNameIdGetter(ob.getClass()).invoke(ob));
+        return F.uncheckedCall(() -> (I) defaultNameIdGetter(ob.getClass()).invoke(ob));
     }
 }

@@ -17,7 +17,7 @@ public class BasicBeanWritePropertyAccess<V, T> implements Consumer<T> {
 
     @Override
     public void accept(T v) {
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             write.invoke(object, v);
         });
     }

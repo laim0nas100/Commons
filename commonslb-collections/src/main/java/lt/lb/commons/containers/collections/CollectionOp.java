@@ -139,7 +139,7 @@ public class CollectionOp {
             i++;
         }
 
-        F.unsafeRun(() -> {
+        F.uncheckedRun(() -> {
             for (Future future : deque) {
                 future.get();
             }

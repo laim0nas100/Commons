@@ -41,7 +41,7 @@ public abstract class IMAPOrPOP3Props extends SearchableEmailProps {
             if (this.getFolderOpenMode() != Folder.READ_WRITE) {
                 return;
             }
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
                 m.setFlag(Flags.Flag.DELETED, this.deleteAfterRead);
             });
         });

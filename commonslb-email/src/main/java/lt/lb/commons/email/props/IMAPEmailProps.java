@@ -40,7 +40,7 @@ public class IMAPEmailProps extends IMAPOrPOP3Props {
             if (this.getFolderOpenMode() != Folder.READ_WRITE) {
                 return;
             }
-            F.unsafeRun(() -> {
+            F.uncheckedRun(() -> {
                 m.setFlag(Flags.Flag.SEEN, markAsSeen);
             });
         });

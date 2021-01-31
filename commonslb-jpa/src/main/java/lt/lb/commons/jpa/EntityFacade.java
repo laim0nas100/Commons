@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.stream.Stream;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.values.Value;
-import lt.lb.commons.func.unchecked.UnsafeRunnable;
-import lt.lb.commons.func.unchecked.UnsafeSupplier;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.commons.func.unchecked.UncheckedSupplier;
 import lt.lb.commons.jpa.ids.ID;
 
 /**
@@ -15,9 +15,9 @@ import lt.lb.commons.jpa.ids.ID;
  */
 public interface EntityFacade {
     
-    public void executeTransaction(UnsafeRunnable run);
+    public void executeTransaction(UncheckedRunnable run);
     
-    public default <T> T executeTransaction(UnsafeSupplier<T> supp){
+    public default <T> T executeTransaction(UncheckedSupplier<T> supp){
         Value<T> val = new Value<>();
         executeTransaction(()->{
             val.set(supp.get());
