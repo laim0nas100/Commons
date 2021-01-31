@@ -2,6 +2,7 @@ package lt.lb.commons.containers.collections;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -14,15 +15,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import lt.lb.commons.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.PairLeft;
 import lt.lb.commons.containers.tuples.PairRight;
-import lt.lb.commons.Equator;
 import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;
-import org.apache.commons.collections4.CollectionUtils;
 
 /**
  *
@@ -302,7 +303,7 @@ public class CollectionOp {
     }
 
     public static <T> boolean containsAny(Collection master, Iterable... iterables) {
-        if(isEmpty(master)){
+        if (isEmpty(master)) {
             return false;
         }
 
@@ -321,7 +322,7 @@ public class CollectionOp {
     }
 
     public static boolean containsAny(Collection master, Object[]... arrays) {
-        if(isEmpty(master)){
+        if (isEmpty(master)) {
             return false;
         }
         if (isEmpty(arrays)) {
@@ -350,7 +351,7 @@ public class CollectionOp {
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static boolean isEmpty(Iterable... iterables) {
@@ -367,11 +368,11 @@ public class CollectionOp {
                 }
             }
         }
-        return false;
+        return true;
     }
 
     public static boolean containsAll(Collection master, Iterable... iterables) {
-        if(isEmpty(master)){
+        if (isEmpty(master)) {
             return false;
         }
 
@@ -390,7 +391,7 @@ public class CollectionOp {
     }
 
     public static boolean containsAll(Collection master, Object[]... arrays) {
-        if(isEmpty(master)){
+        if (isEmpty(master)) {
             return false;
         }
 
@@ -406,5 +407,35 @@ public class CollectionOp {
             }
         }
         return false;
+    }
+
+    public static <T, C extends Collection<T>> C lazyAdd(Supplier<C> maker, C col, T... items) {
+        if (items.length == 0) {
+            return col;
+        } else {
+            if (col == null) {
+                col = maker.get();
+            }
+        }
+        col.addAll(Arrays.asList(items));
+
+        return col;
+    }
+
+    public static <T, C extends Collection<T>> C lazyAdd(Supplier<C> maker, C col, Iterable<T> items) {
+
+        if (items == null || (!items.iterator().hasNext())) {
+            return col;
+        } else {
+            if (col == null) {
+                col = maker.get();
+            }
+        }
+
+        for (T item : items) {
+            col.add(item);
+        }
+
+        return col;
     }
 }
