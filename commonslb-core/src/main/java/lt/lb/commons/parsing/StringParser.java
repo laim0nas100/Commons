@@ -15,7 +15,7 @@ import lt.lb.commons.func.unchecked.UnsafeFunction;
  * @author laim0nas100
  */
 @FunctionalInterface
-public interface StringParser<T> {
+public interface StringParser<T> extends Function<T, SafeOpt<String>> {
 
     public static <V> StringParser<V> of(Function<V, String> func) {
         Objects.requireNonNull(func);
@@ -26,66 +26,71 @@ public interface StringParser<T> {
         return of((Function<V, String>) func);
     }
 
-    SafeOpt<String> getStringOpt(T p);
-
-    default String getString(T p) {
-        return getStringOpt(p).get();
+    @Override
+    default SafeOpt<String> apply(T p) {
+        return parseOptString(p);
     }
 
-    default <O> SafeOpt<O> getOptAny(T p, Function<String, O> func) {
-        return getStringOpt(p).map(func);
+    SafeOpt<String> parseOptString(T p);
+
+    default String parseString(T p) {
+        return parseOptString(p).get();
     }
 
-    default <O> SafeOpt<O> getOptAny(T p, UnsafeFunction<String, O> func) {
-        return getOptAny(p, (Function<String, O>) func);
+    default <O> SafeOpt<O> parseOptAny(T p, Function<String, O> func) {
+        return parseOptString(p).map(func);
     }
 
-    default <O> O getAny(T p, Function<String, O> func) {
-        return getOptAny(p, func).get();
+    default <O> SafeOpt<O> parseOptAny(T p, UnsafeFunction<String, O> func) {
+        return parseOptAny(p, (Function<String, O>) func);
     }
 
-    default <O> O getAny(T p, UnsafeFunction<String, O> func) {
-        return getAny(p, (Function<String, O>) func);
+    default <O> O parseAny(T p, Function<String, O> func) {
+        return parseOptAny(p, func).get();
     }
 
-    default boolean getBool(T p) {
-        return getBoolOpt(p).get();
+    default <O> O parseAny(T p, UnsafeFunction<String, O> func) {
+        return parseAny(p, (Function<String, O>) func);
     }
 
-    default SafeOpt<Boolean> getBoolOpt(T p) {
-        return getOptAny(p, Boolean::parseBoolean);
+    default boolean parseBool(T p) {
+        return parseOptBool(p).get();
     }
 
-    default int getInt(T p) {
-        return getOptInt(p).get();
+    default SafeOpt<Boolean> parseOptBool(T p) {
+        return parseOptAny(p, Boolean::parseBoolean);
     }
 
-    default SafeOpt<Integer> getOptInt(T p) {
-        return getOptAny(p, Integer::parseInt);
+    default int parseInt(T p) {
+        return parseOptInt(p).get();
     }
 
-    default long getLong(T p) {
-        return getOptLong(p).get();
+    default SafeOpt<Integer> parseOptInt(T p) {
+        return parseOptAny(p, Integer::parseInt);
     }
 
-    default SafeOpt<Long> getOptLong(T p) {
-        return getOptAny(p, Long::parseLong);
+    default long parseLong(T p) {
+        return parseOptLong(p).get();
     }
 
-    default float getFloat(T p) {
-        return getOptFloat(p).get();
+    default SafeOpt<Long> parseOptLong(T p) {
+        return parseOptAny(p, Long::parseLong);
     }
 
-    default SafeOpt<Float> getOptFloat(T p) {
-        return getOptAny(p, Float::parseFloat);
+    default float parseFloat(T p) {
+        return parseOptFloat(p).get();
     }
 
-    default double getDouble(T p) {
-        return getOptDouble(p).get();
+    default SafeOpt<Float> parseOptFloat(T p) {
+        return parseOptAny(p, Float::parseFloat);
     }
 
-    default SafeOpt<Double> getOptDouble(T p) {
-        return getOptAny(p, Double::parseDouble);
+    default double parseDouble(T p) {
+        return parseOptDouble(p).get();
+    }
+
+    default SafeOpt<Double> parseOptDouble(T p) {
+        return parseOptAny(p, Double::parseDouble);
     }
 
     default String[] parseArray(String string) {
@@ -94,67 +99,71 @@ public interface StringParser<T> {
         return StringOp.split(string, ", ");
     }
 
-    default <O> SafeOpt<List<O>> getOptAnyList(T p, Function<String, O> func) {
-        return getStringOpt(p)
+    default <O> SafeOpt<List<O>> parseOptAnyList(T p, Function<String, O> func) {
+        return parseOptString(p)
                 .map(s -> parseArray(s))
                 .map(Stream::of)
                 .map(stream -> stream.map(func))
                 .map(stream -> stream.collect(Collectors.toList()));
     }
 
-    default <O> SafeOpt<List<O>> getOptAnyList(T p, UnsafeFunction<String, O> func) {
-        return getOptAnyList(p, (Function<String, O>) func);
+    default <O> SafeOpt<List<O>> parseOptAnyList(T p, UnsafeFunction<String, O> func) {
+        return parseOptAnyList(p, (Function<String, O>) func);
     }
 
-    default <O> List<O> getAnyList(T p, Function<String, O> func) {
-        return getOptAnyList(p, func).get();
+    default <O> List<O> parseAnyList(T p, Function<String, O> func) {
+        return parseOptAnyList(p, func).get();
     }
 
-    default List<Boolean> getBoolList(T p) {
-        return getOptBoolList(p).get();
+    default <O> List<O> parseAnyList(T p, UnsafeFunction<String, O> func) {
+        return parseOptAnyList(p, func).get();
     }
 
-    default SafeOpt<List<Boolean>> getOptBoolList(T p) {
-        return getOptAnyList(p, Boolean::parseBoolean);
+    default List<Boolean> parseBoolList(T p) {
+        return parseOptBoolList(p).get();
     }
 
-    default List<Integer> getIntList(T p) {
-        return getOptIntList(p).get();
+    default SafeOpt<List<Boolean>> parseOptBoolList(T p) {
+        return parseOptAnyList(p, Boolean::parseBoolean);
     }
 
-    default SafeOpt<List<Integer>> getOptIntList(T p) {
-        return getOptAnyList(p, Integer::parseInt);
+    default List<Integer> parseIntList(T p) {
+        return parseOptIntList(p).get();
     }
 
-    default List<Long> getLongList(T p) {
-        return getOptLongList(p).get();
+    default SafeOpt<List<Integer>> parseOptIntList(T p) {
+        return parseOptAnyList(p, Integer::parseInt);
     }
 
-    default SafeOpt<List<Long>> getOptLongList(T p) {
-        return getOptAnyList(p, Long::parseLong);
+    default List<Long> parseLongList(T p) {
+        return parseOptLongList(p).get();
     }
 
-    default List<Float> getFloatList(T p) {
-        return getOptFloatList(p).get();
+    default SafeOpt<List<Long>> parseOptLongList(T p) {
+        return parseOptAnyList(p, Long::parseLong);
     }
 
-    default SafeOpt<List<Float>> getOptFloatList(T p) {
-        return getOptAnyList(p, Float::parseFloat);
+    default List<Float> parseFloatList(T p) {
+        return parseOptFloatList(p).get();
     }
 
-    default List<Double> getDoubleList(T p) {
-        return getOptDoubleList(p).get();
+    default SafeOpt<List<Float>> parseOptFloatList(T p) {
+        return parseOptAnyList(p, Float::parseFloat);
     }
 
-    default SafeOpt<List<Double>> getOptDoubleList(T p) {
-        return getOptAnyList(p, Double::parseDouble);
+    default List<Double> parseDoubleList(T p) {
+        return parseOptDoubleList(p).get();
     }
 
-    default List<String> getStringList(T p) {
-        return getOptStringList(p).get();
+    default SafeOpt<List<Double>> parseOptDoubleList(T p) {
+        return parseOptAnyList(p, Double::parseDouble);
     }
 
-    default SafeOpt<List<String>> getOptStringList(T p) {
-        return getOptAnyList(p, s -> s);
+    default List<String> parseStringList(T p) {
+        return parseOptStringList(p).get();
+    }
+
+    default SafeOpt<List<String>> parseOptStringList(T p) {
+        return parseOptAnyList(p, s -> s);
     }
 }
