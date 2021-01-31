@@ -85,7 +85,7 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
                         return SafeOpt.empty();
                     }
                 } catch (Exception ex) {
-                    return SafeOpt.empty(ex);
+                    return SafeOpt.error(ex);
                 }
             }
 
@@ -103,7 +103,7 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
                         return SafeOpt.empty();
                     }
                 } catch (Exception ex) {
-                   return SafeOpt.empty(ex);
+                   return SafeOpt.error(ex);
                 }
             }
 
@@ -127,7 +127,7 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
                         return SafeOpt.empty();
                     }
                 } catch (Exception ex) {
-                    return SafeOpt.empty(ex);
+                    return SafeOpt.error(ex);
                 }
             }
 
@@ -145,7 +145,7 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
                         return SafeOpt.empty();
                     }
                 } catch (Exception ex) {
-                    return SafeOpt.empty(ex);
+                    return SafeOpt.error(ex);
                 }
             }
 

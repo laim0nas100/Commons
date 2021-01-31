@@ -28,17 +28,21 @@ public class SafeOptTest {
 
         SafeOpt<String> empty = SafeOpt.empty().map(m -> m + "");
 
+        IntegerValue nullInt = new IntegerValue();
         assertThat(empty.isEmpty());
         assertThat(empty.getError().isEmpty());
-        SafeOpt<Object> errored = SafeOpt.empty(new RuntimeException("Failed"));
+        SafeOpt<Object> errored = SafeOpt.error(new RuntimeException("Failed"));
         assertThat(errored.isEmpty());
         assertThat(errored.getError().isPresent());
 
-        SafeOpt<Integer> mapEx = map.map(m -> m + new IntegerValue().get()); // supposed to be null
+        SafeOpt<Integer> mapNull = map.map(m -> nullInt.get()); // supposed to be null
+        SafeOpt<Integer> mapEx = map.map(m-> 0 + nullInt.get());
         ThrowableTypeAssert<NoSuchElementException> noSuchElement = Assertions.assertThatExceptionOfType(NoSuchElementException.class);
-        noSuchElement.isThrownBy(() -> mapEx.get());
+        noSuchElement.isThrownBy(() -> mapNull.get());
         ThrowableTypeAssert<NestedException> nestedException = Assertions.assertThatExceptionOfType(NestedException.class);
-        nestedException.isThrownBy(() -> mapEx.asOptional().get());
+        nestedException.isThrownBy(() -> {
+            Integer ok = mapEx.asOptional().get() + 0; // exception from SafeOpt invokes first
+        });
 
         Assertions.assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
             try {
@@ -50,6 +54,7 @@ public class SafeOptTest {
         ThrowableTypeAssert<NestedException> nested = Assertions.assertThatExceptionOfType(NestedException.class);
 
         nested.isThrownBy(() -> mapEx.throwIfErrorNested());
+        nested.isThrownBy(() -> mapEx.get());
 
         assertThat(map.flatMapOpt(m -> Optional.ofNullable(m)).get()).isEqualTo(expected);
         assertThat(map.flatMap(m -> SafeOpt.ofNullable(m)).get()).isEqualTo(expected);
