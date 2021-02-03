@@ -160,7 +160,9 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
         return this.decorate(q, cb, root, predicates).getResultList();
     }
 
-    protected abstract <X> ExtQuery<X> decorate(final CriteriaQuery<X> q, CriteriaBuilder cb, Root root, IQueryDecorator... predicates);
+    protected <X> ExtQuery<X> decorate(final CriteriaQuery<X> q, CriteriaBuilder cb, Root root, IQueryDecorator... predicates){
+        return new ExtQueryImpl<>(getEntityManager(), cb, q, root, predicates);
+    }
 
     @Override
     public <T> Long count(Class<T> clz, IQueryDecorator<T>... predicates) {
