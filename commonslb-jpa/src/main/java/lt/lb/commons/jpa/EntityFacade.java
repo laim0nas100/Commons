@@ -2,6 +2,7 @@ package lt.lb.commons.jpa;
 
 import java.util.List;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.unchecked.UncheckedRunnable;
@@ -14,6 +15,8 @@ import lt.lb.commons.jpa.ids.ID;
  * JPA
  */
 public interface EntityFacade {
+    
+    public EntityManager getEntityManager();
     
     public void executeTransaction(UncheckedRunnable run);
     
