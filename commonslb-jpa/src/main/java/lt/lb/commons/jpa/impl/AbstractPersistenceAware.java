@@ -2,7 +2,6 @@ package lt.lb.commons.jpa.impl;
 
 import java.util.List;
 import java.util.stream.Stream;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
