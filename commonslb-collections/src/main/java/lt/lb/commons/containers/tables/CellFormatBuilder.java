@@ -3,29 +3,31 @@ package lt.lb.commons.containers.tables;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import lt.lb.fastid.FastID;
 import lt.lb.commons.containers.tables.CellTable.CellFormatIndexCollector;
+import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
+import lt.lb.fastid.FastID;
 
 /**
  *
  * @author laim0nas100
+ * @param <Format> decorator object type
+ * @param <T> cell content type
  */
-public class CellFormatBuilder<T> {
+public class CellFormatBuilder<Format, T> {
 
-    protected CellFormatBuilder(CellTable<T> table, List<CellPrep<T>> prep) {
+    protected CellFormatBuilder(CellTable<Format, T> table, List<CellPrep<T>> prep) {
         cells = new HashSet<>();
         cells.addAll(prep);
         this.table = table;
     }
-    protected CellTable<T> table;
+    protected CellTable<Format, T> table;
     protected Set<CellPrep<T>> cells;
-    protected Map<FastID, List<Consumer>> formatters = new HashMap<>();
+    protected Map<FastID, List<Consumer<Format>>> formatters = new HashMap<>();
 
     /**
      * Define formatting action for currently selected cells
@@ -33,7 +35,7 @@ public class CellFormatBuilder<T> {
      * @param cons
      * @return
      */
-    public CellFormatBuilder<T> addFormat(Consumer cons) {
+    public CellFormatBuilder<Format, T> addFormat(Consumer<Format> cons) {
         for (CellPrep cell : cells) {
             formatters.computeIfAbsent(cell.id, id -> new LinkedList<>()).add(cons);
         }
@@ -46,7 +48,7 @@ public class CellFormatBuilder<T> {
      * @param cons
      * @return
      */
-    public CellFormatBuilder<T> forEachCell(Consumer<CellPrep<T>> cons) {
+    public CellFormatBuilder<Format, T> forEachCell(Consumer<CellPrep<T>> cons) {
         cells.forEach(cons);
         return this;
     }
@@ -56,7 +58,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public CellFormatBuilder<T> cleanFormat() {
+    public CellFormatBuilder<Format, T> cleanFormat() {
         formatters.clear();
         return this;
     }
@@ -66,7 +68,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public CellFormatBuilder<T> cleanSelectedFormat() {
+    public CellFormatBuilder<Format, T> cleanSelectedFormat() {
         return forEachCell(cell -> {
             formatters.remove(cell.id);
         });
@@ -77,7 +79,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public CellFormatBuilder<T> cleanHorizontalMerge() {
+    public CellFormatBuilder<Format, T> cleanHorizontalMerge() {
         return this.forEachCell(c -> c.horizontalMerge = TableCellMerge.NONE);
     }
 
@@ -86,7 +88,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public CellFormatBuilder<T> cleanVerticalMerge() {
+    public CellFormatBuilder<Format, T> cleanVerticalMerge() {
         return this.forEachCell(c -> c.verticalMerge = TableCellMerge.NONE);
     }
 
@@ -95,7 +97,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public CellFormatIndexCollector<T> addToSelection() {
+    public CellFormatIndexCollector<Format, T> addToSelection() {
         return table.selectCells(Optional.of(this));
     }
 
@@ -104,7 +106,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public CellFormatBuilder<T> cleanSelection() {
+    public CellFormatBuilder<Format, T> cleanSelection() {
         this.cells.clear();
         return this;
     }
@@ -115,7 +117,7 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public CellFormatIndexCollector<T> cleanSelectionStart() {
+    public CellFormatIndexCollector<Format, T> cleanSelectionStart() {
         return this.cleanSelection().addToSelection();
     }
 
@@ -124,16 +126,17 @@ public class CellFormatBuilder<T> {
      *
      * @return
      */
-    public Map<FastID, List<Consumer>> getFormatterMap() {
+    public Map<FastID, List<Consumer<Format>>> getFormatterMap() {
         return this.formatters;
     }
 
     /**
      * Ability to collect formatters mid-way.
+     *
      * @param cons
-     * @return 
+     * @return
      */
-    public CellFormatBuilder<T> withFormatterMap(Consumer<? super Map<FastID, ? extends List<Consumer>>> cons) {
+    public CellFormatBuilder<Format, T> withFormatterMap(Consumer<? super Map<FastID, ? extends List<Consumer<Format>>>> cons) {
         cons.accept(this.getFormatterMap());
         return this;
 
