@@ -693,6 +693,25 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
+     * Short-hand for {@link SafeOpt#throwIfErrorNested() } and
+     * {@code orElse(null)}
+     *
+     * @return
+     */
+    public T throwNestedOrNull() {
+        return throwIfErrorNested().orElse(null);
+    }
+
+    /**
+     * Short-for orElse(null)
+     *
+     * @return
+     */
+    public T orNull() {
+        return orElse(null);
+    }
+
+    /**
      * Shorthand for filter and isPresent operation
      *
      * @param predicate
