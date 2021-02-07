@@ -20,7 +20,7 @@ public class MapConsAccessorUnchecked extends MapConsAccessor {
             } else {
                 return SafeOpt.empty();
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             return SafeOpt.error(ex);
         }
     }

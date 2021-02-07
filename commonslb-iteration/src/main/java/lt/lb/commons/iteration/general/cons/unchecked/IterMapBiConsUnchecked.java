@@ -11,7 +11,7 @@ import lt.lb.commons.misc.NestedException;
 @FunctionalInterface
 public interface IterMapBiConsUnchecked<K, V> extends IterMapConsUnchecked<K, V>, IterMapBiCons<K, V> {
 
-    public boolean uncheckedVisit(K key, V val) throws Exception;
+    public boolean uncheckedVisit(K key, V val) throws Throwable;
 
     @Override
     public default boolean visit(IterMapResult<K, V> entry){
@@ -19,7 +19,7 @@ public interface IterMapBiConsUnchecked<K, V> extends IterMapConsUnchecked<K, V>
     }
     
     @Override
-    public default boolean uncheckedVisit(IterMapResult<K, V> entry) throws Exception {
+    public default boolean uncheckedVisit(IterMapResult<K, V> entry) throws Throwable {
         return uncheckedVisit(entry.key, entry.val);
     }
 
@@ -27,7 +27,7 @@ public interface IterMapBiConsUnchecked<K, V> extends IterMapConsUnchecked<K, V>
     public default boolean visit(K key, V val) {
         try {
             return uncheckedVisit(key, val);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             throw NestedException.of(ex);
         }
     }

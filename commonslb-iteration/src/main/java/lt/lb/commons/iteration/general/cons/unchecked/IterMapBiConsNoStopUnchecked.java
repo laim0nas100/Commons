@@ -15,10 +15,10 @@ public interface IterMapBiConsNoStopUnchecked<K, V> extends IterMapBiConsUncheck
      * @throws java.lang.Exception
      */
     @Override
-    public default boolean uncheckedVisit(K key, V val) throws Exception {
+    public default boolean uncheckedVisit(K key, V val) throws Throwable {
         continuedVisit(key, val);
         return false;
     }
 
-    public void continuedVisit(K key, V val) throws Exception;
+    public void continuedVisit(K key, V val) throws Throwable;
 }

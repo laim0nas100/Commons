@@ -16,7 +16,7 @@ public interface IterIterableConsNoStopUnchecked<Type> extends IterIterableConsU
      * @throws java.lang.Exception
      */
     @Override
-    public default boolean uncheckedVisit(IterIterableResult<Type> i) throws Exception {
+    public default boolean uncheckedVisit(IterIterableResult<Type> i) throws Throwable {
         continuedVisit(i);
         return false;
     }
@@ -26,5 +26,5 @@ public interface IterIterableConsNoStopUnchecked<Type> extends IterIterableConsU
      * @param i
      * @throws Exception
      */
-    public void continuedVisit(IterIterableResult<Type> i) throws Exception;
+    public void continuedVisit(IterIterableResult<Type> i) throws Throwable;
 }

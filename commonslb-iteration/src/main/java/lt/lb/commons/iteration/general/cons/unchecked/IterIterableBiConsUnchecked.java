@@ -18,7 +18,7 @@ public interface IterIterableBiConsUnchecked<Type> extends IterIterableConsUnche
      * @return true = break, false = continue
      * @throws java.lang.Exception
      */
-    public boolean uncheckedVisit(Integer index, Type value) throws Exception;
+    public boolean uncheckedVisit(Integer index, Type value) throws Throwable;
 
     @Override
     public default boolean visit(IterIterableResult<Type> i) {
@@ -26,7 +26,7 @@ public interface IterIterableBiConsUnchecked<Type> extends IterIterableConsUnche
     }
 
     @Override
-    public default boolean uncheckedVisit(IterIterableResult<Type> i) throws Exception {
+    public default boolean uncheckedVisit(IterIterableResult<Type> i) throws Throwable {
         return uncheckedVisit(i.index, i.val);
     }
 
@@ -34,7 +34,7 @@ public interface IterIterableBiConsUnchecked<Type> extends IterIterableConsUnche
     public default boolean visit(Integer index, Type value) {
         try {
             return uncheckedVisit(index, value);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             throw NestedException.of(ex);
         }
     }

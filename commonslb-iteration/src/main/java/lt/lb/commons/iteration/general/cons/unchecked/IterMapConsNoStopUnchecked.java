@@ -16,10 +16,10 @@ public interface IterMapConsNoStopUnchecked<K, V> extends IterMapConsUnchecked<K
      * @throws java.lang.Exception
      */
     @Override
-    public default boolean uncheckedVisit(IterMapResult<K, V> entry) throws Exception {
+    public default boolean uncheckedVisit(IterMapResult<K, V> entry) throws Throwable {
         continuedVisit(entry);
         return false;
     }
 
-    public void continuedVisit(IterMapResult<K, V> entry) throws Exception;
+    public void continuedVisit(IterMapResult<K, V> entry) throws Throwable;
 }

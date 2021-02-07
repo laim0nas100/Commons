@@ -22,7 +22,7 @@ public class MapBiConsAccessorUnchecked extends MapBiConsAccessor {
             } else {
                 return SafeOpt.empty();
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             return SafeOpt.error(ex);
         }
     }

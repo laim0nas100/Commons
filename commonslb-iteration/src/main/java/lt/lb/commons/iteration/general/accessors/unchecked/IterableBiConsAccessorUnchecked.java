@@ -22,7 +22,7 @@ public class IterableBiConsAccessorUnchecked extends IterableBiConsAccessor {
             } else {
                 return SafeOpt.empty();
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             return SafeOpt.error(ex);
         }
     }

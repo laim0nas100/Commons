@@ -15,10 +15,10 @@ public interface IterIterableBiConsNoStopUnchecked<Type> extends IterIterableBiC
      * @throws java.lang.Exception
      */
     @Override
-    public default boolean uncheckedVisit(Integer index, Type value) throws Exception {
+    public default boolean uncheckedVisit(Integer index, Type value) throws Throwable {
         continuedVisit(index, value);
         return false;
     }
 
-    public void continuedVisit(Integer index, Type value) throws Exception;
+    public void continuedVisit(Integer index, Type value) throws Throwable;
 }

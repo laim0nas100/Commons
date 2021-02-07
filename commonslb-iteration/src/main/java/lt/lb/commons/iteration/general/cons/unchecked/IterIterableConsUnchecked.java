@@ -21,12 +21,12 @@ public interface IterIterableConsUnchecked<Type> extends IterIterableCons<Type> 
     public default boolean visit(IterIterableResult<Type> i) {
         try {
             return uncheckedVisit(i);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             throw NestedException.of(ex);
         }
 
     }
 
-    public boolean uncheckedVisit(IterIterableResult<Type> i) throws Exception;
+    public boolean uncheckedVisit(IterIterableResult<Type> i) throws Throwable;
 
 }

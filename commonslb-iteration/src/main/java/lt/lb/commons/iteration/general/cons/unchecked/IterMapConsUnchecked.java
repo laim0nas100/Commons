@@ -15,11 +15,11 @@ public interface IterMapConsUnchecked<K, V> extends IterMapCons<K, V> {
     public default boolean visit(IterMapResult<K, V> entry) {
         try {
             return uncheckedVisit(entry);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             throw NestedException.of(ex);
         }
     }
 
-    public boolean uncheckedVisit(IterMapResult<K, V> entry) throws Exception;
+    public boolean uncheckedVisit(IterMapResult<K, V> entry) throws Throwable;
 
 }
