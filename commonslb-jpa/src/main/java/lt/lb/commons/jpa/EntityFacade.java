@@ -1,35 +1,47 @@
 package lt.lb.commons.jpa;
 
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.func.unchecked.UncheckedConsumer;
+import lt.lb.commons.func.unchecked.UncheckedFunction;
 import lt.lb.commons.func.unchecked.UncheckedRunnable;
 import lt.lb.commons.func.unchecked.UncheckedSupplier;
 import lt.lb.commons.jpa.ids.ID;
 
 /**
  *
- * @author laim0nas100 Facade to use interchangeably with Memory-saved and
- * JPA
+ * @author laim0nas100 Facade to use interchangeably with Memory-saved and JPA
  */
 public interface EntityFacade {
-    
+
     public EntityManager getEntityManager();
-    
-    public void executeTransaction(UncheckedRunnable run);
-    
-    public default <T> T executeTransaction(UncheckedSupplier<T> supp){
-        Value<T> val = new Value<>();
-        executeTransaction(()->{
-            val.set(supp.get());
+
+    public EntityManagerFactory getEntityManagerFactory();
+
+    public default Future<Void> executeTransactionAsync(UncheckedConsumer<EntityManager> run) {
+        return executeTransactionAsync(em -> {
+            run.accept(em);
+            return null;
         });
-        return val.get();
     }
 
+    public <T> Future<T> executeTransactionAsync(UncheckedFunction<EntityManager, T> supp);
+
+    public default void executeTransaction(UncheckedRunnable run) {
+        executeTransaction(() -> {
+            run.run();
+            return null;
+        });
+    }
+
+    public <T> T executeTransaction(UncheckedSupplier<T> supp);
+
     public <T> SafeOpt<T> find(Class<T> cls, Object key);
-    
+
     public default <T> SafeOpt<T> findID(Class<T> cls, ID<? extends T, ?> key) {
         return find(cls, key.id);
     }
@@ -56,10 +68,11 @@ public interface EntityFacade {
 
     /**
      * All-in-one method to update new or changed instances
+     *
      * @param <T>
      * @param item
-     * @return 
+     * @return
      */
     public <T> T update(T item);
-    
+
 }

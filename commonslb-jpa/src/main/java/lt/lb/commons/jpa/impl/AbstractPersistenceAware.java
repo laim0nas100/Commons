@@ -1,30 +1,35 @@
 package lt.lb.commons.jpa.impl;
 
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import lt.lb.commons.F;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.commons.func.unchecked.UncheckedFunction;
+import lt.lb.commons.func.unchecked.UncheckedSupplier;
 import lt.lb.commons.jpa.EntityManagerAware;
 import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.JPACommands;
 import lt.lb.commons.jpa.decorators.IQueryDecorator;
 import lt.lb.commons.jpa.ids.IDFactory;
+import lt.lb.commons.misc.NestedException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class AbstractPersistenceAware implements JPACommands, EntityManagerAware {
 
+    protected Logger logger = LogManager.getLogger(AbstractPersistenceAware.class);
 
     public abstract IDFactory getIds();
-    
-    @Override
-    public void executeTransaction(UncheckedRunnable run) {
-        F.uncheckedRun(run);
-    }
 
     @Override
     public <T> T createPersistent(Class<T> cls) {
@@ -60,13 +65,12 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
 
     @Override
     public <T> boolean delete(T item) {
-        
-        
+
         if (item != null) {
-            if(!getEntityManager().contains(item)){
-               item =  update(item);
+            if (!getEntityManager().contains(item)) {
+                item = update(item);
             }
-            
+
             getEntityManager().remove(item);
             return true;
         }
@@ -159,7 +163,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
         return this.decorate(q, cb, root, predicates).getResultList();
     }
 
-    protected <X> ExtQuery<X> decorate(final CriteriaQuery<X> q, CriteriaBuilder cb, Root root, IQueryDecorator... predicates){
+    protected <X> ExtQuery<X> decorate(final CriteriaQuery<X> q, CriteriaBuilder cb, Root root, IQueryDecorator... predicates) {
         return new ExtQueryImpl<>(getEntityManager(), cb, q, root, predicates);
     }
 
@@ -184,6 +188,40 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
         Root<T> root = q.from(clz);
         ExtQuery<T> decorate = this.decorate(q, cb, root, predicates);
         return decorate.setFirstResult(start).setMaxResults(pageSize).getResultList();
+    }
+
+    public Executor getAsyncExecutor() {
+        return ForkJoinPool.commonPool();
+    }
+
+
+    @Override
+    public <T> Future<T> executeTransactionAsync(UncheckedFunction<EntityManager, T> supp) {
+        UncheckedSupplier<T> decorated = () -> {
+            EntityManagerFactory factory = getEntityManagerFactory();
+            EntityManager em = null;
+
+            try {
+                em = factory.createEntityManager();
+                em.getTransaction().begin();
+                T value = supp.applyUnchecked(em);
+                em.getTransaction().commit();
+                return value;
+            } catch (Throwable error) {
+                logger.error("Error in async transaction", error);
+                if (em != null) {
+                    em.getTransaction().rollback();
+                }
+                throw NestedException.of(error);
+            } finally {
+                if (em != null) {
+                    em.close();
+                }
+            }
+        };
+        FutureTask<T> task = new FutureTask<>(decorated);
+        getAsyncExecutor().execute(task);
+        return task;
     }
 
 }
