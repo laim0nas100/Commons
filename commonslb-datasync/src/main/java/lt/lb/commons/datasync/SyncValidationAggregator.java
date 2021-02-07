@@ -1,9 +1,7 @@
 package lt.lb.commons.datasync;
 
-import lt.lb.commons.datasync.base.BaseValidation;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -14,17 +12,27 @@ import java.util.function.Supplier;
  */
 public class SyncValidationAggregator<E extends SyncAndValidationAggregator<E>> implements SyncAndValidationAggregator<E> {
 
+    public static class ValidArgs<M>{
+        public Predicate<M> pred;
+        public Function<? super M, String> error;
+    }
+    
     protected Collection<DataSyncPersist> persists = new LinkedHashSet<>();
     protected Collection<DataSyncDisplay> displays = new LinkedHashSet<>();
     protected Collection<DisplayValidation> displayValidations = new LinkedHashSet<>();
     protected Collection<PersistValidation> persistValidations = new LinkedHashSet<>();
     protected Function<Supplier, PersistAndDisplayValidation> factory;
-    protected BiFunction<Predicate, Function<?, String>, Valid> validationFactory;
-    protected final E me;
+    protected Function<ValidArgs, Valid> validationFactory;
+    protected E me;
 
-    public SyncValidationAggregator(E me, Function<Supplier, PersistAndDisplayValidation> factory) {
-        this.factory = factory;
+    public SyncValidationAggregator(
+            E me,
+            Function<Supplier, PersistAndDisplayValidation> factory,
+            Function<ValidArgs, Valid> validationFactory
+    ) {
         this.me = me;
+        this.factory = factory;
+        this.validationFactory = validationFactory;
     }
 
     @Override
@@ -125,7 +133,10 @@ public class SyncValidationAggregator<E extends SyncAndValidationAggregator<E>> 
 
     @Override
     public <M> Valid createValidation(Predicate<M> pred, Function<? super M, String> errorFunc) {
-        return validationFactory.apply(pred, errorFunc);
+        ValidArgs<M> validArgs = new ValidArgs<>();
+        validArgs.pred = pred;
+        validArgs.error = errorFunc;
+        return validationFactory.apply(validArgs);
     }
 
 }
