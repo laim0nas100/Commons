@@ -463,6 +463,16 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
+     * Results in empty instance of {@link SafeOpt}, but keeps the error if one
+     * is present.
+     *
+     * @return
+     */
+    public SafeOpt<Void> keepError() {
+        return SafeOpt.errorOrEmpty(threw);
+    }
+
+    /**
      * If both values are present (in this {@code SafeOpt} and provided
      * {@code SafeOpt with} object), then proceed with combining those values in
      * a safe manner, capturing any exceptions. With and mapper must be
