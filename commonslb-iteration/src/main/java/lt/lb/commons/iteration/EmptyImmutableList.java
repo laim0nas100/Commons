@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import lt.lb.commons.ArrayOp;
 import lt.lb.commons.iteration.impl.EmptyROI;
 import org.apache.commons.lang3.ArrayUtils;
 

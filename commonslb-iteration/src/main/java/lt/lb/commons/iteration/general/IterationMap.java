@@ -36,11 +36,11 @@ public interface IterationMap<E extends IterationMap<E>> extends IterationAbstra
         return find(map, (IterMapCons<K, V>) iter);
     }
 
-    public default <K, V> SafeOpt<Throwable> iterate(Map<K, V> map, IterMapCons.IterMapConsNoStop<K, V> iter) {
-        return find(map, iter).getError();
+    public default <K, V> SafeOpt<Void> iterate(Map<K, V> map, IterMapCons.IterMapConsNoStop<K, V> iter) {
+        return find(map, iter).keepError();
     }
 
-    public default <K, V> SafeOpt<Throwable> iterate(Map<K, V> map, IterMapBiCons.IterMapBiConsNoStop<K, V> iter) {
-        return find(map, iter).getError();
+    public default <K, V> SafeOpt<Void> iterate(Map<K, V> map, IterMapBiCons.IterMapBiConsNoStop<K, V> iter) {
+        return find(map, iter).keepError();
     }
 }
