@@ -10,10 +10,10 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.Java;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 import lt.lb.commons.threads.executors.CloseableExecutor;
 import lt.lb.commons.threads.sync.Awaiter;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -114,6 +114,8 @@ public class DelayedTaskExecutor implements CloseableExecutor {
                 }
 
             } catch (Throwable th) {
+                // not our problem
+            } finally {
                 threadCount.decrementAndGet();
                 if (!dq.isEmpty() && !shutdown) {
                     startSchedulingThread();
@@ -132,7 +134,7 @@ public class DelayedTaskExecutor implements CloseableExecutor {
     public DTEScheduledFuture schedule(WaitTime time, UncheckedRunnable command) {
         return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
     }
-    
+
     public <V> DTEScheduledFuture<V> schedule(WaitTime time, Callable<V> callable) {
         return schedule(new DTEScheduledFuture<>(this, time, callable));
     }
