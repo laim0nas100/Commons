@@ -671,6 +671,28 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
+     * Throw matching type of exception if present, or throws error wrapped is
+     * {@link NestedException}. If error is not present, does nothing.
+     *
+     *
+     * @param <Ex> Type of the exception to be thrown
+     * @param type
+     * @return this object
+     * @throws Ex if there is such exception
+     */
+    public <Ex extends Throwable> SafeOpt<T> throwIfErrorUnwrapping(Class<Ex> type) throws Ex {
+        if (threw != null) {
+            Throwable t = NestedException.unwrap(threw);
+            if (Ins.ofNullable(t).instanceOf(type)) {
+                throw (Ex) t;
+            } else {
+                throw NestedException.of(t);
+            }
+        }
+        return this;
+    }
+
+    /**
      * Shorthand for filter and isPresent operation
      *
      * @param predicate
