@@ -23,13 +23,13 @@ import org.junit.Test;
 public class DocTableTest {
 
     public void test() throws Exception {
-        CellTable<String> table = new CellTable<>();
+        CellTable<String,String> table = new CellTable<>();
 
         table.addRow("1", "2", "3");
         table.addRow("A", "B", "C");
         table.mergeHorizontal(0, 2, 1);
 
-        Map<FastID, List<Consumer>> formatterMap = table.selectCells()
+        Map<FastID, List<Consumer<String>>> formatterMap = table.selectCells()
                 .withRectangleStartingAt(0, 1)
                 .toRightBottomCornerAt(1, 1)
                 .forEachCell(c -> {
