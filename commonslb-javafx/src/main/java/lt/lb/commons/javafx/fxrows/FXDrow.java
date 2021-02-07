@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.fxrows;
 
+import java.util.function.Supplier;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -26,6 +27,14 @@ public class FXDrow extends SyncDrow<FXCell, Node, FXLine, FXUpdates, FXDrowConf
 
     public FXDrow addLabel(String str) {
         return add(new Label(str));
+    }
+    
+    public FXDrow addLabelUpdate(Supplier<String> str) {
+        Label label = new Label();
+        this.withUpdateRefresh(row ->{
+           label.setText(str.get());
+        });
+        return add(label);
     }
 
     public FXDrow addFxSync(FXSync sync) {

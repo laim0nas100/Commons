@@ -78,9 +78,9 @@ public abstract class BaseFrameLoad<T extends Frame> implements FrameLoad<T> {
 
     @Override
     public void hookStageEvents() throws Exception {
-        For.entries().iterate(stageHandlers, (type, handler) -> {
+        For.entriesUnchecked().iterate(stageHandlers, (type, handler) -> {
             FXEvents.setWindowEventHandler(type, getStage(), handler);
-        });
+        }).throwIfErrorUnwrapping(Exception.class);
     }
 
     @Override
