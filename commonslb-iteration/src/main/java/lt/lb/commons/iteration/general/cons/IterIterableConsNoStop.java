@@ -4,22 +4,25 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
 
 /**
  *
- * @author laim0nas100
+ * @author Lemmin
  */
 @FunctionalInterface
-public interface IterIterableBiCons<Type> extends IterIterableCons<Type> {
+public interface IterIterableConsNoStop<Type> extends IterIterableCons<Type> {
 
     /**
      *
-     * @param index
-     * @param value
+     * @param i
      * @return true = break, false = continue
      */
-    public boolean visit(Integer index, Type value);
-
     @Override
     public default boolean visit(IterIterableResult<Type> i) {
-        return visit(i.index, i.val);
+        continuedVisit(i);
+        return false;
     }
 
+    /**
+     *
+     * @param i
+     */
+    public void continuedVisit(IterIterableResult<Type> i);
 }

@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.stream.Stream;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
-import lt.lb.commons.iteration.general.cons.IterIterableBiConsNoStop;
-import lt.lb.commons.iteration.general.cons.IterIterableCons;
-import lt.lb.commons.iteration.general.cons.IterIterableConsNoStop;
+import lt.lb.commons.iteration.general.cons.unchecked.IterIterableBiConsNoStopUnchecked;
+import lt.lb.commons.iteration.general.cons.unchecked.IterIterableBiConsUnchecked;
+import lt.lb.commons.iteration.general.cons.unchecked.IterIterableConsNoStopUnchecked;
+import lt.lb.commons.iteration.general.cons.unchecked.IterIterableConsUnchecked;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
 
 /**
@@ -18,7 +18,7 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
  * @author laim0nas100
  * @param <E>
  */
-public interface IterationIterable<E extends IterationIterable<E>> extends IterationAbstract<E> {
+public interface IterationIterableUnchecked<E extends IterationIterableUnchecked<E>> extends IterationAbstract<E> {
 
     /**
      * Set staring index (inclusive)
@@ -51,37 +51,37 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter);
+    public <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableConsUnchecked<T> iter);
 
     /**
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public <T> SafeOpt<IterIterableResult<T>> find(List<T> list, IterIterableCons<T> iter);
+    public <T> SafeOpt<IterIterableResult<T>> find(List<T> list, IterIterableConsUnchecked<T> iter);
 
     /**
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public <T> SafeOpt<IterIterableResult<T>> find(T[] array, IterIterableCons<T> iter);
+    public <T> SafeOpt<IterIterableResult<T>> find(T[] array, IterIterableConsUnchecked<T> iter);
 
     /**
      * Linear backward iteration of the given interval until logic returns true,
      * or iteration exhausts all elements
      */
-    public <T> SafeOpt<IterIterableResult<T>> findBackwards(List<T> list, IterIterableCons<T> iter);
+    public <T> SafeOpt<IterIterableResult<T>> findBackwards(List<T> list, IterIterableConsUnchecked<T> iter);
 
     /**
      * Linear backward iteration of the given interval until logic returns true,
      * or iteration exhausts all elements
      */
-    public <T> SafeOpt<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableCons<T> iter);
+    public <T> SafeOpt<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableConsUnchecked<T> iter);
 
     /**
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> findBackwards(LinkedList<T> list, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> findBackwards(LinkedList<T> list, IterIterableConsNoStopUnchecked<T> iter) {
         return findBackwards((List<T>) list, iter).keepError();
 
     }
@@ -90,13 +90,13 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear backward iteration of the given interval until logic returns true,
      * or iteration exhausts all elements
      */
-    public <T> SafeOpt<IterIterableResult<T>> findBackwards(T[] array, IterIterableCons<T> iter);
+    public <T> SafeOpt<IterIterableResult<T>> findBackwards(T[] array, IterIterableConsUnchecked<T> iter);
 
     /**
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> iterateBackwards(LinkedList<T> list, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterateBackwards(LinkedList<T> list, IterIterableConsNoStopUnchecked<T> iter) {
         return findBackwards((List<T>) list, iter).keepError();
     }
 
@@ -104,7 +104,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> iterateBackwards(List<T> list, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterateBackwards(List<T> list, IterIterableConsNoStopUnchecked<T> iter) {
         return findBackwards(list, iter).keepError();
     }
 
@@ -112,7 +112,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> iterateBackwards(Deque<T> deque, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterateBackwards(Deque<T> deque, IterIterableConsNoStopUnchecked<T> iter) {
         return findBackwards(deque, iter).keepError();
     }
 
@@ -120,7 +120,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> iterateBackwards(T[] array, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterateBackwards(T[] array, IterIterableConsNoStopUnchecked<T> iter) {
         return findBackwards(array, iter).keepError();
     }
 
@@ -128,7 +128,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableCons<T> iter) {
+    public default <T> SafeOpt<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableConsUnchecked<T> iter) {
         return find(iterable.iterator(), iter);
     }
 
@@ -136,7 +136,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter) {
+    public default <T> SafeOpt<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableConsUnchecked<T> iter) {
         return find((Iterator) iterator, iter);
     }
 
@@ -144,7 +144,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(Stream<T> stream, IterIterableCons<T> iter) {
+    public default <T> SafeOpt<IterIterableResult<T>> find(Stream<T> stream, IterIterableConsUnchecked<T> iter) {
         return find(ReadOnlyIterator.of(stream), iter);
     }
 
@@ -152,7 +152,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(List<T> list, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(List<T> list, IterIterableConsNoStopUnchecked<T> iter) {
         return find(list, iter).keepError();
     }
 
@@ -160,7 +160,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(T[] array, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(T[] array, IterIterableConsNoStopUnchecked<T> iter) {
         return find(array, iter).keepError();
     }
 
@@ -168,7 +168,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(Iterator<T> iterator, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(Iterator<T> iterator, IterIterableConsNoStopUnchecked<T> iter) {
         return find(iterator, iter).keepError();
     }
 
@@ -176,7 +176,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(Iterable<T> iterable, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(Iterable<T> iterable, IterIterableConsNoStopUnchecked<T> iter) {
         return find(iterable.iterator(), iter).keepError();
     }
 
@@ -184,7 +184,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(ReadOnlyIterator<T> iterator, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(ReadOnlyIterator<T> iterator, IterIterableConsNoStopUnchecked<T> iter) {
         return find(iterator, iter).keepError();
     }
 
@@ -192,7 +192,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(Stream<T> stream, IterIterableConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(Stream<T> stream, IterIterableConsNoStopUnchecked<T> iter) {
         return find(stream.iterator(), iter).keepError();
     }
 
@@ -200,47 +200,47 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableBiCons<T> iter) {
-        return find(iterator, (IterIterableCons<T>) iter);
+    public default <T> SafeOpt<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableBiConsUnchecked<T> iter) {
+        return find(iterator, (IterIterableConsUnchecked<T>) iter);
     }
 
     /**
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(List<T> list, IterIterableBiCons<T> iter) {
-        return find(list, (IterIterableCons<T>) iter);
+    public default <T> SafeOpt<IterIterableResult<T>> find(List<T> list, IterIterableBiConsUnchecked<T> iter) {
+        return find(list, (IterIterableConsUnchecked<T>) iter);
     }
 
     /**
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(T[] array, IterIterableBiCons<T> iter) {
-        return find(array, (IterIterableCons<T>) iter);
+    public default <T> SafeOpt<IterIterableResult<T>> find(T[] array, IterIterableBiConsUnchecked<T> iter) {
+        return find(array, (IterIterableConsUnchecked<T>) iter);
     }
 
     /**
      * Linear backward iteration of the given interval until logic returns true,
      * or iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> findBackwards(List<T> list, IterIterableBiCons<T> iter) {
-        return findBackwards(list, (IterIterableCons<T>) iter);
+    public default <T> SafeOpt<IterIterableResult<T>> findBackwards(List<T> list, IterIterableBiConsUnchecked<T> iter) {
+        return findBackwards(list, (IterIterableConsUnchecked<T>) iter);
     }
 
     /**
      * Linear backward iteration of the given interval until logic returns true,
      * or iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableBiCons<T> iter) {
-        return findBackwards(deque, (IterIterableCons<T>) iter);
+    public default <T> SafeOpt<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableBiConsUnchecked<T> iter) {
+        return findBackwards(deque, (IterIterableConsUnchecked<T>) iter);
     }
 
     /**
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> findBackwards(LinkedList<T> list, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<IterIterableResult<T>> findBackwards(LinkedList<T> list, IterIterableBiConsNoStopUnchecked<T> iter) {
         return findBackwards((List<T>) list, iter);
     }
 
@@ -248,15 +248,15 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear backward iteration of the given interval until logic returns true,
      * or iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> findBackwards(T[] array, IterIterableBiCons<T> iter) {
-        return findBackwards(array, (IterIterableCons<T>) iter);
+    public default <T> SafeOpt<IterIterableResult<T>> findBackwards(T[] array, IterIterableBiConsUnchecked<T> iter) {
+        return findBackwards(array, (IterIterableConsUnchecked<T>) iter);
     }
 
     /**
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> iterateBackwards(LinkedList<T> list, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterateBackwards(LinkedList<T> list, IterIterableBiConsNoStopUnchecked<T> iter) {
         return findBackwards((List<T>) list, iter).keepError();
     }
 
@@ -264,7 +264,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> iterateBackwards(List<T> list, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterateBackwards(List<T> list, IterIterableBiConsNoStopUnchecked<T> iter) {
         return findBackwards(list, iter).keepError();
     }
 
@@ -272,7 +272,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> iterateBackwards(Deque<T> deque, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterateBackwards(Deque<T> deque, IterIterableBiConsNoStopUnchecked<T> iter) {
         return findBackwards(deque, iter).keepError();
     }
 
@@ -280,7 +280,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear backward iteration of the given interval until iteration exhausts
      * all elements
      */
-    public default <T> SafeOpt<Void> iterateBackwards(T[] array, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterateBackwards(T[] array, IterIterableBiConsNoStopUnchecked<T> iter) {
         return findBackwards(array, iter).keepError();
     }
 
@@ -288,7 +288,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableBiCons<T> iter) {
+    public default <T> SafeOpt<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableBiConsUnchecked<T> iter) {
         return find(iterable.iterator(), iter);
     }
 
@@ -296,15 +296,15 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableBiCons<T> iter) {
-        return find(iterator, (IterIterableCons<T>) iter);
+    public default <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableBiConsUnchecked<T> iter) {
+        return find(iterator, (IterIterableConsUnchecked<T>) iter);
     }
 
     /**
      * Linear iteration of the given interval until logic returns true, or
      * iteration exhausts all elements
      */
-    public default <T> SafeOpt<IterIterableResult<T>> find(Stream<T> stream, IterIterableBiCons<T> iter) {
+    public default <T> SafeOpt<IterIterableResult<T>> find(Stream<T> stream, IterIterableBiConsUnchecked<T> iter) {
         return find(stream.iterator(), iter);
     }
 
@@ -312,7 +312,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(List<T> list, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(List<T> list, IterIterableBiConsNoStopUnchecked<T> iter) {
         return find(list, iter).keepError();
     }
 
@@ -320,7 +320,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(T[] array, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(T[] array, IterIterableBiConsNoStopUnchecked<T> iter) {
         return find(array, iter).keepError();
     }
 
@@ -328,7 +328,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(Iterator<T> iterator, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(Iterator<T> iterator, IterIterableBiConsNoStopUnchecked<T> iter) {
         return find(iterator, iter).keepError();
     }
 
@@ -336,7 +336,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(Iterable<T> iterable, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(Iterable<T> iterable, IterIterableBiConsNoStopUnchecked<T> iter) {
         return find(iterable.iterator(), iter).keepError();
     }
 
@@ -344,7 +344,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(ReadOnlyIterator<T> iterator, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(ReadOnlyIterator<T> iterator, IterIterableBiConsNoStopUnchecked<T> iter) {
         return find(iterator, iter).keepError();
     }
 
@@ -352,7 +352,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * Linear iteration of the given interval until iteration exhausts all
      * elements
      */
-    public default <T> SafeOpt<Void> iterate(Stream<T> stream, IterIterableBiConsNoStop<T> iter) {
+    public default <T> SafeOpt<Void> iterate(Stream<T> stream, IterIterableBiConsNoStopUnchecked<T> iter) {
         return find(stream.iterator(), iter).keepError();
     }
 

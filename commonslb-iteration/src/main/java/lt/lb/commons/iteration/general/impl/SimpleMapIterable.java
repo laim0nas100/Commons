@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.general.IterationMap;
+import lt.lb.commons.iteration.general.accessors.IterMapAccessor;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
 

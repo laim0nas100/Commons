@@ -9,27 +9,11 @@ import lt.lb.commons.iteration.general.result.IterMapResult;
 @FunctionalInterface
 public interface IterMapBiCons<K, V> extends IterMapCons<K, V> {
 
-    public boolean visit(K key, V val) throws Exception;
+    public boolean visit(K key, V val);
 
     @Override
-    public default boolean visit(IterMapResult<K, V> entry) throws Exception {
+    public default boolean visit(IterMapResult<K, V> entry) {
         return visit(entry.key, entry.val);
     }
 
-    public static interface IterMapBiConsNoStop<K, V> extends IterMapBiCons<K, V> {
-
-        /**
-         *
-         * @param key
-         * @param val
-         * @return true = break, false = continue
-         */
-        @Override
-        public default boolean visit(K key, V val) throws Exception{
-            continuedVisit(key, val);
-            return false;
-        }
-
-        public void continuedVisit(K key, V val) throws Exception;
-    }
 }

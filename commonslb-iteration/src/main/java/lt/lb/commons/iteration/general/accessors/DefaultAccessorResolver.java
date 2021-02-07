@@ -1,0 +1,46 @@
+package lt.lb.commons.iteration.general.accessors;
+
+import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
+import lt.lb.commons.iteration.general.cons.IterIterableCons;
+import lt.lb.commons.iteration.general.cons.IterMapBiCons;
+import lt.lb.commons.iteration.general.cons.IterMapCons;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public class DefaultAccessorResolver implements AccessorResolver {
+
+    protected IterableConsAccessor iterConsAccessor = new IterableConsAccessor();
+
+    protected IterableBiConsAccessor iterConsBiAccessor = new IterableBiConsAccessor();
+
+    protected MapConsAccessor mapConsAccessor = new MapConsAccessor();
+
+    protected MapBiConsAccessor mapConsBiAccessor = new MapBiConsAccessor();
+
+    @Override
+    public IterIterableAccessor resolveAccessor(IterIterableCons iter) {
+        if (iter instanceof IterIterableBiCons) {
+            return iterConsBiAccessor;
+        }
+        if (iter instanceof IterIterableCons) {
+            return iterConsAccessor;
+        }
+
+        throw new IllegalArgumentException("Failed to resolve for iteration type " + iter);
+    }
+
+    @Override
+    public IterMapAccessor resolveAccessor(IterMapCons iter) {
+        if (iter instanceof IterMapBiCons) {
+            return mapConsBiAccessor;
+        }
+        if (iter instanceof IterMapCons) {
+            return mapConsAccessor;
+        }
+
+        throw new IllegalArgumentException("Failed to resolve for iteration type " + iter);
+    }
+
+}
