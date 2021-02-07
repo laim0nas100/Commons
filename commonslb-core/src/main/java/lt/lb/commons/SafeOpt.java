@@ -463,6 +463,22 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
+     * Only if error is present, feed it to the consumer. If consumer throws any
+     * errors they are not caught and just propagate upwards, so use this method
+     * with caution.
+     *
+     * @param errorCons
+     * @return the same unmodified object
+     */
+    public SafeOpt<T> peekError(Consumer<Throwable> errorCons) {
+        Objects.requireNonNull(errorCons);
+        if (hasError()) {
+            errorCons.accept(threw);
+        }
+        return this;
+    }
+
+    /**
      * Results in empty instance of {@link SafeOpt}, but keeps the error if one
      * is present.
      *
