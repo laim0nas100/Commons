@@ -1,19 +1,11 @@
 package lt.lb.commons.rows;
 
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.datasync.DataSyncDisplay;
-import lt.lb.commons.datasync.DataSyncManaged;
-import lt.lb.commons.datasync.DataSyncManagedValidation;
-import lt.lb.commons.datasync.DataSyncPersist;
-import lt.lb.commons.datasync.DisplayValidation;
-import lt.lb.commons.datasync.PersistValidation;
 import lt.lb.commons.datasync.SyncAndValidationAggregator;
 import lt.lb.commons.datasync.SyncAndValidationAggregatorHolder;
 import lt.lb.commons.datasync.SyncValidation;
 import lt.lb.commons.datasync.Valid;
-import lt.lb.commons.iteration.For;
 
 /**
  *

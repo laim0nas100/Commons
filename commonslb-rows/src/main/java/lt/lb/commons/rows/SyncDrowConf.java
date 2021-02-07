@@ -1,13 +1,15 @@
 package lt.lb.commons.rows;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.datasync.base.BaseValidation;
 import lt.lb.commons.datasync.PersistAndDisplayValidation;
 import lt.lb.commons.datasync.SyncAndValidationAggregator;
 import lt.lb.commons.datasync.SyncValidationAggregator;
+import lt.lb.commons.datasync.SyncValidationAggregator.ValidArgs;
 import lt.lb.commons.datasync.Valid;
+import lt.lb.commons.datasync.base.BaseValidation;
 
 /**
  *
@@ -35,7 +37,11 @@ public interface SyncDrowConf<R extends SyncDrow, C, N, L, U extends Updates> ex
     }
 
     public default SyncAndValidationAggregator<R> createAggregator(R row) {
-        return new SyncValidationAggregator<>(row,ob -> createBaseSyncValidation(ob));
+        Function<Supplier, PersistAndDisplayValidation> factory = this::createBaseSyncValidation;
+        Function<ValidArgs, Valid> validationFactory = (arg) -> {
+            return createValidation(row, arg.pred, arg.error);
+        };
+        return new SyncValidationAggregator<>(row, factory, validationFactory);
     }
 
 }
