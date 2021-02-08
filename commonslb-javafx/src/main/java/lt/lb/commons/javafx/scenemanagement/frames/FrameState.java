@@ -16,4 +16,14 @@ public interface FrameState {
 
         public static final FrameStateOpen instance = new FrameStateOpen();
     }
+    
+    public static class FrameStateHide implements FrameState {
+
+        public static final FrameStateHide instance = new FrameStateHide();
+    }
+    
+    public static class FrameStateShow implements FrameState {
+
+        public static final FrameStateShow instance = new FrameStateShow();
+    }
 }

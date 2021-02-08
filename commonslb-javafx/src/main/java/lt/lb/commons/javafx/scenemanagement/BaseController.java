@@ -21,7 +21,7 @@ public interface BaseController<T extends BaseController> extends Initializable 
      * Executes when stage gets {@link WindowEvent#WINDOW_CLOSE_REQUEST}; If
      * called this method directly, need to also call {@link Frame#close() }.
      */
-    public default void exit() {
+    public default void close() {
     }
 
     /**

@@ -98,8 +98,7 @@ public abstract class Util {
         load.addDecorator(f -> {
             f.getController().init(cons);
         });
-        load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> load.getControllerSafe().ifPresent(c -> c.exit()));
-        load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> manager.closeFrame(ID));
+        load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> load.getControllerSafe().ifPresent(c -> c.close()));
         load.addStageEvent(WindowEvent.WINDOW_HIDDEN, ev -> load.getControllerSafe().ifPresent(c -> c.hide()));
         load.addStageEvent(WindowEvent.WINDOW_SHOWN, ev -> load.getControllerSafe().ifPresent(c -> c.show()));
 
@@ -119,6 +118,8 @@ public abstract class Util {
         load.addDecorator(f -> f.getStage().setTitle(title));
         load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> onExit.accept(load.getLoadedFrameOrNull()));
         load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> manager.closeFrame(ID));
+        load.addStageEvent(WindowEvent.WINDOW_HIDDEN, ev -> manager.hideFrame(ID));
+        load.addStageEvent(WindowEvent.WINDOW_SHOWN, ev -> manager.showFrame(ID));
 
         return newFrame(frameMap, manager, load, ID, title);
     }

@@ -34,13 +34,13 @@ public interface Frame {
 
     public default void show() {
         FX.submit(() -> {
-            this.getStage().show();
+            getManager().showFrame(getID());
         });
     }
 
     public default void hide() {
         FX.submit(() -> {
-            this.getStage().hide();
+            getManager().hideFrame(getID());
         });
     }
 }

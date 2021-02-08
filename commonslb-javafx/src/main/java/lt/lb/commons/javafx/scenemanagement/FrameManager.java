@@ -37,6 +37,36 @@ public interface FrameManager {
         return true;
 
     }
+    
+    public default boolean hideFrame(String ID) {
+        Frame frame = getFrameMap().get(ID);
+
+        if (frame == null) {
+            return false;
+        }
+        for (FrameDecorator fdec : getFrameDecorators(FrameState.FrameStateHide.instance)) {
+            fdec.accept(frame);
+        }
+        Stage stage = frame.getStage();
+        stage.hide();
+        return true;
+
+    }
+    
+    public default boolean showFrame(String ID) {
+        Frame frame = getFrameMap().get(ID);
+
+        if (frame == null) {
+            return false;
+        }
+        for (FrameDecorator fdec : getFrameDecorators(FrameState.FrameStateShow.instance)) {
+            fdec.accept(frame);
+        }
+        Stage stage = frame.getStage();
+        stage.show();
+        return true;
+
+    }
 
     public default int getFrameCount() {
         return getFrameMap().size();

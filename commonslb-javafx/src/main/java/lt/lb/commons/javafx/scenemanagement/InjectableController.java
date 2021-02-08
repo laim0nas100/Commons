@@ -33,8 +33,20 @@ public interface InjectableController<T extends InjectableController> extends Ba
      * logic is unified, from calling this method, or pressing X on the window.
      */
     @Override
-    public default void exit() {
-        getFrame().getManager().closeFrame(getFrame().getID());
+    public default void close() {
+        getFrame().close();
     }
+
+    @Override
+    public default void show() {
+        getFrame().show();
+    }
+
+    @Override
+    public default void hide() {
+        getFrame().hide();
+    }
+    
+    
 
 }
