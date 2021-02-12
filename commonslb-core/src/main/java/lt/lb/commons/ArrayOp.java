@@ -32,7 +32,7 @@ public class ArrayOp {
     public static boolean any(Boolean... array) {
         return any(t -> t, array);
     }
-    
+
     public static boolean isEmpty(final Object[] array) {
         return getLength(array) == 0;
     }
@@ -43,7 +43,7 @@ public class ArrayOp {
         }
         return Array.getLength(array);
     }
-    
+
     /**
      * Checks wether any on the values satisfies given predicate. Empty/null
      * array results in false.
@@ -467,6 +467,37 @@ public class ArrayOp {
      */
     public static Character[] mapChar(char... arr) {
         return ArrayUtils.toObject(arr);
+    }
+
+    /**
+     * Map any primitive (or not) array to {@link ArrayList}
+     *
+     * @param array
+     * @return
+     */
+    public static ArrayList extractArray(Object array) {
+        if (array.getClass().getComponentType() == null) {
+            throw new IllegalArgumentException("Not an array:" + array);
+        }
+        int length = Array.getLength(array);
+
+        ArrayList list = new ArrayList(length);
+        extractArray(array, list);
+        return list;
+
+    }
+
+    /**
+     * Map any array to {@link Collection}.
+     *
+     * @param array
+     * @param col
+     */
+    public static void extractArray(Object array, Collection col) {
+        int length = Array.getLength(array);
+        for (int i = 0; i < length; i++) {
+            col.add(Array.get(array, i));
+        }
     }
 
 }
