@@ -1,8 +1,11 @@
 package lt.lb.commons.jpa.querydecor;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import javax.persistence.Tuple;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Selection;
 import javax.persistence.metamodel.SingularAttribute;
 import lt.lb.commons.F;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
@@ -20,7 +23,7 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     }
 
     protected JpaQueryDecor(JpaQueryDecor copy) {
-        this(copy.rootClass,copy.rootClass,copy);
+        this(copy.rootClass, copy.rootClass, copy);
     }
 
     public static <T> JpaQueryDecor<T, T> of(Class<T> root) {
@@ -35,16 +38,34 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     }
 
     @Override
-    public <RES> JpaQueryDecor<T_ROOT, RES> withResult(Class<RES> resClass, Function<Phase2<T_ROOT>, Expression<RES>> func) {
+    public <RES> JpaQueryDecor<T_ROOT, RES> selecting(Class<RES> resClass, Function<Phase2<T_ROOT>, Expression<RES>> func) {
         JpaQueryDecor<T_ROOT, RES> of = new JpaQueryDecor<>(rootClass, resClass, this);
         of.selection = func;
         return of;
     }
 
     @Override
-    public <RES> JpaQueryDecor<T_ROOT, RES> withResult(SingularAttribute<T_ROOT, RES> att) {
-        return F.cast(super.withResult(att)); 
+    public <RES> JpaQueryDecor<T_ROOT, RES> selecting(SingularAttribute<T_ROOT, RES> att) {
+        return F.cast(super.selecting(att));
+    }
+
+    @Override
+    public JpaQueryDecor<T_ROOT,Tuple> selectingTuple(Function<Phase2<T_ROOT>, List<Selection<?>>> selections) {
+        JpaQueryDecor<T_ROOT, Tuple> of = new JpaQueryDecor<>(rootClass, Tuple.class, this);
+        of.multiselection = selections;
+        return of;
+    }
+
+    @Override
+    public JpaQueryDecor<T_ROOT,Tuple> selectingTuple(Selection<?>... selections) {
+        return F.cast(super.selectingTuple(selections)); 
+    }
+
+    @Override
+    public JpaQueryDecor<T_ROOT,Tuple> selectingTuple(List<Selection<?>> selections) {
+        return F.cast(super.selectingTuple(selections));
     }
     
     
+
 }

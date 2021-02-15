@@ -2,6 +2,7 @@ package lt.lb.commons.jpa.querydecor;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -20,6 +22,7 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.MapAttribute;
 import javax.persistence.metamodel.PluralAttribute;
@@ -42,7 +45,7 @@ import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase4;
  */
 public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQueryDecor<T_ROOT, T_RESULT, M>> {
 
-    protected ArrayDeque<Function<Phase3Query<T_ROOT, T_RESULT>, Predicate>> pred3Query = null;
+    protected ArrayDeque<Function<Phase3Query<T_ROOT, T_RESULT>, Predicate>> pred3 = null;
     protected ArrayDeque<Function<Phase3Subquery<T_ROOT, T_RESULT>, Predicate>> pred3Subquery = null;
     protected ArrayDeque<Function<Phase2<T_ROOT>, Predicate>> pred2 = null;
 
@@ -58,7 +61,8 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
     protected ArrayDeque<Consumer<Phase3Subquery<T_ROOT, T_RESULT>>> dec3Subquery = null;
     protected ArrayDeque<Consumer<Phase4<T_RESULT>>> dec4 = null;
 
-    protected Function<Phase2<T_ROOT>, Expression<T_RESULT>> selection;
+    protected Function<Phase2<T_ROOT>, Expression<T_RESULT>> selection = null;
+    protected Function<Phase2<T_ROOT>, List<Selection<?>>> multiselection = null;
 
     protected Class<T_ROOT> rootClass;
     protected Class<T_RESULT> resultClass;
@@ -66,7 +70,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
     protected BaseJpaQueryDecor(BaseJpaQueryDecor copy) {
         if (copy != null) {
             pred2 = lazyInit(copy.pred2);
-            pred3Query = lazyInit(copy.pred3Query);
+            pred3 = lazyInit(copy.pred3);
             pred3Subquery = lazyInit(copy.pred3Subquery);
             dec1 = lazyInit(copy.dec1);
             dec2 = lazyInit(copy.dec2);
@@ -75,23 +79,60 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
             dec4 = lazyInit(copy.dec4);
 
             selection = copy.selection;
+            multiselection = copy.multiselection;
         }
     }
 
     protected abstract M me();
 
-    public abstract <RES> BaseJpaQueryDecor withResult(
+    protected boolean needQ1() {
+        return this.dec1 != null;
+    }
+
+    protected boolean needQ2() {
+        return this.dec2 != null || this.pred2 != null;
+    }
+
+    protected boolean needQ3() {
+        return this.dec3 != null || this.pred3 != null;
+    }
+
+    protected int needPredCount(boolean sub) {
+        int p2 = pred2 == null ? 0 : pred2.size();
+        int p3 = sub ? (pred3 == null ? 0 : pred3.size()) : (pred3Subquery == null ? 0 : pred3Subquery.size());
+        return p2 + p3;
+    }
+
+    protected boolean needQ3Sub() {
+        return this.dec3Subquery != null || this.pred3Subquery != null;
+    }
+
+    protected boolean needQ4() {
+        return this.dec4 != null;
+    }
+
+    public abstract <RES> BaseJpaQueryDecor<T_ROOT, RES, ?> selecting(
             Class<RES> resClass, Function<Phase2<T_ROOT>, Expression<RES>> func);
 
-    public <RES> BaseJpaQueryDecor withResult(
+    public <RES> BaseJpaQueryDecor<T_ROOT, RES, ?> selecting(
             SingularAttribute<T_ROOT, RES> att) {
         Objects.requireNonNull(att);
         Class<RES> res = att.getJavaType();
-        return withResult(res, p -> p.root().get(att));
+        return selecting(res, p -> p.root().get(att));
+    }
+
+    public abstract BaseJpaQueryDecor<T_ROOT, Tuple, ?> selectingTuple(Function<Phase2<T_ROOT>, List<Selection<?>>> selections);
+
+    public BaseJpaQueryDecor<T_ROOT, Tuple, ?> selectingTuple(List<Selection<?>> selections) {
+        return selectingTuple(p -> selections);
+    }
+
+    public BaseJpaQueryDecor<T_ROOT, Tuple, ?> selectingTuple(Selection<?>... selections) {
+        return selectingTuple(Arrays.asList(selections));
     }
 
     public static <T> ArrayDeque<T> lazyAdd(ArrayDeque<T> current, T... items) {
-        return CollectionOp.lazyAdd(() -> new ArrayDeque<>(items.length), current, items);
+        return CollectionOp.lazyAdd(ArrayDeque::new, current, items);
     }
 
     public static <T> ArrayDeque<T> lazyInit(ArrayDeque<T> items) {
@@ -101,16 +142,12 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         return new ArrayDeque<>(items);
     }
 
-    public static <T> ArrayDeque<T> lazyCopy(ArrayDeque<T> source, ArrayDeque<T> items) {
-        return CollectionOp.lazyAdd(ArrayDeque::new, source, items);
-    }
-
     public static <T> void lazyConsumers(ArrayDeque<Consumer<T>> consumers, T item) {
         if (consumers == null || consumers.isEmpty()) {
             return;
         }
         for (Consumer<T> cons : consumers) {
-            SafeOpt.ofNullable(cons).ifPresent(func -> func.accept(item)).throwIfErrorNested();
+            SafeOpt.ofNullable(cons).ifPresent(func -> func.accept(item)).throwIfErrorAsNested();
         }
     }
 
@@ -120,7 +157,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         }
         for (Function<T, Predicate> maker : predMakers) {
             SafeOpt.ofNullable(maker).map(func -> func.apply(item))
-                    .ifPresent(collector::add).throwIfErrorNested();
+                    .ifPresent(collector::add).throwIfErrorAsNested();
         }
     }
 
@@ -164,7 +201,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
             return func.apply(subquery);
         };
         M of = me();
-        of.pred3Query = lazyAdd(of.pred3Query, fun);
+        of.pred3 = lazyAdd(of.pred3, fun);
         return of;
     }
 
@@ -179,7 +216,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
             return func.apply(p3);
         };
         M of = me();
-        of.pred3Query = lazyAdd(of.pred3Query, fun);
+        of.pred3 = lazyAdd(of.pred3, fun);
         return of;
     }
 
@@ -201,7 +238,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
     public M withPredQuery(Function<Phase3Query<T_ROOT, T_RESULT>, Predicate> func) {
         Objects.requireNonNull(func);
         M of = me();
-        of.pred3Query = lazyAdd(of.pred3Query, func);
+        of.pred3 = lazyAdd(of.pred3, func);
         return of;
     }
 
@@ -275,7 +312,12 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
     }
 
     public Stream<T_RESULT> buildStream(EntityManager em) {
-        return build(em).getResultList().stream();
+        TypedQuery<T_RESULT> tq = build(em);
+        try {
+            return tq.getResultStream();
+        } catch (UnsupportedOperationException unsupported) {
+            return tq.getResultList().stream();
+        }
     }
 
     public List<T_RESULT> buildList(EntityManager em) {
@@ -285,8 +327,10 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
     public TypedQuery<T_RESULT> build(EntityManager em) {
         TypedQuery<T_RESULT> typed = em.createQuery(decorateQuery(em));
 
-        Phase4<T_RESULT> p4 = DecoratorPhases.of(typed);
-        lazyConsumers(dec4, p4);
+        if (needQ4()) {
+            lazyConsumers(dec4, DecoratorPhases.of(typed));
+        }
+
         return typed;
     }
 
@@ -294,54 +338,83 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         Objects.requireNonNull(em);
         CriteriaBuilder builder = em.getCriteriaBuilder();
 
-        Phase1 p1 = DecoratorPhases.of(em, builder);
-        lazyConsumers(dec1, p1);
+        if (needQ1()) {
+            lazyConsumers(dec1, DecoratorPhases.of(em, builder));
+        }
 
         CriteriaQuery<T_RESULT> query = builder.createQuery(resultClass);
         Root<T_ROOT> root = query.from(rootClass);
-        ArrayList<Predicate> predicates = new ArrayList<>();
+        Phase2<T_ROOT> p2 = DecoratorPhases.of(em, builder, root);
+        boolean q2 = needQ2();
+        boolean q3 = needQ3();
+        if (q2 || q3) {
+            ArrayList<Predicate> predicates = new ArrayList<>(needPredCount(false));
 
-        Phase2<T_ROOT> p2 = DecoratorPhases.of(p1, root);
-        lazyConsumers(dec2, p2);
-        lazyPredicates(pred2, p2, predicates);
+            if (q2) {
+                lazyConsumers(dec2, p2);
+                lazyPredicates(pred2, p2, predicates);
+            }
 
-        Phase3Query<T_ROOT, T_RESULT> p3 = DecoratorPhases.of(p2, query);
-        lazyConsumers(dec3, p3);
-        lazyPredicates(pred3Query, p3, predicates);
-        Predicate[] toArray = predicates.stream().toArray(s -> new Predicate[s]);
-        if (toArray.length > 0) {
+            if (q3) {
+                Phase3Query<T_ROOT, T_RESULT> p3 = DecoratorPhases.of(em, builder, root, query);
+                lazyConsumers(dec3, p3);
+                lazyPredicates(pred3, p3, predicates);
+            }
+
+            Predicate[] toArray = predicates.toArray(new Predicate[predicates.size()]);
             query.where(toArray);
         }
 
-        return query.select(selection.apply(p2));
+        if (resultClass == Tuple.class) {
+            if (multiselection != null) {
+                query.multiselect(multiselection.apply(p2));
+            }
+        } else {
+            if (selection != null) {
+                query.select(selection.apply(p2));
+            }
+        }
+        return query;
 
     }
 
     public <PARENT_ROOT> Subquery<T_RESULT> decorateSubquery(EntityManager em, AbstractQuery<PARENT_ROOT> parentQuery) {
         Objects.requireNonNull(em);
         Objects.requireNonNull(parentQuery);
+
         CriteriaBuilder builder = em.getCriteriaBuilder();
+        if (needQ1()) {
+            lazyConsumers(dec1, DecoratorPhases.of(em, builder));
+        }
 
-        Phase1 p1 = DecoratorPhases.of(em, builder);
-        lazyConsumers(dec1, p1);
-
-        ArrayList<Predicate> predicates = new ArrayList<>();
         Subquery<T_RESULT> subquery = parentQuery.subquery(resultClass);
         Root<T_ROOT> root = subquery.from(rootClass);
+        Phase2<T_ROOT> p2 = DecoratorPhases.of(em, builder, root);
+        boolean q2 = needQ2();
+        boolean q3 = needQ3Sub();
+        if (q2 || q3) {
+            ArrayList<Predicate> predicates = new ArrayList<>(needPredCount(true));
 
-        Phase2<T_ROOT> p2 = DecoratorPhases.of(p1, root);
-        lazyConsumers(dec2, p2);
-        lazyPredicates(pred2, p2, predicates);
+            if (q2) {
+                lazyConsumers(dec2, p2);
+                lazyPredicates(pred2, p2, predicates);
+            }
 
-        Phase3Subquery<T_ROOT, T_RESULT> p3 = DecoratorPhases.of(p2, subquery, parentQuery);
-        lazyConsumers(dec3Subquery, p3);
-        lazyPredicates(pred3Subquery, p3, predicates);
-        Predicate[] toArray = predicates.stream().toArray(s -> new Predicate[s]);
-        if (toArray.length > 0) {
+            if (q3) {
+                Phase3Subquery<T_ROOT, T_RESULT> p3 = DecoratorPhases.of(em, builder, root, subquery, parentQuery);
+                lazyConsumers(dec3Subquery, p3);
+                lazyPredicates(pred3Subquery, p3, predicates);
+            }
+
+            Predicate[] toArray = predicates.toArray(new Predicate[predicates.size()]);
             subquery.where(toArray);
         }
 
-        return subquery.select(selection.apply(p2));
+        if (selection != null) {
+            subquery.select(selection.apply(p2));
+        }
+
+        return subquery;
 
     }
 }

@@ -171,8 +171,8 @@ public interface DecoratorPhases {
         };
     }
 
-    public static < T, R> Phase3Subquery< T, R> of(Phase2<T> p2, Subquery<R> query, AbstractQuery<?> parent) {
-        return new Phase3Subquery< T, R>() {
+    public static <T, R> Phase3Subquery<T, R> of(Phase2<T> p2, Subquery<R> query, AbstractQuery<?> parent) {
+        return new Phase3Subquery<T, R>() {
             @Override
             public Root<T> root() {
                 return p2.root();
@@ -201,8 +201,8 @@ public interface DecoratorPhases {
         };
     }
 
-    public static < T, R> Phase3Subquery< T, R> of(Phase2<T> p2, Subquery<R> query) {
-        return new Phase3Subquery< T, R>() {
+    public static <T, R> Phase3Subquery<T, R> of(Phase2<T> p2, Subquery<R> query) {
+        return new Phase3Subquery<T, R>() {
             @Override
             public Root<T> root() {
                 return p2.root();
