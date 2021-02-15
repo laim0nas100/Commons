@@ -579,7 +579,7 @@ public class SafeOpt<T> implements Supplier<T> {
         if (isPresent()) {
             return val;
         }
-        throwIfErrorNested();
+        throwIfErrorAsNested();
         throw new NoSuchElementException("No value present");
     }
 
@@ -653,16 +653,32 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
-     * If error have occurred, terminate by throwing such error wrapped in
+     * If an error has occurred, terminate by throwing such error wrapped in
      * NestedException
      *
      * @return returns an {@code SafeOpt} describing the value of this
      * {@code SafeOpt}, if a value is present
      * @throws NestedException if any error was present
      */
-    public SafeOpt<T> throwIfErrorNested() {
+    public SafeOpt<T> throwIfErrorAsNested() {
         if (threw != null) {
             throw NestedException.of(threw);
+        }
+        return this;
+    }
+    private final static Ins.InsCl<RuntimeException> runtimeExceptionType = Ins.of(RuntimeException.class);
+
+    /**
+     * If an {@link RuntimeException} has occurred, terminate by throwing such
+     * exception.
+     *
+     * @return returns an {@code SafeOpt} describing the value of this
+     * {@code SafeOpt}, if a value is present
+     * @throws RuntimeException if any that kind of error was present
+     */
+    public SafeOpt<T> throwIfErrorRuntime() {
+        if (runtimeExceptionType.superClassOf(threw)) {
+            throw (RuntimeException) threw;
         }
         return this;
     }
@@ -709,13 +725,13 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
-     * Short-hand for {@link SafeOpt#throwIfErrorNested() } and
+     * Short-hand for {@link SafeOpt#throwIfErrorAsNested() } and
      * {@code orElse(null)}
      *
      * @return
      */
     public T throwNestedOrNull() {
-        return throwIfErrorNested().orElse(null);
+        return throwIfErrorAsNested().orElse(null);
     }
 
     /**
