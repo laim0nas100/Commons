@@ -50,22 +50,40 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     }
 
     @Override
-    public JpaQueryDecor<T_ROOT,Tuple> selectingTuple(Function<Phase2<T_ROOT>, List<Selection<?>>> selections) {
+    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(Function<Phase2<T_ROOT>, List<Selection<?>>> selections) {
         JpaQueryDecor<T_ROOT, Tuple> of = new JpaQueryDecor<>(rootClass, Tuple.class, this);
         of.multiselection = selections;
         return of;
     }
 
     @Override
-    public JpaQueryDecor<T_ROOT,Tuple> selectingTuple(Selection<?>... selections) {
-        return F.cast(super.selectingTuple(selections)); 
+    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(Selection<?>... selections) {
+        return F.cast(super.selectingTuple(selections));
     }
 
     @Override
-    public JpaQueryDecor<T_ROOT,Tuple> selectingTuple(List<Selection<?>> selections) {
+    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(List<Selection<?>> selections) {
         return F.cast(super.selectingTuple(selections));
     }
-    
-    
+
+    @Override
+    public <RES> JpaQueryDecor<T_ROOT, Long> selectingCountDistinct(SingularAttribute<T_ROOT, RES> att) {
+        return F.cast(super.selectingCountDistinct(att));
+    }
+
+    @Override
+    public JpaQueryDecor<T_ROOT, Long> selectingCountDistinct() {
+        return F.cast(super.selectingCountDistinct());
+    }
+
+    @Override
+    public <RES> JpaQueryDecor<T_ROOT, Long> selectingCount(SingularAttribute<T_ROOT, RES> att) {
+        return F.cast(super.selectingCount(att));
+    }
+
+    @Override
+    public JpaQueryDecor<T_ROOT, Long> selectingCount() {
+        return F.cast(super.selectingCount());
+    }
 
 }
