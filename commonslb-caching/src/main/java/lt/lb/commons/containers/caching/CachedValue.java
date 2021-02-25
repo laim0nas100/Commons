@@ -1,12 +1,15 @@
 package lt.lb.commons.containers.caching;
 
-import lt.lb.commons.containers.values.Value;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.threads.sync.WaitTime;
 
 /**
- * Cached value based on date (can change if system time changed)
+ * Cached value based on {@link LocalDateTime}, so the granularity is 1 second.
  *
  * @author laim0nas100
  * @param <T> any value
@@ -14,10 +17,14 @@ import java.util.function.Predicate;
 public class CachedValue<T> extends Value<T> {
 
     protected Predicate<CachedValue<T>> condition = (CachedValue<T> t) -> false;
-    protected LocalDateTime setterCalled = LocalDateTime.now();
-    protected LocalDateTime getterCalled = LocalDateTime.now();
+    protected LocalDateTime setterCalled;
+    protected LocalDateTime getterCalled;
+    protected LocalDateTime created;
 
-    protected CachedValue() {
+    public CachedValue() {
+        created = LocalDateTime.now();
+        setterCalled = created;
+        getterCalled = created;
     }
 
     @Override
@@ -30,6 +37,22 @@ public class CachedValue<T> extends Value<T> {
     public void set(T val) {
         this.setterCalled = LocalDateTime.now();
         this.value = val;
+    }
+
+    public void setUnmonitored(T val) {
+        this.value = val;
+    }
+
+    public T getUnmonitored() {
+        return value;
+    }
+
+    public T getAndChangeIfDifferent(T newVal) {
+        T get = get();
+        if (!Objects.equals(get, newVal)) {
+            set(newVal);
+        }
+        return get;
     }
 
     public boolean needsClean() {
@@ -55,45 +78,49 @@ public class CachedValue<T> extends Value<T> {
         return this.getterCalled;
     }
 
-    /*
-     *   Static methods
-     */
-    public static long millisAtDefaultZone() {
-        return System.currentTimeMillis();
+    public LocalDateTime created() {
+        return this.created;
     }
 
-    public static <T> CachedValue<T> newValue(T val) {
-        CachedValue<T> cached = new CachedValue<>();
-        cached.set(val);
-        return cached;
+    public static <T> Predicate<CachedValue<T>> expiryWriteDuration(Duration time) {
+        return expiryWriteDuration(WaitTime.of(time));
     }
 
-    public static <T> CachedValue<T> newValueEmpty() {
-        return newValue(null);
+    public static <T> Predicate<CachedValue<T>> expiryReadDuration(Duration time) {
+        return expiryReadDuration(WaitTime.of(time));
     }
 
-    public static <T> CachedValue<T> newValue(long value, TimeUnit tu, T val) {
+    public static <T> Predicate<CachedValue<T>> expiryWriteDuration(WaitTime time) {
+        return expiryWriteDuration(time.time, time.unit);
+    }
+
+    public static <T> Predicate<CachedValue<T>> expiryReadDuration(WaitTime time) {
+        return expiryReadDuration(time.time, time.unit);
+    }
+
+    public static <T> Predicate<CachedValue<T>> expiryWriteDuration(long value, TimeUnit tu) {
         final long expirationTimeSeconds = TimeUnit.SECONDS.convert(value, tu);
-
-        CachedValue<T> cvt = new CachedValue<>();
-        cvt.set(val);
-        cvt.setNeedsCleanPredicate(t -> t.lastSetterCall().plusSeconds(expirationTimeSeconds).isBefore(LocalDateTime.now()));
-        return cvt;
+        return t -> t.lastSetterCall().plusSeconds(expirationTimeSeconds).isBefore(LocalDateTime.now());
     }
 
-    public static <T> CachedValue<T> newValueEmptyTimeLimit(long value, TimeUnit tu) {
-        return newValue(value, tu, null);
+    public static <T> Predicate<CachedValue<T>> expiryReadDuration(long value, TimeUnit tu) {
+        final long expirationTimeSeconds = TimeUnit.SECONDS.convert(value, tu);
+        return t -> t.lastGetterCalled().plusSeconds(expirationTimeSeconds).isBefore(LocalDateTime.now());
     }
 
-    public static <T> CachedValue<T> newValueExpirationDate(final LocalDateTime date, T val) {
-        CachedValue<T> c = new CachedValue<>();
-        c.setNeedsCleanPredicate(t -> date.isBefore(LocalDateTime.now()));
-        c.set(val);
-        return c;
+    public static <T> Predicate<CachedValue<T>> expirationDate(final LocalDateTime date, T val) {
+        Objects.requireNonNull(date);
+        return t -> LocalDateTime.now().isAfter(date);
     }
 
-    public static <T> CachedValue<T> newValueEmptyExpirationDate(LocalDateTime date) {
-        return newValueExpirationDate(date, null);
+    public static <T> Predicate<CachedValue<T>> expirationDateWrite(final LocalDateTime date, T val) {
+        Objects.requireNonNull(date);
+        return t -> t.lastSetterCall().isAfter(date);
+    }
+
+    public static <T> Predicate<CachedValue<T>> expirationDateRead(final LocalDateTime date, T val) {
+        Objects.requireNonNull(date);
+        return t -> t.lastGetterCalled().isAfter(LocalDateTime.now());
     }
 
 }
