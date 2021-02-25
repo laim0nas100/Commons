@@ -27,10 +27,10 @@ public class WaitTime {
 
     public WaitTime(Duration dur) {
         Objects.requireNonNull(dur);
-        if(dur.getNano() == 0){
-           this.time = dur.getSeconds();
-           this.unit = TimeUnit.SECONDS;
-        }else{
+        if (dur.getNano() == 0) {
+            this.time = dur.getSeconds();
+            this.unit = TimeUnit.SECONDS;
+        } else {
             this.time = dur.toNanos();
             this.unit = TimeUnit.NANOSECONDS;
         }
@@ -54,6 +54,10 @@ public class WaitTime {
 
     public static WaitTime of(long time, TimeUnit unit) {
         return new WaitTime(time, unit);
+    }
+
+    public static WaitTime of(Duration dur) {
+        return new WaitTime(dur);
     }
 
     public static WaitTime ofNanos(long time) {
@@ -193,7 +197,7 @@ public class WaitTime {
                         "No TimeUnit equivalent for " + chronoUnit);
         }
     }
-    
+
     public static boolean canConvertToTimeUnit(ChronoUnit chronoUnit) {
         switch (Objects.requireNonNull(chronoUnit, "chronoUnit")) {
             case NANOS:
