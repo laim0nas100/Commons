@@ -1,4 +1,4 @@
-package lt.lb.commons.threads.sync;
+package lt.lb.commons.threads.service;
 
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
@@ -6,6 +6,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.Java;
+import lt.lb.commons.threads.sync.TimeAwareFutureTask;
+import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  *
@@ -14,39 +16,37 @@ import lt.lb.commons.Java;
 public class ServiceTimeoutTask<V> {
 
     protected final LinkedList<Runnable> onUpdate = new LinkedList<>();
-    protected final WaitTime timeToWait;
+    protected final WaitTime time;
     protected final AtomicLong timedRequests = new AtomicLong(0);
-    protected final AtomicLong requests = new AtomicLong(0);
-    protected final long maxRequestsBeforeExecute;
-    protected final Runnable decrementer;
     protected final Callable<V> call;
     protected final AtomicLong lastCompleted = new AtomicLong(Long.MIN_VALUE);
     protected ScheduledExecutorService service;
     protected Executor exe;
+    protected AtomicLong commitNr = new AtomicLong(Long.MIN_VALUE);
 
     /**
      *
      * @param service service to manage calls
-     * @param timeToWait how long to wait
-     * @param maxRequestsBeforeExecute max possible requests in total before
-     * commiting an execute
+     * @param time how long until a timeout
      * @param call Task to execute after timer reaches zero
      * @param exe executor that executes tasks
      */
-    public ServiceTimeoutTask(ScheduledExecutorService service, WaitTime timeToWait, long maxRequestsBeforeExecute, Callable<V> call, Executor exe) {
+    public ServiceTimeoutTask(ScheduledExecutorService service, WaitTime time, Callable<V> call, Executor exe) {
         this.service = service;
         this.exe = exe;
-        this.timeToWait = timeToWait;
+        this.time = time;
         this.call = call;
-        this.maxRequestsBeforeExecute = maxRequestsBeforeExecute;
-        decrementer = () -> {
-            if (onTimeoutArrive()) {
-                executeNow();
-            } else if (maxRequestsBeforeExecute <= requests.get()) {
+    }
+    
+    
+    
+    protected Runnable makeDecrementer(){
+        final long currentCommit = commitNr.get();
+        return ()->{
+             if (commitNr.get() <= currentCommit && onTimeoutArrive()) {
                 executeNow();
             }
             cleanup();
-
         };
     }
 
@@ -58,8 +58,7 @@ public class ServiceTimeoutTask<V> {
             r.run();
         }
         timedRequests.incrementAndGet();
-        requests.incrementAndGet();
-        service.schedule(decrementer, timeToWait.time, timeToWait.unit);
+        service.schedule(makeDecrementer(), time.time, time.unit);
     }
 
     public void addOnUpdate(Runnable run) {
@@ -67,7 +66,9 @@ public class ServiceTimeoutTask<V> {
     }
 
     protected boolean onTimeoutArrive() {
-        return timedRequests.decrementAndGet() == 0;
+
+        long get = timedRequests.decrementAndGet();
+        return get == 0;
     }
 
     protected void cleanup() {
