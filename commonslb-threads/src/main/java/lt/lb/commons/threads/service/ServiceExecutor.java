@@ -43,7 +43,7 @@ public class ServiceExecutor implements ScheduledExecutorService {
     }
 
     public ServiceExecutor(int threads) {
-        this(Executors.newFixedThreadPool(Math.min(1, threads)), Executors.newSingleThreadScheduledExecutor());
+        this(Executors.newFixedThreadPool(Math.max(1, threads)), Executors.newSingleThreadScheduledExecutor());
     }
 
     public ServiceExecutor(ExecutorService pool, ScheduledExecutorService service) {
