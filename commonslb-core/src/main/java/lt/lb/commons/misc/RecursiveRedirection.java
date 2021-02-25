@@ -1,4 +1,4 @@
-package lt.lb.commons.threads.sync;
+package lt.lb.commons.misc;
 
 import java.util.HashMap;
 import java.util.HashSet;
