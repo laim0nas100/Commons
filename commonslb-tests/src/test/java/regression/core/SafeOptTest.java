@@ -53,7 +53,7 @@ public class SafeOptTest {
         });
         ThrowableTypeAssert<NestedException> nested = Assertions.assertThatExceptionOfType(NestedException.class);
 
-        nested.isThrownBy(() -> mapEx.throwIfErrorNested());
+        nested.isThrownBy(() -> mapEx.throwIfErrorAsNested());
         nested.isThrownBy(() -> mapEx.get());
 
         assertThat(map.flatMapOpt(m -> Optional.ofNullable(m)).get()).isEqualTo(expected);
