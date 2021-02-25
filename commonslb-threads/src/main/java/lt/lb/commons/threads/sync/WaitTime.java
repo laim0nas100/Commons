@@ -26,12 +26,18 @@ public class WaitTime {
     }
 
     public WaitTime(Duration dur) {
-        this(dur.toNanos(), TimeUnit.NANOSECONDS);
+        Objects.requireNonNull(dur);
+        if(dur.getNano() == 0){
+           this.time = dur.getSeconds();
+           this.unit = TimeUnit.SECONDS;
+        }else{
+            this.time = dur.toNanos();
+            this.unit = TimeUnit.NANOSECONDS;
+        }
     }
 
     public Duration toDuration() {
-        long nanos = WaitTime.convert(this, TimeUnit.NANOSECONDS).time;
-        return Duration.of(nanos, ChronoUnit.NANOS);
+        return Duration.of(time, toChronoUnit(unit));
     }
 
     public WaitTime convert(TimeUnit unit) {
@@ -143,6 +149,64 @@ public class WaitTime {
             sum = a.time - a.unit.convert(b.time, b.unit);
         }
         return new WaitTime(sum, unit);
+    }
+
+    public static ChronoUnit toChronoUnit(TimeUnit timeUnit) {
+        switch (Objects.requireNonNull(timeUnit, "timeUnit")) {
+            case NANOSECONDS:
+                return ChronoUnit.NANOS;
+            case MICROSECONDS:
+                return ChronoUnit.MICROS;
+            case MILLISECONDS:
+                return ChronoUnit.MILLIS;
+            case SECONDS:
+                return ChronoUnit.SECONDS;
+            case MINUTES:
+                return ChronoUnit.MINUTES;
+            case HOURS:
+                return ChronoUnit.HOURS;
+            case DAYS:
+                return ChronoUnit.DAYS;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    public static TimeUnit toTimeUnit(ChronoUnit chronoUnit) {
+        switch (Objects.requireNonNull(chronoUnit, "chronoUnit")) {
+            case NANOS:
+                return TimeUnit.NANOSECONDS;
+            case MICROS:
+                return TimeUnit.MICROSECONDS;
+            case MILLIS:
+                return TimeUnit.MILLISECONDS;
+            case SECONDS:
+                return TimeUnit.SECONDS;
+            case MINUTES:
+                return TimeUnit.MINUTES;
+            case HOURS:
+                return TimeUnit.HOURS;
+            case DAYS:
+                return TimeUnit.DAYS;
+            default:
+                throw new IllegalArgumentException(
+                        "No TimeUnit equivalent for " + chronoUnit);
+        }
+    }
+    
+    public static boolean canConvertToTimeUnit(ChronoUnit chronoUnit) {
+        switch (Objects.requireNonNull(chronoUnit, "chronoUnit")) {
+            case NANOS:
+            case MICROS:
+            case MILLIS:
+            case SECONDS:
+            case MINUTES:
+            case HOURS:
+            case DAYS:
+                return true;
+            default:
+                return false;
+        }
     }
 
 }
