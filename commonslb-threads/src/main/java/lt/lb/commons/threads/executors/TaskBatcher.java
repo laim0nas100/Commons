@@ -125,6 +125,7 @@ public class TaskBatcher implements Executor {
 
                     Throwable err = null;
                     if (last != null) {
+                        total++;
                         try {
                             if (waitGet) {
                                 last.get(executionWait.time, executionWait.unit);
@@ -142,9 +143,12 @@ public class TaskBatcher implements Executor {
                             err = th;
                         }
                     }
-                    total++;
+                    
                     if (err != null) {
-                        failures.add(err);
+                        if(failures.size() < 10000){ // something went terribly wrong, don't collect everything.
+                            failures.add(err);
+                        }
+                        
                         if (failFast) {
                             break;
                         }

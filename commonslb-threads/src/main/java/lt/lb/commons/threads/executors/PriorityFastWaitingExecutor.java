@@ -14,7 +14,7 @@ import lt.lb.commons.threads.sync.WaitTime;
  */
 public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
 
-    private Comparator<Runnable> priorityComparator = (Runnable r1, Runnable r2) -> {
+    private static final Comparator<Runnable> priorityComparator = (Runnable r1, Runnable r2) -> {
         if (r1 instanceof PriorityRunnable) {
             PriorityRunnable p1 = F.cast(r1);
             if (r2 instanceof PriorityRunnable) {

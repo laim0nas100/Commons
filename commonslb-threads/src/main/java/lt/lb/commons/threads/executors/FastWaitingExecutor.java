@@ -70,7 +70,7 @@ public class FastWaitingExecutor extends FastExecutor {
         tg.enumerate(threads, false);
         Predicate<Thread.State> anySleeping = Predicates.anyEqual(Thread.State.TIMED_WAITING, Thread.State.WAITING);
         Predicate<Thread> anySleepingThread = Predicates.ofMapping(anySleeping, m -> m.getState());
-        Stream.of(threads).filter(Predicates.isNotNull()).filter(anySleepingThread).forEach(Thread::interrupt);
+        Stream.of(threads).filter(t -> t!= null).filter(anySleepingThread).forEach(Thread::interrupt);
     }
 
 }

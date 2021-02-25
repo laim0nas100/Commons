@@ -1,8 +1,17 @@
 package lt.lb.commons.threads.executors;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
@@ -14,7 +23,7 @@ import lt.lb.commons.F;
  *
  * @author laim0nas100
  */
-public class FastExecutor implements CloseableExecutor {
+public class FastExecutor extends AbstractExecutorService implements CloseableExecutor {
 
     protected Collection<Runnable> tasks = new ConcurrentLinkedDeque<>();
     protected ThreadGroup tg = new ThreadGroup("FastExecutor");
@@ -24,6 +33,7 @@ public class FastExecutor implements CloseableExecutor {
     protected AtomicInteger startingThreads = new AtomicInteger(0);
     protected AtomicInteger runningThreads = new AtomicInteger(0);
     protected AtomicInteger finishingThreads = new AtomicInteger(0);
+    protected CompletableFuture awaitTermination = new CompletableFuture();
 
     protected Consumer<Throwable> errorChannel = (err) -> {
     };
@@ -55,9 +65,7 @@ public class FastExecutor implements CloseableExecutor {
         if (!open) {
             throw new IllegalStateException("Not open");
         }
-        if (command == null) {
-            throw new NullPointerException("null runnable recieved");
-        }
+        Objects.requireNonNull(command, "null runnable recieved");
         Deque<Runnable> cast = F.cast(tasks);
         cast.addFirst(command);
         update(this.maxThreads);
@@ -95,6 +103,9 @@ public class FastExecutor implements CloseableExecutor {
 
                 update(bakedMax);
                 finishingThreads.decrementAndGet(); // thread end finishing
+                if (!open && runningThreads.get() + startingThreads.get() + finishingThreads.get() == 0) {
+                    awaitTermination.complete(0);
+                }
             }
         };
     }
@@ -141,10 +152,50 @@ public class FastExecutor implements CloseableExecutor {
      */
     @Override
     public void close() {
-        if (!this.open) {
-            throw new IllegalStateException("Is not open");
-        }
         this.open = false;
+    }
+
+    @Override
+    public List<Runnable> shutdownNow() {
+        shutdown();
+        ArrayList<Runnable> unfinished = new ArrayList<>();
+        Iterator<Runnable> iterator = tasks.iterator();
+        while(iterator.hasNext()){
+            Runnable next = iterator.next();
+            iterator.remove();
+            if(next != null){
+                unfinished.add(next);
+            }
+        }
+        return unfinished;
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return !open;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return awaitTermination.isDone();
+    }
+
+    @Override
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        try {
+            this.awaitTermination.get(timeout, unit);
+            return true;
+        } catch (ExecutionException exe) {
+            throw new Error("Should never happen", exe);
+        } catch (TimeoutException ex) {
+            return false; // too late
+        }
 
     }
+
+    @Override
+    public void shutdown() {
+        close();
+    }
+
 }
