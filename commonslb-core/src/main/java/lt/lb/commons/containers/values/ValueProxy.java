@@ -1,5 +1,6 @@
 package lt.lb.commons.containers.values;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -69,6 +70,16 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
     }
 
     /**
+     *
+     * @param newVal new value
+     * @return updated value
+     */
+    public default T setAndGet(T newVal) {
+        set(newVal);
+        return get();
+    }
+
+    /**
      * @param func new value
      * @return old value
      */
@@ -76,6 +87,46 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
         T got = this.get();
         set(func.get());
         return got;
+    }
+
+    /**
+     * @param newVal new value
+     * @return old value
+     */
+    public default T getAndSet(T newVal) {
+        T got = this.get();
+        set(newVal);
+        return got;
+    }
+
+    /**
+     * Calls set with newVal only if it's different from the old one
+     *
+     * @param newVal
+     * @return old value
+     */
+    public default T getAndChangeIfNew(T newVal) {
+        T got = this.get();
+        if (!Objects.equals(got, newVal)) {
+            set(newVal);
+        }
+        return got;
+    }
+
+    /**
+     * Calls set with newVal only if it's the expected value from the old one
+     *
+     * @param expecting
+     * @param newVal
+     * @return if the value was equal to expected
+     */
+    public default boolean compareAndSet(T expecting, T newVal) {
+        T got = this.get();
+        if (Objects.equals(got, expecting)) {
+            set(newVal);
+            return true;
+        }
+        return false;
     }
 
     /**
