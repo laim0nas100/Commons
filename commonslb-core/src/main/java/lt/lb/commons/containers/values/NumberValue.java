@@ -1,26 +1,13 @@
 package lt.lb.commons.containers.values;
 
-import lt.lb.commons.F;
-import lt.lb.commons.misc.numbers.NumberBiFunctions;
-import lt.lb.commons.func.TypedBiFunction;
-
 /**
- * Can be used, but prefer explicit type derivatives. Only supports basic number types (Byte,Short,Integer,Long,Float,Double)
- * 
+ * Can be used, but prefer explicit type derivatives. Only supports basic number
+ * types (Byte,Short,Integer,Long,Float,Double)
+ *
  * @author laim0nas100
  * @param <T>
  */
 public abstract class NumberValue<T extends Number> extends Value<T> {
-
-    protected TypedBiFunction<Number, Number, Number> PLUS = new NumberBiFunctions.DefaultPlus();
-    protected TypedBiFunction<Number, Number, Number> MINUS = new NumberBiFunctions.DefaultMinus();
-    protected TypedBiFunction<Number, Number, Number> MULT = new NumberBiFunctions.DefaultMult();
-    protected TypedBiFunction<Number, Number, Number> DIV = new NumberBiFunctions.DefaultDiv();
-    protected TypedBiFunction<Number, Number, Number> MOD = new NumberBiFunctions.DefaultMod();
-
-    public static <F extends Number> NumberValue<F> of(F i) {
-        return new NumberValue<F>(i){};
-    }
 
     public NumberValue() {
         super();
@@ -46,44 +33,54 @@ public abstract class NumberValue<T extends Number> extends Value<T> {
         return getAndDecrement(1);
     }
 
+    protected abstract T plus(Number n);
+
+    protected abstract T minus(Number n);
+
+    protected abstract T mult(Number n);
+
+    protected abstract T div(Number n);
+
+    protected abstract T mod(Number n);
+
     public T getAndIncrement(Number n) {
-        return getAndSet(() -> F.cast(PLUS.apply(get(), n).orElseThrow(makeException("+", n))));
+        return getAndSet(plus(n));
     }
 
     public T incrementAndGet(Number n) {
-        return setAndGet(() -> F.cast(PLUS.apply(get(), n).orElseThrow(makeException("+", n))));
+        return setAndGet(plus(n));
     }
 
     public T getAndDecrement(Number n) {
-        return getAndSet(() -> F.cast(MINUS.apply(get(), n).orElseThrow(makeException("-", n))));
+        return getAndSet(minus(n));
     }
 
     public T decrementAndGet(Number n) {
-        return setAndGet(() -> F.cast(MINUS.apply(get(), n).orElseThrow(makeException("-", n))));
+        return setAndGet(minus(n));
     }
 
     public T multiplyAndGet(Number n) {
-        return setAndGet(() -> F.cast(MULT.apply(get(), n).orElseThrow(makeException("*", n))));
+        return getAndSet(mult(n));
     }
 
     public T getAndMultiply(Number n) {
-        return getAndSet(() -> F.cast(MULT.apply(get(), n).orElseThrow(makeException("*", n))));
+        return setAndGet(mult(n));
     }
 
     public T divideAndGet(Number n) {
-        return setAndGet(() -> F.cast(DIV.apply(get(), n).orElseThrow(makeException("/", n))));
+        return getAndSet(div(n));
     }
 
     public T getAndDivide(Number n) {
-        return getAndSet(() -> F.cast(DIV.apply(get(), n).orElseThrow(makeException("/", n))));
+        return setAndGet(div(n));
     }
 
     public T modAndGet(Number n) {
-        return setAndGet(() -> F.cast(MOD.apply(get(), n).orElseThrow(makeException("%", n))));
+        return getAndSet(mod(n));
     }
 
     public T getAndMod(Number n) {
-        return getAndSet(() -> F.cast(MOD.apply(get(), n).orElseThrow(makeException("%", n))));
+        return setAndGet(mod(n));
     }
 
 }

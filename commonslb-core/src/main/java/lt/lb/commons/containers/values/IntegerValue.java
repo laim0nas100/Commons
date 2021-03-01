@@ -1,11 +1,10 @@
 package lt.lb.commons.containers.values;
 
-
 /**
  *
  * @author laim0nas100
  */
-public class IntegerValue extends NumberValue<Integer>{
+public class IntegerValue extends NumberValue<Integer> {
 
     public IntegerValue() {
     }
@@ -13,70 +12,34 @@ public class IntegerValue extends NumberValue<Integer>{
     public IntegerValue(Integer val) {
         super(val);
     }
-    
-    @Override
-    public Integer getAndMod(Number n) {
-        Integer i = value;
-        value = value % n.intValue();
-        return i;
+
+    public IntegerValue(int val) {
+        super(val);
     }
 
     @Override
-    public Integer modAndGet(Number n) {
-        value = value % n.intValue();
-        return value;
+    protected Integer plus(Number n) {
+        return value + n.intValue();
     }
 
     @Override
-    public Integer getAndDivide(Number n) {
-        Integer i = value;
-        value = value / n.intValue();
-        return i;
+    protected Integer minus(Number n) {
+        return value - n.intValue();
     }
 
     @Override
-    public Integer divideAndGet(Number n) {
-        value = value / n.intValue();
-        return value;
+    protected Integer mult(Number n) {
+        return value * n.intValue();
     }
 
     @Override
-    public Integer getAndMultiply(Number n) {
-        Integer i = value;
-        value = value * n.intValue();
-        return i;
+    protected Integer div(Number n) {
+        return value / n.intValue();
     }
 
     @Override
-    public Integer multiplyAndGet(Number n) {
-        value = value * n.intValue();
-        return value;
-    }
-
-    @Override
-    public Integer decrementAndGet(Number n) {
-        value = value - n.intValue();
-        return value;
-    }
-
-    @Override
-    public Integer getAndDecrement(Number n) {
-        Integer i = value;
-        value = value - n.intValue();
-        return i;
-    }
-
-    @Override
-    public Integer incrementAndGet(Number n) {
-        value = value + n.intValue();
-        return value;
-    }
-
-    @Override
-    public Integer getAndIncrement(Number n) {
-        Integer i = value;
-        value = value + n.intValue();
-        return i;
+    protected Integer mod(Number n) {
+        return value % n.intValue();
     }
 
     @Override
@@ -98,5 +61,5 @@ public class IntegerValue extends NumberValue<Integer>{
     public Integer incrementAndGet() {
         return ++value;
     }
-    
+
 }

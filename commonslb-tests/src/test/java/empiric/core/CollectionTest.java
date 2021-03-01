@@ -17,6 +17,7 @@ import lt.lb.commons.Log;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
+import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.misc.rng.FastRandom;
 import org.junit.Test;
 import lt.lb.commons.func.unchecked.UncheckedRunnable;
@@ -148,11 +149,11 @@ public class CollectionTest {
         PriorityBlockingQueue<NumberValue<Integer>> list = new PriorityBlockingQueue<>(1,ofValue.reversed());
         
         for (int i = 0; i < 10; i++) {
-            list.add(NumberValue.of(i));
+            list.add(new IntegerValue(i));
         }
 //        list.add(NumberValue.of(null));
         for (int i = 0; i < 10; i++, i++) {
-            list.add(NumberValue.of(i));
+            list.add(new IntegerValue(i));
         }
         
         Log.print(list);

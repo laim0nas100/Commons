@@ -4,7 +4,7 @@ package lt.lb.commons.containers.values;
  *
  * @author laim0nas100
  */
-public class DoubleValue extends NumberValue<Double>{
+public class DoubleValue extends NumberValue<Double> {
 
     public DoubleValue() {
     }
@@ -12,70 +12,34 @@ public class DoubleValue extends NumberValue<Double>{
     public DoubleValue(Double val) {
         super(val);
     }
-    
-    @Override
-    public Double getAndMod(Number n) {
-        Double i = value;
-        value = value % n.doubleValue();
-        return i;
+
+    public DoubleValue(double val) {
+        super(val);
     }
 
     @Override
-    public Double modAndGet(Number n) {
-        value = value % n.doubleValue();
-        return value;
+    protected Double plus(Number n) {
+        return value + n.doubleValue();
     }
 
     @Override
-    public Double getAndDivide(Number n) {
-        Double i = value;
-        value = value / n.doubleValue();
-        return i;
+    protected Double minus(Number n) {
+        return value - n.doubleValue();
     }
 
     @Override
-    public Double divideAndGet(Number n) {
-        value = value / n.doubleValue();
-        return value;
+    protected Double mult(Number n) {
+        return value * n.doubleValue();
     }
 
     @Override
-    public Double getAndMultiply(Number n) {
-        Double i = value;
-        value = value * n.doubleValue();
-        return i;
+    protected Double div(Number n) {
+        return value / n.doubleValue();
     }
 
     @Override
-    public Double multiplyAndGet(Number n) {
-        value = value * n.doubleValue();
-        return value;
-    }
-
-    @Override
-    public Double decrementAndGet(Number n) {
-        value = value - n.doubleValue();
-        return value;
-    }
-
-    @Override
-    public Double getAndDecrement(Number n) {
-        Double i = value;
-        value = value - n.doubleValue();
-        return i;
-    }
-
-    @Override
-    public Double incrementAndGet(Number n) {
-        value = value + n.doubleValue();
-        return value;
-    }
-
-    @Override
-    public Double getAndIncrement(Number n) {
-        Double i = value;
-        value = value + n.doubleValue();
-        return i;
+    protected Double mod(Number n) {
+        return value % n.doubleValue();
     }
 
     @Override
@@ -97,5 +61,5 @@ public class DoubleValue extends NumberValue<Double>{
     public Double incrementAndGet() {
         return ++value;
     }
-    
+
 }

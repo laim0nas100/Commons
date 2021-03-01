@@ -8,6 +8,7 @@ package empiric.core;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.F;
 import lt.lb.commons.Log;
+import lt.lb.commons.containers.values.DoubleValue;
 import lt.lb.commons.containers.values.NumberValue;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,7 +43,7 @@ public class NumberValueTest {
     
 //    @Test
     public void testMe(){
-        NumberValue<Double> numberVal = NumberValue.of(10d);
+        NumberValue<Double> numberVal = new DoubleValue(10d);
         Log.print(numberVal.incrementAndGet());
         Log.print(numberVal.incrementAndGet());
         Log.print(numberVal.incrementAndGet());

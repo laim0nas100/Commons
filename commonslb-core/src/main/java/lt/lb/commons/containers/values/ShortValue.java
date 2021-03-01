@@ -1,11 +1,10 @@
 package lt.lb.commons.containers.values;
 
-
 /**
  *
  * @author laim0nas100
  */
-public class ShortValue extends NumberValue<Short>{
+public class ShortValue extends NumberValue<Short> {
 
     public ShortValue() {
     }
@@ -13,70 +12,34 @@ public class ShortValue extends NumberValue<Short>{
     public ShortValue(Short val) {
         super(val);
     }
-    
-    @Override
-    public Short getAndMod(Number n) {
-        Short i = value;
-        value = (short)(value % n.shortValue());
-        return i;
+
+    public ShortValue(short val) {
+        super(val);
     }
 
     @Override
-    public Short modAndGet(Number n) {
-        value = (short)(value % n.shortValue());
-        return value;
+    protected Short plus(Number n) {
+        return (short) (value + n.shortValue());
     }
 
     @Override
-    public Short getAndDivide(Number n) {
-        Short i = value;
-        value = (short)(value / n.shortValue());
-        return i;
+    protected Short minus(Number n) {
+        return (short) (value - n.shortValue());
     }
 
     @Override
-    public Short divideAndGet(Number n) {
-        value = (short)(value / n.shortValue());
-        return value;
+    protected Short mult(Number n) {
+        return (short) (value * n.shortValue());
     }
 
     @Override
-    public Short getAndMultiply(Number n) {
-        Short i = value;
-        value = (short)(value * n.shortValue());
-        return i;
+    protected Short div(Number n) {
+        return (short) (value / n.shortValue());
     }
 
     @Override
-    public Short multiplyAndGet(Number n) {
-        value = (short)(value * n.shortValue());
-        return value;
-    }
-
-    @Override
-    public Short decrementAndGet(Number n) {
-        value = (short)(value - n.shortValue());
-        return value;
-    }
-
-    @Override
-    public Short getAndDecrement(Number n) {
-        Short i = value;
-        value = (short)(value - n.shortValue());
-        return i;
-    }
-
-    @Override
-    public Short incrementAndGet(Number n) {
-        value = (short)(value + n.shortValue());
-        return value;
-    }
-
-    @Override
-    public Short getAndIncrement(Number n) {
-        Short i = value;
-        value = (short)(value + n.shortValue());
-        return i;
+    protected Short mod(Number n) {
+        return (short) (value % n.shortValue());
     }
 
     @Override
@@ -98,5 +61,5 @@ public class ShortValue extends NumberValue<Short>{
     public Short incrementAndGet() {
         return ++value;
     }
-    
+
 }

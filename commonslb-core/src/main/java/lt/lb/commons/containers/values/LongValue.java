@@ -13,73 +13,33 @@ public class LongValue extends NumberValue<Long> {
         super(val);
     }
 
-    public LongValue(int val) {
-        super((long) val);
+    public LongValue(long val) {
+        super(val);
     }
 
     @Override
-    public Long getAndMod(Number n) {
-        Long i = value;
-        value = value % n.longValue();
-        return i;
+    protected Long plus(Number n) {
+        return value + n.longValue();
     }
 
     @Override
-    public Long modAndGet(Number n) {
-        value = value % n.longValue();
-        return value;
+    protected Long minus(Number n) {
+        return value - n.longValue();
     }
 
     @Override
-    public Long getAndDivide(Number n) {
-        Long i = value;
-        value = value / n.longValue();
-        return i;
+    protected Long mult(Number n) {
+        return value * n.longValue();
     }
 
     @Override
-    public Long divideAndGet(Number n) {
-        value = value / n.longValue();
-        return value;
+    protected Long div(Number n) {
+        return value / n.longValue();
     }
 
     @Override
-    public Long getAndMultiply(Number n) {
-        Long i = value;
-       value = value * n.longValue();
-        return i;
-    }
-
-    @Override
-    public Long multiplyAndGet(Number n) {
-        value = value * n.longValue();
-        return value;
-    }
-
-    @Override
-    public Long decrementAndGet(Number n) {
-        value = value - n.longValue();
-        return value;
-    }
-
-    @Override
-    public Long getAndDecrement(Number n) {
-        Long i = value;
-        value = value - n.longValue();
-        return i;
-    }
-
-    @Override
-    public Long incrementAndGet(Number n) {
-        value = value + n.longValue();
-        return value;
-    }
-
-    @Override
-    public Long getAndIncrement(Number n) {
-        Long i = value;
-        value = value + n.longValue();
-        return i;
+    protected Long mod(Number n) {
+        return value % n.longValue();
     }
 
     @Override

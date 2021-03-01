@@ -31,6 +31,7 @@ import lt.lb.commons.email.EmailChecker;
 import lt.lb.commons.email.props.POP3EmailProps;
 import lt.lb.commons.F;
 import lt.lb.commons.Predicates;
+import lt.lb.commons.containers.values.DoubleValue;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.values.Value;
@@ -353,14 +354,14 @@ public class JavaMailTest {
                 }
             }
 
-            NumberValue<Double> wordCount = NumberValue.of(0d);
-            NumberValue<Double> wordLengthTotal = NumberValue.of(0d);
+            NumberValue<Double> wordCount = new DoubleValue(0);
+            NumberValue<Double> wordLengthTotal = new DoubleValue(0);
             For.entries().iterate(map, (k, i) -> {
                 wordCount.incrementAndGet(i.get());
                 wordLengthTotal.incrementAndGet(k.length() * i.get());
             });
-            NumberValue<Integer> capitalChars = NumberValue.of(0);
-            NumberValue<Integer> capitalWords = NumberValue.of(0);
+            NumberValue<Integer> capitalChars = new IntegerValue(0);
+            NumberValue<Integer> capitalWords = new IntegerValue(0);
             For.entries().iterate(capMap, (w, count) -> {
                 capitalChars.incrementAndGet(count.get() * w.length());
                 capitalWords.incrementAndGet(count.get());

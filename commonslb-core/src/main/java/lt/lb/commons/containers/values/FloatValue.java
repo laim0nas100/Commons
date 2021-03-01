@@ -1,6 +1,5 @@
 package lt.lb.commons.containers.values;
 
-
 /**
  *
  * @author laim0nas100
@@ -14,69 +13,33 @@ public class FloatValue extends NumberValue<Float> {
         super(val);
     }
 
-    @Override
-    public Float getAndMod(Number n) {
-        Float i = value;
-        value = value % n.floatValue();
-        return i;
+    public FloatValue(float val) {
+        super(val);
     }
 
     @Override
-    public Float modAndGet(Number n) {
-        value = value % n.floatValue();
-        return value;
+    protected Float plus(Number n) {
+        return value + n.floatValue();
     }
 
     @Override
-    public Float getAndDivide(Number n) {
-        Float i = value;
-        value = value / n.floatValue();
-        return i;
+    protected Float minus(Number n) {
+        return value - n.floatValue();
     }
 
     @Override
-    public Float divideAndGet(Number n) {
-        value = value / n.floatValue();
-        return value;
+    protected Float mult(Number n) {
+        return value * n.floatValue();
     }
 
     @Override
-    public Float getAndMultiply(Number n) {
-        Float i = value;
-        value = value * n.floatValue();
-        return i;
+    protected Float div(Number n) {
+        return value / n.floatValue();
     }
 
     @Override
-    public Float multiplyAndGet(Number n) {
-        value = value * n.floatValue();
-        return value;
-    }
-
-    @Override
-    public Float decrementAndGet(Number n) {
-        value = value - n.floatValue();
-        return value;
-    }
-
-    @Override
-    public Float getAndDecrement(Number n) {
-        Float i = value;
-        value = value - n.floatValue();
-        return i;
-    }
-
-    @Override
-    public Float incrementAndGet(Number n) {
-        value = value + n.floatValue();
-        return value;
-    }
-
-    @Override
-    public Float getAndIncrement(Number n) {
-        Float i = value;
-        value = value + n.floatValue();
-        return i;
+    protected Float mod(Number n) {
+        return value % n.floatValue();
     }
 
     @Override
