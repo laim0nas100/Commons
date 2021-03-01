@@ -17,7 +17,6 @@ import lt.lb.commons.iteration.general.accessors.IterIterableAccessor;
 import lt.lb.commons.iteration.general.accessors.IterMapAccessor;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
-import lt.lb.commons.iteration.general.result.IterIterableResult;
 
 /**
  *
