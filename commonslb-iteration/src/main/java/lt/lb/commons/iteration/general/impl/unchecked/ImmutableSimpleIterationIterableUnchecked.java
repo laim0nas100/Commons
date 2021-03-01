@@ -34,29 +34,31 @@ public class ImmutableSimpleIterationIterableUnchecked extends SimpleIterationIt
 
     @Override
     public SimpleIterationIterableUnchecked endingBefore(int to) {
-        return new SimpleIterationIterableUnchecked().endingBefore(to);
+        return me().endingBefore(to);
     }
 
     @Override
     public SimpleIterationIterableUnchecked startingFrom(int from) {
-        return new SimpleIterationIterableUnchecked().startingFrom(from);
+        return me().startingFrom(from);
     }
 
     @Override
     public SimpleIterationIterableUnchecked last(int amountToInclude) {
-        return new SimpleIterationIterableUnchecked().last(amountToInclude);
+        return me().last(amountToInclude);
     }
 
     @Override
     public SimpleIterationIterableUnchecked first(int amountToInclude) {
-        return new SimpleIterationIterableUnchecked().first(amountToInclude);
+        return me().first(amountToInclude);
     }
 
     @Override
     public SimpleIterationIterableUnchecked withInterval(int from, int to) {
-        return new SimpleIterationIterableUnchecked().withInterval(from, to);
+        return me().withInterval(from, to);
     }
 
+    
+    
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableConsUnchecked<T> iter) {
         return main.find(iterator, iter);

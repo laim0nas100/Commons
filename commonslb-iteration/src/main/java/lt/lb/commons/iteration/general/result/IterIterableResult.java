@@ -4,6 +4,8 @@ import java.util.Objects;
 
 /**
  *
+ * Immutable
+ *
  * @author laim0nas100
  */
 public class IterIterableResult<T> {

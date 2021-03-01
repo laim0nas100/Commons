@@ -13,12 +13,12 @@ public class ImmutableSimpleMapIterableUnchecked extends SimpleMapIterableUnchec
 
     @Override
     public SimpleMapIterableUnchecked last(int amountToInclude) {
-        return new SimpleMapIterableUnchecked().last(amountToInclude);
+        return me().last(amountToInclude);
     }
 
     @Override
     public SimpleMapIterableUnchecked first(int amountToInclude) {
-        return new SimpleMapIterableUnchecked().first(amountToInclude);
+        return me().first(amountToInclude);
     }
 
 }

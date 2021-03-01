@@ -1,9 +1,5 @@
 package lt.lb.commons.iteration;
 
-import lt.lb.commons.iteration.impl.ArrayROI;
-import lt.lb.commons.iteration.impl.StreamROI;
-import lt.lb.commons.iteration.impl.IteratorROI;
-import lt.lb.commons.iteration.impl.CompositeROI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -14,7 +10,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import lt.lb.commons.containers.ForwardingStream;
+import lt.lb.commons.iteration.impl.ArrayROI;
+import lt.lb.commons.iteration.impl.CompositeROI;
+import lt.lb.commons.iteration.impl.IteratorROI;
 import lt.lb.commons.iteration.impl.ListROI;
+import lt.lb.commons.iteration.impl.StreamROI;
 
 /**
  *

@@ -38,7 +38,7 @@ public class ArrayROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalIter
     @Override
     public T next() {
         if (!hasNext()) {
-            throw new NoSuchElementException("No previous value");
+            throw new NoSuchElementException("No next value");
         }
         return setCurrent(array[++index]);
     }

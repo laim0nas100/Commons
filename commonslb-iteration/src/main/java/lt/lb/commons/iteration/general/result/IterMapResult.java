@@ -3,18 +3,16 @@ package lt.lb.commons.iteration.general.result;
 import java.util.Objects;
 
 /**
+ * Immutable
  *
  * @author laim0nas100
  */
-public class IterMapResult<K, V> {
+public class IterMapResult<K, V> extends IterIterableResult<V> {
 
-    public final V val;
     public final K key;
-    public final Integer index;
 
-    public IterMapResult(Integer index, K key, V val) {
-        this.index = index;
-        this.val = val;
+    public IterMapResult(int index, K key, V val) {
+        super(index, val);
         this.key = key;
     }
 

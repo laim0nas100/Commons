@@ -4,6 +4,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.ReadOnlyIterator;
@@ -19,33 +20,6 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
  * @param <E>
  */
 public interface IterationIterable<E extends IterationIterable<E>> extends IterationAbstract<E> {
-
-    /**
-     * Set staring index (inclusive)
-     *
-     * @param from inclusive starting interval index
-     * @return
-     */
-    public E startingFrom(int from);
-
-    /**
-     * Set ending index (exclusive)
-     *
-     * @param to exclusive ending interval index
-     * @return
-     */
-    public E endingBefore(int to);
-
-    /**
-     * Set interval. [from , to). Inclusive : Exclusive.
-     *
-     * @param from
-     * @param to
-     * @return
-     */
-    public default E withInterval(int from, int to) {
-        return startingFrom(from).endingBefore(to);
-    }
 
     /**
      * Linear iteration of the given interval until logic returns true, or
@@ -97,6 +71,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<Void> iterateBackwards(LinkedList<T> list, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards((List<T>) list, iter).keepError();
     }
 
@@ -105,6 +81,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<Void> iterateBackwards(List<T> list, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(list, iter).keepError();
     }
 
@@ -113,6 +91,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<Void> iterateBackwards(Deque<T> deque, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(deque, "Deque is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(deque, iter).keepError();
     }
 
@@ -121,6 +101,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<Void> iterateBackwards(T[] array, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(array, iter).keepError();
     }
 
@@ -129,6 +111,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableCons<T> iter) {
+        Objects.requireNonNull(iterable, "Iterable is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterable.iterator(), iter);
     }
 
@@ -137,6 +121,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableCons<T> iter) {
+        Objects.requireNonNull(iterator, "ReadOnlyIterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find((Iterator) iterator, iter);
     }
 
@@ -145,6 +131,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(Stream<T> stream, IterIterableCons<T> iter) {
+        Objects.requireNonNull(stream, "Stream is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(ReadOnlyIterator.of(stream), iter);
     }
 
@@ -153,6 +141,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(List<T> list, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(list, iter).keepError();
     }
 
@@ -161,6 +151,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(T[] array, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(array, iter).keepError();
     }
 
@@ -169,6 +161,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(Iterator<T> iterator, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(iterator, "Iterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterator, iter).keepError();
     }
 
@@ -177,6 +171,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(Iterable<T> iterable, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(iterable, "Iterable is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterable.iterator(), iter).keepError();
     }
 
@@ -185,6 +181,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(ReadOnlyIterator<T> iterator, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(iterator, "ReadOnlyIterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterator, iter).keepError();
     }
 
@@ -193,6 +191,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(Stream<T> stream, IterIterableConsNoStop<T> iter) {
+        Objects.requireNonNull(stream, "Stream is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(stream.iterator(), iter).keepError();
     }
 
@@ -201,6 +201,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(ReadOnlyIterator<T> iterator, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(iterator, "ReadOnlyIterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterator, (IterIterableCons<T>) iter);
     }
 
@@ -209,6 +211,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(List<T> list, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(list, (IterIterableCons<T>) iter);
     }
 
@@ -217,6 +221,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(T[] array, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(array, (IterIterableCons<T>) iter);
     }
 
@@ -225,6 +231,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * or iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> findBackwards(List<T> list, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(list, (IterIterableCons<T>) iter);
     }
 
@@ -233,6 +241,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * or iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(deque, "Deque is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(deque, (IterIterableCons<T>) iter);
     }
 
@@ -241,6 +251,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> findBackwards(LinkedList<T> list, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(list, "LinkedList is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards((List<T>) list, iter);
     }
 
@@ -249,6 +261,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * or iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> findBackwards(T[] array, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(array, (IterIterableCons<T>) iter);
     }
 
@@ -257,6 +271,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<Void> iterateBackwards(LinkedList<T> list, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(list, "LinkedList is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards((List<T>) list, iter).keepError();
     }
 
@@ -265,6 +281,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<Void> iterateBackwards(List<T> list, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(list, iter).keepError();
     }
 
@@ -273,6 +291,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<Void> iterateBackwards(Deque<T> deque, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(deque, "Deque is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(deque, iter).keepError();
     }
 
@@ -281,6 +301,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * all elements
      */
     public default <T> SafeOpt<Void> iterateBackwards(T[] array, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return findBackwards(array, iter).keepError();
     }
 
@@ -289,6 +311,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(Iterable<T> iterable, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(iterable, "Iterable is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterable.iterator(), iter);
     }
 
@@ -297,6 +321,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(iterator, "Iterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterator, (IterIterableCons<T>) iter);
     }
 
@@ -305,6 +331,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * iteration exhausts all elements
      */
     public default <T> SafeOpt<IterIterableResult<T>> find(Stream<T> stream, IterIterableBiCons<T> iter) {
+        Objects.requireNonNull(stream, "Stream is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(stream.iterator(), iter);
     }
 
@@ -313,6 +341,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(List<T> list, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(list, iter).keepError();
     }
 
@@ -321,6 +351,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(T[] array, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(array, iter).keepError();
     }
 
@@ -329,6 +361,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(Iterator<T> iterator, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(iterator, "Iterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterator, iter).keepError();
     }
 
@@ -337,6 +371,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(Iterable<T> iterable, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(iterable, "Iterable is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterable.iterator(), iter).keepError();
     }
 
@@ -345,6 +381,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(ReadOnlyIterator<T> iterator, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(iterator, "ReadOnlyIterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(iterator, iter).keepError();
     }
 
@@ -353,6 +391,8 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
      * elements
      */
     public default <T> SafeOpt<Void> iterate(Stream<T> stream, IterIterableBiConsNoStop<T> iter) {
+        Objects.requireNonNull(stream, "Stream is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return find(stream.iterator(), iter).keepError();
     }
 

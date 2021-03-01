@@ -18,24 +18,41 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
 public class SimpleIterationIterableUnchecked extends SimpleAbstractIteration<SimpleIterationIterableUnchecked> implements IterationIterableUnchecked<SimpleIterationIterableUnchecked> {
 
     protected AccessorResolver resolver = new DefaultAccessorResolverUnchecked();
-    protected SimpleIterationIterable main = new SimpleIterationIterable(){
+    protected SimpleIterationIterable main = new SimpleIterationIterable() {
         @Override
         protected AccessorResolver getResolver() {
             return resolver;
         }
-    
-        
+
     };
 
     @Override
+    public SimpleIterationIterableUnchecked last(int amountToInclude) {
+        main = main.last(amountToInclude);
+        return this;
+    }
+
+    @Override
+    public SimpleIterationIterableUnchecked first(int amountToInclude) {
+        main = main.first(amountToInclude);
+        return this;
+    }
+
+    @Override
     public SimpleIterationIterableUnchecked startingFrom(int from) {
-        main.startingFrom(from);
+        main = main.startingFrom(from);
         return this;
     }
 
     @Override
     public SimpleIterationIterableUnchecked endingBefore(int to) {
-        main.endingBefore(to);
+        main = main.endingBefore(to);
+        return this;
+    }
+
+    @Override
+    public SimpleIterationIterableUnchecked withInterval(int from, int to) {
+        main = main.withInterval(from, to);
         return this;
     }
 

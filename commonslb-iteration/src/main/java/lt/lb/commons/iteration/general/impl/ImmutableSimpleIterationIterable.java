@@ -4,6 +4,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.general.accessors.IterIterableAccessor;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
@@ -49,6 +50,8 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter) {
+        Objects.requireNonNull(iterator, "Iterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         IterIterableAccessor accessor = resolveAccessor(iter);
         int index = 0;
         while (iterator.hasNext()) {
@@ -64,6 +67,8 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(List<T> list, IterIterableCons<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         ListIterator<T> iterator = list.listIterator(0);
         int index = 0;
         IterIterableAccessor accessor = resolveAccessor(iter);
@@ -81,6 +86,8 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(T[] array, IterIterableCons<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         IterIterableAccessor accessor = resolveAccessor(iter);
         for (int i = 0; i < array.length; i++) {
             SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(i, array[i], iter);
@@ -93,6 +100,8 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(List<T> list, IterIterableCons<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         int size = list.size();
         ListIterator<T> iterator = list.listIterator(size);
         int index = size;
@@ -110,6 +119,8 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(T[] array, IterIterableCons<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         IterIterableAccessor accessor = resolveAccessor(iter);
         for (int i = array.length - 1; i >= 0; i--) {
             SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(i, array[i], iter);
@@ -122,6 +133,8 @@ public class ImmutableSimpleIterationIterable extends SimpleIterationIterable {
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableCons<T> iter) {
+        Objects.requireNonNull(deque, "Deque is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         int size = deque.size();
         Iterator<T> descendingIterator = deque.descendingIterator();
         int index = size - 1;

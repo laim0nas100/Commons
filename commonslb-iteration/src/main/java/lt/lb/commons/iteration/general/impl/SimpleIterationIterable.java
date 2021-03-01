@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.general.IterationIterable;
 import lt.lb.commons.iteration.general.accessors.IterIterableAccessor;
@@ -17,43 +18,17 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
  */
 public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleIterationIterable> implements IterationIterable<SimpleIterationIterable> {
 
-    protected int startingFrom = -1;
-    protected int endingBefore = -1;
+    public <T> SafeOpt<IterIterableResult<T>> findOld(Iterator<T> iterator, IterIterableCons<T> iter) {
+        Objects.requireNonNull(iterator, "Iteartor is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
 
-    @Override
-    public SimpleIterationIterable startingFrom(int from) {
-        this.startingFrom = from;
-        return this;
-    }
-
-    @Override
-    public SimpleIterationIterable endingBefore(int to) {
-        this.endingBefore = to;
-        return this;
-    }
-
-    @Override
-    public <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter) {
-        int to;
-        if (endingBefore < 0) {
-            to = -1;
-        } else {
-            to = endingBefore;
-        }
-
-        int from;
-        if (startingFrom < 0) {
-            from = -1;
-        } else {
-            from = startingFrom;
-        }
-
-        if (onlyIncludingFirst == 0 || onlyIncludingLast == 0) {
+        SafeOpt<int[]> bounds = workoutBounds();
+        if (bounds.isEmpty()) {
             return SafeOpt.empty();
         }
-        if (onlyIncludingFirst > 0 && onlyIncludingLast > 0) {
-            throw new IllegalArgumentException("Can't include only first AND only last, please pick one or the other");
-        }
+        int[] b = bounds.get();
+        int from = b[0];
+        int to = b[1];
 
         int lastSize = 0;
         int index = -1;
@@ -125,6 +100,8 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(List<T> list, IterIterableCons<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         int[] bound = workoutBounds(list.size());
         int from = bound[0];
         int to = bound[1];
@@ -145,44 +122,10 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
 
     }
 
-    protected int[] workoutBounds(int length) {
-        int to;
-        if (endingBefore < 0 || endingBefore > length) {
-            to = length;
-        } else {
-            to = endingBefore;
-        }
-
-        int from;
-        if (startingFrom < 0 || startingFrom > length) {
-            from = 0;
-        } else {
-            from = startingFrom;
-        }
-
-        if (onlyIncludingFirst > 0 && onlyIncludingLast > 0) {
-            throw new IllegalArgumentException("Can't include only first AND only last, please pick one or the other");
-        }
-
-        if (onlyIncludingFirst >= 0) {
-            int size = to - from;
-            if (size >= onlyIncludingFirst) {
-                to = from + onlyIncludingFirst;
-            }
-        }
-
-        if (onlyIncludingLast >= 0) {
-            int size = to - from;
-            if (size >= onlyIncludingLast) {
-                from = to - onlyIncludingLast;
-            }
-        }
-
-        return new int[]{from, to};
-    }
-
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(T[] array, IterIterableCons<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         int[] bound = workoutBounds(array.length);
         int from = bound[0];
         int to = bound[1];
@@ -199,6 +142,8 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(T[] array, IterIterableCons<T> iter) {
+        Objects.requireNonNull(array, "Array is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         int[] bound = workoutBounds(array.length);
         int from = bound[0];
         int to = bound[1];
@@ -221,6 +166,8 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(List<T> list, IterIterableCons<T> iter) {
+        Objects.requireNonNull(list, "List is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         int[] bound = workoutBounds(list.size());
         int from = bound[0];
         int to = bound[1];
@@ -241,6 +188,8 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableCons<T> iter) {
+        Objects.requireNonNull(deque, "Deque is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
         int size = deque.size();
         Iterator<T> descendingIterator = deque.descendingIterator();
         int[] bound = workoutBounds(size);
@@ -265,6 +214,22 @@ public class SimpleIterationIterable extends SimpleAbstractIteration<SimpleItera
             }
         }
 
+        return SafeOpt.empty();
+    }
+
+    @Override
+    public <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableCons<T> iter) {
+        Objects.requireNonNull(iterator, "Iterator is null");
+        Objects.requireNonNull(iter, "Iteration logic is null");
+        IterIterableAccessor accessor = resolveAccessor(iter);
+        IterIterator<T> bufferedFind = bufferedFind(iterator);
+        while (bufferedFind.hasNext()) {
+            T next = bufferedFind.next();
+            SafeOpt<IterIterableResult<T>> tryVisit = accessor.tryVisit(bufferedFind.getIndex(), next, iter);
+            if (tryVisit.hasValueOrError()) {
+                return tryVisit;
+            }
+        }
         return SafeOpt.empty();
     }
 
