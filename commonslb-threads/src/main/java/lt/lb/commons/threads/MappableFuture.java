@@ -54,8 +54,18 @@ public interface MappableFuture<T> extends Future<T> {
 
     public default <R> MappableFuture<R> mapEager(Executor exe, UncheckedFunction<? super T, ? extends R> func) {
         MappableFuture<R> mapped = map(func);
-        awaitAsync(exe);
+        mapped.awaitAsync(exe);
         return mapped;
+    }
+
+    public default <R> MappableFuture<R> flatMapEager(Executor exe, UncheckedFunction< ? super T, ? extends Future<? extends R>> func) {
+        MappableFuture<R> mapped = flatMap(func);
+        mapped.awaitAsync(exe);
+        return mapped;
+    }
+
+    public default <R> MappableFuture<R> flatMapEager(UncheckedFunction< ? super T, ? extends Future<? extends R>> func) {
+        return flatMapEager(getDefaultExecutor(), func);
     }
 
     /**
@@ -75,6 +85,15 @@ public interface MappableFuture<T> extends Future<T> {
      */
     public default SafeOpt<T> safeGet() {
         return SafeOpt.ofGet((UncheckedSupplier<T>) () -> get());
+    }
+
+    /**
+     * Await given time and get result or exception boxed in a {@link SafeOpt}
+     *
+     * @return
+     */
+    public default SafeOpt<T> safeGet(long timeout, TimeUnit unit) {
+        return SafeOpt.ofGet((UncheckedSupplier<T>) () -> get(timeout, unit));
     }
 
     public default <R> MappableFuture<R> map(UncheckedFunction<? super T, ? extends R> func) {
@@ -153,6 +172,63 @@ public interface MappableFuture<T> extends Future<T> {
             }
         };
 
+    }
+
+    public default <R> MappableFuture<R> flatMap(UncheckedFunction< ? super T, ? extends Future<? extends R>> func) {
+        Objects.requireNonNull(func);
+        MappableFuture<? extends Future<? extends R>> map = this.map(func);
+        return new MappableFuture<R>() {
+            @Override
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                if (!map.isDone()) {
+                    return map.cancel(mayInterruptIfRunning);
+                } else {
+                    return map.safeGet().map(m -> m.cancel(mayInterruptIfRunning)).orElse(false);
+                }
+            }
+
+            @Override
+            public boolean isCancelled() {
+                if (map.isCancelled()) {
+                    return true;
+                }
+                if (map.isDone()) {
+                    return SafeOpt.ofGet(() -> map.get()).filter(f -> f.isCancelled()).isPresent();
+                } else {
+                    return false;
+                }
+            }
+
+            @Override
+            public boolean isDone() {
+                if (map.isDone()) {
+                    return SafeOpt.ofGet(() -> map.get()).filter(f -> f.isDone()).isPresent();
+                } else {
+                    return false;
+                }
+            }
+
+            @Override
+            public R get() throws InterruptedException, ExecutionException {
+                return map.get().get();
+            }
+
+            @Override
+            public R get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                if(map.isDone()){
+                    return map.get().get(timeout, unit);
+                }
+                long nanoTime = System.nanoTime();
+                Future<? extends R> get = map.get(timeout, unit);
+                long afterGet = System.nanoTime();
+                long nanoUsed = afterGet - nanoTime;
+
+                long nanosLeft = TimeUnit.NANOSECONDS.convert(timeout, unit) - nanoUsed;
+
+                return get.get(nanosLeft, TimeUnit.NANOSECONDS);
+            }
+
+        };
     }
 
 }
