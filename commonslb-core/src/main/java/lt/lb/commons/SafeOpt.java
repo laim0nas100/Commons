@@ -9,10 +9,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import lt.lb.commons.misc.NestedException;
 import lt.lb.commons.func.unchecked.UncheckedBiFunction;
 import lt.lb.commons.func.unchecked.UncheckedFunction;
 import lt.lb.commons.func.unchecked.UncheckedSupplier;
+import lt.lb.commons.misc.NestedException;
 
 /**
  *
@@ -30,22 +30,18 @@ public class SafeOpt<T> implements Supplier<T> {
     /**
      * If non-null, the value; if null, indicates no value is present
      */
-    private final T val;
+    protected final T val;
 
     /**
      * If non-null, the exception; if null, indicates no exception is present
      */
-    private final Throwable threw;
+    protected final Throwable threw;
 
-    private static final SafeOpt<?> READY = new SafeOpt<>(new Object(), null);
+    protected static final SafeOpt<?> READY = new SafeOpt<>(new Object(), null);
 
-    private static final SafeOpt<?> EMPTY = new SafeOpt<>();
+    protected static final SafeOpt<?> EMPTY = new SafeOpt<>(null, null);
 
-    private SafeOpt() {
-        this(null, null);
-    }
-
-    private SafeOpt(T value, Throwable throwable) {
+    protected SafeOpt(T value, Throwable throwable) {
         val = value;
         threw = throwable;
     }
@@ -73,7 +69,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * anywhere, then it will be captured and empty {@code SafeOpt} with such
      * exception will be returned
      */
-    public static <T> SafeOpt<T> ofGet(Supplier<T> sup) {
+    public static <T> SafeOpt<T> ofGet(Supplier<? extends T> sup) {
         Objects.requireNonNull(sup);
         return READY.map(m -> sup.get());
     }
@@ -88,7 +84,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * anywhere, then it will be captured and empty {@code SafeOpt} with such
      * exception will be returned
      */
-    public static <T> SafeOpt<T> ofGet(UncheckedSupplier<T> sup) {
+    public static <T> SafeOpt<T> ofGet(UncheckedSupplier<? extends T> sup) {
         Objects.requireNonNull(sup);
         return READY.map(m -> sup.get());
     }
@@ -112,7 +108,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @return an empty {@code SafeOpt} with an error.
      */
     public static <T> SafeOpt<T> error(Throwable error) {
-        return new SafeOpt<>(null, Objects.requireNonNull(error));
+        return new SafeOpt<>(null, NestedException.unwrap(Objects.requireNonNull(error)));
     }
 
     private static <T> SafeOpt<T> errorOrEmpty(Throwable error) {
@@ -139,7 +135,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param opt
      * @return
      */
-    public static <T> SafeOpt<T> ofOptional(Optional<T> opt) {
+    public static <T> SafeOpt<T> ofOptional(Optional<? extends T> opt) {
         return opt.isPresent() ? SafeOpt.of(opt.get()) : SafeOpt.empty();
     }
 
@@ -151,10 +147,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * is non-null, otherwise an empty {@code Optional}
      */
     public Optional<T> asOptional() throws NestedException {
-        if (hasError()) {
-            throw NestedException.of(threw);
-        }
-        return Optional.ofNullable(val);
+        return throwIfErrorAsNested().ignoringExceptionOptional();
     }
 
     /**
@@ -164,7 +157,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @return an {@code Optional} with a present value if the specified value
      * is non-null, otherwise an empty {@code Optional}
      */
-    public Optional<T> ignoringException() {
+    public Optional<T> ignoringExceptionOptional() {
         return Optional.ofNullable(val);
     }
 
@@ -324,7 +317,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws NullPointerException if the mapping function is null
      */
     public <U> SafeOpt<U> map(UncheckedFunction<? super T, ? extends U> mapper) {
-        return map((Function<T, U>) mapper);
+        return map((Function<? super T, ? extends U>) mapper);
     }
 
     /**
@@ -347,8 +340,8 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param mapper
      * @return
      */
-    public <U> SafeOpt<U> flatMap(UncheckedFunction<? super T, SafeOpt<U>> mapper) {
-        return flatMap((Function<? super T, SafeOpt<U>>) mapper);
+    public <U> SafeOpt<U> flatMap(UncheckedFunction<? super T, ? extends SafeOpt<? extends U>> mapper) {
+        return flatMap((Function<? super T, ? extends SafeOpt<? extends U>>) mapper);
     }
 
     /**
@@ -367,16 +360,17 @@ public class SafeOpt<T> implements Supplier<T> {
      * otherwise an empty {@code SafeOpt}
      * @throws NullPointerException if the mapping function is null
      */
-    public <U> SafeOpt<U> flatMap(Function<? super T, SafeOpt<U>> mapper) {
+    public <U> SafeOpt<U> flatMap(Function<? super T, ? extends SafeOpt<? extends U>> mapper) {
         Objects.requireNonNull(mapper, "Mapping function was null");
         if (!isPresent()) {
             return SafeOpt.errorOrEmpty(threw);
         } else {
             try {
-                SafeOpt<U> apply = mapper.apply(val);
-                if (apply != null) {
-                    return apply;
+                SafeOpt<? extends U> apply = mapper.apply(val);
+                if (apply.isPresent()) {
+                    return SafeOpt.of(apply.get());
                 }
+
             } catch (Throwable t) {
                 return SafeOpt.errorOrEmpty(NestedException.unwrap(t));
             }
@@ -400,7 +394,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * otherwise an empty {@code SafeOpt}
      * @throws NullPointerException if the mapping function is null
      */
-    public <U> SafeOpt<U> flatMapOpt(Function<? super T, Optional<U>> mapper) {
+    public <U> SafeOpt<U> flatMapOpt(Function<? super T, ? extends Optional<? extends U>> mapper) {
         Objects.requireNonNull(mapper, "Mapping function was null");
         if (!isPresent()) {
             return SafeOpt.errorOrEmpty(threw);
@@ -408,7 +402,7 @@ public class SafeOpt<T> implements Supplier<T> {
             try {
                 return SafeOpt.ofOptional(mapper.apply(val));
             } catch (Throwable t) {
-                return SafeOpt.errorOrEmpty(t);
+                return SafeOpt.errorOrEmpty(NestedException.unwrap(t));
             }
         }
     }
@@ -420,8 +414,8 @@ public class SafeOpt<T> implements Supplier<T> {
      * @param mapper
      * @return
      */
-    public <U> SafeOpt<U> flatMapOpt(UncheckedFunction<? super T, Optional<U>> mapper) {
-        return flatMapOpt((Function<? super T, Optional<U>>) mapper);
+    public <U> SafeOpt<U> flatMapOpt(UncheckedFunction<? super T, ? extends Optional<? extends U>> mapper) {
+        return flatMapOpt((Function<? super T, ? extends Optional<? extends U>>) mapper);
     }
 
     /**
@@ -434,7 +428,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * {@code SafeOpt} produced by the supplying function.
      * @throws NullPointerException if the supplying function is {@code null}
      */
-    public SafeOpt<T> orGetOpt(Supplier<? extends Optional<T>> supplier) {
+    public SafeOpt<T> orGetOpt(Supplier<? extends Optional<? extends T>> supplier) {
         Objects.requireNonNull(supplier, "Supplier was null");
         if (isPresent()) {
             return this;
@@ -534,12 +528,23 @@ public class SafeOpt<T> implements Supplier<T> {
     }
 
     /**
+     * If exception has occurred, throws is wrapped in NestedException. If a
+     * value is present, returns a sequential {@link Stream} containing only
+     * that value, otherwise returns an empty {@code Stream}.
+     *
+     * @return the optional value as a {@code Stream}
+     */
+    public Stream<T> stream() throws NestedException {
+        return throwIfErrorAsNested().ignoringExceptionStream();
+    }
+
+    /**
      * If a value is present, returns a sequential {@link Stream} containing
      * only that value, otherwise returns an empty {@code Stream}.
      *
      * @return the optional value as a {@code Stream}
      */
-    public Stream<T> stream() {
+    public Stream<T> ignoringExceptionStream() {
         if (!isPresent()) {
             return Stream.empty();
         } else {
@@ -643,13 +648,8 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws Ex if there is such exception
      */
     public <Ex extends Throwable> T throwIfErrorOrGet(Class<Ex> type) throws Ex {
-        if (threw != null) {
-            Throwable t = NestedException.unwrap(threw);
-            if (Ins.ofNullable(t).instanceOf(type)) {
-                throw (Ex) t;
-            }
-        }
-        return get();
+        Objects.requireNonNull(type);
+        return throwIfError(type).get();
     }
 
     /**
@@ -666,7 +666,6 @@ public class SafeOpt<T> implements Supplier<T> {
         }
         return this;
     }
-    private final static Ins.InsCl<RuntimeException> runtimeExceptionType = Ins.of(RuntimeException.class);
 
     /**
      * If an {@link RuntimeException} has occurred, terminate by throwing such
@@ -677,10 +676,7 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws RuntimeException if any that kind of error was present
      */
     public SafeOpt<T> throwIfErrorRuntime() {
-        if (runtimeExceptionType.superClassOf(threw)) {
-            throw (RuntimeException) threw;
-        }
-        return this;
+        return throwIfError(RuntimeException.class);
     }
 
     /**
@@ -693,11 +689,10 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws Ex if there is such exception
      */
     public <Ex extends Throwable> SafeOpt<T> throwIfError(Class<Ex> type) throws Ex {
-        if (threw != null) {
-            Throwable t = NestedException.unwrap(threw);
-            if (Ins.ofNullable(t).instanceOf(type)) {
-                throw (Ex) t;
-            }
+        Objects.requireNonNull(type);
+        SafeOpt<Ex> select = getError().select(type);
+        if (select.isPresent()) {
+            throw select.get();
         }
         return this;
     }
@@ -713,13 +708,12 @@ public class SafeOpt<T> implements Supplier<T> {
      * @throws Ex if there is such exception
      */
     public <Ex extends Throwable> SafeOpt<T> throwIfErrorUnwrapping(Class<Ex> type) throws Ex {
-        if (threw != null) {
-            Throwable t = NestedException.unwrap(threw);
-            if (Ins.ofNullable(t).instanceOf(type)) {
-                throw (Ex) t;
-            } else {
-                throw NestedException.of(t);
-            }
+        SafeOpt<Throwable> error = getError();
+        SafeOpt<Ex> select = error.select(type);
+        if (select.isPresent()) {
+            throw select.get();
+        } else if (error.isPresent()) {
+            throw NestedException.of(error.get());
         }
         return this;
     }
