@@ -9,9 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import lt.lb.commons.Lazy;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
@@ -26,10 +31,10 @@ import lt.lb.fastid.FastID;
  *
  * @author laim0nas100
  */
-public class CellTable<Format,T> {
+public class CellTable<Format, T> {
 
     @FunctionalInterface
-    public static interface CellRowRenderer<Format,T> {
+    public static interface CellRowRenderer<Format, T> {
 
         public void render(Formatters<Format> formatters, Integer rowIndex, List<CellPrep<T>> cells);
     }
@@ -43,37 +48,74 @@ public class CellTable<Format,T> {
      */
     private static class Row<T> {
 
-        List<CellPrep<T>> cells = new ArrayList<>();
+        private List<CellPrep<T>> cellPrep = new ArrayList<>();
+        private Lazy<Map<FastID, Integer>> ids = new Lazy<>(() -> computeIds());
+
+        private AtomicBoolean update = new AtomicBoolean(false);
 
         private Row() {
         }
 
         private void modifyToSize(int size, T content) {
-            while (cells.size() < size) {
-                cells.add(new CellPrep<>(content));
+            boolean toSet = false;
+            while (cellPrep.size() < size) {
+                cellPrep.add(new CellPrep<>(content));
+                toSet = true;
+
             }
 
-            while (cells.size() > size) {
-                cells.remove(cells.size() - 1);
+            while (cellPrep.size() > size) {
+                cellPrep.remove(cellPrep.size() - 1);
+                toSet = true;
+            }
+            if (toSet) {
+                update.compareAndSet(false, true);
             }
         }
 
         private void modifyToSize(int size) {
             this.modifyToSize(size, null);
         }
+
+        public void add(T content) {
+            cellPrep.add(new CellPrep<>(content));
+            update.compareAndSet(false, true);
+        }
+
+        public List<CellPrep<T>> getCells() {
+            return cellPrep;
+        }
+
+        private Map<FastID, Integer> computeIds() {
+            HashMap<FastID, Integer> map = new HashMap<>();
+            int index = 0;
+            for (CellPrep<T> cell : cellPrep) {
+                map.put(cell.id, index++);
+            }
+
+            return map;
+        }
+
+        private Map<FastID, Integer> getIds() {
+            while (update.compareAndSet(true, false)) {
+                ids = new Lazy<>(() -> computeIds());
+            }
+
+            return ids.get();
+        }
     }
 
-    private static abstract class CellFormatIndexCollect<Format,T> {
+    private static abstract class CellFormatIndexCollect<Format, T> {
 
-        protected CellTable<Format,T> table;
-        protected Optional<CellFormatBuilder<Format,T>> previous;
+        protected CellTable<Format, T> table;
+        protected Optional<CellFormatBuilder<Format, T>> previous;
 
-        protected CellFormatIndexCollect(Optional<CellFormatBuilder<Format,T>> previous, CellTable<Format,T> table) {
+        protected CellFormatIndexCollect(Optional<CellFormatBuilder<Format, T>> previous, CellTable<Format, T> table) {
             this.table = table;
             this.previous = previous;
         }
 
-        protected CellFormatBuilder<Format,T> appendOrNew(List<CellPrep<T>> cells) {
+        protected CellFormatBuilder<Format, T> appendOrNew(List<CellPrep<T>> cells) {
             return previous.map(m -> {
                 m.cells.addAll(cells);
                 return m;
@@ -81,12 +123,12 @@ public class CellTable<Format,T> {
         }
     }
 
-    public static class CellFormatIndexCollectorRectangle<Format,T> extends CellFormatIndexCollect<Format,T> {
+    public static class CellFormatIndexCollectorRectangle<Format, T> extends CellFormatIndexCollect<Format, T> {
 
         private Integer startRow;
         private Integer startCol;
 
-        private CellFormatIndexCollectorRectangle(Optional<CellFormatBuilder<Format,T>> previous, CellTable<Format,T> table, Integer row, Integer col) {
+        private CellFormatIndexCollectorRectangle(Optional<CellFormatBuilder<Format, T>> previous, CellTable<Format, T> table, Integer row, Integer col) {
             super(previous, table);
             this.startRow = row;
             this.startCol = col;
@@ -99,14 +141,14 @@ public class CellTable<Format,T> {
          * @param lastCol
          * @return
          */
-        public CellFormatBuilder<Format,T> toRightBottomCornerAt(Integer lastRow, Integer lastCol) {
+        public CellFormatBuilder<Format, T> toRightBottomCornerAt(Integer lastRow, Integer lastCol) {
             IntRange.of(startRow, lastRow).assertRangeIsValid();
             IntRange.of(startCol, lastCol).assertRangeIsValid();
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (int r = startRow; r < lastRow + 1; r++) {
                 Row<T> row = getRow(table, r);
                 For.elements().withInterval(startCol, lastCol + 1)
-                        .iterate(row.cells, (i, cell) -> {
+                        .iterate(row.getCells(), (i, cell) -> {
                             cells.add(cell);
                         });
             }
@@ -115,11 +157,11 @@ public class CellTable<Format,T> {
 
     }
 
-    public static class CellFormatIndexCollectorStart<Format,T> extends CellFormatIndexCollect<Format,T> {
+    public static class CellFormatIndexCollectorStart<Format, T> extends CellFormatIndexCollect<Format, T> {
 
         private final Integer index;
 
-        private CellFormatIndexCollectorStart(Optional<CellFormatBuilder<Format,T>> previous, CellTable table, Integer startIndex) {
+        private CellFormatIndexCollectorStart(Optional<CellFormatBuilder<Format, T>> previous, CellTable table, Integer startIndex) {
             super(previous, table);
             this.index = startIndex;
         }
@@ -130,7 +172,7 @@ public class CellTable<Format,T> {
          * @param end
          * @return
          */
-        public CellFormatBuilder<Format,T> andColumn(Integer end) {
+        public CellFormatBuilder<Format, T> andColumn(Integer end) {
             return appendOrNew(Arrays.asList(getCellAt(table, index, end)));
         }
 
@@ -140,13 +182,13 @@ public class CellTable<Format,T> {
          * @param endIndex
          * @return
          */
-        public CellFormatBuilder<Format,T> includingRowsTo(Integer endIndex) {
+        public CellFormatBuilder<Format, T> includingRowsTo(Integer endIndex) {
 
             IntRange.of(index, endIndex).assertRangeIsValid();
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (int i = index; i < endIndex; i++) {
                 Row<T> row = getRow(table, i);
-                cells.addAll(row.cells);
+                cells.addAll(row.getCells());
             }
             return appendOrNew(cells);
         }
@@ -157,13 +199,13 @@ public class CellTable<Format,T> {
          * @param endIndex
          * @return
          */
-        public CellFormatBuilder<Format,T> includingColumnsTo(Integer endIndex) {
+        public CellFormatBuilder<Format, T> includingColumnsTo(Integer endIndex) {
 
             IntRange.of(index, endIndex).assertRangeIsValid();
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (Row<T> row : table.rows) {
                 For.elements().withInterval(index, endIndex + 1)
-                        .iterate(row.cells, (i, cell) -> {
+                        .iterate(row.getCells(), (i, cell) -> {
                             cells.add(cell);
                         });
             }
@@ -176,11 +218,11 @@ public class CellTable<Format,T> {
          * @param cols
          * @return
          */
-        public CellFormatBuilder<Format,T> includingColumnsInRow(Integer... cols) {
+        public CellFormatBuilder<Format, T> includingColumnsInRow(Integer... cols) {
             Row<T> row = table.rows.get(index);
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (Integer c : cols) {
-                cells.add(row.cells.get(c));
+                cells.add(row.getCells().get(c));
             }
             return appendOrNew(cells);
         }
@@ -191,7 +233,7 @@ public class CellTable<Format,T> {
          * @param rows
          * @return
          */
-        public CellFormatBuilder<Format,T> includingRowsInColumn(Integer... rows) {
+        public CellFormatBuilder<Format, T> includingRowsInColumn(Integer... rows) {
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (Integer ri : rows) {
                 cells.add(getCellAt(table, ri, index));
@@ -202,16 +244,16 @@ public class CellTable<Format,T> {
 
     }
 
-    public static class CellFormatIndexCollector<Format,T> extends CellFormatIndexCollect<Format,T> {
+    public static class CellFormatIndexCollector<Format, T> extends CellFormatIndexCollect<Format, T> {
 
-        private CellFormatIndexCollector(Optional<CellFormatBuilder<Format,T>> previous, CellTable<Format,T> table) {
+        private CellFormatIndexCollector(Optional<CellFormatBuilder<Format, T>> previous, CellTable<Format, T> table) {
             super(previous, table);
         }
 
-        public CellFormatBuilder<Format,T> withFullTable() {
+        public CellFormatBuilder<Format, T> withFullTable() {
             LinkedList<CellPrep<T>> cells = new LinkedList<>();
             for (Row<T> row : table.rows) {
-                cells.addAll(row.cells);
+                cells.addAll(row.getCells());
             }
             return this.appendOrNew(cells);
         }
@@ -222,7 +264,7 @@ public class CellTable<Format,T> {
          * @param rows
          * @return
          */
-        public CellFormatBuilder<Format,T> withRows(Integer... rows) {
+        public CellFormatBuilder<Format, T> withRows(Integer... rows) {
             if (rows.length == 0) {
                 return this.withFullTable();
             }
@@ -230,7 +272,7 @@ public class CellTable<Format,T> {
 
             for (Integer ri : rows) {
                 Row<T> row = getRow(table, ri);
-                cells.addAll(row.cells);
+                cells.addAll(row.getCells());
             }
             return this.appendOrNew(cells);
         }
@@ -241,7 +283,7 @@ public class CellTable<Format,T> {
          * @param columns
          * @return
          */
-        public CellFormatBuilder<Format,T> withColumns(Integer... columns) {
+        public CellFormatBuilder<Format, T> withColumns(Integer... columns) {
             if (columns.length == 0) {
                 return this.withFullTable();
             }
@@ -249,10 +291,10 @@ public class CellTable<Format,T> {
 
             for (Row<T> row : table.rows) {
                 for (Integer ci : columns) {
-                    if (ci < 0 || ci >= row.cells.size()) {
-                        throw new IllegalArgumentException("Invalid column index " + ci + " where row size" + row.cells.size());
+                    if (ci < 0 || ci >= row.getCells().size()) {
+                        throw new IllegalArgumentException("Invalid column index " + ci + " where row size" + row.getCells().size());
                     }
-                    cells.add(row.cells.get(ci));
+                    cells.add(row.getCells().get(ci));
                 }
             }
             return this.appendOrNew(cells);
@@ -264,7 +306,7 @@ public class CellTable<Format,T> {
          * @param index
          * @return
          */
-        public CellFormatIndexCollectorStart<Format,T> withIndex(Integer index) {
+        public CellFormatIndexCollectorStart<Format, T> withIndex(Integer index) {
             return new CellFormatIndexCollectorStart<>(previous, table, index);
         }
 
@@ -275,7 +317,7 @@ public class CellTable<Format,T> {
          * @param ci column index
          * @return
          */
-        public CellFormatBuilder<Format,T> withRowAndCol(Integer ri, Integer ci) {
+        public CellFormatBuilder<Format, T> withRowAndCol(Integer ri, Integer ci) {
 
             return withIndex(ri).andColumn(ci);
         }
@@ -287,7 +329,7 @@ public class CellTable<Format,T> {
          * @param leftTopColumn
          * @return
          */
-        public CellFormatIndexCollectorRectangle<Format,T> withRectangleStartingAt(Integer leftTopRow, Integer leftTopColumn) {
+        public CellFormatIndexCollectorRectangle<Format, T> withRectangleStartingAt(Integer leftTopRow, Integer leftTopColumn) {
             return new CellFormatIndexCollectorRectangle<>(previous, table, leftTopRow, leftTopColumn);
         }
 
@@ -297,7 +339,7 @@ public class CellTable<Format,T> {
          * @param collection
          * @return
          */
-        public CellFormatBuilder<Format,T> withCellIds(Collection<FastID> collection) {
+        public CellFormatBuilder<Format, T> withCellIds(Collection<FastID> collection) {
             List<CellPrep<T>> collect = collection.stream()
                     .distinct()
                     .map(m -> this.table.findCell(m))
@@ -310,7 +352,7 @@ public class CellTable<Format,T> {
 
     }
 
-    private static <T> Row<T> getRow(CellTable<?,T> table, Integer row) {
+    private static <T> Row<T> getRow(CellTable<?, T> table, Integer row) {
         if (row < 0 || row >= table.rows.size()) {
             throw new IndexOutOfBoundsException(row + " index when rows are from 0 to " + table.rows.size());
         }
@@ -318,10 +360,10 @@ public class CellTable<Format,T> {
         return table.rows.get(row);
     }
 
-    private static <T> CellPrep<T> getCellAt(CellTable<?,T> table, Integer row, Integer col) {
+    private static <T> CellPrep<T> getCellAt(CellTable<?, T> table, Integer row, Integer col) {
         Row<T> r = getRow(table, row);
-        IntRange.of(0, r.cells.size()).assertIndexBoundsExclusive(col);
-        return r.cells.get(col);
+        IntRange.of(0, r.getCells().size()).assertIndexBoundsExclusive(col);
+        return r.getCells().get(col);
     }
 
     /**
@@ -337,10 +379,10 @@ public class CellTable<Format,T> {
      * @param content array of content to add to cells.
      * @return
      */
-    public CellTable<Format,T> addRow(T... content) {
+    public CellTable<Format, T> addRow(T... content) {
         Row<T> row = new Row<>();
         for (T c : content) {
-            row.cells.add(new CellPrep<>(c));
+            row.add(c);
         }
         this.rows.add(row);
 
@@ -355,11 +397,11 @@ public class CellTable<Format,T> {
      * @param content
      * @return
      */
-    public CellTable<Format,T> setRowContent(Integer ri, T... content) {
+    public CellTable<Format, T> setRowContent(Integer ri, T... content) {
         Row<T> row = getRow(this, ri);
-        row.cells.forEach(c -> c.content = Optional.empty());
+        row.getCells().forEach(c -> c.content = Optional.empty());
         row.modifyToSize(content.length);
-        For.elements().iterate(row.cells, (i, cell) -> {
+        For.elements().iterate(row.getCells(), (i, cell) -> {
             cell.content = Optional.ofNullable(content[i]);
         });
         return this;
@@ -372,7 +414,7 @@ public class CellTable<Format,T> {
      * @param content
      * @return
      */
-    public CellTable<Format,T> setCellContent(Integer ri, Integer ci, T content) {
+    public CellTable<Format, T> setCellContent(Integer ri, Integer ci, T content) {
         getCellAt(this, ri, ci).content = Optional.ofNullable(content);
         return this;
     }
@@ -383,10 +425,10 @@ public class CellTable<Format,T> {
      * @param content new content to add
      * @return
      */
-    public CellTable<Format,T> appendRowContent(Integer ri, T... content) {
+    public CellTable<Format, T> appendRowContent(Integer ri, T... content) {
         Row<T> row = getRow(this, ri);
         for (T c : content) {
-            row.cells.add(new CellPrep<>(c));
+            row.add(c);
         }
         return this;
 
@@ -400,10 +442,10 @@ public class CellTable<Format,T> {
      * @param column column index
      * @return
      */
-    public CellTable<Format,T> mergeVertical(int from, int to, int column) {
+    public CellTable<Format, T> mergeVertical(int from, int to, int column) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
         For.elements().withInterval(from, to + 1).iterate(rows, (i, row) -> {
-            CellPrep<T> cell = row.cells.get(column);
+            CellPrep<T> cell = row.getCells().get(column);
             if (cell.verticalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(i, column) + " clean existing merge first");
             }
@@ -430,13 +472,13 @@ public class CellTable<Format,T> {
      * @param row row index
      * @return
      */
-    public CellTable<Format,T> mergeHorizontal(int from, int to, int row) {
+    public CellTable<Format, T> mergeHorizontal(int from, int to, int row) {
         IntRange.of(from, to).assertRangeSizeAtLeast(1);
 
         Row<T> r = rows.get(row);
 
         for (int i = from; i <= to; i++) {
-            CellPrep<T> cell = r.cells.get(i);
+            CellPrep<T> cell = r.getCells().get(i);
             if (cell.horizontalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing horizonal merge at " + formatVector(row, i) + " clean existing merge first");
             }
@@ -459,7 +501,7 @@ public class CellTable<Format,T> {
      * @param to column end index (inclusive)
      * @return
      */
-    public CellTable<Format,T> merge(int from, int to) {
+    public CellTable<Format, T> merge(int from, int to) {
         return this.mergeHorizontal(from, to, rows.size() - 1);
     }
 
@@ -470,12 +512,12 @@ public class CellTable<Format,T> {
      *
      * @return
      */
-    public CellTable<Format,T> mergeLastEmpty() {
+    public CellTable<Format, T> mergeLastEmpty() {
         Row<T> row = rows.get(this.getLastRowIndex());
-        For.elements().findBackwards(row.cells, (i, cell) -> {
+        For.elements().findBackwards(row.getCells(), (i, cell) -> {
             return cell.content.isPresent();
         }).map(m -> m.index).ifPresent(from -> {
-            this.mergeHorizontal(from, row.cells.size() - 1, rows.size() - 1);
+            this.mergeHorizontal(from, row.getCells().size() - 1, rows.size() - 1);
         });
         return this;
     }
@@ -486,7 +528,7 @@ public class CellTable<Format,T> {
      * @param size
      * @return
      */
-    public CellTable<Format,T> mergeLastInsertEmpty(int size) {
+    public CellTable<Format, T> mergeLastInsertEmpty(int size) {
         return modifySize(size).mergeLastEmpty();
     }
 
@@ -498,7 +540,7 @@ public class CellTable<Format,T> {
      * @param content
      * @return
      */
-    public CellTable<Format,T> modifySize(int rowIndex, int desiredSize, T content) {
+    public CellTable<Format, T> modifySize(int rowIndex, int desiredSize, T content) {
         Row<T> lastRow = rows.get(rowIndex);
         lastRow.modifyToSize(desiredSize, content);
         return this;
@@ -511,7 +553,7 @@ public class CellTable<Format,T> {
      * @param content
      * @return
      */
-    public CellTable<Format,T> modifySize(int desiredSize, T content) {
+    public CellTable<Format, T> modifySize(int desiredSize, T content) {
         return this.modifySize(rows.size() - 1, desiredSize, content);
     }
 
@@ -521,7 +563,7 @@ public class CellTable<Format,T> {
      * @param desiredSize
      * @return
      */
-    public CellTable<Format,T> modifySize(int desiredSize) {
+    public CellTable<Format, T> modifySize(int desiredSize) {
         return this.modifySize(rows.size() - 1, desiredSize, null);
     }
 
@@ -530,11 +572,11 @@ public class CellTable<Format,T> {
      *
      * @return
      */
-    public CellFormatIndexCollector<Format,T> selectCells() {
+    public CellFormatIndexCollector<Format, T> selectCells() {
         return selectCells(Optional.empty());
     }
 
-    CellFormatIndexCollector<Format,T> selectCells(Optional<CellFormatBuilder<Format,T>> prevBuilder) {
+    CellFormatIndexCollector<Format, T> selectCells(Optional<CellFormatBuilder<Format, T>> prevBuilder) {
         return new CellFormatIndexCollector<>(prevBuilder, this);
     }
 
@@ -544,7 +586,7 @@ public class CellTable<Format,T> {
      * @param other
      * @return
      */
-    public CellTable<Format,T> appendTable(CellTable<Format,T> other) {
+    public CellTable<Format, T> appendTable(CellTable<Format, T> other) {
         this.rows.addAll(other.rows);
         return this;
     }
@@ -555,12 +597,39 @@ public class CellTable<Format,T> {
      * @param formatters
      * @param renderer
      */
-    public void renderRows(Formatters<Format> formatters, CellRowRenderer<Format,T> renderer) {
+    public void renderRows(Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
+        Objects.requireNonNull(renderer);
         int ri = 0;
         for (Row<T> row : rows) {
-            renderer.render(formatters, ri, row.cells);
+            renderer.render(formatters, ri, row.getCells());
             ri++;
         }
+    }
+
+    /**
+     * Stream all rows to the renderer.
+     *
+     * @param exe
+     * @param formatters
+     * @param renderer
+     * @return
+     */
+    public List<Future> renderRows(Executor exe, Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
+        Objects.requireNonNull(renderer);
+        Objects.requireNonNull(exe);
+        int ri = 0;
+        ArrayList<Future> tasks = new ArrayList<>(rows.size());
+        for (Row<T> row : rows) {
+            final int i = ri;
+            Runnable r = () -> {
+                renderer.render(formatters, i, row.getCells());
+            };
+            FutureTask task = new FutureTask(r, null);
+            exe.execute(task);
+            tasks.add(task);
+            ri++;
+        }
+        return tasks;
     }
 
     /**
@@ -569,7 +638,18 @@ public class CellTable<Format,T> {
      * @param renderer
      */
     public void renderRows(BiConsumer<Integer, List<CellPrep<T>>> renderer) {
-        this.renderRows(Formatters.getDefault(), (map, ri, cells) -> renderer.accept(ri, cells));
+        renderRows(null, (map, ri, cells) -> renderer.accept(ri, cells));
+    }
+
+    /**
+     * Render without any implementation-dependant formatting map.
+     *
+     * @param exe
+     * @param renderer
+     * @return
+     */
+    public List<Future> renderRows(Executor exe, BiConsumer<Integer, List<CellPrep<T>>> renderer) {
+        return renderRows(exe, null, (map, ri, cells) -> renderer.accept(ri, cells));
     }
 
     /**
@@ -620,15 +700,14 @@ public class CellTable<Format,T> {
     }
 
     private SafeOpt<Tuple<Pair<Integer>, CellPrep<T>>> findCellById(FastID id) {
-        IntegerValue ri = new IntegerValue(0);
+        IntegerValue ri = new IntegerValue(-1);
         for (Row<T> row : this.rows) {
-            SafeOpt<Tuple<Pair<Integer>, CellPrep<T>>> map = For.elements().find(row.cells, (ci, cell) -> {
-                return Objects.equals(id, cell.id);
-            }).map(m -> Tuples.create(new Pair<>(ri.get(), m.index), m.val));
-            if (map.isPresent()) {
-                return map;
-            }
             ri.incrementAndGet();
+            if (row.getIds().containsKey(id)) {
+                int col = row.getIds().get(id);
+                CellPrep<T> cell = row.getCells().get(col);
+                return SafeOpt.of(Tuples.create(new Pair(ri.get(), col), cell));
+            }
         }
         return SafeOpt.empty();
     }
