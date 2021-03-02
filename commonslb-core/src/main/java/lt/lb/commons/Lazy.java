@@ -35,6 +35,15 @@ public class Lazy<T> implements Supplier<T> {
     }
 
     /**
+     * Construct a {@link Lazy} with a given value {@link Supplier};
+     *
+     * @param supl
+     */
+    public Lazy(Supplier<T> supl) {
+        this(supl, Runnable::run);
+    }
+
+    /**
      * Construct a {@link Lazy} with a given value {@link Supplier} and
      * {@link Executor}
      *
