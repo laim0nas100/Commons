@@ -56,27 +56,7 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
     protected abstract E me();
 
     protected SafeOpt<int[]> workoutBounds() {
-        int to;
-        if (endingBefore < 0) {
-            to = -1;
-        } else {
-            to = endingBefore;
-        }
-
-        int from;
-        if (startingFrom < 0) {
-            from = -1;
-        } else {
-            from = startingFrom;
-        }
-
-        if (onlyIncludingFirst == 0 || onlyIncludingLast == 0) {
-            return SafeOpt.empty();
-        }
-        if (onlyIncludingFirst > 0 && onlyIncludingLast > 0) {
-            throw new IllegalArgumentException("Can't include only first AND only last, please pick one or the other");
-        }
-        return SafeOpt.of(new int[]{from, to});
+        return SimpleImpl.workoutBounds(endingBefore, startingFrom, onlyIncludingFirst, onlyIncludingLast);
     }
 
     protected int[] workoutBounds(Collection col) {
@@ -90,39 +70,7 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
     }
 
     protected int[] workoutBounds(int length) {
-        int to;
-        if (endingBefore < 0 || endingBefore > length) {
-            to = length; // invalid, use default
-        } else {
-            to = endingBefore;
-        }
-
-        int from;
-        if (startingFrom < 0 || startingFrom > length) {
-            from = 0; // invalid, use default
-        } else {
-            from = startingFrom;
-        }
-
-        if (onlyIncludingFirst > 0 && onlyIncludingLast > 0) {
-            throw new IllegalArgumentException("Can't include only first AND only last, please pick one or the other");
-        }
-
-        if (onlyIncludingFirst >= 0) {
-            int size = to - from;
-            if (size >= onlyIncludingFirst) {
-                to = from + onlyIncludingFirst;
-            }
-        }
-
-        if (onlyIncludingLast >= 0) {
-            int size = to - from;
-            if (size >= onlyIncludingLast) {
-                from = to - onlyIncludingLast;
-            }
-        }
-
-        return new int[]{from, to};
+        return SimpleImpl.workoutBounds(length, endingBefore, startingFrom, onlyIncludingFirst, onlyIncludingLast);
     }
 
     protected AccessorResolver accessorResolver = new DefaultAccessorResolver();

@@ -289,4 +289,65 @@ public class SimpleImpl {
 
         return new IterIterator<>(iterator1, () -> finalIndex.get());
     }
+    
+    
+    public static int[] workoutBounds(int length, int endingBefore, int startingFrom, int onlyIncludingFirst, int onlyIncludingLast) {
+        int to;
+        if (endingBefore < 0 || endingBefore > length) {
+            to = length; // invalid, use default
+        } else {
+            to = endingBefore;
+        }
+
+        int from;
+        if (startingFrom < 0 || startingFrom > length) {
+            from = 0; // invalid, use default
+        } else {
+            from = startingFrom;
+        }
+
+        if (onlyIncludingFirst > 0 && onlyIncludingLast > 0) {
+            throw new IllegalArgumentException("Can't include only first AND only last, please pick one or the other");
+        }
+
+        if (onlyIncludingFirst >= 0) {
+            int size = to - from;
+            if (size >= onlyIncludingFirst) {
+                to = from + onlyIncludingFirst;
+            }
+        }
+
+        if (onlyIncludingLast >= 0) {
+            int size = to - from;
+            if (size >= onlyIncludingLast) {
+                from = to - onlyIncludingLast;
+            }
+        }
+
+        return new int[]{from, to};
+    }
+    
+    public static SafeOpt<int[]> workoutBounds(int endingBefore, int startingFrom, int onlyIncludingFirst, int onlyIncludingLast) {
+        int to;
+        if (endingBefore < 0) {
+            to = -1;
+        } else {
+            to = endingBefore;
+        }
+
+        int from;
+        if (startingFrom < 0) {
+            from = -1;
+        } else {
+            from = startingFrom;
+        }
+
+        if (onlyIncludingFirst == 0 || onlyIncludingLast == 0) {
+            return SafeOpt.empty();
+        }
+        if (onlyIncludingFirst > 0 && onlyIncludingLast > 0) {
+            throw new IllegalArgumentException("Can't include only first AND only last, please pick one or the other");
+        }
+        return SafeOpt.of(new int[]{from, to});
+    }
 }
