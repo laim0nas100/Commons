@@ -1,15 +1,8 @@
 package lt.lb.commons.iteration.general.impl;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
+import java.util.Collection;
 import java.util.Objects;
-import java.util.function.Supplier;
 import lt.lb.commons.SafeOpt;
-import lt.lb.commons.containers.values.IntegerValue;
-import lt.lb.commons.iteration.EmptyImmutableList;
-import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
-import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.general.IterationAbstract;
 import lt.lb.commons.iteration.general.accessors.AccessorResolver;
 import lt.lb.commons.iteration.general.accessors.DefaultAccessorResolver;
@@ -32,28 +25,32 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
 
     @Override
     public E startingFrom(int from) {
-        this.startingFrom = from;
-        return me();
+        E me = me();
+        me.startingFrom = from;
+        return me;
     }
 
     @Override
     public E endingBefore(int to) {
-        this.endingBefore = to;
-        return me();
+        E me = me();
+        me.endingBefore = to;
+        return me;
     }
 
     @Override
     public E first(int amountToInclude) {
-        this.onlyIncludingFirst = amountToInclude;
-        this.onlyIncludingLast = -1;
-        return me();
+        E me = me();
+        me.onlyIncludingFirst = amountToInclude;
+        me.onlyIncludingLast = -1;
+        return me;
     }
 
     @Override
     public E last(int amountToInclude) {
-        this.onlyIncludingLast = amountToInclude;
-        this.onlyIncludingFirst = -1;
-        return me();
+        E me = me();
+        me.onlyIncludingLast = amountToInclude;
+        me.onlyIncludingFirst = -1;
+        return me;
     }
 
     protected abstract E me();
@@ -80,6 +77,16 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
             throw new IllegalArgumentException("Can't include only first AND only last, please pick one or the other");
         }
         return SafeOpt.of(new int[]{from, to});
+    }
+
+    protected int[] workoutBounds(Collection col) {
+        Objects.requireNonNull(col, "Collection is null");
+        return workoutBounds(col.size());
+    }
+
+    protected <T> int[] workoutBounds(T[] array) {
+        Objects.requireNonNull(array, "Collection is null");
+        return workoutBounds(array.length);
     }
 
     protected int[] workoutBounds(int length) {
@@ -118,133 +125,6 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
         return new int[]{from, to};
     }
 
-    public static class IterIterator<T> implements Iterator<T> {
-
-        private Iterator<T> iterator;
-        private Supplier<Integer> index;
-
-        public IterIterator(Iterator<T> iterator, Supplier<Integer> startingIndex) {
-            this.iterator = iterator;
-            this.index = startingIndex;
-        }
-
-        public int getIndex() {
-            return index.get();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return iterator.hasNext();
-        }
-
-        @Override
-        public T next() {
-
-            return iterator.next();
-        }
-
-    }
-
-    protected <T> IterIterator<T> bufferedFind(Iterator<T> iterator) {
-        Objects.requireNonNull(iterator, "Iteartor is null");
-
-        SafeOpt<int[]> bounds = workoutBounds();
-        if (bounds.isEmpty()) {
-            return new IterIterator<>(EmptyImmutableList.emptyIterator(), () -> -1);
-        }
-        int[] b = bounds.get();
-        final int from = b[0];
-        final int to = b[1];
-
-        int lastSize = 0;
-        int index = -1;
-        if (onlyIncludingLast > 0) {
-            LinkedList<T> lastBuffer = new LinkedList<>();
-            while (iterator.hasNext()) {
-                index++;
-                T next = iterator.next();
-                if (index < from) {
-                    continue;
-                }
-                if (to >= 0 && index >= to) {
-                    break;
-                }
-                if (lastSize >= onlyIncludingLast) {
-                    lastBuffer.addLast(next);
-                    lastBuffer.removeFirst();
-                } else {
-                    lastBuffer.addLast(next);
-                    lastSize++;
-                }
-
-            }
-            ReadOnlyBidirectionalIterator<T> of = ReadOnlyIterator.of(lastBuffer);
-            final int lastIndex = index - lastSize;
-            // just iterate through the last elements
-            return new IterIterator<>(of, () -> of.getCurrentIndex() + lastIndex);
-
-        }
-
-        final IntegerValue finalIndex = new IntegerValue(index);
-        Iterator<T> iterator1 = new Iterator<T>() {
-
-            T saved = null;
-
-            int firstToInclude = onlyIncludingFirst;
-
-            boolean hasNext = true;
-            boolean nextAvailable = false;
-
-            private boolean resolveNext() {
-                if (hasNext && nextAvailable) {
-                    return true;
-                }
-
-                while (iterator.hasNext()) {
-                    int myIndex = finalIndex.incrementAndGet();
-                    T next = iterator.next();
-                    if (myIndex < from) {
-                        continue;
-                    }
-                    if (to >= 0 && myIndex >= to) {
-
-                        return false;
-                    }
-                    if (onlyIncludingFirst > 0) {
-                        if (firstToInclude > 0) {
-                            firstToInclude--;
-                        } else {
-                            return false;
-                        }
-                    }
-
-                    saved = next;
-                    nextAvailable = true;
-                    return true;
-                }
-                return false;
-            }
-
-            @Override
-            public boolean hasNext() {
-                hasNext = resolveNext();
-                return (hasNext && nextAvailable);
-            }
-
-            @Override
-            public T next() {
-                if (nextAvailable || hasNext()) {
-                    nextAvailable = false;
-                    return saved;
-                }
-                throw new NoSuchElementException("No next value");
-
-            }
-        };
-
-        return new IterIterator<>(iterator1, () -> finalIndex.get());
-    }
-
     protected AccessorResolver accessorResolver = new DefaultAccessorResolver();
 
     protected AccessorResolver getResolver() {
@@ -252,10 +132,12 @@ public abstract class SimpleAbstractIteration<E extends SimpleAbstractIteration<
     }
 
     protected IterIterableAccessor resolveAccessor(IterIterableCons iter) {
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return getResolver().resolveAccessor(iter);
     }
 
     protected IterMapAccessor resolveAccessor(IterMapCons iter) {
+        Objects.requireNonNull(iter, "Iteration logic is null");
         return getResolver().resolveAccessor(iter);
     }
 }

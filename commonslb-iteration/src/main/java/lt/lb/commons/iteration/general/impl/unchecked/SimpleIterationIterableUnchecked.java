@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 import lt.lb.commons.SafeOpt;
 import lt.lb.commons.iteration.general.IterationIterableUnchecked;
-import lt.lb.commons.iteration.general.accessors.AccessorResolver;
 import lt.lb.commons.iteration.general.accessors.unchecked.DefaultAccessorResolverUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableConsUnchecked;
 import lt.lb.commons.iteration.general.impl.*;
@@ -17,43 +16,8 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
  */
 public class SimpleIterationIterableUnchecked extends SimpleAbstractIteration<SimpleIterationIterableUnchecked> implements IterationIterableUnchecked<SimpleIterationIterableUnchecked> {
 
-    protected AccessorResolver resolver = new DefaultAccessorResolverUnchecked();
-    protected SimpleIterationIterable main = new SimpleIterationIterable() {
-        @Override
-        protected AccessorResolver getResolver() {
-            return resolver;
-        }
-
-    };
-
-    @Override
-    public SimpleIterationIterableUnchecked last(int amountToInclude) {
-        main = main.last(amountToInclude);
-        return this;
-    }
-
-    @Override
-    public SimpleIterationIterableUnchecked first(int amountToInclude) {
-        main = main.first(amountToInclude);
-        return this;
-    }
-
-    @Override
-    public SimpleIterationIterableUnchecked startingFrom(int from) {
-        main = main.startingFrom(from);
-        return this;
-    }
-
-    @Override
-    public SimpleIterationIterableUnchecked endingBefore(int to) {
-        main = main.endingBefore(to);
-        return this;
-    }
-
-    @Override
-    public SimpleIterationIterableUnchecked withInterval(int from, int to) {
-        main = main.withInterval(from, to);
-        return this;
+    public SimpleIterationIterableUnchecked() {
+        this.accessorResolver = new DefaultAccessorResolverUnchecked();
     }
 
     @Override
@@ -63,32 +27,32 @@ public class SimpleIterationIterableUnchecked extends SimpleAbstractIteration<Si
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(Iterator<T> iterator, IterIterableConsUnchecked<T> iter) {
-        return main.find(iterator, iter);
+        return SimpleImpl.find(iterator, workoutBounds(), onlyIncludingFirst, onlyIncludingLast, resolveAccessor(iter), iter);
     }
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(List<T> list, IterIterableConsUnchecked<T> iter) {
-        return main.find(list, iter);
+        return SimpleImpl.find(list, workoutBounds(list), resolveAccessor(iter), iter);
     }
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> find(T[] array, IterIterableConsUnchecked<T> iter) {
-        return main.find(array, iter);
+        return SimpleImpl.find(array, workoutBounds(array), resolveAccessor(iter), iter);
     }
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(List<T> list, IterIterableConsUnchecked<T> iter) {
-        return main.findBackwards(list, iter);
+        return SimpleImpl.findBackwards(list, workoutBounds(list), resolveAccessor(iter), iter);
     }
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(Deque<T> deque, IterIterableConsUnchecked<T> iter) {
-        return main.findBackwards(deque, iter);
+        return SimpleImpl.findBackwards(deque, workoutBounds(deque), resolveAccessor(iter), iter);
     }
 
     @Override
     public <T> SafeOpt<IterIterableResult<T>> findBackwards(T[] array, IterIterableConsUnchecked<T> iter) {
-        return main.findBackwards(array, iter);
+        return SimpleImpl.findBackwards(array, workoutBounds(array), resolveAccessor(iter), iter);
     }
 
 }

@@ -1,5 +1,10 @@
 package lt.lb.commons.iteration.general.impl;
 
+import java.util.Map;
+import lt.lb.commons.SafeOpt;
+import lt.lb.commons.iteration.general.cons.IterMapCons;
+import lt.lb.commons.iteration.general.result.IterMapResult;
+
 /**
  *
  * @author laim0nas100
@@ -12,13 +17,9 @@ public class ImmutableSimpleMapIterable extends SimpleMapIterable {
     }
 
     @Override
-    public SimpleMapIterable last(int amountToInclude) {
-        return new SimpleMapIterable().last(amountToInclude);
-    }
+    public <K, V> SafeOpt<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter) {
+        return ImmutableImpl.find(map, resolveAccessor(iter), iter);
 
-    @Override
-    public SimpleMapIterable first(int amountToInclude) {
-        return new SimpleMapIterable().first(amountToInclude);
     }
 
 }
