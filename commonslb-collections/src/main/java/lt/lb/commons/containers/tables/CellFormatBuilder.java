@@ -27,7 +27,7 @@ public class CellFormatBuilder<Format, T> {
     }
     protected CellTable<Format, T> table;
     protected Set<CellPrep<T>> cells;
-    protected Map<FastID, List<Consumer<Format>>> formatters = new HashMap<>();
+    protected Formatters<Format> formatters = Formatters.getDefault();
 
     /**
      * Define formatting action for currently selected cells
@@ -126,7 +126,7 @@ public class CellFormatBuilder<Format, T> {
      *
      * @return
      */
-    public Map<FastID, List<Consumer<Format>>> getFormatterMap() {
+    public Formatters<Format> getFormatterMap() {
         return this.formatters;
     }
 
@@ -136,7 +136,7 @@ public class CellFormatBuilder<Format, T> {
      * @param cons
      * @return
      */
-    public CellFormatBuilder<Format, T> withFormatterMap(Consumer<? super Map<FastID, ? extends List<Consumer<Format>>>> cons) {
+    public CellFormatBuilder<Format, T> withFormatterMap(Consumer<Formatters<Format>> cons) {
         cons.accept(this.getFormatterMap());
         return this;
 

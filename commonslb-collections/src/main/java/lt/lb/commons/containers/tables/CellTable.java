@@ -31,7 +31,7 @@ public class CellTable<Format,T> {
     @FunctionalInterface
     public static interface CellRowRenderer<Format,T> {
 
-        public void render(Map<Long, List<Consumer<Format>>> formatters, Integer rowIndex, List<CellPrep<T>> cells);
+        public void render(Formatters<Format> formatters, Integer rowIndex, List<CellPrep<T>> cells);
     }
 
     public enum TableCellMerge {
@@ -555,7 +555,7 @@ public class CellTable<Format,T> {
      * @param formatters
      * @param renderer
      */
-    public void renderRows(Map<Long, List<Consumer<Format>>> formatters, CellRowRenderer<Format,T> renderer) {
+    public void renderRows(Formatters<Format> formatters, CellRowRenderer<Format,T> renderer) {
         int ri = 0;
         for (Row<T> row : rows) {
             renderer.render(formatters, ri, row.cells);
@@ -569,8 +569,7 @@ public class CellTable<Format,T> {
      * @param renderer
      */
     public void renderRows(BiConsumer<Integer, List<CellPrep<T>>> renderer) {
-
-        this.renderRows(new HashMap<>(), (map, ri, cells) -> renderer.accept(ri, cells));
+        this.renderRows(Formatters.getDefault(), (map, ri, cells) -> renderer.accept(ri, cells));
     }
 
     /**
