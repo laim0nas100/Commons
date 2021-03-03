@@ -500,7 +500,11 @@ public class CellTable<Format, T> {
         IntRange.of(firstCol, lastCol).assertRangeSizeAtLeast(2);
         for (int ri = firstRow; ri <= lastRow; ri++) {
             for (int ci = firstCol; ci <= lastCol; ci++) {
-                CellPrep<T> cell = this.findCell(ri, ci).get();
+                SafeOpt<CellPrep<T>> prep = findCell(ri, ci);
+                if (prep.isEmpty()) {
+                    throw new IllegalArgumentException("Diagonal merge cannot be used with jagged (uneven length) rows or columns within merge space. No cell " + formatVector(ri, ci));
+                }
+                CellPrep<T> cell = prep.get();
                 if (cell.diagonalMerge != TableCellMerge.NONE) {
                     throw new IllegalArgumentException("Overwriting existing diagonal merge at " + formatVector(ri, ci) + " clean existing merge first");
                 }
