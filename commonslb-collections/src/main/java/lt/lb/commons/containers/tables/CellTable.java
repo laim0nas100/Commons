@@ -23,6 +23,7 @@ import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.IntRange;
+import lt.lb.commons.misc.Interval;
 import lt.lb.fastid.FastID;
 
 /**
@@ -626,12 +627,31 @@ public class CellTable<Format, T> {
     }
 
     /**
+     * Stream rows within row index range [min,max] (both limits including) to
+     * the renderer. Useful for splicing or paging.
+     *
+     * @param range
+     * @param formatters
+     * @param renderer
+     */
+    public void renderRows(IntRange range, final Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
+        Objects.requireNonNull(renderer);
+        IntRange allowed = IntRange.of(0, rows.size());
+        allowed.assertIndexBoundsExclusive(range.min, range.max);
+        range.assertRangeSizeAtLeast(1);
+
+        for (int ri = range.min; ri <= range.max; ri++) {
+            renderer.render(formatters, ri, rows.get(ri).getCells());
+        }
+    }
+
+    /**
      * Stream all rows to the renderer.
      *
      * @param formatters
      * @param renderer
      */
-    public void renderRows(Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
+    public void renderRows(final Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
         Objects.requireNonNull(renderer);
         int ri = 0;
         for (Row<T> row : rows) {
@@ -641,49 +661,51 @@ public class CellTable<Format, T> {
     }
 
     /**
-     * Stream all rows to the renderer.
+     * Stream all rows to produce row-local tasks.
      *
-     * @param exe
      * @param formatters
      * @param renderer
      * @return
      */
-    public List<Future> renderRows(Executor exe, Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
+    public List<Runnable> renderRowsBatch(final Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
         Objects.requireNonNull(renderer);
-        Objects.requireNonNull(exe);
         int ri = 0;
-        ArrayList<Future> tasks = new ArrayList<>(rows.size());
+        ArrayList<Runnable> tasks = new ArrayList<>(rows.size());
         for (Row<T> row : rows) {
             final int i = ri;
             Runnable r = () -> {
                 renderer.render(formatters, i, row.getCells());
             };
-            FutureTask task = new FutureTask(r, null);
-            exe.execute(task);
-            tasks.add(task);
+            tasks.add(r);
             ri++;
         }
         return tasks;
     }
 
     /**
-     * Render without any implementation-dependant formatting map.
+     * Stream rows within row index range [min,max] (both limits including) to
+     * produce row-local tasks. Useful for splicing or paging.
      *
-     * @param renderer
-     */
-    public void renderRows(BiConsumer<Integer, List<CellPrep<T>>> renderer) {
-        renderRows(null, (map, ri, cells) -> renderer.accept(ri, cells));
-    }
-
-    /**
-     * Render without any implementation-dependant formatting map.
-     *
-     * @param exe
+     * @param range
+     * @param formatters
      * @param renderer
      * @return
      */
-    public List<Future> renderRows(Executor exe, BiConsumer<Integer, List<CellPrep<T>>> renderer) {
-        return renderRows(exe, null, (map, ri, cells) -> renderer.accept(ri, cells));
+    public List<Runnable> renderRowsBatch(IntRange range, final Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
+        Objects.requireNonNull(renderer);
+        IntRange allowed = IntRange.of(0, rows.size());
+        allowed.assertIndexBoundsExclusive(range.min, range.max);
+        range.assertRangeSizeAtLeast(1);
+        ArrayList<Runnable> tasks = new ArrayList<>(range.getDiff() + 1);
+        for (int ri = range.min; ri <= range.max; ri++) {
+            final Row<T> row = rows.get(ri);
+            final int finalIndex = ri;
+            Runnable r = () -> {
+                renderer.render(formatters, finalIndex, row.getCells());
+            };
+            tasks.add(r);
+        }
+        return tasks;
     }
 
     /**
