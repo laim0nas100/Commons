@@ -14,7 +14,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lt.lb.commons.Lazy;
 import lt.lb.commons.SafeOpt;
@@ -353,10 +352,7 @@ public class CellTable<Format, T> {
     }
 
     private static <T> Row<T> getRow(CellTable<?, T> table, Integer row) {
-        if (row < 0 || row >= table.rows.size()) {
-            throw new IndexOutOfBoundsException(row + " index when rows are from 0 to " + table.rows.size());
-        }
-
+        IntRange.of(0, table.rows.size()).assertIndexBoundsExclusive(row);
         return table.rows.get(row);
     }
 
@@ -443,11 +439,14 @@ public class CellTable<Format, T> {
      * @return
      */
     public CellTable<Format, T> mergeVertical(int from, int to, int column) {
-        IntRange.of(from, to).assertRangeSizeAtLeast(1);
+        IntRange.of(from, to).assertRangeSizeAtLeast(2);
         For.elements().withInterval(from, to + 1).iterate(rows, (i, row) -> {
             CellPrep<T> cell = row.getCells().get(column);
             if (cell.verticalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(i, column) + " clean existing merge first");
+            }
+            if (cell.diagonalMerge != TableCellMerge.NONE) {
+                throw new IllegalArgumentException("Overwriting existing diagonal merge at " + formatVector(i, column) + " clean existing merge first");
             }
             if (i == from) {
                 cell.verticalMerge = TableCellMerge.FIRST;
@@ -473,12 +472,15 @@ public class CellTable<Format, T> {
      * @return
      */
     public CellTable<Format, T> mergeHorizontal(int from, int to, int row) {
-        IntRange.of(from, to).assertRangeSizeAtLeast(1);
+        IntRange.of(from, to).assertRangeSizeAtLeast(2);
 
         Row<T> r = rows.get(row);
 
         for (int i = from; i <= to; i++) {
             CellPrep<T> cell = r.getCells().get(i);
+            if (cell.diagonalMerge != TableCellMerge.NONE) {
+                throw new IllegalArgumentException("Overwriting existing diagonal merge at " + formatVector(row, i) + " clean existing merge first");
+            }
             if (cell.horizontalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing horizonal merge at " + formatVector(row, i) + " clean existing merge first");
             }
@@ -491,6 +493,34 @@ public class CellTable<Format, T> {
             }
         }
         return this;
+    }
+
+    public CellTable<Format, T> mergeDiagonal(int firstRow, int firstCol, int lastRow, int lastCol) {
+        IntRange.of(firstRow, lastRow).assertRangeSizeAtLeast(2);
+        IntRange.of(firstCol, lastCol).assertRangeSizeAtLeast(2);
+        for (int ri = firstRow; ri <= lastRow; ri++) {
+            for (int ci = firstCol; ci <= lastCol; ci++) {
+                CellPrep<T> cell = this.findCell(ri, ci).get();
+                if (cell.diagonalMerge != TableCellMerge.NONE) {
+                    throw new IllegalArgumentException("Overwriting existing diagonal merge at " + formatVector(ri, ci) + " clean existing merge first");
+                }
+                if (cell.horizontalMerge != TableCellMerge.NONE) {
+                    throw new IllegalArgumentException("Overwriting existing horizonal merge at " + formatVector(ri, ci) + " clean existing merge first");
+                }
+                if (cell.verticalMerge != TableCellMerge.NONE) {
+                    throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(ri, ci) + " clean existing merge first");
+                }
+            }
+        }
+
+        CellPrep<T> upLeft = this.findCell(firstRow, firstCol).get();
+        CellPrep<T> downRight = this.findCell(lastRow, lastCol).get();
+
+        upLeft.diagonalMerge = TableCellMerge.FIRST;
+        downRight.diagonalMerge = TableCellMerge.LAST;
+
+        return this;
+
     }
 
     /**

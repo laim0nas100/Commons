@@ -93,6 +93,28 @@ public class CellFormatBuilder<Format, T> {
     }
 
     /**
+     * Reset diagonal merge property to NONE
+     *
+     * @return
+     */
+    public CellFormatBuilder<Format, T> cleanDiagonalMerge() {
+        return this.forEachCell(c -> c.diagonalMerge = TableCellMerge.NONE);
+    }
+
+    /**
+     * Reset diagonal merge property to NONE
+     *
+     * @return
+     */
+    public CellFormatBuilder<Format, T> cleanAllMerge() {
+        return this.forEachCell(c -> {
+            c.diagonalMerge = TableCellMerge.NONE;
+            c.verticalMerge = TableCellMerge.NONE;
+            c.horizontalMerge = TableCellMerge.NONE;
+        });
+    }
+
+    /**
      * Append selection
      *
      * @return
