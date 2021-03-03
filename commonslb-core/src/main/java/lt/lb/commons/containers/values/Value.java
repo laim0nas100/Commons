@@ -77,19 +77,4 @@ public class Value<T> implements ValueProxy<T> {
         return this.value + "";
     }
 
-    
-
-    /**
-     * Method for making exceptions
-     *
-     * @param opname operation name
-     * @param val
-     * @return
-     */
-    protected Supplier<RuntimeException> makeException(String opname, Object val) {
-        return () -> {
-            return new RuntimeException("Invalid operation (" + this.get() + " " + opname + " " + val + ")");
-        };
-    }
-
 }

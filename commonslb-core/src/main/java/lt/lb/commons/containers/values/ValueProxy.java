@@ -107,9 +107,7 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
      */
     public default T getAndChangeIfNew(T newVal) {
         T got = this.get();
-        if (!Objects.equals(got, newVal)) {
-            set(newVal);
-        }
+        compareNotAndSet(newVal);
         return got;
     }
 
@@ -123,6 +121,21 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
     public default boolean compareAndSet(T expecting, T newVal) {
         T got = this.get();
         if (Objects.equals(got, expecting)) {
+            set(newVal);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Calls set with newVal only if it is different value from the old one
+     *
+     * @param newVal
+     * @return if the value was not equal to the old one
+     */
+    public default boolean compareNotAndSet(T newVal) {
+        T got = this.get();
+        if (!Objects.equals(got, newVal)) {
             set(newVal);
             return true;
         }
