@@ -64,9 +64,13 @@ public class CellPrep<T> {
         return verticalMerge;
     }
 
+    public TableCellMerge getDiagonalMerge() {
+        return diagonalMerge;
+    }
+
     @Override
     public String toString() {
-        return "CellPrep{" + "content=" + content + ", verticalMerge=" + verticalMerge + ", horizontalMerge=" + horizontalMerge + '}';
+        return "CellPrep{" + "id=" + id + ", content=" + content + ", verticalMerge=" + verticalMerge + ", horizontalMerge=" + horizontalMerge + ", diagonalMerge=" + diagonalMerge + '}';
     }
 
 }
