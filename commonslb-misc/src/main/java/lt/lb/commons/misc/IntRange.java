@@ -5,7 +5,9 @@ import java.util.function.BiPredicate;
 
 /**
  *
- * Range to check int-based ranges with custom assertions
+ * Range to check int-based ranges with custom assertions. Useful for argument
+ * checking, or just passing int ranges.
+ *
  * @author laim0nas100
  */
 public class IntRange extends Range<Integer> {
@@ -22,37 +24,70 @@ public class IntRange extends Range<Integer> {
      *
      * @return max - min
      */
-    public Integer diff() {
+    public Integer getDiff() {
         return max - min;
     }
 
     /**
-     * Check if index is within range [min,max) and throw
-     * IndexOutOfBoundsException if not
+     * |max - min|
      *
-     * @param i
      * @return
      */
-    public IntRange assertIndexBoundsExclusive(Integer i) {
-        if (!this.inRangeIncExc(i)) {
-            throw new IndexOutOfBoundsException("Index " + i
-                    + " does not fit in range [" + min + ", " + max + ")");
+    public Integer getAbsDiff() {
+        return Math.abs(getDiff());
+    }
+
+    /**
+     * Check if index(es) is within range [min,max) and throw
+     * IndexOutOfBoundsException if not
+     *
+     * @param indexes
+     * @return
+     */
+    public IntRange assertIndexBoundsExclusive(int... indexes) {
+        for (int i : indexes) {
+            if (!this.inRangeIncExc(i)) {
+                throw new IndexOutOfBoundsException("Index " + i
+                        + " does not fit in range [" + min + ", " + max + ")");
+            }
         }
+
         return this;
     }
 
     /**
-     * Check if index is within range [min,max] and throw
+     * Check if index(es) is within range [min,max] and throw
      * IndexOutOfBoundsException if not
      *
-     * @param i
+     * @param indexes
      * @return
      */
-    public IntRange assertIndexBoundsInclusive(Integer i) {
-        if (!this.inRangeInclusive(i)) {
-            throw new IndexOutOfBoundsException("Index " + i
-                    + " does not fit in range [" + min + ", " + max + "]");
+    public IntRange assertIndexBoundsInclusive(int... indexes) {
+        for (int i : indexes) {
+            if (!this.inRangeInclusive(i)) {
+                throw new IndexOutOfBoundsException("Index " + i
+                        + " does not fit in range [" + min + ", " + max + "]");
+            }
         }
+
+        return this;
+    }
+
+    /**
+     * Check if range is at least of given size(es) and throw
+     * IllegalArgumentException if not
+     *
+     * @param sizes
+     * @return
+     */
+    public IntRange assertRangeSizeAtLeast(int... sizes) {
+        for (int size : sizes) {
+            if (this.getDiff() < size) {
+                throw new IllegalArgumentException("Range size too small, expected at least size of "
+                        + size + " got range of size " + getDiff() + " (" + min + ":" + max + ")");
+            }
+        }
+
         return this;
     }
 
@@ -60,47 +95,40 @@ public class IntRange extends Range<Integer> {
      * Check if range is at least of given size and throw
      * IllegalArgumentException if not
      *
-     * @param size
+     * @param sizes
      * @return
      */
-    public IntRange assertRangeSizeAtLeast(Integer size) {
-        if (this.diff() < size) {
-            throw new IllegalArgumentException("Range size too small, expected at least size of "
-                    + size + " got range of size " + diff() + " (" + min + ":" + max + ")");
+    public IntRange assertRangeSizeAtMost(int... sizes) {
+        for (int size : sizes) {
+            if (this.getDiff() > size) {
+                throw new IllegalArgumentException("Range size too big, expected at most size of "
+                        + size + " got range of size " + getDiff() + " (" + min + ":" + max + ")");
+            }
         }
+
         return this;
     }
 
     /**
-     * Check if range is at least of given size and throw
-     * IllegalArgumentException if not
+     * Custom assert method. Throw IllegalArgumentException if does not satisfy
+     * predicate.
      *
-     * @param size
-     * @return
-     */
-    public IntRange assertRangeSizeAtMost(Integer size) {
-        if (this.diff() > size) {
-            throw new IllegalArgumentException("Range size too big, expected at most size of "
-                    + size + " got range of size " + diff() + " (" + min + ":" + max + ")");
-        }
-        return this;
-    }
-    /**
-     * Custom assert method. Throw IllegalArgumentException if does not satisfy predicate.
      * @param cons
-     * @return 
+     * @return
      */
-    public IntRange assertRangeIsValidIf(BiPredicate<Integer,Integer> cons){
+    public IntRange assertRangeIsValidIf(BiPredicate<Integer, Integer> cons) {
         return assertRangeNotValidIf(cons.negate());
     }
-    
+
     /**
-     * Custom assert method. Throw IllegalArgumentException if does satisfy predicate.
+     * Custom assert method. Throw IllegalArgumentException if does satisfy
+     * predicate.
+     *
      * @param cons
-     * @return 
+     * @return
      */
-    public IntRange assertRangeNotValidIf(BiPredicate<Integer,Integer> cons){
-        if(cons.test(min, max)){
+    public IntRange assertRangeNotValidIf(BiPredicate<Integer, Integer> cons) {
+        if (cons.test(min, max)) {
             throw new IllegalArgumentException("Invalid range (" + min + ":" + max + ")");
         }
         return this;
