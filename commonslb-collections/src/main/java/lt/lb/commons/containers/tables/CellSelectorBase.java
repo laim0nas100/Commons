@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.IntRange;
+import lt.lb.fastid.FastID;
 
 /**
  *
@@ -152,10 +153,10 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
 
     public static class CellSelector extends CellSelectorBase {
 
-        protected Map<String,Object> keys;
-        
-        protected Map<String,Object> keys(){
-            if(keys == null){
+        protected Map<String, Object> keys;
+
+        protected Map<String, Object> keys() {
+            if (keys == null) {
                 keys = new HashMap<>();
             }
             return keys;
@@ -204,24 +205,24 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
             return s;
         }
 
-        public static CellSelector cellsInclude(Set<CellPrep> set) {
+        public static CellSelector cellsInclude(Set<FastID> set) {
             CellSelector s = new CellSelector();
-            s.keys().put("cellsInclude",set);
-            s.includeAND(c -> set.contains(c));
+            s.keys().put("cellsInclude", set);
+            s.includeAND(c -> set.contains(c.id));
             return s;
         }
 
-        public static CellSelector cellsExclude(Set<CellPrep> set) {
+        public static CellSelector cellsExclude(Set<FastID> set) {
             CellSelector s = new CellSelector();
-            s.keys().put("cellsExclude",set);
-            s.excludeAND(c -> set.contains(c));
+            s.keys().put("cellsExclude", set);
+            s.excludeAND(c -> set.contains(c.id));
             return s;
         }
 
         public static <E> CellSelector cellAt(int row, int col) {
             CellSelector s = new CellSelector();
-            s.keys().put("startRow",row);
-            s.keys().put("startCol",col);
+            s.keys().put("startRow", row);
+            s.keys().put("startCol", col);
             s.includeAND(c -> c.colIndex == col && c.rowIndex == row);
             return s;
         }
@@ -231,10 +232,10 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
             IntRange.of(sc, ec).assertRangeIsValid().assertRangeSizeAtLeast(1);
 
             CellSelector s = new CellSelector();
-            s.keys().put("startRow",sr);
-            s.keys().put("startCol",sc);
-            s.keys().put("endRow",er);
-            s.keys().put("endCol",ec);
+            s.keys().put("startRow", sr);
+            s.keys().put("startCol", sc);
+            s.keys().put("endRow", er);
+            s.keys().put("endCol", ec);
             s.includeAND(c -> {
                 return (c.colIndex >= sc && c.colIndex <= ec) && (c.rowIndex >= sr && c.rowIndex <= er);
             });
@@ -251,7 +252,7 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
                 Objects.requireNonNull(r);
                 set.add(r);
             }
-            s.keys().put("rows",set);
+            s.keys().put("rows", set);
             s.includeAND(c -> set.contains(c.rowIndex));
             return s;
         }
@@ -266,7 +267,7 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
                 Objects.requireNonNull(r);
                 set.add(r);
             }
-            s.keys().put("cols",set);
+            s.keys().put("cols", set);
             s.includeAND(c -> set.contains(c.colIndex));
 
             return s;

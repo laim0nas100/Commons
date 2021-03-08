@@ -1,7 +1,6 @@
 package lt.lb.commons.containers.tables;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -300,13 +299,7 @@ public class CellFormatBuilder<Format, T> {
          */
         public CellFormatBuilder<Format, T> withCellIds(Set<FastID> collection) {
             Objects.requireNonNull(collection);
-            Set<CellPrep> cellSet = new HashSet<>();
-            table.doCells(null, null, cell -> {
-                if (collection.contains(cell.id)) {
-                    cellSet.add(cell);
-                }
-            });
-            return this.appendOrNew(CellSelector.cellsInclude(cellSet));
+            return this.appendOrNew(CellSelector.cellsInclude(collection));
 
         }
 
@@ -318,13 +311,7 @@ public class CellFormatBuilder<Format, T> {
          */
         public CellFormatBuilder<Format, T> withoutCellIds(Set<FastID> collection) {
             Objects.requireNonNull(collection);
-            Set<CellPrep> cellSet = new HashSet<>();
-            table.doCells(null, null, cell -> {
-                if (collection.contains(cell.id)) {
-                    cellSet.add(cell);
-                }
-            });
-            return this.appendOrNew(CellSelector.cellsExclude(cellSet));
+            return this.appendOrNew(CellSelector.cellsExclude(collection));
 
         }
 

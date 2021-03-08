@@ -20,6 +20,8 @@ import lt.lb.fastid.FastID;
  * Easy formatting table generator with cell merges and optional content.
  *
  * @author laim0nas100
+ * @param <Format>
+ * @param <T>
  */
 public class CellTable<Format, T> {
 
@@ -38,27 +40,31 @@ public class CellTable<Format, T> {
      */
     static class Row<T> {
 
-        private final int ri;
+        private final int ri; // index in rows collection.
         private List<CellPrep<T>> cellPrep;
+        private final CellTable<?, T> table;
 
-        private Row(int ri) {
-            this.ri = ri;
-            cellPrep = new ArrayList<>();
-        }
-
-        private Row(int ri, int size) {
-            this.ri = ri;
+        private Row(int ri, int size, CellTable<?, T> table) {
             cellPrep = new ArrayList<>(size);
+            this.ri = ri;
+            this.table = table;
         }
 
         private void modifyToSize(int size, T content) {
-            while (cellPrep.size() < size) {
-                cellPrep.add(new CellPrep<>(ri, cellPrep.size(), content));
+            while (getCells().size() < size) {
+                getCells().add(new CellPrep<>(ri + table.rowOffset, table.colOffset + getCells().size(), content));
             }
 
-            while (cellPrep.size() > size) {
-                cellPrep.remove(cellPrep.size() - 1);
+            while (getCells().size() > size) {
+                getCells().remove(getCells().size() - 1);
             }
+        }
+
+        public int size() {
+            if (cellPrep == null) {
+                return 0;
+            }
+            return cellPrep.size();
         }
 
         private void modifyToSize(int size) {
@@ -66,40 +72,58 @@ public class CellTable<Format, T> {
         }
 
         public void add(T content) {
-            cellPrep.add(new CellPrep<>(ri, cellPrep.size(), content));
+            getCells().add(new CellPrep<>(ri + table.rowOffset, table.colOffset + cellPrep.size(), content));
         }
 
         public void addAll(Collection<T> content) {
             if (content.isEmpty()) {
                 return;
             }
-            int size = cellPrep.size();
+            int size = getCells().size();
             for (T c : content) {
-                cellPrep.add(new CellPrep<>(ri, size++, c));
+                getCells().add(new CellPrep<>(ri + table.rowOffset, table.colOffset + size++, c));
             }
 
         }
 
         public List<CellPrep<T>> getCells() {
+            if (cellPrep == null) {
+                cellPrep = new ArrayList<>();
+            }
             return cellPrep;
         }
 
     }
 
     static <T> Row<T> getRow(CellTable<?, T> table, Integer row) {
-        IntRange.of(0, table.rows.size()).assertIndexBoundsExclusive(row);
-        return table.rows.get(row);
+        IntRange.of(table.rowOffset, table.rowOffset + table.rows.size()).assertIndexBoundsExclusive(row);
+        return table.rows.get(row - table.rowOffset);
     }
 
     static <T> CellPrep<T> getCellAt(CellTable<?, T> table, Integer row, Integer col) {
         Row<T> r = getRow(table, row);
-        IntRange.of(0, r.getCells().size()).assertIndexBoundsExclusive(col);
-        return r.getCells().get(col);
+        IntRange.of(table.colOffset, table.colOffset + r.getCells().size()).assertIndexBoundsExclusive(col);
+        return r.getCells().get(col - table.colOffset);
     }
 
     List<Row<T>> rows = new ArrayList<>();
 
+    public final int rowOffset;
+    public final int colOffset;
+
     public CellTable() {
+        this(0, 0);
+    }
+
+    /**
+     * Specify cell offset. Have effect on indexing.
+     *
+     * @param rowOffset
+     * @param colOffset
+     */
+    public CellTable(int rowOffset, int colOffset) {
+        this.rowOffset = rowOffset;
+        this.colOffset = colOffset;
     }
 
     /**
@@ -108,7 +132,7 @@ public class CellTable<Format, T> {
      * @return
      */
     public CellTable<Format, T> addRow(T... content) {
-        Row<T> row = new Row<>(getRowCount(), content.length);
+        Row<T> row = new Row<>(getRowCount(), content.length, this);
         for (T c : content) {
             row.add(c);
         }
@@ -123,7 +147,7 @@ public class CellTable<Format, T> {
      * @return
      */
     public CellTable<Format, T> addRow(Collection<T> content) {
-        Row<T> row = new Row<>(getRowCount(), content.size());
+        Row<T> row = new Row<>(getRowCount(), content.size(), this);
         row.addAll(content);
         this.rows.add(row);
         return this;
@@ -138,7 +162,7 @@ public class CellTable<Format, T> {
 
     protected <TO> CellRowRenderer<Format, T> getExportRender(CellTable<?, TO> table, Function<? super T, ? extends TO> func) {
         CellRowRenderer<Format, T> renderer = (f, ri, cells) -> {
-            Row row = new Row(table.getRowCount(), cells.size());
+            Row row = new Row(table.getRowCount(), cells.size(), table);
             table.rows.add(row);
             int size = 0;
             for (CellPrep<T> prep : cells) {
@@ -214,13 +238,13 @@ public class CellTable<Format, T> {
      */
     public CellTable<Format, T> mergeVertical(int from, int to, int column) {
         IntRange.of(from, to).assertRangeSizeAtLeast(2);
-        For.elements().withInterval(from, to + 1).iterate(rows, (i, row) -> {
+        For.elements().withInterval(from - rowOffset, to + 1 - rowOffset).iterate(rows, (i, row) -> {
             CellPrep<T> cell = row.getCells().get(column);
             if (cell.verticalMerge != TableCellMerge.NONE) {
-                throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(i, column) + " clean existing merge first");
+                throw new IllegalArgumentException("Overwriting existing vertical merge at " + formatVector(i + rowOffset, column + colOffset) + " clean existing merge first");
             }
             if (cell.diagonalMerge != TableCellMerge.NONE) {
-                throw new IllegalArgumentException("Overwriting existing diagonal merge at " + formatVector(i, column) + " clean existing merge first");
+                throw new IllegalArgumentException("Overwriting existing diagonal merge at " + formatVector(i + rowOffset, column + colOffset) + " clean existing merge first");
             }
             if (i == from) {
                 cell.verticalMerge = TableCellMerge.FIRST;
@@ -248,10 +272,11 @@ public class CellTable<Format, T> {
     public CellTable<Format, T> mergeHorizontal(int from, int to, int row) {
         IntRange.of(from, to).assertRangeSizeAtLeast(2);
 
-        Row<T> r = rows.get(row);
+        Row<T> r = getRow(this, row);
 
-        for (int i = from; i <= to; i++) {
-            CellPrep<T> cell = r.getCells().get(i);
+        for (int i = from + colOffset; i <= to + colOffset; i++) {
+            int index = i - colOffset;
+            CellPrep<T> cell = r.getCells().get(index);
             if (cell.diagonalMerge != TableCellMerge.NONE) {
                 throw new IllegalArgumentException("Overwriting existing diagonal merge at " + formatVector(row, i) + " clean existing merge first");
             }
@@ -272,8 +297,8 @@ public class CellTable<Format, T> {
     public CellTable<Format, T> mergeDiagonal(int firstRow, int firstCol, int lastRow, int lastCol) {
         IntRange.of(firstRow, lastRow).assertRangeSizeAtLeast(2);
         IntRange.of(firstCol, lastCol).assertRangeSizeAtLeast(2);
-        for (int ri = firstRow; ri <= lastRow; ri++) {
-            for (int ci = firstCol; ci <= lastCol; ci++) {
+        for (int ri = firstRow + rowOffset; ri <= lastRow + rowOffset; ri++) {
+            for (int ci = firstCol + colOffset; ci <= lastCol + colOffset; ci++) {
                 SafeOpt<CellPrep<T>> prep = findCell(ri, ci);
                 if (prep.isEmpty()) {
                     throw new IllegalArgumentException("Diagonal merge cannot be used with jagged (uneven length) rows or columns within merge space. No cell " + formatVector(ri, ci));
@@ -310,7 +335,7 @@ public class CellTable<Format, T> {
      * @return
      */
     public CellTable<Format, T> merge(int from, int to) {
-        return this.mergeHorizontal(from, to, rows.size() - 1);
+        return this.mergeHorizontal(from, to, getLastRowIndex());
     }
 
     /**
@@ -321,11 +346,12 @@ public class CellTable<Format, T> {
      * @return
      */
     public CellTable<Format, T> mergeLastEmpty() {
-        Row<T> row = rows.get(this.getLastRowIndex());
+        Row<T> row = getRow(this, getLastRowIndex());
         For.elements().findBackwards(row.getCells(), (i, cell) -> {
             return cell.content.isPresent();
         }).map(m -> m.index).ifPresent(from -> {
-            this.mergeHorizontal(from, row.getCells().size() - 1, rows.size() - 1);
+
+            this.mergeHorizontal(from, colOffset + row.getCells().size() - 1, getLastRowIndex());
         });
         return this;
     }
@@ -362,7 +388,7 @@ public class CellTable<Format, T> {
      * @return
      */
     public CellTable<Format, T> modifySize(int desiredSize, T content) {
-        return this.modifySize(rows.size() - 1, desiredSize, content);
+        return this.modifySize(getLastRowIndex(), desiredSize, content);
     }
 
     /**
@@ -372,7 +398,7 @@ public class CellTable<Format, T> {
      * @return
      */
     public CellTable<Format, T> modifySize(int desiredSize) {
-        return this.modifySize(rows.size() - 1, desiredSize, null);
+        return this.modifySize(getLastRowIndex(), desiredSize, null);
     }
 
     /**
@@ -419,12 +445,12 @@ public class CellTable<Format, T> {
      */
     public void renderRows(IntRange range, final Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
         Objects.requireNonNull(renderer);
-        IntRange allowed = IntRange.of(0, rows.size());
+        IntRange allowed = IntRange.of(rowOffset, rows.size() + rowOffset);
         allowed.assertIndexBoundsExclusive(range.min, range.max);
         range.assertRangeSizeAtLeast(1);
 
         for (int ri = range.min; ri <= range.max; ri++) {
-            renderer.render(formatters, ri, rows.get(ri).getCells());
+            renderer.render(formatters, ri, getRow(this, ri).getCells());
         }
     }
 
@@ -438,7 +464,7 @@ public class CellTable<Format, T> {
         Objects.requireNonNull(renderer);
         int ri = 0;
         for (Row<T> row : rows) {
-            renderer.render(formatters, ri, row.getCells());
+            renderer.render(formatters, ri + rowOffset, row.getCells());
             ri++;
         }
     }
@@ -455,7 +481,7 @@ public class CellTable<Format, T> {
         int ri = 0;
         ArrayList<Runnable> tasks = new ArrayList<>(rows.size());
         for (Row<T> row : rows) {
-            final int i = ri;
+            final int i = ri + rowOffset;
             Runnable r = () -> {
                 renderer.render(formatters, i, row.getCells());
             };
@@ -476,12 +502,12 @@ public class CellTable<Format, T> {
      */
     public List<Runnable> renderRowsBatch(IntRange range, final Formatters<Format> formatters, CellRowRenderer<Format, T> renderer) {
         Objects.requireNonNull(renderer);
-        IntRange allowed = IntRange.of(0, rows.size());
+        IntRange allowed = IntRange.of(rowOffset, rows.size() + rowOffset);
         allowed.assertIndexBoundsExclusive(range.min, range.max);
         range.assertRangeSizeAtLeast(1);
         ArrayList<Runnable> tasks = new ArrayList<>(range.getDiff() + 1);
-        for (int ri = range.min; ri <= range.max; ri++) {
-            final Row<T> row = rows.get(ri);
+        for (int ri = range.min + rowOffset; ri <= range.max + rowOffset; ri++) {
+            final Row<T> row = getRow(this, ri);
             final int finalIndex = ri;
             Runnable r = () -> {
                 renderer.render(formatters, finalIndex, row.getCells());
@@ -504,7 +530,26 @@ public class CellTable<Format, T> {
      * @return index of last row
      */
     public Integer getLastRowIndex() {
-        return getRowCount() - 1;
+        return getRowCount() - 1 + rowOffset;
+    }
+
+    /**
+     * Get size of given row index
+     *
+     * @param ri
+     * @return
+     */
+    public Integer getRowSize(int ri) {
+        return getRow(this, ri).size();
+    }
+
+    /**
+     * Get size of last row
+     *
+     * @return
+     */
+    public Integer getLastRowSize() {
+        return getRowSize(getLastRowIndex());
     }
 
     /**
@@ -547,6 +592,45 @@ public class CellTable<Format, T> {
             }
         }
         return SafeOpt.empty();
+    }
+
+    /**
+     * Removes every row
+     */
+    public void clear() {
+        rows.clear();
+    }
+
+    /**
+     * Removes every cell, but keeps rows. Use this to "stream" a big table.
+     * Write some rows, export them, clear cells.
+     */
+    public void clearOnlyCells() {
+        for (Row r : rows) {
+            if (r.cellPrep != null) {
+                r.cellPrep.clear();
+                r.cellPrep = null;
+            }
+
+        }
+    }
+
+    /**
+     * Removes every cell in given range, but keeps rows. Use this to "stream" a
+     * big table. Write some rows, export them, clear cells.
+     */
+    public void clearOnlyCells(IntRange range) {
+        IntRange allowed = IntRange.of(0, rows.size());
+        allowed.assertIndexBoundsExclusive(range.min, range.max);
+        range.assertRangeSizeAtLeast(1);
+
+        for (int ri = range.min; ri <= range.max; ri++) {
+            Row<T> r = rows.get(ri);
+            if (r.cellPrep != null) {
+                r.cellPrep.clear();
+                r.cellPrep = null;
+            }
+        }
     }
 
 }
