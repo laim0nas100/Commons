@@ -1,4 +1,4 @@
-package lt.lb.commons.containers;
+package lt.lb.commons.containers.forwarded;
 
 import java.util.Collection;
 import java.util.Map;

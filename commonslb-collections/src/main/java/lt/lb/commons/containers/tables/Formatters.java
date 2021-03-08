@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.ForwardingMap;
+import lt.lb.commons.containers.forwarded.ForwardingMap;
 import lt.lb.commons.iteration.For;
 import lt.lb.fastid.FastID;
 

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
-import lt.lb.commons.containers.ForwardingMap;
+import lt.lb.commons.containers.forwarded.ForwardingMap;
 
 /**
  * Property class that stores any value (including null).
