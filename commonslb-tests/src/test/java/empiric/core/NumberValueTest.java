@@ -7,7 +7,7 @@ package empiric.core;
 
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.F;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.containers.values.DoubleValue;
 import lt.lb.commons.containers.values.NumberValue;
 import org.junit.After;
@@ -44,20 +44,20 @@ public class NumberValueTest {
 //    @Test
     public void testMe(){
         NumberValue<Double> numberVal = new DoubleValue(10d);
-        Log.print(numberVal.incrementAndGet());
-        Log.print(numberVal.incrementAndGet());
-        Log.print(numberVal.incrementAndGet());
-        Log.print(numberVal.incrementAndGet());
+        DLog.print(numberVal.incrementAndGet());
+        DLog.print(numberVal.incrementAndGet());
+        DLog.print(numberVal.incrementAndGet());
+        DLog.print(numberVal.incrementAndGet());
         
         byte b = 0xa;
-        Log.print(numberVal.incrementAndGet(10));
+        DLog.print(numberVal.incrementAndGet(10));
         short sh = 10;
-//        Log.print(NumberOp.add(sh, new Integer(1)));
+//        DLog.print(NumberOp.add(sh, new Integer(1)));
         
         
         
         F.uncheckedRun(()->{
-            Log.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.HOURS);
         });
         
     }

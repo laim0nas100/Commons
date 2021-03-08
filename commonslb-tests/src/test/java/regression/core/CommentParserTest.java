@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.io.CommentParser;

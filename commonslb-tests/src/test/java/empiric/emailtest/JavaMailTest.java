@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.mail.Folder;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.email.EmailChannels;
 import lt.lb.commons.email.EmailChecker;
 import lt.lb.commons.email.props.POP3EmailProps;
@@ -117,27 +117,27 @@ public class JavaMailTest {
                 } else {
                     ids.add(m.getMessageID());
                 }
-                Log.print(m.getClass());
-                Log.print("---------------------------------");
-                Log.print("ID: " + m.getMessageID());
-                Log.print("Subject: " + m.getSubject());
-                Log.print("Sent date: " + m.getSentDate());
-                Log.print("From: " + m.getFrom()[0]);
-//                Log.print("Text: " + message.getContent().toString());
-                Log.print(ids.size());
+                DLog.print(m.getClass());
+                DLog.print("---------------------------------");
+                DLog.print("ID: " + m.getMessageID());
+                DLog.print("Subject: " + m.getSubject());
+                DLog.print("Sent date: " + m.getSentDate());
+                DLog.print("From: " + m.getFrom()[0]);
+//                DLog.print("Text: " + message.getContent().toString());
+                DLog.print(ids.size());
             });
         });
 
         Runnable createPop3Poller = checker.createCommonEmailPoller(props, channels);
         checker.debug = (objs) -> {
-            Log.print(objs);
+            DLog.print(objs);
             return checker.debug;
         };
         String taskID = checker.addSchedulingTask(new FastExecutor(1), createPop3Poller, TimeUnit.SECONDS, 10);
         int i = 1;
         boolean enabled = true;
         while (true) {
-            Log.print("WAITING XDD");
+            DLog.print("WAITING XDD");
             Thread.sleep(10 * 1000);
 //            if (i % 5 == 0) {
 //                enabled = !enabled;
@@ -157,13 +157,13 @@ public class JavaMailTest {
         Executor e = new FastExecutor(1);
         EmailChecker ch = new EmailChecker();
         ch.addSchedulingTask(e, () -> {
-            Log.print("Hi 2");
+            DLog.print("Hi 2");
         }, TimeUnit.SECONDS, 2);
         ch.addSchedulingTask(e, () -> {
-            Log.print("Hi 1");
+            DLog.print("Hi 1");
         }, TimeUnit.SECONDS, 1);
         ch.addSchedulingTask(e, () -> {
-            Log.print("Hi 3");
+            DLog.print("Hi 3");
         }, TimeUnit.SECONDS, 3);
 
         while (true) {
@@ -192,25 +192,25 @@ public class JavaMailTest {
 //
 //        javax.mail.search.FlagTerm ft = null;
 //        Message[] messages = emailFolder.search(ft);
-//        Log.print("messages.length---" + messages.length);
+//        DLog.print("messages.length---" + messages.length);
 //
 //        for (int i = 0, n = messages.length; i < n; i++) {
 //
 //            POP3Message message = F.cast(messages[i]);
-//            Log.print(message.getClass());
-//            Log.print("---------------------------------");
-//            Log.print("Email Number " + (i + 1));
-//            Log.print("Subject: " + message.getSubject());
-//            Log.print("From: " + message.getFrom()[0]);
-//            Log.print("Text: " + message.getContent().toString());
+//            DLog.print(message.getClass());
+//            DLog.print("---------------------------------");
+//            DLog.print("Email Number " + (i + 1));
+//            DLog.print("Subject: " + message.getSubject());
+//            DLog.print("From: " + message.getFrom()[0]);
+//            DLog.print("Text: " + message.getContent().toString());
 //            message.getRecipients(Message.RecipientType.TO);
 //
 //        }
 //
 //        emailFolder.close(false);
-//        Log.print("Closed folder");
+//        DLog.print("Closed folder");
 //        store.close();
-//        Log.print("Closed email");
+//        DLog.print("Closed email");
 //    }
     public static class EmailAttributes {
 
@@ -445,7 +445,7 @@ public class JavaMailTest {
         TextFileIO.writeToFile("spamFile3.arff", new WekaParser(EmailAttributes.class,
                 "spam").wekaReadyLines("EmailRelation", deque));
 
-        Log.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.HOURS);
 
     }
 }

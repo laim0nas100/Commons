@@ -11,7 +11,7 @@ import lt.lb.commons.refmodel.jparef.SingularRef;
 import java.util.Date;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.refmodel.*;
 import org.junit.*;
@@ -64,10 +64,10 @@ public class RefModelTest {
 
 //    @Test
     public void refModelTest() throws Exception {
-        Log.main().async = false;
+        DLog.main().async = false;
         R2 r1 = RefCompiler.compile(R2.class);
         Ref<Date> date = r1.owner.child.child.date;
-        Log.print(date, date.getClass());
+        DLog.print(date, date.getClass());
     }
 
     public static class SomeEntity {

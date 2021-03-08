@@ -20,7 +20,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.Equator;
 import lt.lb.commons.F;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.containers.collections.CollectionOp;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.io.CommentParser;
@@ -58,7 +58,7 @@ public class CommonsTest {
     }
 
     static {
-        Log.main().async = true;
+        DLog.main().async = true;
     }
 
     // TODO add test methods here.
@@ -88,28 +88,28 @@ public class CommonsTest {
 
         }
         time2 = System.currentTimeMillis() - time2;
-        Log.print("Done");
+        DLog.print("Done");
 
-        Log.print(time1, time2);
+        DLog.print(time1, time2);
         Thread.sleep(500);
     }
 
 //    @Test
     public void testFilterDistinct() {
         Collection<Integer> collection = new LinkedList<>(Arrays.asList(1, 1, 2, 3, 4, 5, 6, 6, 7, 8, 9, 10));
-        Log.print("Initial", collection);
+        DLog.print("Initial", collection);
         List<Integer> filterParallel = CollectionOp.filterParallel(collection, n -> n % 2 == 0, new FastExecutor(4));
-        Log.print("Removed after filter", filterParallel);
-        Log.print("Left after filter", collection);
+        DLog.print("Removed after filter", filterParallel);
+        DLog.print("Left after filter", collection);
         List<Integer> filterDistinct = StreamDecorator.of(Integer.class)
                 .parallel()
                 .apply(StreamMappers.distinct(Equator.simpleHashEquator()))
                 .collectToList()
                 .startingWithOpt(collection);
 
-        Log.print("Filtered distinct", filterDistinct);
+        DLog.print("Filtered distinct", filterDistinct);
         F.checkedRun(() -> {
-            Log.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.HOURS);
         });
 
     }
@@ -119,36 +119,36 @@ public class CommonsTest {
 
         String desktop = "C:\\Users\\Laimonas-Beniusis-PC\\Desktop\\";
 
-        Log.main().async = true;
-        Log.main().threadName = false;
-        Log.main().timeStamp = false;
+        DLog.main().async = true;
+        DLog.main().threadName = false;
+        DLog.main().timeStamp = false;
         F.uncheckedRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "/*", "*/");
 
-            Log.printLines(readFromFile);
-            Log.print("########");
+            DLog.printLines(readFromFile);
+            DLog.print("########");
         });
 
         F.uncheckedRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url);
-//            Log.printLines(readFromFile);
+//            DLog.printLines(readFromFile);
             ReadOnlyIterator<String> parseAllComments = CommentParser.parseAllComments(ReadOnlyIterator.of(readFromFile), "#", "/*", "*/");
             ArrayList<String> parsed = new ArrayList<>();
             for (String s : parseAllComments) {
-//                Log.print(s);
+//                DLog.print(s);
                 parsed.add(s);
             }
-            Log.print("########");
-            Log.printLines(parsed);
+            DLog.print("########");
+            DLog.printLines(parsed);
         });
 
         F.uncheckedRun(() -> {
             String url = desktop + "myFile2.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "**", "**");
-//            Log.printLines(readFromFile);
-            Log.await(1, TimeUnit.HOURS);
+//            DLog.printLines(readFromFile);
+            DLog.await(1, TimeUnit.HOURS);
         });
 
     }
@@ -156,29 +156,29 @@ public class CommonsTest {
     public void parseTest() throws Exception {
         URL resource = Thread.currentThread().getContextClassLoader().getResource("text.txt");
         ArrayList<String> readFromFile = TextFileIO.readFrom(new FileInputStream(new File(resource.getFile())));
-        Log.printLines(readFromFile);
+        DLog.printLines(readFromFile);
         ReadOnlyIterator<String> parseAllComments = CommentParser.parseAllComments(ReadOnlyIterator.of(readFromFile), "//", "/*", "*/");
         ArrayList<String> parsed = new ArrayList<>();
         for (String s : parseAllComments) {
-//                Log.print(s);
+//                DLog.print(s);
             parsed.add(s);
         }
-        Log.print("########");
-        Log.printLines(parsed);
-        Log.close();
+        DLog.print("########");
+        DLog.printLines(parsed);
+        DLog.close();
     }
 
 //    @Test
     public void convertToArff() {
 
-        Log.main().async = true;
+        DLog.main().async = true;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
         F.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.txt");
             int colCount = readFromFile.get(0).split(",").length;
-            Log.print(colCount);
+            DLog.print(colCount);
 
             ArrayList<String> arff = new ArrayList<>();
             arff.add("@relation " + relationTitle);
@@ -198,14 +198,14 @@ public class CommonsTest {
 
     public void convertToArffNew() {
 
-        Log.main().async = false;
+        DLog.main().async = false;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
         F.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.csv");
             int colCount = readFromFile.get(0).split(",").length;
-            Log.print(colCount);
+            DLog.print(colCount);
 
             ArrayList<String> arff = new ArrayList<>();
             arff.add("@relation " + relationTitle);
@@ -231,14 +231,14 @@ public class CommonsTest {
 //    @Test
     public void convertToArffNewFinal() {
 
-        Log.main().async = false;
+        DLog.main().async = false;
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
         F.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.csv");
             int colCount = readFromFile.get(0).split(",").length;
-            Log.print(colCount);
+            DLog.print(colCount);
 
             ArrayList<String> arff = new ArrayList<>();
             arff.add("@relation " + relationTitle);
@@ -304,9 +304,9 @@ public class CommonsTest {
         Comparator<Value<Integer>> of = ((Value<Integer> o1, Value<Integer> o2) -> Integer.compare(o1.get(), o2.get()));
 
         Collections.sort(vals, of);
-        Log.printLines(vals);
+        DLog.printLines(vals);
         F.uncheckedRun(() -> {
-            Log.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.HOURS);
         });
 
     }

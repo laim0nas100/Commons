@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import org.junit.Test;
 
 /**
@@ -35,7 +35,7 @@ public class ProxyTest {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             F.checkedRun(()->{
-                Log.print("Invoked method:", method.getName(), "At object:", real, "with params:", Arrays.asList(args));
+                DLog.print("Invoked method:", method.getName(), "At object:", real, "with params:", Arrays.asList(args));
             });
             
             return method.invoke(real, args);
@@ -48,9 +48,9 @@ public class ProxyTest {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             F.checkedRun(()->{
-                Log.print("Invoked method:", method.getName(), "At object:", proxy, "with params:", Arrays.asList(args));
+                DLog.print("Invoked method:", method.getName(), "At object:", proxy, "with params:", Arrays.asList(args));
             });
-            Log.print("INSIDE");
+            DLog.print("INSIDE");
             
             return null;
         }
@@ -62,9 +62,9 @@ public class ProxyTest {
         Map<String, String> proxyMap = F.cast(Proxy.newProxyInstance(DynamicInvocationHandler.class.getClassLoader(), ArrayOp.asArray(Map.class), new DelegetingLoggingHandler(new HashMap<String,String>())));
         proxyMap.put("key1", "Value1");
 
-        Log.print(proxyMap.get("key1"));
+        DLog.print(proxyMap.get("key1"));
         
-        F.uncheckedRun(() -> Log.await(1, TimeUnit.HOURS));
+        F.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
 
     }
 

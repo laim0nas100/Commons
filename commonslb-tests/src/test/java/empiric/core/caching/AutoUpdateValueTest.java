@@ -6,7 +6,7 @@
 package empiric.core.caching;
 
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.containers.caching.AutoUpdateValue;
 import lt.lb.commons.threads.executors.FastExecutor;
 import org.junit.Test;
@@ -25,11 +25,11 @@ public class AutoUpdateValueTest {
         }, new FastExecutor(1), false);
         
         
-        Log.print(val.get());
-        Log.print(val.get(true));
+        DLog.print(val.get());
+        DLog.print(val.get(true));
         String get = val.get();
-        Log.print(get);
-        Log.await(1, TimeUnit.DAYS);
+        DLog.print(get);
+        DLog.await(1, TimeUnit.DAYS);
         
         
     }

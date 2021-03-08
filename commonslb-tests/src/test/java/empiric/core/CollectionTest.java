@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.PrefillArrayList;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
@@ -34,7 +34,7 @@ import lt.lb.commons.func.unchecked.UncheckedRunnable;
 public class CollectionTest {
     
     static {
-        Log.main().async = true;
+        DLog.main().async = true;
     }
     
     public static void print(Object... args) {
@@ -50,32 +50,32 @@ public class CollectionTest {
         for (int i = 0; i < 10; i++) {
             list.put(i, (long) i * 2);
         }
-        Log.print(list.toString());
+        DLog.print(list.toString());
         
         ListIterator<Long> listIterator = list.listIterator();
         while (listIterator.hasNext()) {
-            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+            DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
         }
         listIterator.remove();
-        Log.print(list.toString());
-        Log.println();
+        DLog.print(list.toString());
+        DLog.println();
         while (listIterator.hasPrevious()) {
-            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
+            DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
         }
-        Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex());
+        DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex());
         listIterator.add(13L);
-        Log.print(list.toString());
-        Log.println();
+        DLog.print(list.toString());
+        DLog.println();
         for (int i = 0; i < 10; i++) {
-            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
-            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
+            DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+            DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
         }
-        Log.println();
-        Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+        DLog.println();
+        DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
         
         listIterator.set(20L);
-        Log.print(list.toString());
-        Log.await(1, TimeUnit.HOURS);
+        DLog.print(list.toString());
+        DLog.await(1, TimeUnit.HOURS);
         
     }
     
@@ -104,18 +104,18 @@ public class CollectionTest {
         //2147483647
         //532200000
         //536800000
-        Log.print(Integer.MAX_VALUE);
-        Log.main().async = false;
+        DLog.print(Integer.MAX_VALUE);
+        DLog.main().async = false;
         
         Object ref = new Object();
         for (long i = 0; i < (long) Integer.MAX_VALUE + 1; i++) {
             list.add(ref);
             if (i % 100000 == 0) {
-                Log.print(i);
+                DLog.print(i);
             }
         }
         
-        Log.print("Size", list.size());
+        DLog.print("Size", list.size());
     }
     
     public void benchHash() {
@@ -126,25 +126,25 @@ public class CollectionTest {
         
         b.threads = 1;
         b.useGVhintAfterFullBench = true;
-        Log.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
-        Log.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        DLog.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        DLog.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
         
-        Log.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
-        Log.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        DLog.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        DLog.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
         
-        Log.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
-        Log.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        DLog.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        DLog.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
         
-        Log.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
-        Log.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
+        DLog.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
+        DLog.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
         F.checkedRun(() -> {
-            Log.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.HOURS);
         });
     }
     
 //    @Test
     public void testComprator() throws InterruptedException {
-        Log.main().async = false; 
+        DLog.main().async = false; 
         Comparator<NumberValue<Integer>> ofValue = Comparator.comparing(f -> f.getValue());
         PriorityBlockingQueue<NumberValue<Integer>> list = new PriorityBlockingQueue<>(1,ofValue.reversed());
         
@@ -156,15 +156,15 @@ public class CollectionTest {
             list.add(new IntegerValue(i));
         }
         
-        Log.print(list);
+        DLog.print(list);
         
         for(int i = 0; i < 15; i++){
-            Log.print(list.take());
+            DLog.print(list.take());
         }
         
 //        Collections.sort(list, ofValue);
         
-        Log.print(list);
+        DLog.print(list);
         
     }
 }

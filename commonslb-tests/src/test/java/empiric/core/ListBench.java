@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.benchmarking.BenchmarkResult;
 import org.junit.Ignore;
@@ -28,12 +28,12 @@ import lt.lb.commons.func.unchecked.UncheckedRunnable;
 public class ListBench {
 
     static {
-        Log.main().async = true;
+        DLog.main().async = true;
     }
 
     private void dPrintList(PagedHashList l) {
-        Log.print(l.toString());
-        Log.printLines(l.getMappings());
+        DLog.print(l.toString());
+        DLog.printLines(l.getMappings());
     }
 //    @Ignore
 
@@ -45,8 +45,8 @@ public class ListBench {
         }
         map.remove(5);
         map.remove(9);
-        Log.printLines(map.entrySet());
-        Log.print(map);
+        DLog.printLines(map.entrySet());
+        DLog.print(map);
     }
 
     @Ignore
@@ -62,8 +62,8 @@ public class ListBench {
         for (int i = 0; i < 10; i++) {
             list.set(i, i * -1L);
         }
-//        Log.printLines(list.getMappings());
-//        Log.print(list.remove(9)+" ");
+//        DLog.printLines(list.getMappings());
+//        DLog.print(list.remove(9)+" ");
 //        dPrintList(list);
 //
 
@@ -89,48 +89,48 @@ public class ListBench {
 //        Random r = new Random(3);
 //        while(!list.isEmpty()){
 //            int toRemove =  r.nextInt(list.size());
-//            Log.print("remove:"+toRemove,list.remove(toRemove)+" ");
+//            DLog.print("remove:"+toRemove,list.remove(toRemove)+" ");
 //        dPrintList(list);
 //        }
 //        int size = 50000;
 //        int iterations = 500000;
-//        Log.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
-//        Log.print(executeBench(80, "BigList read", makeBenchRead(makeList(this.getBank(size, size), new BigList<>()), new Random(10), iterations)));
-//        Log.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
-//        Log.print(executeBench(80, "PagedHashList read", makeBenchRead(makeList(this.getBank(size, size), new PagedHashList<>()), new Random(10), iterations)));
+//        DLog.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
+//        DLog.print(executeBench(80, "BigList read", makeBenchRead(makeList(this.getBank(size, size), new BigList<>()), new Random(10), iterations)));
+//        DLog.print(executeBench(80, "ArrayList read", makeBenchRead(makeList(this.getBank(size, size), new ArrayList<>()), new Random(10), iterations)));
+//        DLog.print(executeBench(80, "PagedHashList read", makeBenchRead(makeList(this.getBank(size, size), new PagedHashList<>()), new Random(10), iterations)));
 //        ListIterator<Long> listIterator = list.listIterator();
 //        while (listIterator.hasNext()) {
-//            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+//            DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
 //        }
 //        listIterator.remove();
-//        Log.print(list.toString());
-//        Log.println();
+//        DLog.print(list.toString());
+//        DLog.println();
 //        while (listIterator.hasPrevious()) {
-//            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
+//            DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
 //        }
-//        Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex());
+//        DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex());
 //        listIterator.add(13L);
-//        Log.print(list.toString());
-//        Log.println();
+//        DLog.print(list.toString());
+//        DLog.println();
 //        for (int i = 0; i < 10; i++) {
-//            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
-//            Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
+//            DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+//            DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.previous());
 //        }
-//        Log.println();
-//        Log.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
+//        DLog.println();
+//        DLog.print("next:" + listIterator.nextIndex(), "prev:" + listIterator.previousIndex(), "Value:" + listIterator.next());
 ////        listIterator.next();
 //        listIterator.add(20L);
-//        Log.print(list.toString());
+//        DLog.print(list.toString());
 //        list.remove(5);
-//        Log.print(list.toString());
+//        DLog.print(list.toString());
 //        list.add(7, 25L);
 //
-//        Log.print(list.toString());
+//        DLog.print(list.toString());
 //        //TODO
 //        list.add(3, 35L);
 //
-//        Log.print(list.toString());
-        Log.await(1, TimeUnit.HOURS);
+//        DLog.print(list.toString());
+        DLog.await(1, TimeUnit.HOURS);
 
     }
 
@@ -155,81 +155,81 @@ public class ListBench {
     public void benchBatch(int size, int iterations, int seed, Class<? extends List>... lists) throws InstantiationException, IllegalAccessException {
 
         List<Long> bank = this.getBank(size, 1337);
-        Log.print("Size:", size);
+        DLog.print("Size:", size);
         int runCount = 10;
 
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(b.executeBench(runCount, list.getSimpleName() + " write", makeBenchWrite(makeList(bank, newInstance), new Random(seed), iterations)));
+            DLog.print(b.executeBench(runCount, list.getSimpleName() + " write", makeBenchWrite(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(b.executeBench(runCount, list.getSimpleName() + " read", makeBenchRead(makeList(bank, newInstance), new Random(seed), iterations)));
+            DLog.print(b.executeBench(runCount, list.getSimpleName() + " read", makeBenchRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(b.executeBench(runCount, list.getSimpleName() + " read>>write", makeBenchReadWrite(makeList(bank, newInstance), new Random(seed), iterations)));
+            DLog.print(b.executeBench(runCount, list.getSimpleName() + " read>>write", makeBenchReadWrite(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(b.executeBench(runCount, list.getSimpleName() + " read<<write", makeBenchWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
+            DLog.print(b.executeBench(runCount, list.getSimpleName() + " read<<write", makeBenchWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
             List newInstance = list.newInstance();
-            Log.print(b.executeBench(runCount, list.getSimpleName() + " random r w", makeBenchRandomWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
+            DLog.print(b.executeBench(runCount, list.getSimpleName() + " random r w", makeBenchRandomWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
 
-//        Log.print(executeBench(10, "ArrayList write", makeBenchWrite(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "PagedList write", makeBenchWrite(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "GapList write", makeBenchWrite(makeList(bank, new GapList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "BigList write", makeBenchWrite(makeList(bank, new BigList<>()), new Random(seed), iterations)));
-////        Log.print();
-//        Log.print(executeBench(10, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "PagedList read", makeBenchRead(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "GapList read", makeBenchRead(makeList(bank, new GapList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "BigList read", makeBenchRead(makeList(bank, new BigList<>()), new Random(seed), iterations)));
-////        Log.print();
-//        Log.print(executeBench(10, "ArrayList readWrite", makeBenchReadWrite(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "PagedList readWrite", makeBenchReadWrite(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "GapList readWrite", makeBenchReadWrite(makeList(bank, new GapList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "BigList readWrite", makeBenchReadWrite(makeList(bank, new BigList<>()), new Random(seed), iterations)));
-////        Log.print();
-//        Log.print(executeBench(10, "ArrayList writeRead", makeBenchWriteRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "PagedList writeRead", makeBenchWriteRead(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "GapList writeRead", makeBenchWriteRead(makeList(bank, new GapList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "BigList writeRead", makeBenchWriteRead(makeList(bank, new BigList<>()), new Random(seed), iterations)));
-////        Log.print();
-//        Log.print(executeBench(10, "ArrayList randomWriteRead", makeBenchRandomWriteRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "PagedList randomWriteRead", makeBenchRandomWriteRead(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "GapList randomWriteRead", makeBenchRandomWriteRead(makeList(bank, new GapList<>()), new Random(seed), iterations)));
-//        Log.print(executeBench(10, "BigList randomWriteRead", makeBenchRandomWriteRead(makeList(bank, new BigList<>()), new Random(seed), iterations)));
-//        Log.print();
+//        DLog.print(executeBench(10, "ArrayList write", makeBenchWrite(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "PagedList write", makeBenchWrite(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "GapList write", makeBenchWrite(makeList(bank, new GapList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "BigList write", makeBenchWrite(makeList(bank, new BigList<>()), new Random(seed), iterations)));
+////        DLog.print();
+//        DLog.print(executeBench(10, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "PagedList read", makeBenchRead(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "GapList read", makeBenchRead(makeList(bank, new GapList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "BigList read", makeBenchRead(makeList(bank, new BigList<>()), new Random(seed), iterations)));
+////        DLog.print();
+//        DLog.print(executeBench(10, "ArrayList readWrite", makeBenchReadWrite(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "PagedList readWrite", makeBenchReadWrite(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "GapList readWrite", makeBenchReadWrite(makeList(bank, new GapList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "BigList readWrite", makeBenchReadWrite(makeList(bank, new BigList<>()), new Random(seed), iterations)));
+////        DLog.print();
+//        DLog.print(executeBench(10, "ArrayList writeRead", makeBenchWriteRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "PagedList writeRead", makeBenchWriteRead(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "GapList writeRead", makeBenchWriteRead(makeList(bank, new GapList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "BigList writeRead", makeBenchWriteRead(makeList(bank, new BigList<>()), new Random(seed), iterations)));
+////        DLog.print();
+//        DLog.print(executeBench(10, "ArrayList randomWriteRead", makeBenchRandomWriteRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "PagedList randomWriteRead", makeBenchRandomWriteRead(makeList(bank, new PagedList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "GapList randomWriteRead", makeBenchRandomWriteRead(makeList(bank, new GapList<>()), new Random(seed), iterations)));
+//        DLog.print(executeBench(10, "BigList randomWriteRead", makeBenchRandomWriteRead(makeList(bank, new BigList<>()), new Random(seed), iterations)));
+//        DLog.print();
     }
 
     public static void main(String[] a) throws Exception {
-        Log.main().async = true;
-        Log.main().keepBufferForFile = false;
-//        Log.disable = true;
+        DLog.main().async = true;
+        DLog.main().keepBufferForFile = false;
+//        DLog.disable = true;
         new ListBench().listBench();
 //        PagedHashList list = new PagedHashList<>();
 //        new ListBench().listBehaviourTest(new BigList<>(), new PagedHashList<>(), 1373, 100000);
 
-//        Log.printLines(list.getMappings());
-//        Log.print(list.getPageCount(), list.getPageSize(), list.getAveragePageSize(), list.size());
+//        DLog.printLines(list.getMappings());
+//        DLog.print(list.getPageCount(), list.getPageSize(), list.getAveragePageSize(), list.size());
     }
 
     @Ignore
 //    @Test
     public void listBench() throws Exception {
-        Log.print("List benchmark");
+        DLog.print("List benchmark");
         int size = 5000000;
         int iterations = 50;
         int seed = 10;
 //        Class<List>[] lists = new Class[]{ArrayList.class,GapList.class,PagedList.class,BigList.class};
         Class<List>[] lists = new Class[]{PagedHashList.class, BigList.class};
 //        Class<List>[] lists = new Class[]{BigList.class};
-        Log.print("Waiting for input");
-        Log.print("Start " + System.in.read());
+        DLog.print("Waiting for input");
+        DLog.print("Start " + System.in.read());
         benchBatch(size / 10, iterations, seed, lists);
         benchBatch(size, iterations, seed, lists);
         benchBatch(size * 10, iterations, seed, lists);
@@ -240,10 +240,10 @@ public class ListBench {
 
 //        int mult = 1;
 //        List<Long> bank = this.getBank(size * mult, seed);
-////        Log.print(executeBench(100, "ArrayList read", makeBenchRead(makeList(this.getBank(size * mult, seed), new ArrayList<>()), new Random(seed), iterations)));
-//        Log.print(b.executeBench(150, "BigList read", makeBenchRead(makeList(bank, new BigList<>(1000)), new Random(seed), iterations)));
-//        Log.print(b.executeBench(150, "PagedHashedList read", makeBenchRead(makeList(bank, new PagedHashList<>()), new Random(seed), iterations)));
-//        Log.print(b.executeBench(150, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
+////        DLog.print(executeBench(100, "ArrayList read", makeBenchRead(makeList(this.getBank(size * mult, seed), new ArrayList<>()), new Random(seed), iterations)));
+//        DLog.print(b.executeBench(150, "BigList read", makeBenchRead(makeList(bank, new BigList<>(1000)), new Random(seed), iterations)));
+//        DLog.print(b.executeBench(150, "PagedHashedList read", makeBenchRead(makeList(bank, new PagedHashList<>()), new Random(seed), iterations)));
+//        DLog.print(b.executeBench(150, "ArrayList read", makeBenchRead(makeList(bank, new ArrayList<>()), new Random(seed), iterations)));
     }
 
     @Ignore
@@ -254,9 +254,9 @@ public class ListBench {
         int seed = 10;
         int iterations = 1000;
         List<Long> bank = this.getBank(size, 1337);
-        Log.print(b.executeBench(10, "PagedList Write", makeBenchWrite(makeList(bank, l), new Random(seed), iterations)));
-        Log.print("PageCount:" + l.getPageCount(), "PageSize:" + l.getPageSize());
-        Log.print(l.getPageRepresentation());
+        DLog.print(b.executeBench(10, "PagedList Write", makeBenchWrite(makeList(bank, l), new Random(seed), iterations)));
+        DLog.print("PageCount:" + l.getPageCount(), "PageSize:" + l.getPageSize());
+        DLog.print(l.getPageRepresentation());
 
     }
 
@@ -449,18 +449,18 @@ public class ListBench {
     public void listBehaviourTest(List<Long> toTest, List<Long> safeList, int rndSeed, int size) {
         toTest.clear();
         safeList.clear();
-//        Log.disable = true;
+//        DLog.disable = true;
         ListOp.add.d(safeList, rndSeed, size);
         ListOp.add.d(toTest, rndSeed, size);
 
         this.listEquals(safeList, toTest);
-//        Log.print("List is valid after add");
+//        DLog.print("List is valid after add");
 
         ListOp.remove.d(safeList, rndSeed, size);
         ListOp.remove.d(toTest, rndSeed, size);
 
         this.listEquals(safeList, toTest);
-//        Log.print("List is valid after remove");
+//        DLog.print("List is valid after remove");
 
         ListOp.add.d(safeList, rndSeed, size);
         ListOp.add.d(toTest, rndSeed, size);
@@ -469,35 +469,35 @@ public class ListBench {
         ListOp.randomRemove.d(toTest, rndSeed, size / 2);
 
         this.listEquals(safeList, toTest);
-//        Log.print("List is valid after random remove");
+//        DLog.print("List is valid after random remove");
         ListOp.addAll.d(safeList, rndSeed, size);
         ListOp.addAll.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
 
-//        Log.print("List is valid after add all");
+//        DLog.print("List is valid after add all");
         safeList.clear();
         toTest.clear();
         toTest.add(0L);
         safeList.add(0L);
-        Log.main().disable = false;
+        DLog.main().disable = false;
 
         ListOp.randomAddAll.d(safeList, rndSeed, size);
         ListOp.randomAddAll.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
-//        Log.print("List is valid after random add all");
+//        DLog.print("List is valid after random add all");
 
         ListOp.randomAdd.d(safeList, rndSeed, size);
         ListOp.randomAdd.d(toTest, rndSeed, size);
         this.listEquals(safeList, toTest);
 
-//        Log.print("List is valid after random add");
+//        DLog.print("List is valid after random add");
 //
-//        Log.print("Validation test passed");
+//        DLog.print("Validation test passed");
 
 //        ListOp.randomRemove.d(safeList, rndSeed, size);
 //        ListOp.randomRemove.d(toTest, rndSeed, size);
 //
 //        this.listEquals(safeList, toTest);
-//        Log.print("List is valid after random add");
+//        DLog.print("List is valid after random add");
     }
 }

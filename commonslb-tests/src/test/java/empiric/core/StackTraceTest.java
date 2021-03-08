@@ -12,7 +12,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.F;
 import lt.lb.commons.func.Lambda;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.rng.FastRandom;
 import lt.lb.commons.misc.rng.RandomDistribution;
@@ -27,47 +27,47 @@ public class StackTraceTest {
 
     public void ok() {
 
-        Log.main().async = false;
-        Log.main().stackTrace = true;
+        DLog.main().async = false;
+        DLog.main().stackTrace = true;
 
-        Log.print("Test boi");
+        DLog.print("Test boi");
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         For.elements().iterate(stackTrace, (i, st) -> {
-            Log.print(i, st);
+            DLog.print(i, st);
         });
-        Log.print("Test gril");
-        Log.print("Test gril");
+        DLog.print("Test gril");
+        DLog.print("Test gril");
 
-        Log.print("Test gril");
+        DLog.print("Test gril");
 
-        Log.print("Test gril");
+        DLog.print("Test gril");
 
-        Log.print("Test gril");
+        DLog.print("Test gril");
 
-        Log.print("Test gril");
+        DLog.print("Test gril");
 
-        Log.print("Test gril");
+        DLog.print("Test gril");
 
-        Log.print("Test gril");
+        DLog.print("Test gril");
 
-        Log.print("Test gril");
+        DLog.print("Test gril");
 
         Random r = new XorShiftRNG(1337);
         RandomDistribution rng = RandomDistribution.uniform(r::nextDouble);
         for (int i = 0; i < 30; i++) {
-            Log.print(rng.nextLong());
+            DLog.print(rng.nextLong());
         }
         for (int i = 0; i < 30; i++) {
-            Log.print(rng.nextLong(-10L, 10L));
+            DLog.print(rng.nextLong(-10L, 10L));
         }
         for (int i = 0; i < 30; i++) {
-            Log.print(rng.nextLong(-1L, 2L));
+            DLog.print(rng.nextLong(-1L, 2L));
         }
 
         for (int i = 0; i < 30; i++) {
-            Log.print(rng.nextBoolean());
+            DLog.print(rng.nextBoolean());
         }
-        F.checkedRun(() -> Log.await(1, TimeUnit.HOURS));
+        F.checkedRun(() -> DLog.await(1, TimeUnit.HOURS));
     }
 
 //    @Test
@@ -82,19 +82,19 @@ public class StackTraceTest {
             Collections.sort(l);
             return l;
         });
-        Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
-        Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
-        Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
-        Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
-        Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
-        Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
-        Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
-        Log.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
+        DLog.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
+        DLog.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
+        DLog.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
+        DLog.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
+        DLog.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
+        DLog.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
+        DLog.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
+        DLog.print(of.apply(rng.pickRandomPreferLow(list, 10, 10, 1)));
 
-        Log.print(of.apply(rng.pickRandom(list, 2)));
+        DLog.print(of.apply(rng.pickRandom(list, 2)));
         
         
-        Log.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.HOURS);
 
     }
 

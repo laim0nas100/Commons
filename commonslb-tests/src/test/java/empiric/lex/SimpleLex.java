@@ -9,7 +9,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.parsing.LexerWithStrings;
@@ -55,8 +55,8 @@ public class SimpleLex {
 
 
         lex.resetLines(readFrom);
-        Log.printLines(lex.getRemainingTokens());
-        Log.await(10, TimeUnit.DAYS);
+        DLog.printLines(lex.getRemainingTokens());
+        DLog.await(10, TimeUnit.DAYS);
 
     }
 }

@@ -9,7 +9,7 @@ import java.util.Arrays;
 import lt.lb.commons.containers.collections.RelationMap;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.F;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.containers.tuples.Tuples;
 import org.junit.Test;
 
@@ -37,8 +37,8 @@ public class RelationTest {
 
 //    @Test
     public void testMe() throws Exception {
-//        RelationMap<Class, Runnable> m = new RelationMap<>(Object.class, () -> Log.print("Object!!"), (k1, k2) -> F.instanceOf(k1, k2));
-        RelationMap<Class, Runnable> m = RelationMap.newTypeMapRootAny(() -> Log.print("Any!!"));
+//        RelationMap<Class, Runnable> m = new RelationMap<>(Object.class, () -> DLog.print("Object!!"), (k1, k2) -> F.instanceOf(k1, k2));
+        RelationMap<Class, Runnable> m = RelationMap.newTypeMapRootAny(() -> DLog.print("Any!!"));
         add(m, Object.class);
         
         add(m, A.class);
@@ -46,37 +46,37 @@ public class RelationTest {
         add(m, C.class);
         add(m, D.class);
 
-        Log.print(m.keySet());
+        DLog.print(m.keySet());
         m.getBestFit(A.class).run();
         m.getBestFit(B.class).run();
         m.getBestFit(C.class).run();
         m.getBestFit(D.class).run();
 
         m.remove(B.class);
-        Log.println("Removed B");
-        Log.print(m.keySet());
+        DLog.println("Removed B");
+        DLog.print(m.keySet());
         m.getBestFit(A.class).run();
         m.getBestFit(B.class).run();
         m.getBestFit(C.class).run();
         m.getBestFit(D.class).run();
 
-        m.put(B.class, () -> Log.print("B new"));
-        Log.println("inserted B new");
-        Log.print(m.keySet());
+        m.put(B.class, () -> DLog.print("B new"));
+        DLog.println("inserted B new");
+        DLog.print(m.keySet());
         m.getBestFit(A.class).run();
         m.getBestFit(B.class).run();
         m.getBestFit(C.class).run();
         m.getBestFit(D.class).run();
 
-        Log.println();
-        Log.print(m.keySet());
+        DLog.println();
+        DLog.print(m.keySet());
         m.getBestFit(A.class).run();
         m.getBestFit(B.class).run();
         m.getBestFit(C.class).run();
         m.getBestFit(D.class).run();
 
-        Log.println();
-        Log.print(m.keySet());
+        DLog.println();
+        DLog.print(m.keySet());
         m.getBestFit(A.class).run();
         m.getBestFit(B.class).run();
         m.getBestFit(C.class).run();
@@ -85,9 +85,9 @@ public class RelationTest {
         m.getBestFit(Integer.class).run();
         m.getBestFit(int[].class).run();
 
-        Log.print(Integer.TYPE.getSuperclass());
-        Log.print(Void.class.getSuperclass());
-        Log.await(1, TimeUnit.HOURS);
+        DLog.print(Integer.TYPE.getSuperclass());
+        DLog.print(Void.class.getSuperclass());
+        DLog.await(1, TimeUnit.HOURS);
 
     }
 
@@ -104,12 +104,12 @@ public class RelationTest {
     }
 
     public static void add(RelationMap<Class, Runnable> map, Class cls) {
-        map.put(cls, () -> Log.print(cls.getSimpleName()));
+        map.put(cls, () -> DLog.print(cls.getSimpleName()));
     }
 
     public void testMultipleInheritance() throws Exception {
 
-        RelationMap<Class, Runnable> m = RelationMap.newTypeMapRootObject(() -> Log.print("Object!!"));
+        RelationMap<Class, Runnable> m = RelationMap.newTypeMapRootObject(() -> DLog.print("Object!!"));
         add(m, Printable.class);
         add(m, Writeable.class);
 //        m.remove(Printable.class);

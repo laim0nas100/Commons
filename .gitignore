@@ -51,3 +51,4 @@
 /commonslb-iteration - Copy/target/
 /commonslb-misc/target/
 */nb-configuration.xml
+commonslb-tests/src/test/java/datagen/DataGen.java

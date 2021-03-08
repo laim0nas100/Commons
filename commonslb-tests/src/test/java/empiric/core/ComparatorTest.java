@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.compare.ComparatorBuilder;
 
@@ -39,7 +39,7 @@ public class ComparatorTest {
     
     
     public static void print(Stream<Item> stream){
-        Log.printLines(ReadOnlyIterator.of(stream));
+        DLog.printLines(ReadOnlyIterator.of(stream));
     }
     
     
@@ -87,7 +87,7 @@ public class ComparatorTest {
     public static void main(String...args){
         
         List<Item> list = new ArrayList<>();
-        Log.main().async = false;
+        DLog.main().async = false;
         
         list.add(new Item(1,1));
         list.add(new Item(2,1));
@@ -102,12 +102,12 @@ public class ComparatorTest {
         Collections.shuffle(list);
         
 //        withList(list);
-        Log.print("###################");
+        DLog.print("###################");
         withNew(list);
         
         
         
-        Log.close();
+        DLog.close();
     }
     
 }

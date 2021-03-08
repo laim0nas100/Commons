@@ -7,7 +7,7 @@ package empiric.iotests;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.io.filewatch.NestedFileWatch;
 
 /**
@@ -21,13 +21,13 @@ public class NestedFileWatchTest {
         nestedFileWatch.tryInit();
         
         nestedFileWatch.addSingleEventListener(ev -> {
-            Log.print(ev.kind, ev.affectedPath);
+            DLog.print(ev.kind, ev.affectedPath);
         });
         
         Thread.sleep(10000);
         nestedFileWatch.terminate();
-        Log.print("Closing");
-        Log.close();
+        DLog.print("Closing");
+        DLog.close();
     }
 
 }

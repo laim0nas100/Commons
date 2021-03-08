@@ -8,7 +8,7 @@ package empiric.iotests;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.io.filewatch.NestedFileWatchCollector;
 
 /**
@@ -22,20 +22,20 @@ public class NestedFileWatchCollectorTest {
         nfw.tryInit();
         
         nfw.addSingleEventListener(ev -> {
-            Log.print(ev.kind, ev.affectedPath);
+            DLog.print(ev.kind, ev.affectedPath);
         });
         
         nfw.addSingleEventListener(ev ->{
             if(ev.kind == StandardWatchEventKinds.ENTRY_CREATE || ev.kind == StandardWatchEventKinds.ENTRY_DELETE){
-                Log.print("Directory changed");
-                Log.printLines(nfw.getAllFiles());
+                DLog.print("Directory changed");
+                DLog.printLines(nfw.getAllFiles());
             }
         });
         
         Thread.sleep(20000);
         nfw.terminate();
-        Log.print("Closing");
-        Log.close();
+        DLog.print("Closing");
+        DLog.close();
     }
 
 }

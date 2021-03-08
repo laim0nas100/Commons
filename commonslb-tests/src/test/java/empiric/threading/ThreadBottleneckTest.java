@@ -6,7 +6,7 @@
 package empiric.threading;
 
 import java.util.concurrent.atomic.AtomicLong;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.LongValue;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
@@ -76,13 +76,13 @@ public class ThreadBottleneckTest {
         bench.threads = 4;
 
         for (int i = 0; i < 4; i++) {
-            bench.executeBench(100, "first", makeRun(inc1(), 1000000)).print(Log::print);
-            bench.executeBench(100, "second", makeRun(inc2(), 1000000)).print(Log::print);
-            bench.executeBench(100, "third", makeRun(inc3(), 1000000)).print(Log::print);
+            bench.executeBench(100, "first", makeRun(inc1(), 1000000)).print(DLog::print);
+            bench.executeBench(100, "second", makeRun(inc2(), 1000000)).print(DLog::print);
+            bench.executeBench(100, "third", makeRun(inc3(), 1000000)).print(DLog::print);
         }
 
-//        Log.println("",inc1.increment(),inc2.increment(),inc3.increment());
-        Log.close();
+//        DLog.println("",inc1.increment(),inc2.increment(),inc3.increment());
+        DLog.close();
     }
 
 }

@@ -17,7 +17,7 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
 import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.containers.collections.ListDeque;
 import lt.lb.commons.containers.collections.PagedHashList;
 import lt.lb.commons.containers.collections.PagedList;

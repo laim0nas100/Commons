@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.RunnableDecorators;
@@ -29,9 +29,9 @@ public class TimeOutTest {
         ExecutorService exe = Executors.newScheduledThreadPool(1);
         
         UncheckedRunnable longTask = () -> {
-            Log.print("Sleep init");
+            DLog.print("Sleep init");
             Thread.sleep(4000);
-            Log.print("Sleep done");
+            DLog.print("Sleep done");
         };
         Runnable timeOut = RunnableDecorators.withTimeout(WaitTime.ofSeconds(2), longTask);
         exe.execute(timeOut);
@@ -39,10 +39,10 @@ public class TimeOutTest {
         exe.execute(timeOut);
         exe.execute(timeOut);
 
-        Log.print("End");
+        DLog.print("End");
         exe.shutdown();
         exe.awaitTermination(1, TimeUnit.DAYS);
-        Log.await(1, TimeUnit.DAYS);
+        DLog.await(1, TimeUnit.DAYS);
     }
 //    @Test
     public void timeoutTest2() throws Exception {
@@ -52,13 +52,13 @@ public class TimeOutTest {
         RandomDistribution uniform = RandomDistribution.uniform(rnd);
         UncheckedRunnable longTask = () -> {
             long sleeptime = uniform.nextLong(1500L, 2500L);
-            Log.print("Sleep init " +sleeptime);
+            DLog.print("Sleep init " +sleeptime);
             
             Thread.sleep(sleeptime);
             if(sleeptime < 1800L){
                 throw new Error("Oopsie");
             }
-            Log.print("Sleep done");
+            DLog.print("Sleep done");
         };
         
         
@@ -67,9 +67,9 @@ public class TimeOutTest {
         exe.execute(of);
 
         of.get();
-        Log.print("End");
+        DLog.print("End");
         exe.shutdown();
         exe.awaitTermination(1, TimeUnit.DAYS);
-        Log.await(1, TimeUnit.DAYS);
+        DLog.await(1, TimeUnit.DAYS);
     }
 }

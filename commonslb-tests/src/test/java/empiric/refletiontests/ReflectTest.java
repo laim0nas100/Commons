@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.collections.ObjectBuffer;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
@@ -181,12 +181,12 @@ public class ReflectTest {
         ILineAppender appender = new ILineAppender() {
             @Override
             public ILineAppender appendLine(Object... objs) {
-                Log.print(objs);
+                DLog.print(objs);
                 return this;
             }
         };
         ReflectionPrint rp = new ReflectionPrint(appender);
-        Log m = Log.main();
+        DLog m = DLog.main();
         m.stackTrace = false;
         m.threadName = false;
         m.timeStamp = false;
@@ -195,24 +195,24 @@ public class ReflectTest {
         c1.dubArray[0] = -1;
         c1.change(50f);
         c1.next = c1;
-        c1.r = () -> Log.print("WE RUN NOW");
+        c1.r = () -> DLog.print("WE RUN NOW");
 
         DefaultFieldFactory factory = new DefaultFieldFactory();
-        Log.main().async = false;
+        DLog.main().async = false;
         rp.dump(c1);
 
         CCls2Override c2 = factory.reflectionClone(c1);
 
-        Log.println(ArrayOp.replicate(5, ""));
+        DLog.println(ArrayOp.replicate(5, ""));
 
         rp.dump(c2);
 
         c2.r.run();
 
         FieldChain.ObjectFieldChain ofChain = FieldChain.ObjectFieldChain.ofChain("next", "next", "en");
-        Log.print(ofChain.doGet(c2));
+        DLog.print(ofChain.doGet(c2));
         ofChain.doSet(c2, DemoEnum.three);
-        Log.print(ofChain.doGet(c2));
+        DLog.print(ofChain.doGet(c2));
 //         PureReflectNode node = new PureReflectNode(new HashMap<>(),CCls2Override.class);
 //        EField root = EField.fromCompositeRoot(node);
 //        print("",root,3);
@@ -222,7 +222,7 @@ public class ReflectTest {
         if (limit <= 0) {
             return;
         }
-        Log.print(append, f.getName(), f.isComposite());
+        DLog.print(append, f.getName(), f.isComposite());
 
         for (EField child : f.getChildren()) {
             print(append + "*", child, limit - 1);
@@ -238,7 +238,7 @@ public class ReflectTest {
         CCls2Override c1 = new CCls2Override(0);
         c1.next = c1;
         Yaml g = new Yaml();
-        Log.println("", g.dump(c1));
+        DLog.println("", g.dump(c1));
     }
 
     public void reflectionPrint() {
@@ -248,7 +248,7 @@ public class ReflectTest {
         LineStringBuilder sb = new LineStringBuilder();
         ReflectionPrint rp = new ReflectionPrint(sb);
         rp.dump(c1);
-        Log.print(sb);
+        DLog.print(sb);
     }
 
     public static void main(String... strings) throws Exception {
@@ -257,7 +257,7 @@ public class ReflectTest {
 
         rt.reflectionPrint();
 
-        Log.close();
+        DLog.close();
 
     }
 
@@ -265,8 +265,8 @@ public class ReflectTest {
 
         b.useGChint = false;
         b.useGVhintAfterFullBench = true;
-        Log.main().async = true;
-        Log.print("GO GO");
+        DLog.main().async = true;
+        DLog.print("GO GO");
 
         CCls2Override c1 = new CCls2Override(0);
         c1.dubArray[0] = -1;
@@ -276,13 +276,13 @@ public class ReflectTest {
 
         DefaultFieldFactory factory = new DefaultFieldFactory();
         factory.log = objs -> {
-            Log.print(objs);
+            DLog.print(objs);
             return factory.log;
         };
 
 //        String keepPrinting = rp.keepPrinting(factory.newReflectNode(c1));
-//        Log.print("\n" + keepPrinting);
-        Log.print(c1.equals(c2), Objects.equals(c1, c2));
+//        DLog.print("\n" + keepPrinting);
+        DLog.print(c1.equals(c2), Objects.equals(c1, c2));
 
 //        factory.addClassConstructor(CCls2Override.class, () -> new CCls2Override(0));
 //        factory.addClassConstructor(ObjectBuffer.class, () -> new ObjectBuffer<>(new BlackHole(), 0));
@@ -306,12 +306,12 @@ public class ReflectTest {
 
         Cloner cloner = new Cloner();
 
-        Log.print("CLONE ############ BUFFER");
+        DLog.print("CLONE ############ BUFFER");
         ObjectBuffer<Integer> buffer = new ObjectBuffer<>(new BlackHole(), 100);
         for (int i = 0; i < 100; i++) {
             factory.reflectionClone(buffer);
         }
-        Log.print("CLONE ############ CCLS");
+        DLog.print("CLONE ############ CCLS");
         for (int i = 0; i < 100; i++) {
             clone = factory.reflectionClone(clone);
         }
@@ -341,30 +341,30 @@ public class ReflectTest {
 
         int times = 50000;
         Integer[] toArray = ArrayOp.asArray(1, 2, 3);
-//        Log.print(b.executeBench(times, "Factory no cache", useFactory));
+//        DLog.print(b.executeBench(times, "Factory no cache", useFactory));
         factory.useFieldHolderCache = true;
-//        Log.print(b.executeBench(times, "Factory field holder cache", useFactory));
+//        DLog.print(b.executeBench(times, "Factory field holder cache", useFactory));
 //        factory.useFieldCache = false;
-//        Log.print(b.executeBench(times, "Factory field cache", useFactory));
+//        DLog.print(b.executeBench(times, "Factory field cache", useFactory));
         factory.useCache = true;
         int threads = 1;
 
-        Log.print(b.executeBench(times, "Factory", ArrayOp.replicate(threads, useFactory)));
-        Log.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
+        DLog.print(b.executeBench(times, "Factory", ArrayOp.replicate(threads, useFactory)));
+        DLog.print(b.executeBench(times, "Cloner", ArrayOp.replicate(threads, useCloner)));
 
-        Log.print("BREAK BOISS");
+        DLog.print("BREAK BOISS");
         System.gc();
-        Log.print("BREAK OVER BOISS");
+        DLog.print("BREAK OVER BOISS");
 
-        Log.print(b.executeBench(times * 2, "Cloner", ArrayOp.replicate(threads, useCloner)));
-        Log.print(b.executeBench(times * 2, "Factory", ArrayOp.replicate(threads, useFactory)));
+        DLog.print(b.executeBench(times * 2, "Cloner", ArrayOp.replicate(threads, useCloner)));
+        DLog.print(b.executeBench(times * 2, "Factory", ArrayOp.replicate(threads, useFactory)));
 
-        Log.print("BREAK BOISS 2");
+        DLog.print("BREAK BOISS 2");
         System.gc();
-        Log.print("BREAK OVER BOISS");
+        DLog.print("BREAK OVER BOISS");
 
-        Log.print(b.executeBench(times * 3, "Factory", ArrayOp.replicate(threads, useFactory)));
-        Log.print(b.executeBench(times * 3, "Cloner", ArrayOp.replicate(threads, useCloner)));
+        DLog.print(b.executeBench(times * 3, "Factory", ArrayOp.replicate(threads, useFactory)));
+        DLog.print(b.executeBench(times * 3, "Cloner", ArrayOp.replicate(threads, useCloner)));
 
 //        for (int i = 0; i < 100000; i++) {
 //            clone = cloner.deepClone(clone);
@@ -377,12 +377,12 @@ public class ReflectTest {
 ////
 //        }
         time = System.currentTimeMillis() - time;
-//        Log.print(factory.newReflectNode(c2));
-        Log.print("CLONED");
+//        DLog.print(factory.newReflectNode(c2));
+        DLog.print("CLONED");
 //        rp.keepPrinting(factory.newReflectNode(clone));
 
-        Log.print("Time spent", time);
-        Log.await(1, TimeUnit.HOURS);
+        DLog.print("Time spent", time);
+        DLog.await(1, TimeUnit.HOURS);
     }
 
 }

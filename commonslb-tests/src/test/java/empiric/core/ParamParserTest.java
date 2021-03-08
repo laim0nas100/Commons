@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.parsing.LexerWithStrings;
@@ -172,20 +172,20 @@ public class ParamParserTest {
 
 //    @Test
     public void ok() throws Exception {
-        Log.main().async = false;
-        Log.main().display = true;
+        DLog.main().async = false;
+        DLog.main().display = true;
         String url = "C:\\MyWorkspace\\Commons\\fileToRead.txt";
         Collection<String> readFromFile = TextFileIO.readFromFile(url, "//", "/*", "*/");
 
-        Log.printLines(readFromFile);
+        DLog.printLines(readFromFile);
         LexerWithStrings lex = new LexerWithStrings();
         lex.addKeywordBreaking("=", "{", "}", "[", "]", ",", ".", "${");
         lex.resetLines(readFromFile);
         lex.setSkipWhitespace(true);
         for (Token token : lex.getRemainingTokens()) {
-            Log.print(token);
+            DLog.print(token);
         }
-        Log.print("After parsing");
+        DLog.print("After parsing");
 
         MyParser p = new MyParser();
         lex.reset();
@@ -211,17 +211,17 @@ public class ParamParserTest {
 
         List<List<TraversedResult>> globalList = new ArrayList<>();
         do {
-            Log.print("New iteration");
+            DLog.print("New iteration");
             List<TraversedResult> list = new ArrayList<>();
             literalGraph.fullTraverse(p, list);
             globalList.add(list);
         } while (p.hasNext());
-        Log.print("RESULTS");
-        Log.printLines(globalList);
-        Log.main().display = true;
+        DLog.print("RESULTS");
+        DLog.printLines(globalList);
+        DLog.main().display = true;
 
-//        Log.flushBuffer();
-//        Log.await(1, TimeUnit.HOURS);
+//        DLog.flushBuffer();
+//        DLog.await(1, TimeUnit.HOURS);
     }
 
     public static class Props {

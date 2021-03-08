@@ -7,7 +7,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.containers.collections.CollectionOp;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.values.IntegerValue;
@@ -140,20 +140,20 @@ public class CollectionOpTest {
 
         Equator<Integer> mod3 = (a, b) -> a % 3 == b % 3;
 
-        Log.println("Disjunction");
-        Log.printLines(CollectionOp.disjointPairs(list1, list2, Equator.simpleHashEquator()));
+        DLog.println("Disjunction");
+        DLog.printLines(CollectionOp.disjointPairs(list1, list2, Equator.simpleHashEquator()));
 
-        Log.println("Intersection");
-        Log.printLines(CollectionOp.intersectionPairs(list1, list2, Equator.simpleHashEquator()));
+        DLog.println("Intersection");
+        DLog.printLines(CollectionOp.intersectionPairs(list1, list2, Equator.simpleHashEquator()));
 
-        Log.println("Disjunction");
-        Log.printLines(CollectionOp.disjointPairs(list1, list2, mod3));
+        DLog.println("Disjunction");
+        DLog.printLines(CollectionOp.disjointPairs(list1, list2, mod3));
 
-        Log.println("Intersection");
+        DLog.println("Intersection");
         ArrayList<Pair<Integer>> intersectionPairs = CollectionOp.intersectionPairs(list1, list2, mod3);
-        Log.printLines(intersectionPairs);
+        DLog.printLines(intersectionPairs);
 
-        Log.close();
+        DLog.close();
     }
 
     @Test

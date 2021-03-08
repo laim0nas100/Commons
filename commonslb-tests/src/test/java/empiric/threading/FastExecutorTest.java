@@ -7,7 +7,7 @@ package empiric.threading;
 
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.Range;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
@@ -38,7 +38,7 @@ public class FastExecutorTest {
             F.uncheckedRun(() -> {
 //                Optional<Throwable> execute = sb.execute(() -> {
                     Thread.sleep(100);
-                    Log.print(s);
+                    DLog.print(s);
 //                });
 //                if (execute.isPresent()) {
 //                    execute.get().printStackTrace();
@@ -49,12 +49,12 @@ public class FastExecutorTest {
     }
 
     public void main() throws Exception{
-        Log.main().async = false;
+        DLog.main().async = false;
         System.err.println("ERORR");
         
         Range<Integer> of = Range.of(0, 2);
-        Log.print(of.inRangeExcInc(0));
-         Log.print(of.inRangeExcInc(2));
+        DLog.print(of.inRangeExcInc(0));
+         DLog.print(of.inRangeExcInc(2));
         
         FastWaitingExecutor exe = new FastWaitingExecutor(2,WaitTime.ofSeconds(10));
         
@@ -62,9 +62,9 @@ public class FastExecutorTest {
             exe.execute(makeRun("" + i));
         }
         F.uncheckedRun(() -> {
-            Log.print("Sleep");
+            DLog.print("Sleep");
             Thread.sleep(2000);
-            Log.print("End");
+            DLog.print("End");
         });
         for (int i = 0; i < 100; i++) {
             exe.execute(makeRun("" + i));
@@ -72,13 +72,13 @@ public class FastExecutorTest {
         for (int i = 0; i < 100; i++) {
             exe.execute(makeRun("" + i));
         }
-        Log.changeStream(Log.LogStream.STD_ERR);
-        Log.print("ERROR LINE");
+        DLog.changeStream(DLog.LogStream.STD_ERR);
+        DLog.print("ERROR LINE");
 
         F.uncheckedRun(() -> {
-            Log.print("Sleep");
+            DLog.print("Sleep");
             Thread.sleep(8000);
-            Log.print("End");
+            DLog.print("End");
         });
         
         FutureTask<Object> empty = Futures.empty();
@@ -90,21 +90,21 @@ public class FastExecutorTest {
             
         });
         exe.close();
-//        Log.await(1, TimeUnit.HOURS);
-//        Log.close();
+//        DLog.await(1, TimeUnit.HOURS);
+//        DLog.close();
     }
     
 //    @Test
     public void testPriority() throws Exception{
-        Log.print("OK");
+        DLog.print("OK");
         PriorityFastWaitingExecutor exe = new PriorityFastWaitingExecutor(5);
         for(int i = 0; i < 100; i++){
             int ii = i;
             exe.execute(()->{
-                Log.print(ii);
+                DLog.print(ii);
             });
         }
-        Log.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.HOURS);
         
         
     }

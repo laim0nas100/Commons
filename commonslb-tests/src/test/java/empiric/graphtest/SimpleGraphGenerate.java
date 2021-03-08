@@ -8,7 +8,7 @@ package empiric.graphtest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.graphtheory.GLink;
 import lt.lb.commons.graphtheory.Orgraph;
 import lt.lb.commons.graphtheory.paths.GraphGenerator;
@@ -52,7 +52,7 @@ public class SimpleGraphGenerate {
     // @Test
     // public void hello() {}
     static {
-        Log.main().async = true;
+        DLog.main().async = true;
     }
 
 //    @Test
@@ -70,7 +70,7 @@ public class SimpleGraphGenerate {
 
             return c;
         });
-        Log.printLines(links);
+        DLog.printLines(links);
 
     }
 }

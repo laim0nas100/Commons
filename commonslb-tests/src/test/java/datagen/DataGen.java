@@ -20,7 +20,7 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.fastid.FastIDGen;
 import lt.lb.fastid.FastID;
 import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
@@ -310,7 +310,7 @@ public class DataGen {
     }
 
     public static void main(String[] args) throws Exception {
-        Log.println("hi");
+        DLog.println("hi");
         FastIDGen id1 = new FastIDGen();
 
 //        List<Iterations> iterTSP = iterTSP();
@@ -335,31 +335,31 @@ public class DataGen {
             for (int i = 0; i < times; i++) {
                 l.incrementAndGet();
             }
-        }).print(Log::print);
+        }).print(DLog::print);
         bench.executeBenchParallel(benchTime, "My UUID", () -> {
             for (int i = 0; i < times; i++) {
                 UUIDgenerator.nextUUID();
             }
-        }).print(Log::print);
+        }).print(DLog::print);
         
         bench.executeBenchParallel(benchTime, "FastID", () -> {
             for (int i = 0; i < times; i++) {
                 id1.getAndIncrement();
             }
-        }).print(Log::print);
+        }).print(DLog::print);
         bench.executeBenchParallel(benchTime, "FastID global", () -> {
             for (int i = 0; i < times; i++) {
                 FastID.getAndIncrementGlobal();
             }
-        }).print(Log::print);
+        }).print(DLog::print);
         
         bench.executeBenchParallel(benchTime, "Long value thread local", () -> {
             for (int i = 0; i < times; i++) {
                 lv.get().incrementAndGet();
             }
-        }).print(Log::print);
+        }).print(DLog::print);
         
-        Log.print(FastID.getAndIncrementGlobal());
+        DLog.print(FastID.getAndIncrementGlobal());
         
 //Deterministic generation
 
@@ -368,21 +368,21 @@ public class DataGen {
 //        iter.addAll(iterGCP());
 //        for (Iterations i : iter) {
 //            i.iterate(list -> {
-//                Log.print(list);
+//                DLog.print(list);
 //            });
 //        }
-        Log.print(l.get());
+        DLog.print(l.get());
         
         
-        Log.print("ID copy");
+        DLog.print("ID copy");
         FastID id = FastID.getAndIncrementGlobal();
         
-        Log.print(id);
+        DLog.print(id);
         
         FastID idCopy= new FastID(id.toString());
-        Log.print(idCopy);
+        DLog.print(idCopy);
         
-        Log.close();
+        DLog.close();
 
     }
 

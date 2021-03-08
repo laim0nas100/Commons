@@ -11,9 +11,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.executors.CloseableExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
-import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -21,11 +21,11 @@ import lt.lb.commons.threads.sync.WaitTime;
  *
  * @author laim0nas100
  */
-public class Log {
+public class DLog {
 
-    private static Log mainLog = new Log();
+    private static DLog mainLog = new DLog();
 
-    public static Log main() {
+    public static DLog main() {
         return mainLog;
     }
 
@@ -51,39 +51,39 @@ public class Log {
      */
     /**
      * Final string concatenation
-     *
-     * Log log, String trace, String name, Long millis, String string
+
+ DLog log, String trace, String name, Long millis, String string
      */
-    public Lambda.L5R<Log, String, String, Long, String, String> finalPrintDecorator = DefaultLogDecorators.finalPrintDecorator();
+    public Lambda.L5R<DLog, String, String, Long, String, String> finalPrintDecorator = DefaultDLogDecorators.finalPrintDecorator();
 
     /**
      * Used in println Object[] objects
      */
-    public Lambda.L1R<Object[], Supplier<String>> printLnDecorator = DefaultLogDecorators.printLnDecorator();
+    public Lambda.L1R<Object[], Supplier<String>> printLnDecorator = DefaultDLogDecorators.printLnDecorator();
     /**
      * Used in print Object[] objects
      */
-    public Lambda.L1R<Object[], Supplier<String>> printDecorator = DefaultLogDecorators.printDecorator();
+    public Lambda.L1R<Object[], Supplier<String>> printDecorator = DefaultDLogDecorators.printDecorator();
     /**
      * Used in printLines Collection objects
      */
-    public Lambda.L1R<Iterable, Supplier<String>> printLinesDecorator = DefaultLogDecorators.printLinesDecorator();
+    public Lambda.L1R<Iterable, Supplier<String>> printLinesDecorator = DefaultDLogDecorators.printLinesDecorator();
     /**
      * Used in printIter
      */
-    public Lambda.L1R<Iterator, Supplier<String>> printIterDecorator = DefaultLogDecorators.printIterDecorator();
+    public Lambda.L1R<Iterator, Supplier<String>> printIterDecorator = DefaultDLogDecorators.printIterDecorator();
 
     /**
      * Used in printStackStrace
      */
-    public Lambda.L3R<Throwable, Integer, Integer, Supplier<String>> printStackDecorator = DefaultLogDecorators.stackTraceFullSupplier();
+    public Lambda.L3R<Throwable, Integer, Integer, Supplier<String>> printStackDecorator = DefaultDLogDecorators.stackTraceFullSupplier();
 
-    public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultLogDecorators.stackTraceSupplier();
+    public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultDLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     public CloseableExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
-    public Log() {
+    public DLog() {
 
     }
 
@@ -91,11 +91,11 @@ public class Log {
         useTimeFormat(main(), format);
     }
 
-    public static void useTimeFormat(Log log, String format) {
+    public static void useTimeFormat(DLog log, String format) {
         log.timeStringFormat = DateTimeFormatter.ofPattern(format);
     }
 
-    public static void changeStream(Log log, LogStream c, String... path) throws IOException {
+    public static void changeStream(DLog log, LogStream c, String... path) throws IOException {
         boolean closeable = false;
         PrintStream stream;
         if (null == c) {
@@ -122,7 +122,7 @@ public class Log {
         changeStream(main(), c, path);
     }
 
-    public static void assignStream(Log log, PrintStream stream, boolean closeable) {
+    public static void assignStream(DLog log, PrintStream stream, boolean closeable) {
         close(log);
         log.closed = false;
         log.exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
@@ -134,7 +134,7 @@ public class Log {
         assignStream(main(), stream, closeable);
     }
 
-    public static void await(Log log, long timeout, TimeUnit tu) throws InterruptedException, TimeoutException {
+    public static void await(DLog log, long timeout, TimeUnit tu) throws InterruptedException, TimeoutException {
         if (log.closed) {
             return;
         }
@@ -154,7 +154,7 @@ public class Log {
         flushBuffer(main());
     }
 
-    public static void flushBuffer(Log log) {
+    public static void flushBuffer(DLog log) {
         while (!log.list.isEmpty()) {
             String string = log.list.pollFirst();
             if (string != null) {
@@ -167,7 +167,7 @@ public class Log {
         close(main());
     }
 
-    public static void close(Log log) {
+    public static void close(DLog log) {
         if (log.closed) {
             throw new IllegalStateException("Is allready closed");
         }
@@ -191,14 +191,14 @@ public class Log {
         printLines(main(), col);
     }
 
-    public static void printLines(Log log, Iterable col) {
+    public static void printLines(DLog log, Iterable col) {
         if (log.disable || log.closed) {
             return;
         }
         processString(log, log.printLinesDecorator.apply(col));
     }
 
-    public static void printLines(Log log, Iterator iter) {
+    public static void printLines(DLog log, Iterator iter) {
         if (log.disable || log.closed) {
             return;
         }
@@ -209,7 +209,7 @@ public class Log {
         printLines(main(), iter);
     }
 
-    public static void printLines(Log log, ReadOnlyIterator iter) {
+    public static void printLines(DLog log, ReadOnlyIterator iter) {
         if (log.disable || log.closed) {
             return;
         }
@@ -220,7 +220,7 @@ public class Log {
         printLines(main(), iter);
     }
 
-    public static void print(Log log, Supplier<String> sup) {
+    public static void print(DLog log, Supplier<String> sup) {
         if (log.disable || log.closed) {
             return;
         }
@@ -229,10 +229,10 @@ public class Log {
     }
 
     public static void print(Supplier<String> sup) {
-        print(Log.main(), sup);
+        print(DLog.main(), sup);
     }
 
-    public static <T> void print(Log log, T... objects) {
+    public static <T> void print(DLog log, T... objects) {
         if (log.disable || log.closed) {
             return;
         }
@@ -243,7 +243,7 @@ public class Log {
         print(main(), objects);
     }
 
-    public static <T> void println(Log log, T... objects) {
+    public static <T> void println(DLog log, T... objects) {
         if (log.disable || log.closed) {
             return;
         }
@@ -259,19 +259,19 @@ public class Log {
         printStackTrace(main(), -1, 0, new Throwable());
     }
 
-    public static void printStackTrace(Log log) {
+    public static void printStackTrace(DLog log) {
         printStackTrace(log, -1, 0, new Throwable());
     }
 
-    public static void printStackTrace(Log log, int depth) {
+    public static void printStackTrace(DLog log, int depth) {
         printStackTrace(log, depth, 0, new Throwable());
     }
 
-    public static void printStackTrace(Log log, int depth, Throwable th) {
+    public static void printStackTrace(DLog log, int depth, Throwable th) {
         printStackTrace(log, depth, 0, th);
     }
 
-    public static void printStackTrace(Log log, int depth, int reduceBy, Throwable th) {
+    public static void printStackTrace(DLog log, int depth, int reduceBy, Throwable th) {
         long millis = System.currentTimeMillis();
         final String threadName = Thread.currentThread().getName();
         Supplier<String> supplier = log.printStackDecorator.apply(th, depth, reduceBy);
@@ -288,7 +288,7 @@ public class Log {
 
     }
 
-    private static void processString(Log log, Supplier<String> string) {
+    private static void processString(DLog log, Supplier<String> string) {
         if (!log.override.isPresent()) {
             long millis = System.currentTimeMillis();
             final String threadName = Thread.currentThread().getName();
@@ -306,7 +306,7 @@ public class Log {
         }
     }
 
-    private static void logThis(Log log, String res) {
+    private static void logThis(DLog log, String res) {
         if (log.display) {
             System.out.println(res);
         }
@@ -341,7 +341,7 @@ public class Log {
         return getPrintStream(main());
     }
 
-    public static PrintStream getPrintStream(Log log) {
+    public static PrintStream getPrintStream(DLog log) {
         return log.printStream;
     }
 

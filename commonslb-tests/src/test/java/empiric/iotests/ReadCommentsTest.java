@@ -9,7 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.io.CommentParser;
 
@@ -20,9 +20,9 @@ import lt.lb.commons.io.CommentParser;
 public class ReadCommentsTest {
     public static void main(String[] args) throws IOException{
         ArrayList<String> readFrom = TextFileIO.readFrom(new BufferedReader(new InputStreamReader(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.txt"))));
-        Log.printLines(readFrom);
+        DLog.printLines(readFrom);
         ArrayList<String> parseLineComments = CommentParser.parseLineComments(readFrom, "#");
-        Log.printLines(parseLineComments);
-        Log.close();
+        DLog.printLines(parseLineComments);
+        DLog.close();
     }
 }

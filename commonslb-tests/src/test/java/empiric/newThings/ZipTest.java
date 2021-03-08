@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import lt.lb.commons.F;
-import lt.lb.commons.Log;
+import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.io.blobify.Blobbys;
@@ -51,7 +51,7 @@ public class ZipTest {
                     byte[] readAllBytes = com.google.common.io.ByteStreams.toByteArray(inputStream);
                 });
 
-//                Log.print(readAllBytes.length);
+//                DLog.print(readAllBytes.length);
             });
         } finally {
 
@@ -64,8 +64,8 @@ public class ZipTest {
 
         Benchmark b = new Benchmark();
         b.threads = 4;
-        b.executeBench(16, "Stored", () -> doTest("E:\\LKPB_DS-stored.zip")).print(Log::print);
-        b.executeBench(16, "Compressed", () -> doTest("E:\\LKPB_DS-comp.zip")).print(Log::print);
+        b.executeBench(16, "Stored", () -> doTest("E:\\LKPB_DS-stored.zip")).print(DLog::print);
+        b.executeBench(16, "Compressed", () -> doTest("E:\\LKPB_DS-comp.zip")).print(DLog::print);
         b.executeBench(16, "My boi", () -> {
             Blobbys load = Blobbys.loadFromConfig(ReadOnlyIterator.of(TextFileIO.readFromFile("E:\\DS_DATA.comp.list.txt")));
 
@@ -75,7 +75,7 @@ public class ZipTest {
                     is.close();
                 });
 
-        }).print(Log::print);
+        }).print(DLog::print);
     }
 
     
@@ -96,13 +96,13 @@ public class ZipTest {
 //    @Test
     public void blobOutTest() throws Exception {
         ArrayList<String> readFromFile = TextFileIO.readFromFile(configPath);
-        Log.print("Read config");
+        DLog.print("Read config");
         Blobbys load = Blobbys.loadFromConfig(ReadOnlyIterator.of(readFromFile));
-        Log.print("Apply config");
+        DLog.print("Apply config");
         SeekableByteChannel newByteChannel = Files.newByteChannel(Paths.get(blobPath));
         load.exportFilesLoadOnDemand(dir+"2",Bytes.readFromSeekableByteChannel(newByteChannel), (c,b)->{});
         
-        Log.print("Export done");
+        DLog.print("Export done");
         
     }
     

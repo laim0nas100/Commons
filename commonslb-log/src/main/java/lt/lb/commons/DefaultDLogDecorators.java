@@ -14,11 +14,11 @@ import lt.lb.commons.parsing.StringOp;
  *
  * @author laim0nas100
  */
-public class DefaultLogDecorators {
+public class DefaultDLogDecorators {
 
-    public static Lambda.L5R<Log, String, String, Long, String, String> finalPrintDecorator() {
-        return (Log log, String trace, String name, Long millis, String string) -> {
-            String timeSt = log.timeStamp ? Log.getZonedDateTime(log.timeStringFormat, millis) : "";
+    public static Lambda.L5R<DLog, String, String, Long, String, String> finalPrintDecorator() {
+        return (DLog log, String trace, String name, Long millis, String string) -> {
+            String timeSt = log.timeStamp ? DLog.getZonedDateTime(log.timeStringFormat, millis) : "";
             String threadSt = log.threadName ? "[" + name + "]" : "";
             if (!trace.isEmpty()) {
                 int firstComma = trace.indexOf("(");
