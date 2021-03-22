@@ -2,6 +2,7 @@ package lt.lb.commons.javafx;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -251,19 +252,19 @@ public abstract class FXDefs {
         return cellFactoryString(null, textExtract);
     }
 
-    public static interface SimpleChangeListener<P> extends ChangeListener<P> {
+    public static interface SimpleChangeListener<P> extends ChangeListener<P>, Consumer<P> {
 
         @Override
         public default void changed(ObservableValue<? extends P> ov, P t, P t1) {
-            onNewValue(t1);
+            accept(t1);
         }
 
-        public void onNewValue(P newValue);
+        @Override
+        public void accept(P newValue);
 
         public static <P> SimpleChangeListener<P> of(Consumer<? super P> val) {
-            return (P newValue) -> {
-                val.accept(newValue);
-            };
+            Objects.requireNonNull(val);
+            return val::accept;
         }
 
     }
