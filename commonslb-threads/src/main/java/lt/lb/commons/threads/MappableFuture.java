@@ -137,7 +137,7 @@ public interface MappableFuture<T> extends Future<T> {
             public R get() throws InterruptedException, ExecutionException {
 
                 try {
-                    return AsyncUtil.waitedRetrieve(compl, atsBasic, () -> {
+                    return atsBasic.waitedRetrieve(compl, () -> {
                         return func.applyUnchecked(me.get());
                     });
                 } catch (TimeoutException timeout) {
@@ -163,7 +163,7 @@ public interface MappableFuture<T> extends Future<T> {
 
                 final long calledAt = System.nanoTime();
                 //waiting for mapping queue and waiting for value should share the same time
-                return AsyncUtil.waitedRetrieve(compl, ats, () -> {
+                return ats.waitedRetrieve(compl,  () -> {
                     long toWait = nanos - (System.nanoTime() - calledAt);
                     T unmapped = me.get(toWait, TimeUnit.NANOSECONDS);
                     R mapped = func.applyUnchecked(unmapped);

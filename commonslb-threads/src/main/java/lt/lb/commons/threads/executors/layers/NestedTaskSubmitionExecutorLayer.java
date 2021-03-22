@@ -1,7 +1,10 @@
 package lt.lb.commons.threads.executors.layers;
 
+import java.util.Objects;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import lt.lb.commons.F;
+import lt.lb.commons.threads.executors.ForwardingExecutorService;
 
 /**
  *
@@ -11,13 +14,13 @@ import lt.lb.commons.F;
  * 
  * @author laim0nas100
  */
-public class NestedTaskSubmitionExecutorLayer implements Executor {
+public class NestedTaskSubmitionExecutorLayer implements ForwardingExecutorService {
 
-    protected Executor exe;
+    protected ExecutorService exe;
     protected ThreadLocal<Boolean> inside = ThreadLocal.withInitial(() -> false);
 
-    public NestedTaskSubmitionExecutorLayer(Executor exe) {
-        this.exe = exe;
+    public NestedTaskSubmitionExecutorLayer(ExecutorService exe) {
+        this.exe = Objects.requireNonNull(exe);
     }
 
     @Override
@@ -31,6 +34,11 @@ public class NestedTaskSubmitionExecutorLayer implements Executor {
                 inside.set(false);
             });
         }
+    }
+
+    @Override
+    public ExecutorService delegate() {
+        return exe;
     }
 
 }

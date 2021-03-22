@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
@@ -12,10 +12,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
-import lt.lb.commons.PosEq;
+import lt.lb.commons.func.unchecked.UncheckedRunnable;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.threads.executors.layers.BoundedNestedTaskExecutorLayer;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
 
 /**
  *
@@ -23,7 +22,7 @@ import lt.lb.commons.func.unchecked.UncheckedRunnable;
  */
 public class EventQueue {
 
-    private Executor nested;
+    private ExecutorService nested;
     public boolean preventRunningTagCancel = true;
     public boolean preventRunningSelfTagCancel = true;
     private ConcurrentLinkedDeque<Event> running = new ConcurrentLinkedDeque<>();
@@ -35,7 +34,7 @@ public class EventQueue {
 
     private int autoCleanUpAfter = 100;
 
-    public EventQueue(Executor exe) {
+    public EventQueue(ExecutorService exe) {
         nested = new BoundedNestedTaskExecutorLayer(exe, 1);
     }
 

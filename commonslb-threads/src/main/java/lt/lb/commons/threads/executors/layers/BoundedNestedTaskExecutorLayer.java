@@ -1,7 +1,7 @@
 package lt.lb.commons.threads.executors.layers;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.F;
 
@@ -18,13 +18,13 @@ public class BoundedNestedTaskExecutorLayer extends NestedTaskSubmitionExecutorL
     protected ConcurrentLinkedDeque<Runnable> list = new ConcurrentLinkedDeque<>();
     protected final boolean nestedChecks;
 
-    public BoundedNestedTaskExecutorLayer(Executor exe, int maxThreads, boolean nestedChecks) {
+    public BoundedNestedTaskExecutorLayer(ExecutorService exe, int maxThreads, boolean nestedChecks) {
         super(exe);
         this.spotsLeft = new AtomicInteger(maxThreads);
         this.nestedChecks = nestedChecks;
     }
 
-    public BoundedNestedTaskExecutorLayer(Executor exe, int maxThreads) {
+    public BoundedNestedTaskExecutorLayer(ExecutorService exe, int maxThreads) {
         this(exe, maxThreads, true);
     }
 

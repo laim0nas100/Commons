@@ -11,7 +11,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <apache.commons.version>3.9</apache.commons.version>
-        <javafx.compat.version>11</javafx.compat.version>
+        <javafx.compat.version>15</javafx.compat.version>
+        <include.java.fx>true</include.java.fx>
     </properties>
     <name>CommonsLB</name>
     <modules>
@@ -43,20 +44,21 @@
     
     <profiles>
         <profile>
-            <id>java8compat</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <id>java8oracle</id>
             <properties>
-                <javafx.compat.version>11</javafx.compat.version>
+                <include.java.fx>false</include.java.fx>
             </properties>
         </profile>
         <!--Current LTS-->
         <profile>
             <id>javaLTS</id>
-            <activation>
-                
-            </activation>
+            <properties>
+                <javafx.compat.version>11</javafx.compat.version>
+            </properties>
+        </profile>
+        <!--Bleeding edge-->
+        <profile>
+            <id>javaBleed</id>
             <properties>
                 <javafx.compat.version>15</javafx.compat.version>
             </properties>

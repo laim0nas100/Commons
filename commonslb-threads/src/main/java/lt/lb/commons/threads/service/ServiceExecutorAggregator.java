@@ -1,6 +1,5 @@
 package lt.lb.commons.threads.service;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import lt.lb.commons.threads.sync.Awaiter;
 
 /**
  *
@@ -24,15 +24,23 @@ import java.util.stream.Collectors;
 public class ServiceExecutorAggregator extends AbstractExecutorService implements ScheduledExecutorService {
 
     protected ConcurrentHashMap<String, ExecutorService> servMap = new ConcurrentHashMap<>();
-    protected Supplier<ExecutorService> defaultSupplier = () -> Executors.newSingleThreadExecutor();
-    protected Supplier<ScheduledExecutorService> defaultSchedulerSupplier = () -> Executors.newSingleThreadScheduledExecutor();
+    protected Supplier<ExecutorService> defaultSupplier = () -> createExecutor(1);
+    protected Supplier<ScheduledExecutorService> defaultSchedulerSupplier = () -> createScheduledExecutor(1);
     protected HashMap<String, Supplier<? extends ExecutorService>> serviceSupplier = new HashMap<>();
     protected volatile boolean shutdown;
     protected volatile String mainServiceName = "main";
     protected volatile String mainSchedulerServiceName = "main-scheduler";
 
     public void setService(String name, final int threads) {
-        setService(name, () -> Executors.newFixedThreadPool(threads));
+        setService(name, () -> createExecutor(threads));
+    }
+
+    protected ExecutorService createExecutor(int threads) {
+        return Executors.newFixedThreadPool(threads);
+    }
+
+    protected ScheduledExecutorService createScheduledExecutor(int threads) {
+        return Executors.newScheduledThreadPool(threads);
     }
 
     public void setService(String name, Supplier<? extends ExecutorService> serviceSupl) {
@@ -46,7 +54,7 @@ public class ServiceExecutorAggregator extends AbstractExecutorService implement
     }
 
     public void setScheduledService(String name, final int threads) {
-        setService(name, () -> Executors.newScheduledThreadPool(threads));
+        setService(name, () -> createScheduledExecutor(threads));
     }
 
     public void setMainService(String name) {
@@ -62,6 +70,9 @@ public class ServiceExecutorAggregator extends AbstractExecutorService implement
     }
 
     public ExecutorService service(String servName) {
+        if (shutdown) {
+            throw new IllegalStateException("Shutdown has been called");
+        }
         return servMap.compute(servName, (k, old) -> {
             if (old == null) {
                 return serviceSupplier.getOrDefault(servName, defaultSupplier).get();
@@ -72,6 +83,9 @@ public class ServiceExecutorAggregator extends AbstractExecutorService implement
     }
 
     public ScheduledExecutorService scheduledService(String servName) {
+        if (shutdown) {
+            throw new IllegalStateException("Shutdown has been called");
+        }
         return (ScheduledExecutorService) servMap.compute(servName, (k, old) -> {
             if (old == null) {
                 return serviceSupplier.getOrDefault(servName, defaultSchedulerSupplier).get();
@@ -128,13 +142,9 @@ public class ServiceExecutorAggregator extends AbstractExecutorService implement
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        Collection<ExecutorService> values = servMap.values();
-        for (ExecutorService serv : values) {
-            if (!serv.awaitTermination(timeout, unit)) {
-                return false;
-            }
-        }
-        return true;
+        List<Awaiter.AwaiterTime> collect = servMap.values().stream()
+                .map(m -> Awaiter.fromFunction(m::awaitTermination)).collect(Collectors.toList());
+        return Awaiter.sharedAwaitTimeBool(collect, timeout, unit);
     }
 
     @Override

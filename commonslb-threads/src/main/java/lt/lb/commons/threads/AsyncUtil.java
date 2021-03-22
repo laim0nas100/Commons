@@ -28,50 +28,49 @@ public abstract class AsyncUtil {
                 throw new IllegalStateException("Failed to return the wait token");
             }
         }
-    }
 
-    /**
-     * Unify get() and get(time,timeunit) methods with one interface
-     *
-     * @param <T>
-     * @param compl where to save
-     * @param poller how to await your turn to retrieve
-     * @param getter how to retrieve
-     * @return
-     * @throws InterruptedException
-     * @throws ExecutionException
-     * @throws TimeoutException
-     */
-    public static <T> T waitedRetrieve(CompletableFuture<T> compl, AsyncTokenSupport poller, UncheckedSupplier<T> getter) throws InterruptedException, ExecutionException, TimeoutException {
-        if (compl.isDone()) { //allready mapped, just get
+        /**
+         * Unify get() and get(time,timeunit) methods with one interface
+         *
+         * @param <T>
+         * @param compl where to save
+         * @param getter how to retrieve
+         * @return
+         * @throws InterruptedException
+         * @throws ExecutionException
+         * @throws TimeoutException
+         */
+        public default <T> T waitedRetrieve(CompletableFuture<T> compl, UncheckedSupplier<T> getter) throws InterruptedException, ExecutionException, TimeoutException {
+            if (compl.isDone()) { //allready mapped, just get
+                return compl.get();
+            }
+            boolean awaited = false;
+            try {
+                awaited = this.getToken();
+            } catch (InterruptedException | TimeoutException th) {
+                throw th;
+            }
+            if (!awaited) {
+                throw new IllegalStateException("No wait token but no exception either, error");
+            }
+            // we are mapping
+            if (compl.isDone()) { //allready mapped while we were waiting, just get
+                this.returnTokenOrThrow();
+                return compl.get();
+            }
+            try {
+                T value = getter.uncheckedGet();
+                compl.complete(value);
+
+            } catch (TimeoutException | InterruptedException ex) {
+                this.returnTokenOrThrow();
+                throw ex;// non execution related exception, just pass is through and give a chance another thread to map.
+            } catch (Throwable ex) { // execution related exception
+                compl.completeExceptionally(ex);
+            }
+            this.returnTokenOrThrow();
             return compl.get();
         }
-        boolean awaited = false;
-        try {
-            awaited = poller.getToken();
-        } catch (InterruptedException | TimeoutException th) {
-            throw th;
-        }
-        if (!awaited) {
-            throw new IllegalStateException("No wait token but no exception either, error");
-        }
-        // we are mapping
-        if (compl.isDone()) { //allready mapped while we were waiting, just get
-            poller.returnTokenOrThrow();
-            return compl.get();
-        }
-        try {
-            T value = getter.uncheckedGet();
-            compl.complete(value);
-
-        } catch (TimeoutException | InterruptedException ex) {
-            poller.returnTokenOrThrow();
-            throw ex;// non execution related exception, just pass is through and give a chance another thread to map.
-        } catch (Throwable ex) { // execution related exception
-            compl.completeExceptionally(ex);
-        }
-        poller.returnTokenOrThrow();
-        return compl.get();
     }
 
     /**
