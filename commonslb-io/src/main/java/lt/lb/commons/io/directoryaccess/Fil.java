@@ -66,7 +66,6 @@ public class Fil {
         return cls.getDeclaredConstructor(String.class).newInstance(absolutePath);
     }
 
-
     public String getAbsolutePathWithSeparator() {
         return StringOp.appendIfMissing(absolutePath, File.separator);
     }
@@ -90,4 +89,10 @@ public class Fil {
     public boolean isWriteable() {
         return Files.isWritable(getPath());
     }
+
+    @Override
+    public String toString() {
+        return absolutePath;
+    }
+
 }
