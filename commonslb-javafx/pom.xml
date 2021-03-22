@@ -54,23 +54,13 @@
     
     <profiles>
         <profile>
-            <id>noJavaFX</id>
-            <activation>
-                <property>
-                    <name>include.java.fx</name>
-                    <value>false</value>
-                </property>
-            </activation>
+            <id>java8compat</id>
         </profile>
         <profile>
-            <!--Include javaFX LTS or other-->
-            <id>includeJavaFx</id>
+            <!--Current LTS-->
+            <id>javaLTS</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
-                <property>
-                    <name>include.java.fx</name>
-                    <value>true</value>
-                </property>
             </activation>
             <dependencies>
                 <dependency>

@@ -14,28 +14,13 @@ import java.util.function.Supplier;
  * @param <T>
  */
 @FunctionalInterface
-public interface CloneSupport<T> extends Cloneable {
+public interface CloneSupport<T> extends Cloneable, Supplier<T> {
 
-    /**
-     * Explicit public method for cloning
-     *
-     * @return
-     * @throws CloneNotSupportedException
-     */
-    public T clone() throws CloneNotSupportedException;
+    public T clone();
 
-    /**
-     * Explicit public method for cloning, masking
-     * {@link CloneNotSupportedException} in {@link IllegalArgumentException}
-     *
-     * @return
-     */
-    public default T uncheckedClone() {
-        try {
-            return clone();
-        } catch (CloneNotSupportedException ex) {
-            throw new IllegalArgumentException(ex);
-        }
+    @Override
+    public default T get() {
+        return clone();
     }
 
     public static <T, C extends Collection<T>> C cloneShallowCollection(C iter, Supplier<? extends C> collectionSupplier) {
@@ -56,7 +41,7 @@ public interface CloneSupport<T> extends Cloneable {
      * @return cloned object or null
      */
     public static <A, D extends CloneSupport<A>> A cloneOrNull(D obj) {
-        return obj == null ? null : obj.uncheckedClone();
+        return obj == null ? null : obj.clone();
     }
 
     /**
@@ -187,7 +172,7 @@ public interface CloneSupport<T> extends Cloneable {
         if (map == null) {
             return null;
         }
-        return cloneMap(map, collectionSupplier, k -> k, CloneSupport::uncheckedClone);
+        return cloneMap(map, collectionSupplier, k -> k, CloneSupport::clone);
     }
 
     /**
@@ -206,7 +191,7 @@ public interface CloneSupport<T> extends Cloneable {
         if (map == null) {
             return null;
         }
-        return cloneMap(map, collectionSupplier, CloneSupport::uncheckedClone, CloneSupport::uncheckedClone);
+        return cloneMap(map, collectionSupplier, CloneSupport::clone, CloneSupport::clone);
     }
 
     /**
@@ -224,14 +209,14 @@ public interface CloneSupport<T> extends Cloneable {
         }
         final int size = iter.length;
         A[] array = arraySupplier.apply(size);
-        for (int i = 0; i < iter.length; i++) {
+        for(int i = 0; i < iter.length; i++){
             A cloneOrNull = CloneSupport.cloneOrNull(iter[i]);
             array[i] = cloneOrNull;
         }
         return array;
 
     }
-
+    
     /**
      * Clones an array with specific type hierarchy and casts the result.
      *
@@ -247,7 +232,7 @@ public interface CloneSupport<T> extends Cloneable {
         }
         final int size = iter.length;
         D[] array = arraySupplier.apply(size);
-        for (int i = 0; i < iter.length; i++) {
+        for(int i = 0; i < iter.length; i++){
             D cloneOrNull = (D) CloneSupport.cloneOrNull(iter[i]);
             array[i] = cloneOrNull;
         }
