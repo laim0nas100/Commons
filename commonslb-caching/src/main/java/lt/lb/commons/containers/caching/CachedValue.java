@@ -108,17 +108,17 @@ public class CachedValue<T> extends Value<T> {
         return t -> t.lastGetterCalled().plusSeconds(expirationTimeSeconds).isBefore(LocalDateTime.now());
     }
 
-    public static <T> Predicate<CachedValue<T>> expirationDate(final LocalDateTime date, T val) {
+    public static <T> Predicate<CachedValue<T>> expirationDate(final LocalDateTime date) {
         Objects.requireNonNull(date);
         return t -> LocalDateTime.now().isAfter(date);
     }
 
-    public static <T> Predicate<CachedValue<T>> expirationDateWrite(final LocalDateTime date, T val) {
+    public static <T> Predicate<CachedValue<T>> expirationDateWrite(final LocalDateTime date) {
         Objects.requireNonNull(date);
         return t -> t.lastSetterCall().isAfter(date);
     }
 
-    public static <T> Predicate<CachedValue<T>> expirationDateRead(final LocalDateTime date, T val) {
+    public static <T> Predicate<CachedValue<T>> expirationDateRead(final LocalDateTime date) {
         Objects.requireNonNull(date);
         return t -> t.lastGetterCalled().isAfter(LocalDateTime.now());
     }
