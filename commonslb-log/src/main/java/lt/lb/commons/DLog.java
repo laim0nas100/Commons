@@ -51,8 +51,8 @@ public class DLog {
      */
     /**
      * Final string concatenation
-
- DLog log, String trace, String name, Long millis, String string
+     *
+     * DLog log, String trace, String name, Long millis, String string
      */
     public Lambda.L5R<DLog, String, String, Long, String, String> finalPrintDecorator = DefaultDLogDecorators.finalPrintDecorator();
 
@@ -263,12 +263,24 @@ public class DLog {
         printStackTrace(log, -1, 0, new Throwable());
     }
 
+    public static void printStackTrace(int depth) {
+        printStackTrace(main(), depth, 0, new Throwable());
+    }
+
     public static void printStackTrace(DLog log, int depth) {
         printStackTrace(log, depth, 0, new Throwable());
     }
 
+    public static void printStackTrace(int depth, Throwable th) {
+        printStackTrace(main(), depth, 0, th);
+    }
+
     public static void printStackTrace(DLog log, int depth, Throwable th) {
         printStackTrace(log, depth, 0, th);
+    }
+
+    public static void printStackTrace(int depth, int reduceBy, Throwable th) {
+        printStackTrace(main(), depth, reduceBy, th);
     }
 
     public static void printStackTrace(DLog log, int depth, int reduceBy, Throwable th) {

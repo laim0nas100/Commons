@@ -34,6 +34,21 @@ public interface SyncAndValidationAggregator<E extends SyncAndValidationAggregat
      */
     public <M> Valid createValidation(Predicate<M> pred, Function<? super M, String> errorFunc);
 
+    /**
+     * Create a validation with predicate from a current row and a message
+     * function.
+     *
+     * @param pred
+     * @param errorFunc
+     * @return
+     */
+    public Valid createValidationRow(Predicate<E> pred, Function<E, String> errorFunc);
+
+    /**
+     * {code this} supplement for extensions
+     *
+     * @return
+     */
     public E me();
 
     /**
@@ -322,7 +337,7 @@ public interface SyncAndValidationAggregator<E extends SyncAndValidationAggregat
      * @return
      */
     public default E addValidationPersistPredicate(Supplier<String> msg, Predicate<E> isValid) {
-        Valid<E> valid = createValidation(isValid, m -> msg.get());
+        Valid<E> valid = createValidationRow(isValid, m -> msg.get());
         return addValidationPersist(valid);
 
     }
@@ -337,7 +352,7 @@ public interface SyncAndValidationAggregator<E extends SyncAndValidationAggregat
      * @return
      */
     public default E addValidationDisplayPredicate(Supplier<String> msg, Predicate<E> isValid) {
-        Valid<E> valid = createValidation(isValid, m -> msg.get());
+        Valid<E> valid = createValidationRow(isValid, m -> msg.get());
         return addValidationDisplay(valid);
 
     }

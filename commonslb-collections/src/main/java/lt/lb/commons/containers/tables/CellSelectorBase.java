@@ -135,7 +135,7 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
         return pred == null ? false : pred.test(item);
     }
 
-    private static <P> boolean nullNotTrue(Predicate<P> pred, P item) {
+    private static <P> boolean nullTrueNot(Predicate<P> pred, P item) {
         return pred == null ? true : !pred.test(item);
     }
 
@@ -148,7 +148,7 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
     @Override
     public boolean test(CellPrep t) {
 
-        return nullFalse(prev, t) || (nullTrue(include, t) && nullNotTrue(exclude, t));
+        return nullFalse(prev, t) || (nullTrue(include, t) && nullTrueNot(exclude, t));
     }
 
     public static class CellSelector extends CellSelectorBase {

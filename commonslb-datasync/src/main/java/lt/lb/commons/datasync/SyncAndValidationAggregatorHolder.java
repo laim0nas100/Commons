@@ -56,8 +56,11 @@ public interface SyncAndValidationAggregatorHolder<E extends SyncAndValidationAg
     public default <M> Valid createValidation(Predicate<M> pred, Function<? super M, String> errorFunc) {
         return getAggregator().createValidation(pred, errorFunc);
     }
-    
-    
+
+    @Override
+    public default Valid createValidationRow(Predicate<E> pred, Function<E, String> errorFunc) {
+        return getAggregator().createValidationRow(pred, errorFunc);
+    }
 
     @Override
     public default <M, V extends Valid<M>> PersistAndDisplayValidation<M, V> createBaseSyncValidationUnmanaged() {
