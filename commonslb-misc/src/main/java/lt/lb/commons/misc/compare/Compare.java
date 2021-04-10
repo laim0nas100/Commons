@@ -12,23 +12,23 @@ import static lt.lb.commons.misc.compare.Compare.CompareOperator.*;
  * @author laim0nas100
  */
 public abstract class Compare {
-    
+
     public static enum CompareOperator {
         LESS, LESS_EQ, GREATER, GREATER_EQ, EQ, NOT_EQ
     }
 
     /**
-     * If possible, reverses null order. Only works with {@link CompareNull#NULL_FIRST) or {@link CompareNull#NULL_LAST}.
+     * If possible, reverses null order. Only works with {@link CompareNull#NULL_LOWER) or {@link CompareNull#NULL_HIGHER}.
      *
      * @param cmp
      * @return
      */
     public static CompareNull reverseNullOrder(CompareNull cmp) {
-        if (cmp == NULL_FIRST) {
-            return NULL_LAST;
+        if (cmp == NULL_LOWER) {
+            return NULL_HIGHER;
         }
-        if (cmp == NULL_LAST) {
-            return NULL_FIRST;
+        if (cmp == NULL_HIGHER) {
+            return NULL_LOWER;
         }
         return cmp;
     }
@@ -41,19 +41,47 @@ public abstract class Compare {
         /**
          * Null argument is treated as a lower of the two
          */
-        NULL_FIRST,
+        NULL_LOWER,
         /**
          * Null argument is treated as a higher of the two
          */
-        NULL_LAST,
+        NULL_HIGHER,
         /**
          * Null argument is treated as equal
          */
-        NULL_IGNORE,
+        NULL_EQUAL,
         /**
          * Null arguments throw {@link NullPointerException}
          */
         NULL_THROW
+    }
+
+    /**
+     * Compare 2 optionally-null {@link Comparable} elements using given
+     * {@link CompareNull} operator treating {@code null} as lower of the two.
+     *
+     * @param <T>
+     * @param elem1
+     * @param cmpOp
+     * @param elem2
+     * @return
+     */
+    public static <T extends Comparable<T>> boolean compareNullLower(T elem1, CompareOperator cmpOp, T elem2) {
+        return compare(elem1, cmpOp, elem2, Comparator.naturalOrder(), NULL_LOWER);
+    }
+
+    /**
+     * Compare 2 optionally-null {@link Comparable} elements using given
+     * {@link CompareNull} operator treating {@code null} as higher of the two.
+     *
+     * @param <T>
+     * @param elem1
+     * @param cmpOp
+     * @param elem2
+     * @return
+     */
+    public static <T extends Comparable<T>> boolean compareNullHigher(T elem1, CompareOperator cmpOp, T elem2) {
+        return compare(elem1, cmpOp, elem2, Comparator.naturalOrder(), NULL_HIGHER);
     }
 
     /**
@@ -75,7 +103,7 @@ public abstract class Compare {
         Objects.requireNonNull(cmp);
         int cmpRes = cmpAll(elem1, elem2, cmp, nullOp);
         return cmpResultSwitch(cmpRes, cmpOp);
-        
+
     }
 
     /**
@@ -120,7 +148,7 @@ public abstract class Compare {
         Objects.requireNonNull(cmpOp);
         int cmpNullRes = cmpNulls(elem1, elem2, nullOp);
         return cmpResultSwitch(cmpNullRes, cmpOp);
-        
+
     }
 
     /**
@@ -137,7 +165,7 @@ public abstract class Compare {
     public static <T> int cmpAll(T elem1, T elem2, Comparator<T> cmp, CompareNull cmpNull) {
         Objects.requireNonNull(cmpNull);
         Objects.requireNonNull(cmp);
-        
+
         if (elem1 == null || elem2 == null) {
             return cmpNulls(elem1, elem2, cmpNull);
         } else {
@@ -160,7 +188,7 @@ public abstract class Compare {
         boolean firstNull = elem1 == null;
         boolean secondNull = elem2 == null;
         boolean bothNull = firstNull && secondNull;
-        
+
         if (!firstNull && !secondNull) {
             throw new IllegalArgumentException("One of the arguments must be null");
         }
@@ -168,10 +196,10 @@ public abstract class Compare {
             Objects.requireNonNull(elem1, "Recieved a null first argument");
             Objects.requireNonNull(elem2, "Recieved a null second argument");
         }
-        if (bothNull || nullOp == NULL_IGNORE) {
+        if (bothNull || nullOp == NULL_EQUAL) {
             return 0;
         }
-        if (nullOp == NULL_FIRST) {
+        if (nullOp == NULL_LOWER) {
             return firstNull ? -1 : 1;
         } else {
             return firstNull ? 1 : -1;
@@ -197,30 +225,30 @@ public abstract class Compare {
         int compare = cmp.compare(elem1, elem2);
         return cmpResultSwitch(compare, cmpOp);
     }
-    
+
     public static <T> SimpleCompare<T> of(CompareNull nullCmp, Comparator<T> cmp) {
         return new SimpleCompare<>(nullCmp, cmp);
     }
-    
+
     public static <T extends Comparable<T>> SimpleCompare<T> of(CompareNull nullCmp) {
         Comparator<T> cmp = Comparator.naturalOrder();
         return new SimpleCompare<>(nullCmp, cmp);
     }
-    
+
     public static class SimpleCompare<T> implements Comparator<T>, Equator<T> {
-        
+
         public final CompareNull nullCmp;
         public final Comparator<T> cmp;
-        
+
         protected SimpleCompare(CompareNull nullCmp, Comparator<T> cmp) {
             this.nullCmp = Objects.requireNonNull(nullCmp, "CompareNull is null");
             this.cmp = Objects.requireNonNull(cmp, "Comparator is null");
         }
-        
+
         public boolean compare(T elem1, CompareOperator op, T elem2) {
             return Compare.compare(elem1, op, elem2, cmp, nullCmp);
         }
-        
+
         @Override
         public int compare(T o1, T o2) {
             return Compare.cmpAll(o1, o2, cmp, nullCmp);
@@ -245,27 +273,27 @@ public abstract class Compare {
         public T min(T o1, T o2) {
             return compare(o1, LESS_EQ, o2) ? o1 : o2;
         }
-        
+
         @Override
         public Comparator<T> reversed() {
             CompareNull reverseNullOrder = Compare.reverseNullOrder(this.nullCmp);
             return new SimpleCompare<>(reverseNullOrder, cmp.reversed());
         }
-        
+
         @Override
         public Comparator<T> thenComparing(Comparator<? super T> other) {
             return new SimpleCompare<>(this.nullCmp, cmp.thenComparing(other));
         }
-        
+
         public SimpleCompare<T> thenComparing(CompareNull nullCmp, Comparator<? super T> other) {
             return new SimpleCompare<>(nullCmp, cmp.thenComparing(other));
         }
-        
+
         @Override
         public boolean equate(T value1, T value2) {
             return compare(value1, EQ, value2);
         }
-        
+
     }
-    
+
 }

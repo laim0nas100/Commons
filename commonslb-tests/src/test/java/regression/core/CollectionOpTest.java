@@ -203,8 +203,8 @@ public class CollectionOpTest {
         }
 
         List<Integer> list = Arrays.asList(array);
-        List<Integer> dis1 = list.stream().parallel().sorted(Compare.of(CompareNull.NULL_FIRST)).collect(Collectors.toList());
-        List<Integer> dis2 = list.stream().parallel().sorted(Compare.of(CompareNull.NULL_LAST)).collect(Collectors.toList());
+        List<Integer> dis1 = list.stream().parallel().sorted(Compare.of(CompareNull.NULL_LOWER)).collect(Collectors.toList());
+        List<Integer> dis2 = list.stream().parallel().sorted(Compare.of(CompareNull.NULL_HIGHER)).collect(Collectors.toList());
 
         List<Integer> fil1 = new ArrayList<>();
         List<Integer> fil2 = new ArrayList<>();
