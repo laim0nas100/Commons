@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.RandomAccess;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -31,16 +32,83 @@ import lt.lb.commons.iteration.streams.StreamMappers;
  */
 public class CollectionOp {
 
+    /**
+     * Replace every item with new. Same as calling {@link Collection#clear() }
+     * and {@link Collection#addAll(java.util.Collection)}
+     *
+     * @param <T>
+     * @param collection
+     * @param newItems
+     */
+    public static <T> void replace(Collection<T> collection, Collection<T> newItems) {
+        collection.clear();
+        collection.addAll(newItems);
+    }
+
+    /**
+     * Replace every item with new. Same as calling {@link Collection#clear() }
+     * and {@link Collection#add(java.lang.Object) } repeatedly.
+     *
+     * @param <T>
+     * @param collection
+     * @param newItems
+     */
+    public static <T> void replace(Collection<T> collection, Iterable<T> newItems) {
+        collection.clear();
+        for (T item : newItems) {
+            collection.add(item);
+        }
+    }
+
+    /**
+     * Replace every entry with new. Same as calling {@link Map#clear() } and
+     * {@link Map#putAll(java.util.Map)}
+     *
+     * @param <K>
+     * @param <V>
+     * @param map
+     * @param newItems
+     */
+    public static <K, V> void replace(Map<K, V> map, Map<K, V> newItems) {
+        map.clear();
+        map.putAll(newItems);
+    }
+
+    /**
+     * Swap item in an array
+     *
+     * @param <T>
+     * @param arr
+     * @param i
+     * @param j
+     */
     public static <T> void swap(T[] arr, int i, int j) {
         T tmp = arr[i];
         arr[i] = arr[j];
         arr[j] = tmp;
     }
 
+    /**
+     * Swap items in a {@link List}
+     *
+     * @param arr
+     * @param i
+     * @param j
+     */
     public static void swap(List arr, int i, int j) {
         arr.set(i, arr.set(j, arr.get(i)));
     }
 
+    /**
+     * Merge 2 {@link Iterable} to single {@link Collection} based on provided
+     * {@link Comparator}.
+     *
+     * @param <T>
+     * @param l1
+     * @param l2
+     * @param addTo
+     * @param cmp
+     */
     public static <T> void merge(Iterable<T> l1, Iterable<T> l2, Collection<T> addTo, Comparator<T> cmp) {
         Iterator<T> i1 = l1.iterator();
         Iterator<T> i2 = l2.iterator();
@@ -200,6 +268,8 @@ public class CollectionOp {
     }
 
     /**
+     * Return common items in provided collections using given {@link Equator}
+     * to determine equality. Intersection is based on first {@link Collection}.
      *
      * @param <T>
      * @param c1
@@ -226,6 +296,18 @@ public class CollectionOp {
         return common;
     }
 
+    /**
+     * * Return common items in provided collections using given
+     * {@link Equator} to determine equality. Retains original items in
+     * {@link Pair} object with item in corresponding slot, which identifies in
+     * which {@link Collection} it was contained.
+     *
+     * @param <T>
+     * @param c1
+     * @param c2
+     * @param eq
+     * @return
+     */
     public static <T> ArrayList<Pair<T>> intersectionPairs(Collection<T> c1, Collection<T> c2, Equator<T> eq) {
 
         LinkedHashSet<Equator.EqualityProxy<T>> m1 = new LinkedHashSet<>();
@@ -253,8 +335,10 @@ public class CollectionOp {
     }
 
     /**
-     * Return disjoint sets with their respective position as origin. For
-     * example [1,3,5,7,8,9] [1,2,5,6,7,8] will return [3,9] and [2,6]
+     * Return disjoint sets with their respective position signifying origin.
+     * For example [0,1,3,5,7,8,9] [1,2,5,6,7,8] will return [0,3,9] and [2,6]
+     * sets as {@link List} of {@link PairLeft} or {@link PairRight} as such
+     * [(0,null), (3,null), (9,null), (null,2), (null,6)].
      *
      * @param <T>
      * @param left
@@ -302,6 +386,16 @@ public class CollectionOp {
         return set;
     }
 
+    /**
+     * If master collection has an item that is in any of the provided
+     * {@link Iterable}. If either of arguments if empty as specified by
+     * {@link CollectionOp#isEmpty} then returns {@code false}
+     *
+     * @param <T>
+     * @param master
+     * @param iterables
+     * @return
+     */
     public static <T> boolean containsAny(Collection master, Iterable... iterables) {
         if (isEmpty(master)) {
             return false;
@@ -321,7 +415,17 @@ public class CollectionOp {
         return false;
     }
 
-    public static boolean containsAny(Collection master, Object[]... arrays) {
+    /**
+     * If master collection has an item that is in any of the provided
+     * {@link Iterable}. If either of arguments if empty as specified by
+     * {@link CollectionOp#isEmpty} then returns {@code false}
+     *
+     * @param master
+     * @param arrays
+     * @return
+     */
+    public static boolean containsAny(Collection master, Object[]  
+        ... arrays) {
         if (isEmpty(master)) {
             return false;
         }
@@ -339,7 +443,15 @@ public class CollectionOp {
         return false;
     }
 
-    public static boolean isEmpty(Object[]... arrays) {
+    /**
+     * Return {@code true} when the argument is null, length is 0, or no
+     * non-null or empty arrays.
+     *
+     * @param arrays
+     * @return
+     */
+    public static boolean isEmpty(Object[]  
+        ... arrays) {
         if (arrays == null) {
             return true;
         }
@@ -354,6 +466,13 @@ public class CollectionOp {
         return true;
     }
 
+    /**
+     * Return {@code true} when the argument is null, length is 0, or no
+     * non-null or empty iterables.
+     *
+     * @param iterables
+     * @return
+     */
     public static boolean isEmpty(Iterable... iterables) {
         if (iterables == null) {
             return true;
@@ -371,6 +490,15 @@ public class CollectionOp {
         return true;
     }
 
+    /**
+     * If master collection has an item that is in any of the provided
+     * {@link Iterable}. If either of arguments if empty as specified by
+     * {@link CollectionOp#isEmpty} then returns {@code false}
+     *
+     * @param master
+     * @param iterables
+     * @return
+     */
     public static boolean containsAll(Collection master, Iterable... iterables) {
         if (isEmpty(master)) {
             return false;
@@ -390,7 +518,17 @@ public class CollectionOp {
         return false;
     }
 
-    public static boolean containsAll(Collection master, Object[]... arrays) {
+    /**
+     * If master collection has an item that is in any of the provided arrays.
+     * If either of arguments if empty as specified by
+     * {@link CollectionOp#isEmpty} then returns {@code false}
+     *
+     * @param master
+     * @param arrays
+     * @return
+     */
+    public static boolean containsAll(Collection master, Object[]  
+        ... arrays) {
         if (isEmpty(master)) {
             return false;
         }
@@ -409,6 +547,17 @@ public class CollectionOp {
         return false;
     }
 
+    /**
+     * Lazily add all items. Make {@link Collection} if given collection is null
+     * AND there are some items to add, even if the item is null.
+     *
+     * @param <T>
+     * @param <C>
+     * @param maker
+     * @param col
+     * @param items
+     * @return
+     */
     public static <T, C extends Collection<T>> C lazyAdd(Supplier<C> maker, C col, T... items) {
         if (items.length == 0) {
             return col;
@@ -422,6 +571,17 @@ public class CollectionOp {
         return col;
     }
 
+    /**
+     * Lazily add all items. Make {@link Collection} if given collection is null
+     * AND there are some items to add, even if the item is null.
+     *
+     * @param <T>
+     * @param <C>
+     * @param maker
+     * @param col
+     * @param items
+     * @return
+     */
     public static <T, C extends Collection<T>> C lazyAdd(Supplier<C> maker, C col, Iterable<T> items) {
 
         if (items == null || (!items.iterator().hasNext())) {
