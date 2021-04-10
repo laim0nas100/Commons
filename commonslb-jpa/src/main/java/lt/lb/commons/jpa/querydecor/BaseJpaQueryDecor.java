@@ -346,6 +346,10 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         }
     }
 
+    public Stream<T_RESULT> buildListStream(EntityManager em) {
+        return build(em).getResultList().stream();
+    }
+
     public List<T_RESULT> buildList(EntityManager em) {
         return build(em).getResultList();
     }
@@ -382,14 +386,20 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
                 Phase3Query<T_ROOT, T_RESULT> p3 = DecoratorPhases.of(p2, query);
                 lazyConsumers(dec3, p3);
                 lazyPredicates(pred3, p3, predicates);
-                Predicate[] toArray = predicates.toArray(new Predicate[predicates.size()]);
-                query.where(toArray);
+
             } else if (q3sub && subquery != null) {
                 Phase3Subquery<T_ROOT, T_RESULT> p3 = DecoratorPhases.of(p2, subquery, parentQuery);
                 lazyConsumers(dec3Subquery, p3);
                 lazyPredicates(pred3Subquery, p3, predicates);
+
+            }
+            if (!predicates.isEmpty()) {
                 Predicate[] toArray = predicates.toArray(new Predicate[predicates.size()]);
-                subquery.where(toArray);
+                if (query != null) {
+                    query.where(toArray);
+                } else if (subquery != null) {
+                    subquery.where(toArray);
+                }
             }
 
         }
