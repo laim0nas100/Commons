@@ -566,7 +566,11 @@ public class CollectionOp {
                 col = maker.get();
             }
         }
-        col.addAll(Arrays.asList(items));
+        if (items.length == 1) {
+            col.add(items[0]);
+        } else {
+            col.addAll(Arrays.asList(items));
+        }
 
         return col;
     }
