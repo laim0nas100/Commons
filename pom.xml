@@ -11,8 +11,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
         <apache.commons.version>3.9</apache.commons.version>
-        <javafx.compat.version>15</javafx.compat.version>
-        <include.java.fx>true</include.java.fx>
+        <javafx.compat.version>11</javafx.compat.version>
     </properties>
     <name>CommonsLB</name>
     <modules>
@@ -41,30 +40,6 @@
             <url>https://jitpack.io</url>
         </repository>
     </repositories>
-    
-    <profiles>
-        <profile>
-            <id>java8oracle</id>
-            <properties>
-                <include.java.fx>false</include.java.fx>
-            </properties>
-        </profile>
-        <!--Current LTS-->
-        <profile>
-            <id>javaLTS</id>
-            <properties>
-                <javafx.compat.version>11</javafx.compat.version>
-            </properties>
-        </profile>
-        <!--Bleeding edge-->
-        <profile>
-            <id>javaBleed</id>
-            <properties>
-                <javafx.compat.version>15</javafx.compat.version>
-            </properties>
-        </profile>
-    </profiles>
-    
     
     <dependencyManagement>
         <dependencies>
