@@ -10,7 +10,7 @@ public interface StringParserWithDefaultValue<T, D> extends StringParserWithValu
 
     /**
      * Caller is responsible to throw Exceptions if default value is
-     * misconfigured.
+     * miss-configured.
      *
      * @return
      */
