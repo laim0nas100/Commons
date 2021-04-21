@@ -25,6 +25,7 @@ import lt.lb.commons.containers.tuples.PairRight;
 import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *
@@ -208,11 +209,12 @@ public class CollectionOp {
             i++;
         }
 
-        F.uncheckedRun(() -> {
+        UncheckedRunnable run = () -> {
             for (Future future : deque) {
                 future.get();
             }
-        });
+        };
+        run.run(); // unchecked run
         int remove = size - satisfiedCount.get();
         if (remove > 0) {
             return removeByConditionIndex(col, satisfied, remove);
@@ -424,8 +426,7 @@ public class CollectionOp {
      * @param arrays
      * @return
      */
-    public static boolean containsAny(Collection master, Object[]  
-        ... arrays) {
+    public static boolean containsAny(Collection master, Object[]... arrays) {
         if (isEmpty(master)) {
             return false;
         }
@@ -450,8 +451,7 @@ public class CollectionOp {
      * @param arrays
      * @return
      */
-    public static boolean isEmpty(Object[]  
-        ... arrays) {
+    public static boolean isEmpty(Object[]... arrays) {
         if (arrays == null) {
             return true;
         }
@@ -527,8 +527,7 @@ public class CollectionOp {
      * @param arrays
      * @return
      */
-    public static boolean containsAll(Collection master, Object[]  
-        ... arrays) {
+    public static boolean containsAll(Collection master, Object[]... arrays) {
         if (isEmpty(master)) {
             return false;
         }

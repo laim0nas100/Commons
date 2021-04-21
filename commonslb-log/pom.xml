@@ -33,6 +33,10 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-iteration</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.laim0nas100</groupId>
+            <artifactId>UncheckedUtils</artifactId>
+        </dependency>
     </dependencies>
     
 </project>

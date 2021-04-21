@@ -19,6 +19,7 @@ import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.misc.rng.FastRandom;
+import lt.lb.uncheckedutils.Checked;
 import org.junit.Test;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
@@ -137,7 +138,7 @@ public class CollectionTest {
         
         DLog.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
         DLog.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
-        F.checkedRun(() -> {
+        Checked.checkedRun(() -> {
             DLog.await(1, TimeUnit.HOURS);
         });
     }

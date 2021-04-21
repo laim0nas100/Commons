@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads.executors;
 
 import java.util.ArrayDeque;
@@ -20,7 +15,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lt.lb.commons.F;
 import lt.lb.commons.threads.sync.WaitTime;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -81,7 +76,7 @@ public class TaskBatcher implements Executor {
      * @return
      */
     public BatchRunSummary awaitFailOnFirst() {
-        return F.checkedCallNoExceptions(() -> {
+        return Checked.checkedCallNoExceptions(() -> {
             return await(true, WaitTime.ofDays(0), WaitTime.ofDays(0));// should not throw InterruptedException
         });
     }
@@ -92,7 +87,7 @@ public class TaskBatcher implements Executor {
      * @return
      */
     public BatchRunSummary awaitTolerateFails() {
-        return F.checkedCallNoExceptions(() -> {
+        return Checked.checkedCallNoExceptions(() -> {
             return await(false, WaitTime.ofDays(0), WaitTime.ofDays(0));// should not throw InterruptedException
         });
     }
@@ -119,7 +114,7 @@ public class TaskBatcher implements Executor {
                 boolean waitPoll = pollWait.time > 0;
                 boolean waitGet = executionWait.time > 0;
                 while (!deque.isEmpty()) {
-                    Future last = F.checkedCallNoExceptions(() -> {
+                    Future last = Checked.checkedCallNoExceptions(() -> {
                         return waitPoll ? deque.pollLast(pollWait.time, pollWait.unit) : deque.pollLast();
                     });
 
@@ -163,7 +158,7 @@ public class TaskBatcher implements Executor {
             this.waitingTask = new FutureTask<>(call);
 
         }
-        return F.uncheckedCall(() -> {
+        return Checked.uncheckedCall(() -> {
             waitingTask.run();
             return waitingTask.get();
         });

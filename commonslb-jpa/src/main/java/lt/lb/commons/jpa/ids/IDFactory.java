@@ -1,8 +1,10 @@
 package lt.lb.commons.jpa.ids;
 
 import java.lang.reflect.Method;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
 
 /**
  *
@@ -80,22 +82,23 @@ public interface IDFactory<I> {
     }
 
     /**
-     * Finds first method called 'getid' (case-insensisitive)
+     * Finds first public method called 'getid' (case-insensitive)
      *
      * @param cls
      * @return
      */
-    public default Method defaultNameIdGetter(Class cls) {
-        return Stream.of(cls.getMethods()).filter(me -> me.getName().equalsIgnoreCase("getid")).findFirst().get();
+    public default <T> Function<T, I> defaultIdGetter(Class cls) {
+        Method method = Stream.of(cls.getMethods()).filter(me -> me.getName().equalsIgnoreCase("getid")).findFirst().get();
+        return (UncheckedFunction<T, I>) (T item) -> (I) method.invoke(item);
     }
 
     /**
-     * Gets and casts ID from defaultNameIdGetter method.
+     * Gets and casts ID from {@link IDFactory#defaultIdGetter(java.lang.Class) } method.
      *
      * @param ob
      * @return
      */
-    public default I defaultGetId(Object ob) {
-        return F.uncheckedCall(() -> (I) defaultNameIdGetter(ob.getClass()).invoke(ob));
+    public default <T> I defaultGetId(T ob) {
+        return defaultIdGetter(ob.getClass()).apply(ob);
     }
 }

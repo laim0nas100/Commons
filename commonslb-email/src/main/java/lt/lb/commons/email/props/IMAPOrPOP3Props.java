@@ -9,6 +9,7 @@ import javax.mail.Message;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.PosEq;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -41,7 +42,7 @@ public abstract class IMAPOrPOP3Props extends SearchableEmailProps {
             if (this.getFolderOpenMode() != Folder.READ_WRITE) {
                 return;
             }
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
                 m.setFlag(Flags.Flag.DELETED, this.deleteAfterRead);
             });
         });

@@ -15,7 +15,7 @@ import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.executors.PriorityFastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
 import lt.lb.commons.threads.sync.WaitTime;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -35,7 +35,7 @@ public class FastExecutorTest {
     public static Runnable makeRun(String s) {
         return () -> {
 
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
 //                Optional<Throwable> execute = sb.execute(() -> {
                     Thread.sleep(100);
                     DLog.print(s);
@@ -61,7 +61,7 @@ public class FastExecutorTest {
         for (int i = 0; i < 10; i++) {
             exe.execute(makeRun("" + i));
         }
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             DLog.print("Sleep");
             Thread.sleep(2000);
             DLog.print("End");
@@ -75,7 +75,7 @@ public class FastExecutorTest {
         DLog.changeStream(DLog.LogStream.STD_ERR);
         DLog.print("ERROR LINE");
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             DLog.print("Sleep");
             Thread.sleep(8000);
             DLog.print("End");
@@ -84,7 +84,7 @@ public class FastExecutorTest {
         FutureTask<Object> empty = Futures.empty();
         exe.execute(empty);
         
-        F.uncheckedRun(()->{
+        Checked.uncheckedRun(()->{
             empty.get();
             Thread.sleep(1000);
             

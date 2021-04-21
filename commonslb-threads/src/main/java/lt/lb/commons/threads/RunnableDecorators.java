@@ -5,10 +5,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lt.lb.commons.F;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
-
 /**
  *
  * @author laim0nas100
@@ -31,12 +30,12 @@ public class RunnableDecorators {
             Runnable interrupter = () -> {
                 if (!isDone.get()) {
                     toCancel.interrupt();
-                    F.checkedRun(onInterrupt);
+                    Checked.checkedRun(onInterrupt);
                 }
                 service.shutdown();
             };
             service.schedule(interrupter, time.time, time.unit);
-            Optional<Throwable> checkedRun = F.checkedRun(run);
+            Optional<Throwable> checkedRun = Checked.checkedRun(run);
             isDone.set(true);
             service.shutdownNow();
             if (checkedRun.isPresent()) {
@@ -129,12 +128,12 @@ public class RunnableDecorators {
                 if (!isDone.get()) {
                     interruptReached.set(true);
                     toCancel.interrupt();
-                    F.checkedRun(onInterrupt);
+                    Checked.checkedRun(onInterrupt);
                 }
             };
             while ((always || repeat > 0) && !isDone.get()) {
                 service.schedule(interrupter, time.time, time.unit);
-                Optional<Throwable> map = F.checkedRun(run);
+                Optional<Throwable> map = Checked.checkedRun(run);
                 if (map.isPresent()) {
                     if (interruptReached.get() && map.get() instanceof InterruptedException) {
                         //repeat

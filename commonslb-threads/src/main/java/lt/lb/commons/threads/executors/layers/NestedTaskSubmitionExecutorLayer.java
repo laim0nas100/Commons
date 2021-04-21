@@ -1,10 +1,9 @@
 package lt.lb.commons.threads.executors.layers;
 
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import lt.lb.commons.F;
 import lt.lb.commons.threads.executors.ForwardingExecutorService;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -26,11 +25,11 @@ public class NestedTaskSubmitionExecutorLayer implements ForwardingExecutorServi
     @Override
     public void execute(Runnable command) {
         if (inside.get()) {
-            F.checkedRun(command);
+            Checked.checkedRun(command);
         } else {
             exe.execute(() -> {
                 inside.set(true);
-                F.checkedRun(command);
+                Checked.checkedRun(command);
                 inside.set(false);
             });
         }

@@ -10,6 +10,7 @@ import java.util.function.Function;
 import lt.lb.commons.F;
 import lt.lb.uncheckedutils.NestedException;
 import lt.lb.fastid.FastIDGen;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -54,7 +55,7 @@ public class BindingValue<T> extends Value<T> {
         if (!inside.compareAndSet(false, true)) { // failed to set, return
             return;
         }
-        Optional<Throwable> checkedRun = F.checkedRun(() -> {
+        Optional<Throwable> checkedRun = Checked.checkedRun(() -> {
             listeners.values().stream().forEachOrdered(listener -> {
                 listener.accept(oldVal, newVal);
             });

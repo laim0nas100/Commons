@@ -3,7 +3,7 @@ package lt.lb.commons.threads.executors.layers;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
-import lt.lb.commons.F;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -32,7 +32,7 @@ public class BoundedNestedTaskExecutorLayer extends NestedTaskSubmitionExecutorL
     public void execute(Runnable run) {
         if (nestedChecks && inside.get()) {
             // submitted new task while inside a thread.
-            F.checkedRun(run);
+            Checked.checkedRun(run);
             return;
 
         }
@@ -79,7 +79,7 @@ public class BoundedNestedTaskExecutorLayer extends NestedTaskSubmitionExecutorL
                 inside.set(true);
             }
             
-            F.checkedRun(run);
+            Checked.checkedRun(run);
             if (nestedChecks) {
                 inside.set(false);
             }

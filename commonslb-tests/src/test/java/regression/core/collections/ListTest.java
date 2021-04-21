@@ -24,7 +24,7 @@ import lt.lb.commons.containers.collections.PagedList;
 import lt.lb.commons.containers.collections.PrefillArrayList;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import org.junit.Test;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -52,7 +52,7 @@ public class ListTest {
             Object get1 = testing.get(i);
             this.assertEquals(i, l1, testing, get, get1);
         }
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ListIterator listIterator = l1.listIterator();
             ListIterator listIterator1 = testing.listIterator();
             int i = 0;
@@ -63,7 +63,7 @@ public class ListTest {
             }
         });
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ListIterator listIterator = l1.listIterator(size);
             ListIterator listIterator1 = testing.listIterator(size);
             int i = 0;

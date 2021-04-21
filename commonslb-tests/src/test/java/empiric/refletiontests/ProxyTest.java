@@ -16,7 +16,7 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.DLog;
 import org.junit.Test;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -34,7 +34,7 @@ public class ProxyTest {
         
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            F.checkedRun(()->{
+            Checked.checkedRun(()->{
                 DLog.print("Invoked method:", method.getName(), "At object:", real, "with params:", Arrays.asList(args));
             });
             
@@ -47,7 +47,7 @@ public class ProxyTest {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            F.checkedRun(()->{
+            Checked.checkedRun(()->{
                 DLog.print("Invoked method:", method.getName(), "At object:", proxy, "with params:", Arrays.asList(args));
             });
             DLog.print("INSIDE");
@@ -64,7 +64,7 @@ public class ProxyTest {
 
         DLog.print(proxyMap.get("key1"));
         
-        F.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
+        Checked.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
 
     }
 

@@ -4,10 +4,10 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.Optional;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.parsing.StringOp;
+import lt.lb.uncheckedutils.Checked;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -21,7 +21,7 @@ public class FieldChain {
     protected String[] path;
 
     public void doSet(Object ob, Object value) {
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             Tuple<FieldChain, Object> last = getLast(ob);
             FieldChain fc = last.g1;
             Refl.fieldAccessableSet(fc.current, last.g2, value);
@@ -29,7 +29,7 @@ public class FieldChain {
     }
 
     public Object doGet(Object ob) {
-        return F.uncheckedCall(() -> {
+        return Checked.uncheckedCall(() -> {
             Tuple<FieldChain, Object> last = getLast(ob);
             FieldChain fc = last.g1;
             return Refl.fieldAccessableGet(fc.current, last.g2);
@@ -37,7 +37,7 @@ public class FieldChain {
     }
 
     private Tuple<FieldChain, Object> getLast(Object ob) {
-        return F.uncheckedCall(() -> {
+        return Checked.uncheckedCall(() -> {
             FieldChain chain = this;
             Object currObject = ob;
             while (chain.next != null) {
@@ -142,7 +142,7 @@ public class FieldChain {
         }
 
         private Tuple<ObjectFieldChain, Object> getLast(Object ob) {
-            return F.uncheckedCall(() -> {
+            return Checked.uncheckedCall(() -> {
                 ObjectFieldChain chain = this;
                 Object currObject = ob;
                 while (chain.next != null) {
@@ -159,7 +159,7 @@ public class FieldChain {
         }
 
         public void doSet(Object ob, Object value) {
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
                 Tuple<ObjectFieldChain, Object> last = getLast(ob);
 
                 ObjectFieldChain fc = last.g1;
@@ -171,7 +171,7 @@ public class FieldChain {
         }
 
         public Object doGet(Object ob) {
-            return F.uncheckedCall(() -> {
+            return Checked.uncheckedCall(() -> {
                 Tuple<ObjectFieldChain, Object> last = getLast(ob);
 
                 ObjectFieldChain fc = last.g1;

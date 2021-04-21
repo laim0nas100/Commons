@@ -15,6 +15,7 @@ import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.executors.CloseableExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  * Simple logger oriented to debuging.
@@ -180,7 +181,7 @@ public class DLog {
             }
         });
         log.exe.execute(shutdownRequest);
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             shutdownRequest.get();
             log.exe.close();
         });

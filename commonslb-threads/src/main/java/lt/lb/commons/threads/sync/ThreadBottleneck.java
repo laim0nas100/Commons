@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import lt.lb.commons.F;
+import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
@@ -47,7 +48,7 @@ public class ThreadBottleneck {
 
     public Optional<Throwable> execute(UncheckedRunnable run, WaitTime time) throws InterruptedException {
         if (inside.get()) { // recursive call
-            return F.checkedRun(run);
+            return Checked.checkedRun(run);
         }
         Object poll = tryTakeToken(time);
         if (poll != null) {
@@ -68,7 +69,7 @@ public class ThreadBottleneck {
 
     private Optional<Throwable> uniqueThreadRun(UncheckedRunnable r) {
         inside.set(Boolean.TRUE);
-        Optional<Throwable> result = F.checkedRun(r);
+        Optional<Throwable> result = Checked.checkedRun(r);
         reinsert();
         inside.set(Boolean.FALSE);
         return result;
@@ -92,7 +93,7 @@ public class ThreadBottleneck {
 
     private Optional<Throwable> execute0(UncheckedRunnable run) {
         if (inside.get()) { // recursive call
-            return F.checkedRun(run);
+            return Checked.checkedRun(run);
         }
         Object poll = null;
         try {

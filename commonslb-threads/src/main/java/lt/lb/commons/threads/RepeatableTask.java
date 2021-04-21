@@ -1,17 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lt.lb.commons.F;
+import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.NestedException;
-
 /**
  *
  * @author laim0nas100
@@ -32,7 +26,7 @@ public class RepeatableTask implements Runnable {
     @Override
     public void run() {
         if (ready.compareAndSet(true, false)) {
-            Optional<Throwable> checkedRun = F.checkedRun(() -> {
+            Optional<Throwable> checkedRun = Checked.checkedRun(() -> {
                 call.call();
             });
             ready.set(true);

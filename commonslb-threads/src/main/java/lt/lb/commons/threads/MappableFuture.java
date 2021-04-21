@@ -9,9 +9,9 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import lt.lb.commons.F;
-import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.NestedException;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.uncheckedutils.func.UncheckedSupplier;
@@ -75,7 +75,7 @@ public interface MappableFuture<T> extends Future<T> {
      * @return
      */
     public default T justGet() throws NestedException {
-        return F.uncheckedCall(() -> get());
+        return Checked.uncheckedCall(() -> get());
     }
 
     /**

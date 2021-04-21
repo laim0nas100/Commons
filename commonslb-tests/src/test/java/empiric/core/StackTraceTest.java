@@ -18,7 +18,7 @@ import lt.lb.commons.misc.rng.FastRandom;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.misc.rng.XorShiftRNG;
 import org.junit.Test;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -67,7 +67,7 @@ public class StackTraceTest {
         for (int i = 0; i < 30; i++) {
             DLog.print(rng.nextBoolean());
         }
-        F.checkedRun(() -> DLog.await(1, TimeUnit.HOURS));
+        Checked.checkedRun(() -> DLog.await(1, TimeUnit.HOURS));
     }
 
 //    @Test

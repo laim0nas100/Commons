@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.threads.executors.FastExecutor;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -33,7 +33,7 @@ public class SelfReferencingRunnableTest {
             }
             c.incrementAndGet();
 
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
                 Thread.sleep(1);
             });
         };
@@ -51,7 +51,7 @@ public class SelfReferencingRunnableTest {
             }
             c.incrementAndGet();
 
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
                 Thread.sleep(0,10);
             });
             
@@ -64,7 +64,7 @@ public class SelfReferencingRunnableTest {
         
         exe.execute(run);
 
-        F.uncheckedRun(()->{
+        Checked.uncheckedRun(()->{
             Thread.sleep(10000); // sleep 10 sec
         });
         exe.close();
@@ -78,7 +78,7 @@ public class SelfReferencingRunnableTest {
             }
             c.incrementAndGet();
 
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
                 Thread.sleep(1);
             });
             r.get().run();

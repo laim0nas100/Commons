@@ -15,6 +15,7 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.uncheckedutils.func.UncheckedSupplier;
 import lt.lb.commons.threads.sync.AtomicMap;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.uncheckedutils.Checked;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -209,7 +210,7 @@ public class ContextualizedSync {
             return presentLock;
         });
         if (lock.isNotPrimary()) {
-            return F.checkedCall(call);
+            return Checked.checkedCall(call);
         }
 
         LockCTX establish = establish(lock);
@@ -230,7 +231,7 @@ public class ContextualizedSync {
             establish = establish(lock);
         }
 
-        SafeOpt<T> checkedCall = F.checkedCall(call);
+        SafeOpt<T> checkedCall = Checked.checkedCall(call);
         destablish(lock);
 
         return checkedCall;

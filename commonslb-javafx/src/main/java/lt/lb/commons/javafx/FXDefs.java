@@ -36,6 +36,7 @@ import lt.lb.commons.misc.Range;
 import lt.lb.commons.parsing.NumberParsing;
 import lt.lb.commons.javafx.fxrows.FXDrows;
 import lt.lb.commons.javafx.fxrows.FXDrowsConf;
+import lt.lb.uncheckedutils.Checked;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -173,7 +174,7 @@ public abstract class FXDefs {
 
         @Override
         protected void updateItem(P item, boolean empty) {
-            F.checkedRun(() -> {
+            Checked.checkedRun(() -> {
                 if (decorator == null) {
                     return;
                 }

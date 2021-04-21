@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.EnumSet;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -87,7 +88,7 @@ public class WekaDefaultParsers {
             @Override
             public Date asObject(String str) {
                 Value<Date> ob= new Value<>();
-                F.uncheckedRun(()->{
+                Checked.uncheckedRun(()->{
                     ob.set(format.parse(str));
                 });
                 return ob.get();

@@ -21,7 +21,7 @@ import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import org.junit.Test;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -43,7 +43,7 @@ public class TreeIterationTest {
         DLog.print("ok");
         DLog.print("Stack depth:", ReflectionUtils.getMaximumStackDepth());
 
-        F.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
+        Checked.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
 
     }
 
@@ -123,7 +123,7 @@ public class TreeIterationTest {
 //        DLog.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),false).resolve());
 //        DLog.print("DFS order 3");
 //        DLog.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),true).resolve());
-        F.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
+        Checked.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
 
     }
 

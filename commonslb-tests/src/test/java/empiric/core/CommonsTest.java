@@ -31,6 +31,7 @@ import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.misc.ArrayBasedCounter;
 import lt.lb.commons.threads.executors.FastExecutor;
 import org.junit.*;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -108,7 +109,7 @@ public class CommonsTest {
                 .startingWithOpt(collection);
 
         DLog.print("Filtered distinct", filterDistinct);
-        F.checkedRun(() -> {
+        Checked.checkedRun(() -> {
             DLog.await(1, TimeUnit.HOURS);
         });
 
@@ -122,7 +123,7 @@ public class CommonsTest {
         DLog.main().async = true;
         DLog.main().threadName = false;
         DLog.main().timeStamp = false;
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "/*", "*/");
 
@@ -130,7 +131,7 @@ public class CommonsTest {
             DLog.print("########");
         });
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             String url = desktop + "myFile.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url);
 //            DLog.printLines(readFromFile);
@@ -144,7 +145,7 @@ public class CommonsTest {
             DLog.printLines(parsed);
         });
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             String url = desktop + "myFile2.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "**", "**");
 //            DLog.printLines(readFromFile);
@@ -175,7 +176,7 @@ public class CommonsTest {
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.txt");
             int colCount = readFromFile.get(0).split(",").length;
             DLog.print(colCount);
@@ -202,7 +203,7 @@ public class CommonsTest {
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.csv");
             int colCount = readFromFile.get(0).split(",").length;
             DLog.print(colCount);
@@ -235,7 +236,7 @@ public class CommonsTest {
         String desktop = "C:\\Users\\Lemmin\\Desktop\\";
         String relationTitle = "SomeTitle";
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ArrayList<String> readFromFile = TextFileIO.readFromFile(desktop + "raw.csv");
             int colCount = readFromFile.get(0).split(",").length;
             DLog.print(colCount);
@@ -305,7 +306,7 @@ public class CommonsTest {
 
         Collections.sort(vals, of);
         DLog.printLines(vals);
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             DLog.await(1, TimeUnit.HOURS);
         });
 

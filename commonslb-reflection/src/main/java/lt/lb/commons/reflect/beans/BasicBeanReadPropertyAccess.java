@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import lt.lb.commons.F;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -18,7 +18,7 @@ public class BasicBeanReadPropertyAccess<V, T> implements Supplier<T> {
 
     @Override
     public T get() {
-        return F.uncheckedCall(() -> (T) read.invoke(object));
+        return Checked.uncheckedCall(() -> (T) read.invoke(object));
     }
 
     public BasicBeanReadPropertyAccess(V object, String property) {

@@ -21,6 +21,7 @@ import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.JPACommands;
 import lt.lb.commons.jpa.decorators.IQueryDecorator;
 import lt.lb.commons.jpa.ids.IDFactory;
+import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.NestedException;
 
 public interface AbstractPersistenceAware extends JPACommands, EntityManagerAware {
@@ -36,7 +37,7 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
 
     @Override
     public default <T> T createTransient(Class<T> cls) {
-        return F.uncheckedCall(() -> cls.getDeclaredConstructor().newInstance());
+        return Checked.uncheckedCall(() -> cls.getDeclaredConstructor().newInstance());
     }
 
     @Override
@@ -79,7 +80,7 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
     }
 
     public default <T> boolean isDetached(T entity) {
-        return F.uncheckedCall(() -> {
+        return Checked.uncheckedCall(() -> {
             if (entity == null) {
                 return true;
             }
@@ -92,7 +93,7 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
     }
 
     public default <T> boolean isTransient(T entity) {
-        return F.uncheckedCall(() -> {
+        return Checked.uncheckedCall(() -> {
             if (entity == null) {
                 return true;
             }

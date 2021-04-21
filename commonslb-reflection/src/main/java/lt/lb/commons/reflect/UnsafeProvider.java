@@ -3,6 +3,7 @@ package lt.lb.commons.reflect;
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
 import lt.lb.commons.F;
+import lt.lb.uncheckedutils.Checked;
 import sun.misc.Unsafe;
 
 /**
@@ -17,7 +18,7 @@ public class UnsafeProvider {
 
     public static Unsafe getUnsafe() {
         if (THE_UNSAFE == null) {
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
 
                 Constructor<Unsafe> declaredConstructor = Unsafe.class.getDeclaredConstructor();
                 declaredConstructor.setAccessible(true);
@@ -30,6 +31,6 @@ public class UnsafeProvider {
     }
 
     public static <T> Function<Class, T> getUnsafeAllocator() {
-        return cls -> F.uncheckedCall(() -> F.cast(getUnsafe().allocateInstance(cls)));
+        return cls -> Checked.uncheckedCall(() -> F.cast(getUnsafe().allocateInstance(cls)));
     }
 }

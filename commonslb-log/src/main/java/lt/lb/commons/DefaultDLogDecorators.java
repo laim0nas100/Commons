@@ -3,12 +3,13 @@ package lt.lb.commons;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.function.Supplier;
-import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.caching.LazyValue;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.uncheckedutils.NestedException;
 import lt.lb.commons.parsing.StringOp;
+import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.NestedException;
 
 /**
  *
@@ -114,7 +115,7 @@ public class DefaultDLogDecorators {
         return (th) -> {
             return () -> {
                 Value<String> trace = new Value<>();
-                F.uncheckedRun(() -> {
+                Checked.uncheckedRun(() -> {
                     trace.set(StringOp.remove(thMethod.get().invoke(th, 3).toString(), ".java"));
                 });
                 return null;

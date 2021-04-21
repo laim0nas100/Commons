@@ -3,7 +3,7 @@ package lt.lb.commons.reflect.beans;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import lt.lb.commons.F;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -17,7 +17,7 @@ public class BasicBeanWritePropertyAccess<V, T> implements Consumer<T> {
 
     @Override
     public void accept(T v) {
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             write.invoke(object, v);
         });
     }

@@ -8,12 +8,13 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.SimpleDataSyncDisplay;
 import lt.lb.commons.datasync.base.SimpleDataSyncPersist;
+import lt.lb.commons.reflect.FieldChain;
+import lt.lb.commons.reflect.Refl;
+import lt.lb.commons.reflect.beans.BasicBeanPropertyAccess;
+import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedConsumer;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.uncheckedutils.func.UncheckedSupplier;
-import lt.lb.commons.reflect.beans.BasicBeanPropertyAccess;
-import lt.lb.commons.reflect.FieldChain;
-import lt.lb.commons.reflect.Refl;
 
 /**
  *
@@ -117,12 +118,12 @@ public abstract class Extractors {
         return new ValueProxy<T>() {
             @Override
             public T get() {
-                return F.uncheckedCall(() -> (T) chain.doGet(ob));
+                return Checked.uncheckedCall(() -> (T) chain.doGet(ob));
             }
 
             @Override
             public void set(T v) {
-                F.uncheckedRun(() -> chain.doSet(ob, v));
+                Checked.uncheckedRun(() -> chain.doSet(ob, v));
             }
         };
     }
@@ -154,7 +155,7 @@ public abstract class Extractors {
 
     public static <T> ValueProxy<T> ofReflected(Object ob, String fieldName) {
         Class<? extends Object> aClass = ob.getClass();
-        return F.uncheckedCall(() -> {
+        return Checked.uncheckedCall(() -> {
             Field field = aClass.getField(fieldName);
             return ofUnsave(
                     () -> (T) Refl.fieldAccessableGet(field, ob),

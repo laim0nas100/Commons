@@ -2,17 +2,15 @@ package lt.lb.commons.email;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import javax.mail.*;
 import javax.mail.internet.MimeMessage;
 import lt.lb.commons.F;
 import lt.lb.commons.email.props.IMAPOrPOP3Props;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.iteration.For;
-import lt.lb.uncheckedutils.NestedException;
 import lt.lb.commons.threads.executors.ScheduledDispatchExecutor;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -47,7 +45,7 @@ public class EmailChecker extends ScheduledDispatchExecutor {
      */
     public void checkEmail(IMAPOrPOP3Props p, EmailChannels channels, ExposedEmailConnection exposed) {
         p.populate();
-        F.uncheckedRunWithHandler(channels.errorChannel, () -> {
+        Checked.uncheckedRunWithHandler(channels.errorChannel, () -> {
             Session emailSession = null;
             Store store = null;
             Folder emailFolder = null;
@@ -102,7 +100,7 @@ public class EmailChecker extends ScheduledDispatchExecutor {
             } finally {
 
                 final Folder finalFolder = emailFolder;
-                F.checkedRun(() -> {
+                Checked.checkedRun(() -> {
                     debug.appendLine("Close folder");
                     if (finalFolder != null) {
                         finalFolder.close();
@@ -111,7 +109,7 @@ public class EmailChecker extends ScheduledDispatchExecutor {
 
                 final Store finalStore = store;
 
-                F.checkedRun(() -> {
+                Checked.checkedRun(() -> {
                     debug.appendLine("Close store");
                     if (finalStore != null) {
                         finalStore.close();

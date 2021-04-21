@@ -15,6 +15,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -56,7 +57,7 @@ public class NumberValueTest {
         
         
         
-        F.uncheckedRun(()->{
+        Checked.uncheckedRun(()->{
             DLog.await(1, TimeUnit.HOURS);
         });
         

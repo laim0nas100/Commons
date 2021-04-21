@@ -27,7 +27,7 @@ import lt.lb.commons.io.blobify.bytes.WriteableBytes;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import org.junit.Test;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author Laimonas Beniušis
@@ -44,7 +44,7 @@ public class ZipTest {
 
             For.elements().iterate(list, (i, entry) -> {
 
-                F.uncheckedRun(() -> {
+                Checked.uncheckedRun(() -> {
 //                    ZipFile newZip = new ZipFile(Paths.get(zipboi).toFile());
                     InputStream inputStream = zip.getInputStream(entry);
                     
@@ -69,7 +69,7 @@ public class ZipTest {
         b.executeBench(16, "My boi", () -> {
             Blobbys load = Blobbys.loadFromConfig(ReadOnlyIterator.of(TextFileIO.readFromFile("E:\\DS_DATA.comp.list.txt")));
 
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
                     FileInputStream is = new FileInputStream("E:\\DS_DATA.comp");
                     load.loadAll(Bytes.readFromSeekableByteChannel(is.getChannel()));
                     is.close();

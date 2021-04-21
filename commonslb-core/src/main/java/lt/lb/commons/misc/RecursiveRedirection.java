@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -138,7 +139,7 @@ public class RecursiveRedirection {
         rec.stackCall++;
         Consumer<RedirectedRunnable> cons = map.getOrDefault(stackCall, onDefault);
         RedirectedRunnable redirected = new RedirectedRunnable(stackCall, run, this);
-        Optional<Throwable> checkedRun = F.checkedRun(() -> {
+        Optional<Throwable> checkedRun = Checked.checkedRun(() -> {
             cons.accept(redirected);
         });
         rec.stackCall = wasBefore;

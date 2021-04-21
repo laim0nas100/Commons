@@ -4,8 +4,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import lt.lb.commons.F;
 import lt.lb.commons.Java;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -29,7 +29,7 @@ public class RepeatedRequestCollector {
     public RepeatedRequestCollector(int parallelRequests, Runnable run, Executor commitExecutor) {
         this.parallelRequests = parallelRequests;
         this.task = () -> {
-            F.checkedRun(run);
+            Checked.checkedRun(run);
             requestsRunning.decrementAndGet();
             if (pendingRequests.getAndSet(0) > 0) {
                 executeRequest();
@@ -72,7 +72,7 @@ public class RepeatedRequestCollector {
             if (lastFuture.startAt.get() > nanoTime) {//started after we asked
                 return lastFuture;
             } else {
-                F.checkedRun(() -> lastFuture.get()); // await 
+                Checked.checkedRun(() -> lastFuture.get()); // await 
                 return addRequest();
             }
         }

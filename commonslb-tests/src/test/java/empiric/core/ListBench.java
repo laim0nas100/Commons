@@ -15,6 +15,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import lt.lb.uncheckedutils.Checked;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -359,7 +360,7 @@ public class ListBench {
                 throw new IllegalStateException("Not equal at index " + i + " list1:" + l1.get(i) + " list2:" + l2.get(i));
             }
         }
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ListIterator listIterator = l1.listIterator();
             ListIterator listIterator1 = l2.listIterator();
             int i = 0;
@@ -372,7 +373,7 @@ public class ListBench {
             }
         });
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ListIterator listIterator = l1.listIterator(size);
             ListIterator listIterator1 = l2.listIterator(size);
             int i = 0;

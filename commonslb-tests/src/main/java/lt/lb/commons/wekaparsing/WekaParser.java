@@ -15,6 +15,7 @@ import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.wekaparsing.WekaDefaultParsers.WekaTransformer;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -138,7 +139,7 @@ public class WekaParser<T> {
         }
         For.elements().iterate(attributes, (i, f) -> {
             if (!StringOp.equals("?", f)) { // leave null otherwise
-                F.uncheckedRun(() -> {
+                Checked.uncheckedRun(() -> {
                     Field field = fields.get(i);
                     WekaTransformer wek = this.ensureWekaPrinter(field.getType());
                     field.set(newInstance, wek.asObject(f));
@@ -163,7 +164,7 @@ public class WekaParser<T> {
         For.elements().iterate(col, (i, item) -> {
             String[] param = new String[fields.size()];
             For.elements().iterate(fields, (j, f) -> {
-                F.uncheckedRun(() -> {
+                Checked.uncheckedRun(() -> {
                     param[j] = wekaAttributePrint(f.get(item));
                 });
             });

@@ -13,7 +13,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -24,7 +24,7 @@ public class NestingIterationTest {
     public void test() {
         RandomDistribution rng = RandomDistribution.uniform(new Random());
         Integer bound = 10;
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             int[] sizes = new int[bound];
             ArrayList<IterProvider<Integer>> list = new ArrayList<>();
             for (int i = 0; i < bound; i++) {
@@ -39,7 +39,7 @@ public class NestingIterationTest {
 
         });
 
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ArrayList<Iterator<Integer>> list = new ArrayList<>();
             int[] sizes = new int[bound];
             for (int i = 0; i < bound; i++) {

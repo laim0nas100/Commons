@@ -14,6 +14,7 @@ import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.collections.SelfSortingMap;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -491,7 +492,7 @@ public class Lexer {
     public ReadOnlyIterator<Token> getTokenIterator() {
         Lexer me = this;
         ArrayDeque<Token> tokens = new ArrayDeque<>();
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             me.getNextToken().ifPresent(tokens::addLast);
         });
 
@@ -504,7 +505,7 @@ public class Lexer {
 
             @Override
             public Token next() {
-                F.uncheckedRun(() -> {
+                Checked.uncheckedRun(() -> {
                     me.getNextToken().ifPresent(tokens::addLast);
                 });
                 return tokens.pollFirst();

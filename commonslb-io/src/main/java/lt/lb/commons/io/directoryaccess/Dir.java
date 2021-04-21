@@ -5,9 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import lt.lb.commons.F;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -23,7 +23,7 @@ public class Dir extends Fil {
     }
 
     public static <T extends Fil> T establishDirectory(String absolutePath, Class<T> cls) {
-        return F.uncheckedCall(() -> Fil.create(Paths.get(absolutePath), cls));
+        return Checked.uncheckedCall(() -> Fil.create(Paths.get(absolutePath), cls));
     }
 
     public Dir(String absolutePath) throws Exception {

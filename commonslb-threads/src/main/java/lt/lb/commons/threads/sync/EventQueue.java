@@ -15,6 +15,7 @@ import lt.lb.commons.F;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.threads.executors.layers.BoundedNestedTaskExecutorLayer;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -64,11 +65,11 @@ public class EventQueue {
             queue.running.add(this);
             ConcurrentLinkedDeque<Event> local = queue.runningLocal.get();
             local.add(this);
-            F.checkedRun(() -> {
+            Checked.checkedRun(() -> {
                 queue.eventCallbackBefore.accept(this);
             });
             super.run();
-            F.checkedRun(() -> {
+            Checked.checkedRun(() -> {
                 queue.eventCallbackAfter.accept(this);
             });
             local.remove(this);

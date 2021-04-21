@@ -50,7 +50,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
+import lt.lb.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100
@@ -111,7 +111,7 @@ public class JavaMailTest {
         HashSet<String> ids = new HashSet<>();
         channels.errorChannel = errChannel;
         channels.inputChannel = (m -> {
-            F.uncheckedRunWithHandler(errChannel, () -> {
+            Checked.uncheckedRunWithHandler(errChannel, () -> {
                 if (ids.contains(m.getMessageID())) {
                     return;
                 } else {
@@ -167,7 +167,7 @@ public class JavaMailTest {
         }, TimeUnit.SECONDS, 3);
 
         while (true) {
-            F.uncheckedRun(() -> {
+            Checked.uncheckedRun(() -> {
                 Thread.sleep(1000);
             });
         }
@@ -309,7 +309,7 @@ public class JavaMailTest {
 
     public EmailAttributes emailParser(Path file, boolean toMark) {
         Value<EmailAttributes> val = new Value<>();
-        F.uncheckedRun(() -> {
+        Checked.uncheckedRun(() -> {
             ArrayList<String> content = TextFileIO.readFromFile(file.toString());
             EmailAttributes em = new EmailAttributes();
             val.set(em);
