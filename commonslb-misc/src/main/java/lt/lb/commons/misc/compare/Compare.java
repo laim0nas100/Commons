@@ -14,7 +14,30 @@ import static lt.lb.commons.misc.compare.Compare.CompareOperator.*;
 public abstract class Compare {
 
     public static enum CompareOperator {
-        LESS, LESS_EQ, GREATER, GREATER_EQ, EQ, NOT_EQ
+        /**
+         * {@code <} operator
+         */
+        LESS,
+        /**
+         * {@code <=} operator
+         */
+        LESS_EQ,
+        /**
+         * {@code >} operator
+         */
+        GREATER,
+        /**
+         * {@code >=} operator
+         */
+        GREATER_EQ,
+        /**
+         * {@code ==} operator
+         */
+        EQ,
+        /**
+         * {@code !=} operator
+         */
+        NOT_EQ
     }
 
     /**
@@ -47,7 +70,7 @@ public abstract class Compare {
          */
         NULL_HIGHER,
         /**
-         * Null argument is treated as equal
+         * Null argument is treated as equal to the other
          */
         NULL_EQUAL,
         /**
@@ -82,6 +105,62 @@ public abstract class Compare {
      */
     public static <T extends Comparable<T>> boolean compareNullHigher(T elem1, CompareOperator cmpOp, T elem2) {
         return compare(elem1, cmpOp, elem2, Comparator.naturalOrder(), NULL_HIGHER);
+    }
+
+    /**
+     * Compare 2 optionally-null {@link Comparable} elements using given
+     * {@link CompareNull} operator treating {@code null} as equal to the other.
+     *
+     * @param <T>
+     * @param elem1
+     * @param cmpOp
+     * @param elem2
+     * @return
+     */
+    public static <T extends Comparable<T>> boolean compareNullEqual(T elem1, CompareOperator cmpOp, T elem2) {
+        return compare(elem1, cmpOp, elem2, Comparator.naturalOrder(), NULL_EQUAL);
+    }
+
+    /**
+     * Traditional (-1,0,1) compare 2 optionally-null {@link Comparable}
+     * elements. Treats {@code null} as lower of the two. Useful for quick
+     * method reference as lambda.
+     *
+     * @param <T>
+     * @param elem1
+     * @param elem2
+     * @return
+     */
+    public static <T extends Comparable<T>> int cmpNullLower(T elem1, T elem2) {
+        return cmpAll(elem1, elem2, Comparator.naturalOrder(), NULL_LOWER);
+    }
+
+    /**
+     * Traditional (-1,0,1) compare 2 optionally-null {@link Comparable}
+     * elements. Treats {@code null} as higher of the two. Useful for quick
+     * method reference as lambda.
+     *
+     * @param <T>
+     * @param elem1
+     * @param elem2
+     * @return
+     */
+    public static <T extends Comparable<T>> int cmpNullHigher(T elem1, T elem2) {
+        return cmpAll(elem1, elem2, Comparator.naturalOrder(), NULL_HIGHER);
+    }
+
+    /**
+     * Traditional (-1,0,1) compare 2 optionally-null {@link Comparable}
+     * elements. Treats {@code null} as equal to the other. Useful for quick
+     * method reference as lambda.
+     *
+     * @param <T>
+     * @param elem1
+     * @param elem2
+     * @return
+     */
+    public static <T extends Comparable<T>> int cmpNullEqual(T elem1, T elem2) {
+        return cmpAll(elem1, elem2, Comparator.naturalOrder(), NULL_EQUAL);
     }
 
     /**
@@ -175,7 +254,7 @@ public abstract class Compare {
 
     /**
      * Traditional (-1,0,1) compare 2 optionally-null elements based on
-     * {@link CompareNull} operator. One of them must be null though.
+     * {@link CompareNull} operator. At least one of them must be null.
      *
      * @param <T>
      * @param elem1

@@ -8,7 +8,7 @@ package regression.core;
 import java.util.Objects;
 import lt.lb.commons.Equator;
 import lt.lb.commons.PosEq;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.parsing.NumberParsing;
 import org.assertj.core.api.*;
 import org.junit.Test;

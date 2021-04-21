@@ -3,7 +3,7 @@ package lt.lb.commons.threads.sync;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.Equator;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMapperEnder;

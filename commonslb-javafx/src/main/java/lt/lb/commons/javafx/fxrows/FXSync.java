@@ -23,7 +23,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.util.StringConverter;
 import lt.lb.commons.F;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.NodeSync;

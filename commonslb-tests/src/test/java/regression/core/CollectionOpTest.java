@@ -16,7 +16,7 @@ import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMapperEnder;
 import lt.lb.commons.iteration.streams.StreamMappers;
 import lt.lb.commons.Equator;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
 import lt.lb.commons.misc.compare.Compare;

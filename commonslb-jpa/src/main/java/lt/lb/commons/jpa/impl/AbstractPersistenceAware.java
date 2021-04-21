@@ -13,38 +13,34 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import lt.lb.commons.F;
-import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UncheckedFunction;
-import lt.lb.commons.func.unchecked.UncheckedSupplier;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
+import lt.lb.uncheckedutils.func.UncheckedSupplier;
 import lt.lb.commons.jpa.EntityManagerAware;
 import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.JPACommands;
 import lt.lb.commons.jpa.decorators.IQueryDecorator;
 import lt.lb.commons.jpa.ids.IDFactory;
-import lt.lb.commons.misc.NestedException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lt.lb.uncheckedutils.NestedException;
 
-public abstract class AbstractPersistenceAware implements JPACommands, EntityManagerAware {
-
-    protected Logger logger = LogManager.getLogger(AbstractPersistenceAware.class);
+public interface AbstractPersistenceAware extends JPACommands, EntityManagerAware {
 
     public abstract IDFactory getIds();
 
     @Override
-    public <T> T createPersistent(Class<T> cls) {
+    public default <T> T createPersistent(Class<T> cls) {
         T entity = this.createTransient(cls);
         getEntityManager().persist(entity);
         return entity;
     }
 
     @Override
-    public <T> T createTransient(Class<T> cls) {
+    public default <T> T createTransient(Class<T> cls) {
         return F.uncheckedCall(() -> cls.getDeclaredConstructor().newInstance());
     }
 
     @Override
-    public <T> List<T> getAll(Class<T> cls) {
+    public default <T> List<T> getAll(Class<T> cls) {
         CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = criteriaBuilder.createQuery(cls);
         Root<T> from = query.from(cls);
@@ -54,17 +50,17 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     @Override
-    public <T> Stream<T> getAllStream(Class<T> cls) {
+    public default <T> Stream<T> getAllStream(Class<T> cls) {
         return getAll(cls).stream();
     }
 
     @Override
-    public <T> boolean persist(Class<T> cls, T item) {
+    public default <T> boolean persist(Class<T> cls, T item) {
         return this.persist(item);
     }
 
     @Override
-    public <T> boolean delete(T item) {
+    public default <T> boolean delete(T item) {
 
         if (item != null) {
             if (!getEntityManager().contains(item)) {
@@ -78,11 +74,11 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     @Override
-    public <T> boolean delete(Class<T> cls, T item) {
+    public default <T> boolean delete(Class<T> cls, T item) {
         return delete(item);
     }
 
-    public <T> boolean isDetached(T entity) {
+    public default <T> boolean isDetached(T entity) {
         return F.uncheckedCall(() -> {
             if (entity == null) {
                 return true;
@@ -95,7 +91,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
 
     }
 
-    public <T> boolean isTransient(T entity) {
+    public default <T> boolean isTransient(T entity) {
         return F.uncheckedCall(() -> {
             if (entity == null) {
                 return true;
@@ -108,7 +104,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     @Override
-    public <T> T update(T item) {
+    public default <T> T update(T item) {
         if (item == null) {
             return null;
         }
@@ -130,7 +126,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     @Override
-    public <T> boolean persist(T item) {
+    public default <T> boolean persist(T item) {
         if (item == null) {
             return false;
         }
@@ -144,17 +140,17 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     @Override
-    public <T> SafeOpt<T> find(Class<T> clz, Object primaryKey) {
+    public default <T> SafeOpt<T> find(Class<T> clz, Object primaryKey) {
         return SafeOpt.ofNullable(getEntityManager().find(clz, primaryKey));
     }
 
     @Override
-    public <T> void merge(T obj) {
+    public default <T> void merge(T obj) {
         getEntityManager().merge(obj);
     }
 
     @Override
-    public <T> List<T> search(Class<T> clz, IQueryDecorator<T>... predicates) {
+    public default <T> List<T> search(Class<T> clz, IQueryDecorator<T>... predicates) {
         EntityManager em = getEntityManager();
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
@@ -163,12 +159,12 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
         return this.decorate(q, cb, root, predicates).getResultList();
     }
 
-    protected <X> ExtQuery<X> decorate(final CriteriaQuery<X> q, CriteriaBuilder cb, Root root, IQueryDecorator... predicates) {
+    public default <X> ExtQuery<X> decorate(final CriteriaQuery<X> q, CriteriaBuilder cb, Root root, IQueryDecorator... predicates) {
         return new ExtQueryImpl<>(getEntityManager(), cb, q, root, predicates);
     }
 
     @Override
-    public <T> Long count(Class<T> clz, IQueryDecorator<T>... predicates) {
+    public default <T> Long count(Class<T> clz, IQueryDecorator<T>... predicates) {
         EntityManager em = this.getEntityManager();
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
@@ -180,7 +176,7 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
     }
 
     @Override
-    public <T> List<T> search(Class<T> clz, int start, int pageSize, IQueryDecorator<T>... predicates) {
+    public default <T> List<T> search(Class<T> clz, int start, int pageSize, IQueryDecorator<T>... predicates) {
         EntityManager em = this.getEntityManager();
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
@@ -190,13 +186,12 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
         return decorate.setFirstResult(start).setMaxResults(pageSize).getResultList();
     }
 
-    public Executor getAsyncExecutor() {
+    public default Executor getAsyncExecutor() {
         return ForkJoinPool.commonPool();
     }
 
-
     @Override
-    public <T> Future<T> executeTransactionAsync(UncheckedFunction<EntityManager, T> supp) {
+    public default <T> Future<T> executeTransactionAsync(UncheckedFunction<EntityManager, T> supp) {
         UncheckedSupplier<T> decorated = () -> {
             EntityManagerFactory factory = getEntityManagerFactory();
             EntityManager em = null;
@@ -208,7 +203,6 @@ public abstract class AbstractPersistenceAware implements JPACommands, EntityMan
                 em.getTransaction().commit();
                 return value;
             } catch (Throwable error) {
-                logger.error("Error in async transaction", error);
                 if (em != null) {
                     em.getTransaction().rollback();
                 }

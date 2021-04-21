@@ -12,30 +12,32 @@ public interface IDFactory<I> {
 
     /**
      * Polymorphic cast. Both have to share a common supertype.
+     *
      * @param <T>
      * @param <P>
      * @param <O>
      * @param id
-     * @return 
+     * @return
      */
     public default <T, P extends T, O extends T> ID<P, I> polyCast(ID<O, I> id) {
         return ofId(id.id);
     }
-    
+
     /**
      * Simple cast.
+     *
      * @param <T>
      * @param <P>
      * @param id
-     * @return 
+     * @return
      */
     public default <T, P> ID<P, I> cast(ID<T, I> id) {
         return ofId(id.id);
     }
 
     /**
-     * Explicitly define class and ID.
-     * Base method, override this for different base class objects.
+     * Explicitly define class and ID. Base method, override this for different
+     * base class objects.
      *
      * @param cls
      * @param id
@@ -54,7 +56,7 @@ public interface IDFactory<I> {
      * @return
      */
     public default <T> ID<T, I> of(Class<T> cls, T object) {
-        return ofId(null,defaultGetId(object));
+        return ofId(null, defaultGetId(object));
     }
 
     /**
@@ -64,7 +66,7 @@ public interface IDFactory<I> {
      * @return
      */
     public default <T> ID<T, I> of(T object) {
-        return ofId(null,defaultGetId(object));
+        return ofId(null, defaultGetId(object));
     }
 
     /**
@@ -74,9 +76,9 @@ public interface IDFactory<I> {
      * @return
      */
     public default <T> ID<T, I> ofId(I id) {
-        return ofId(null,id);
+        return ofId(null, id);
     }
-    
+
     /**
      * Finds first method called 'getid' (case-insensisitive)
      *

@@ -28,7 +28,7 @@ import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.MapAttribute;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.collections.CollectionOp;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase1;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;

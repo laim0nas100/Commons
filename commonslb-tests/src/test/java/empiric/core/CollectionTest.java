@@ -20,7 +20,7 @@ import lt.lb.commons.containers.collections.PrefillArrayMap;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.misc.rng.FastRandom;
 import org.junit.Test;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

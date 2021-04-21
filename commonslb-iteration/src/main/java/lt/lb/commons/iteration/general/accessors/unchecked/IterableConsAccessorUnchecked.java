@@ -1,9 +1,10 @@
 package lt.lb.commons.iteration.general.accessors.unchecked;
 
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.accessors.*;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
+import lt.lb.uncheckedutils.NestedException;
 
 /**
  *
@@ -21,7 +22,7 @@ public class IterableConsAccessorUnchecked extends IterableConsAccessor {
                 return SafeOpt.empty();
             }
         } catch (Throwable ex) {
-            return SafeOpt.error(ex);
+            return SafeOpt.error(NestedException.unwrap(ex));
         }
     }
 

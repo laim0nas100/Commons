@@ -5,21 +5,24 @@ import java.util.concurrent.Future;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UncheckedConsumer;
-import lt.lb.commons.func.unchecked.UncheckedFunction;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
-import lt.lb.commons.func.unchecked.UncheckedSupplier;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.func.UncheckedConsumer;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedSupplier;
 import lt.lb.commons.jpa.ids.ID;
 
 /**
  *
  * @author laim0nas100 Facade to use interchangeably with Memory-saved and JPA
+ * and other models.
  */
-public interface EntityFacade {
+public interface EntityFacade extends EntityManagerAware {
 
+    @Override
     public EntityManager getEntityManager();
 
+    @Override
     public EntityManagerFactory getEntityManagerFactory();
 
     public default Future<Void> executeTransactionAsync(UncheckedConsumer<EntityManager> run) {

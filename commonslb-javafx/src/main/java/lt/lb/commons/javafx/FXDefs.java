@@ -28,7 +28,7 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import lt.lb.commons.F;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.containers.values.StringValue;
 import lt.lb.commons.func.Lambda;

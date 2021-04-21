@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.Java;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.commons.threads.ForwardingScheduledFuture;
 import lt.lb.commons.threads.executors.CloseableExecutor;
 import lt.lb.commons.threads.sync.Awaiter;

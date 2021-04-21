@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lt.lb.commons.F;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.threads.executors.layers.BoundedNestedTaskExecutorLayer;
 

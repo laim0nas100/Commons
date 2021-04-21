@@ -8,7 +8,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Supplier;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

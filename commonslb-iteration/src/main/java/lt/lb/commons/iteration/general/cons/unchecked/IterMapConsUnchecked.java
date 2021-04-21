@@ -2,7 +2,7 @@ package lt.lb.commons.iteration.general.cons.unchecked;
 
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
-import lt.lb.commons.misc.NestedException;
+import lt.lb.uncheckedutils.NestedException;
 
 /**
  *

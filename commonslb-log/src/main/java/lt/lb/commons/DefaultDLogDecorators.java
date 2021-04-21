@@ -7,7 +7,7 @@ import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.caching.LazyValue;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.NestedException;
+import lt.lb.uncheckedutils.NestedException;
 import lt.lb.commons.parsing.StringOp;
 
 /**

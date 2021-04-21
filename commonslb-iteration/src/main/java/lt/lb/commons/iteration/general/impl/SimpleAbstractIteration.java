@@ -2,7 +2,7 @@ package lt.lb.commons.iteration.general.impl;
 
 import java.util.Collection;
 import java.util.Objects;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.IterationAbstract;
 import lt.lb.commons.iteration.general.accessors.AccessorResolver;
 import lt.lb.commons.iteration.general.accessors.DefaultAccessorResolver;

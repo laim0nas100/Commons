@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import lt.lb.commons.func.unchecked.UncheckedFunction;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
 
 /**
  * Reflection methods

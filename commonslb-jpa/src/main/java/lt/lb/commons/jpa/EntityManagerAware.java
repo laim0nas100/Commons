@@ -1,6 +1,7 @@
 package lt.lb.commons.jpa;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 /**
  *
@@ -9,5 +10,9 @@ import javax.persistence.EntityManager;
 public interface EntityManagerAware {
 
     public EntityManager getEntityManager();
+
+    public default EntityManagerFactory getEntityManagerFactory() {
+        return getEntityManager().getEntityManagerFactory();
+    }
 
 }

@@ -6,9 +6,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
-import lt.lb.commons.func.unchecked.UncheckedSupplier;
-import lt.lb.commons.misc.NestedException;
+import lt.lb.uncheckedutils.NestedException;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedSupplier;
 
 /**
  *

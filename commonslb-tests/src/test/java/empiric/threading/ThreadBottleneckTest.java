@@ -11,7 +11,7 @@ import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.LongValue;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
 import org.junit.Test;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

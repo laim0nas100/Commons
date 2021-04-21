@@ -5,8 +5,8 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.SafeOpt;
-import lt.lb.commons.func.unchecked.UncheckedFunction;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
 
 /**
  *

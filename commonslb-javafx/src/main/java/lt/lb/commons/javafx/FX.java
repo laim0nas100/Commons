@@ -12,7 +12,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

@@ -14,7 +14,7 @@ import lt.lb.commons.benchmarking.BenchmarkResult;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

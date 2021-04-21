@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Supplier;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.EmptyImmutableList;
 import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;

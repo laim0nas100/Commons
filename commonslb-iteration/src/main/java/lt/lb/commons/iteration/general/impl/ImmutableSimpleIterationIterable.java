@@ -3,7 +3,7 @@ package lt.lb.commons.iteration.general.impl;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
 

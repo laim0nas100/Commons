@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.interfaces.CloneSupport;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.general.IterationAbstract;

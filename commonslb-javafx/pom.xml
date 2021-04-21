@@ -51,6 +51,10 @@
             <artifactId>FastID</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.laim0nas100</groupId>
+            <artifactId>UncheckedUtils</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
             <version>${javafx.compat.version}</version>

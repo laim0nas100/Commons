@@ -7,7 +7,7 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.Timer;
 import lt.lb.commons.threads.Promise;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

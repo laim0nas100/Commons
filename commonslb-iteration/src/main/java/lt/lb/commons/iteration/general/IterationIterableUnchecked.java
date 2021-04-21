@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableBiConsNoStopUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableBiConsUnchecked;

@@ -14,7 +14,7 @@ import lt.lb.commons.interfaces.StringBuilderActions;
 import lt.lb.commons.F;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.misc.NestedException;
+import lt.lb.uncheckedutils.NestedException;
 
 /**
  *

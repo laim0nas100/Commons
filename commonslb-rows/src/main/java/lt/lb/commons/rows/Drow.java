@@ -13,7 +13,7 @@ import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.NestedException;
+import lt.lb.uncheckedutils.NestedException;
 import lt.lb.commons.misc.RecursiveRedirection;
 import static lt.lb.commons.rows.BasicUpdates.*;
 

@@ -1,7 +1,7 @@
 package lt.lb.commons.iteration.general;
 
 import java.util.Map;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.cons.IterMapBiCons;
 import lt.lb.commons.iteration.general.cons.IterMapBiConsNoStop;
 import lt.lb.commons.iteration.general.cons.IterMapCons;

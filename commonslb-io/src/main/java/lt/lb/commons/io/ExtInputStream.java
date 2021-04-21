@@ -328,16 +328,17 @@ public abstract class ExtInputStream extends InputStream {
         byte[] result = null;
         int total = 0;
         int remaining = len;
-        int n;
+        int n = 0;
         do {
             byte[] buf = new byte[Math.min(remaining, getDefaultBufferSize())];
             int nread = 0;
+            int readRequest = buf.length;
 
             // read to EOF which may read more or less than buffer size
-            while ((n = read(buf, nread,
-                    Math.min(buf.length - nread, remaining))) > 0) {
+            while (readRequest > 0 && (n = read(buf, nread, readRequest)) > 0) {
                 nread += n;
                 remaining -= n;
+                readRequest = Math.min(buf.length - nread, remaining);
             }
 
             if (nread > 0) {
@@ -355,9 +356,8 @@ public abstract class ExtInputStream extends InputStream {
                     bufs.add(buf);
                 }
             }
-            // if the last call to read returned -1 or the number of bytes
-            // requested have been read then break
-        } while (n >= 0 && remaining > 0);
+            // if requested bytes have been read or the last call read 0 bytes then break
+        } while (remaining > 0 && available() > 0);
 
         if (bufs == null) {
             if (result == null) {

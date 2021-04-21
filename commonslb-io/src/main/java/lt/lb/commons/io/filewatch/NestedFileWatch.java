@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.BooleanValue;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.commons.io.filewatch.NestedFileWatchEvents.NestedWatchErrorEvent;
 import lt.lb.commons.io.filewatch.NestedFileWatchEvents.NestedWatchFileEvent;
 import lt.lb.commons.io.filewatch.NestedFileWatchListeners.ErrorNestedWatchEventListener;
@@ -32,7 +32,7 @@ import lt.lb.commons.io.filewatch.NestedFileWatchListeners.NestedWatchEventListe
 import lt.lb.commons.io.filewatch.NestedFileWatchListeners.SingleWatchEventListener;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
-import lt.lb.commons.misc.NestedException;
+import lt.lb.uncheckedutils.NestedException;
 
 /**
  *

@@ -3,8 +3,8 @@ package lt.lb.commons.threads;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.*;
-import lt.lb.commons.func.unchecked.UncheckedFunction;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

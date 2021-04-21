@@ -2,6 +2,7 @@ package lt.lb.commons.misc.compare;
 
 import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -71,7 +72,7 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
             }
             // optimization to find first
             Comparator<T> finalCmp = empty();
-            while(!chain.isEmpty()) {
+            while (!chain.isEmpty()) {
                 M builder = chain.removeFirst();
                 if (builder.comparator.isPresent()) {
                     finalCmp = builder.comparator.get()::compare;
@@ -101,7 +102,8 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
     }
 
     /**
-     * Add global reverse to currently present comparator chain. Will be applied after build.
+     * Add global reverse to currently present comparator chain. Will be applied
+     * after build.
      *
      * @return
      */
@@ -114,7 +116,7 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
      *
      * @return
      *
-     * @exception if no comparator is present
+     * @throw {@link IllegalStateException} if no comparator is present
      */
     public M reverse() {
         if (!comparator.isPresent()) {
@@ -131,6 +133,8 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
      * @return
      */
     public <V> M thenComparingValue(Function<? super T, ? extends V> func, Comparator<? super V> cmp) {
+        Objects.requireNonNull(func, "Function is null");
+        Objects.requireNonNull(cmp, "Comparator is null");
         Comparator<T> c = (T arg0, T arg1) -> cmp.compare(func.apply(arg0), func.apply(arg1));
         return thenComparing(c);
     }
@@ -168,6 +172,8 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
      * @return
      */
     public <V> M thenComparingOptional(boolean emptyFirst, Function<? super T, Optional<? extends V>> func, Comparator<? super V> cmp) {
+        Objects.requireNonNull(func, "Function is null");
+        Objects.requireNonNull(cmp, "Compaartor is null");
         Comparator<T> comp = (v1, v2) -> {
             Optional<? extends V> apply1 = func.apply(v1);
             Optional<? extends V> apply2 = func.apply(v2);
@@ -200,7 +206,8 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
      * @return
      */
     public <V> M thenComparingNullable(boolean nullFirst, Function<? super T, ? extends V> func, Comparator<? super V> cmp) {
-
+        Objects.requireNonNull(func, "Function is null");
+        Objects.requireNonNull(cmp, "Compaartor is null");
         Comparator<T> comp = (v1, v2) -> {
             V apply1 = func.apply(v1);
             V apply2 = func.apply(v2);
@@ -245,6 +252,7 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
      * @return
      */
     public <V, N extends ComparatorBuilderBase<V, N>> M mapped(Function<? super T, ? extends V> func, N builder) {
+        Objects.requireNonNull(func,"Function is null");
         Comparator<V> build = builder.build();
         return thenComparingValue(func, build);
     }

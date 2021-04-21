@@ -5,142 +5,136 @@ import java.util.stream.Stream;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.commons.jpa.EntityFacade;
 import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.decorators.IQueryDecorator;
-import lt.lb.commons.jpa.ids.IDFactory;
 
 /**
+ * Every method is wrapped in {@link EntityFacade#executeTransaction(lt.lb.uncheckedutils.func.UncheckedSupplier)
+ * }, so the implementation of this method is important to establish a
+ * transaction.
  *
  * @author laim0nas100
  */
-public abstract class TrasactionDelegatingEntityFacade extends AbstractPersistenceAware {
+public interface TrasactionDelegatingEntityFacade extends AbstractPersistenceAware {
 
     @Override
-    public <T> List<T> search(Class<T> clz, int start, int pageSize, IQueryDecorator<T>... predicates) {
+    public default <T> List<T> search(Class<T> clz, int start, int pageSize, IQueryDecorator<T>... predicates) {
         return executeTransaction(() -> {
-            return super.search(clz, start, pageSize, predicates);
+            return AbstractPersistenceAware.super.search(clz, start, pageSize, predicates);
         });
     }
 
     @Override
-    public <T> Long count(Class<T> clz, IQueryDecorator<T>... predicates) {
+    public default <T> Long count(Class<T> clz, IQueryDecorator<T>... predicates) {
         return executeTransaction(() -> {
-            return super.count(clz, predicates);
+            return AbstractPersistenceAware.super.count(clz, predicates);
         });
     }
 
     @Override
-    protected <X> ExtQuery<X> decorate(CriteriaQuery<X> q, CriteriaBuilder cb, Root root, IQueryDecorator... predicates) {
+    public default <X> ExtQuery<X> decorate(CriteriaQuery<X> q, CriteriaBuilder cb, Root root, IQueryDecorator... predicates) {
         return executeTransaction(() -> {
-            return super.decorate(q, cb, root, predicates);
+            return AbstractPersistenceAware.super.decorate(q, cb, root, predicates);
         });
     }
 
     @Override
-    public <T> List<T> search(Class<T> clz, IQueryDecorator<T>... predicates) {
+    public default <T> List<T> search(Class<T> clz, IQueryDecorator<T>... predicates) {
         return executeTransaction(() -> {
-            return super.search(clz, predicates);
+            return AbstractPersistenceAware.super.search(clz, predicates);
         });
     }
 
     @Override
-    public <T> void merge(T obj) {
+    public default <T> void merge(T obj) {
         executeTransaction(() -> {
-            super.merge(obj);
+            AbstractPersistenceAware.super.merge(obj);
         });
     }
 
     @Override
-    public <T> SafeOpt<T> find(Class<T> clz, Object primaryKey) {
+    public default <T> SafeOpt<T> find(Class<T> clz, Object primaryKey) {
         return executeTransaction(() -> {
-            return super.find(clz, primaryKey);
+            return AbstractPersistenceAware.super.find(clz, primaryKey);
         });
     }
 
     @Override
-    public <T> boolean persist(T item) {
+    public default <T> boolean persist(T item) {
         return executeTransaction(() -> {
-            return super.persist(item);
+            return AbstractPersistenceAware.super.persist(item);
         });
     }
 
     @Override
-    public <T> T update(T item) {
+    public default <T> T update(T item) {
         return executeTransaction(() -> {
-            return super.update(item);
+            return AbstractPersistenceAware.super.update(item);
         });
     }
 
     @Override
-    public <T> boolean isTransient(T entity) {
+    public default <T> boolean isTransient(T entity) {
         return executeTransaction(() -> {
-            return super.isTransient(entity);
+            return AbstractPersistenceAware.super.isTransient(entity);
         });
     }
 
     @Override
-    public <T> boolean isDetached(T entity) {
+    public default <T> boolean isDetached(T entity) {
         return executeTransaction(() -> {
-            return super.isDetached(entity);
+            return AbstractPersistenceAware.super.isDetached(entity);
         });
     }
 
     @Override
-    public <T> boolean delete(Class<T> cls, T item) {
+    public default <T> boolean delete(Class<T> cls, T item) {
         return executeTransaction(() -> {
-            return super.delete(cls, item);
+            return AbstractPersistenceAware.super.delete(cls, item);
         });
     }
 
     @Override
-    public <T> boolean delete(T item) {
+    public default <T> boolean delete(T item) {
         return executeTransaction(() -> {
-            return super.delete(item);
+            return AbstractPersistenceAware.super.delete(item);
         });
     }
 
     @Override
-    public <T> boolean persist(Class<T> cls, T item) {
+    public default <T> boolean persist(Class<T> cls, T item) {
         return executeTransaction(() -> {
-            return super.persist(cls, item);
+            return AbstractPersistenceAware.super.persist(cls, item);
         });
     }
 
     @Override
-    public <T> Stream<T> getAllStream(Class<T> cls) {
+    public default <T> Stream<T> getAllStream(Class<T> cls) {
         return executeTransaction(() -> {
-            return super.getAllStream(cls);
+            return AbstractPersistenceAware.super.getAllStream(cls);
         });
     }
 
     @Override
-    public <T> List<T> getAll(Class<T> cls) {
+    public default <T> List<T> getAll(Class<T> cls) {
         return executeTransaction(() -> {
-            return super.getAll(cls);
+            return AbstractPersistenceAware.super.getAll(cls);
         });
     }
 
     @Override
-    public <T> T createTransient(Class<T> cls) {
+    public default <T> T createTransient(Class<T> cls) {
         return executeTransaction(() -> {
-            return super.createTransient(cls);
+            return AbstractPersistenceAware.super.createTransient(cls);
         });
     }
 
     @Override
-    public <T> T createPersistent(Class<T> cls) {
+    public default <T> T createPersistent(Class<T> cls) {
         return executeTransaction(() -> {
-            return super.createPersistent(cls);
+            return AbstractPersistenceAware.super.createPersistent(cls);
         });
-
     }
-    
-    
-    
-    
-
-    @Override
-    public abstract IDFactory getIds();
-
 }

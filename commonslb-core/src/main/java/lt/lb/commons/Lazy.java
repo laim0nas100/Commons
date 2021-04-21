@@ -9,8 +9,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import lt.lb.commons.func.unchecked.UncheckedSupplier;
-import lt.lb.commons.misc.NestedException;
+import lt.lb.uncheckedutils.NestedException;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.func.UncheckedSupplier;
 
 /**
  * A way to initialize values lazily, without a constructor or whenever.

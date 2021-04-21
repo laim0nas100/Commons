@@ -1,11 +1,12 @@
 package lt.lb.commons.iteration.general.accessors.unchecked;
 
 import lt.lb.commons.F;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.accessors.*;
 import lt.lb.commons.iteration.general.cons.IterMapBiCons;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
+import lt.lb.uncheckedutils.NestedException;
 
 /**
  *
@@ -23,7 +24,7 @@ public class MapBiConsAccessorUnchecked extends MapBiConsAccessor {
                 return SafeOpt.empty();
             }
         } catch (Throwable ex) {
-            return SafeOpt.error(ex);
+            return SafeOpt.error(NestedException.unwrap(ex));
         }
     }
 

@@ -2,6 +2,7 @@ package lt.lb.commons.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  *
@@ -9,6 +10,16 @@ import java.io.InputStream;
  */
 public abstract class ForwardingExtInputStream extends ExtInputStream {
 
+    public static ForwardingExtInputStream of(final InputStream stream){
+        Objects.requireNonNull(stream, "Delegate stream must not be null");
+        return new ForwardingExtInputStream() {
+            @Override
+            public InputStream delegate() {
+                return stream;
+            }
+        };
+    }
+    
     public abstract InputStream delegate();
 
     @Override

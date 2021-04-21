@@ -21,7 +21,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

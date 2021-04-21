@@ -10,11 +10,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lt.lb.commons.F;
-import lt.lb.commons.SafeOpt;
-import lt.lb.commons.misc.NestedException;
-import lt.lb.commons.func.unchecked.UncheckedFunction;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
-import lt.lb.commons.func.unchecked.UncheckedSupplier;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.NestedException;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedSupplier;
 
 /**
  * Mappable future. Easier and less cluttered version of CompletableFuture.
@@ -70,7 +70,7 @@ public interface MappableFuture<T> extends Future<T> {
 
     /**
      * Await and get result masking exceptions in
-     * {@link lt.lb.commons.misc.NestedException}
+     * {@link lt.lb.uncheckedutils.NestedException}
      *
      * @return
      */

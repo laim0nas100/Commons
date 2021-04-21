@@ -10,7 +10,7 @@ import java.util.Optional;
 import lt.lb.commons.Equator;
 import lt.lb.commons.F;
 import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.collections.SelfSortingMap;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;

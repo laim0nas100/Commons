@@ -14,7 +14,7 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TableView;
 import lt.lb.commons.Ins;
 import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *

@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lt.lb.commons.F;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;

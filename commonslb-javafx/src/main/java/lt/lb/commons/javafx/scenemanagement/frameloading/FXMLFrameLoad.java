@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.javafx.scenemanagement.BaseController;
 import lt.lb.commons.javafx.scenemanagement.FXMLFrame;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;

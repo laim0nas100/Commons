@@ -2,9 +2,9 @@ package regression.core;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.values.IntegerValue;
-import lt.lb.commons.misc.NestedException;
+import lt.lb.uncheckedutils.NestedException;
 import org.assertj.core.api.Assertions;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.api.ThrowableTypeAssert;

@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import lt.lb.commons.F;
-import lt.lb.commons.func.unchecked.UncheckedRunnable;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import org.apache.commons.io.FilenameUtils;
 

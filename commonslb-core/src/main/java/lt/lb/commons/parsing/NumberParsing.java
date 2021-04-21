@@ -1,6 +1,6 @@
 package lt.lb.commons.parsing;
 
-import lt.lb.commons.SafeOpt;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
