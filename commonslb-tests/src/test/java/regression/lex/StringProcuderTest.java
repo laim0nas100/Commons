@@ -2,7 +2,7 @@ package regression.lex;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import lt.lb.commons.parsing.explicit.StringProducer;
+import lt.lb.commons.parsing.StringProducer;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
