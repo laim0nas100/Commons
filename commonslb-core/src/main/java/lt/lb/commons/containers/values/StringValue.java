@@ -20,11 +20,11 @@ public class StringValue extends Value<String> {
     }
 
     public String appendAndGet(String str) {
-        return this.setAndGet(() -> this.get() + str);
+        return this.setAndGetSupl(() -> this.get() + str);
     }
     
     public String getAndAppend(String str){
-        return this.getAndSet(() -> this.get() + str);
+        return this.getAndSetSupl(() -> this.get() + str);
     }
 
 }

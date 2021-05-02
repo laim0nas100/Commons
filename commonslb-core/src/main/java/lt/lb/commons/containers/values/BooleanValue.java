@@ -51,11 +51,11 @@ public class BooleanValue extends Value<Boolean> {
     }
 
     public Boolean negateAndGet() {
-        return this.setAndGet(() -> this.not());
+        return this.setAndGetSupl(() -> this.not());
     }
 
     public Boolean getAndNegate() {
-        return this.getAndSet(() -> this.not());
+        return this.getAndSetSupl(() -> this.not());
     }
 
 }

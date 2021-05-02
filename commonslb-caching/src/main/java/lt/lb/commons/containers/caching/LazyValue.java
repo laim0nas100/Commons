@@ -107,8 +107,7 @@ public class LazyValue<T> extends Value<T> {
 
     /**
      *
-     * @return the ID of this value that was set, returned by internal call
-     * counter
+     * @return the nano timestamp of this value that was set
      */
     public long getLoaded() {
         return loaded.get();
@@ -117,7 +116,7 @@ public class LazyValue<T> extends Value<T> {
     protected synchronized T syncGet(long now) {
         if (!isLoadedBefore(now)) {
             syncDependencies();
-            return super.setAndGet(supply);
+            return super.setAndGetSupl(supply);
         }
 
         return super.get();
