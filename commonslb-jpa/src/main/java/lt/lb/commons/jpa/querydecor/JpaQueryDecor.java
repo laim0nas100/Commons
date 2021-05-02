@@ -23,7 +23,7 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     }
 
     protected JpaQueryDecor(JpaQueryDecor copy) {
-        this(copy.rootClass, copy.rootClass, copy);
+        this(copy.rootClass, copy.resultClass, copy);
     }
 
     public static <T> JpaQueryDecor<T, T> of(Class<T> root) {
@@ -35,6 +35,16 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     @Override
     protected JpaQueryDecor<T_ROOT, T_RESULT> me() {
         return new JpaQueryDecor<>(this);
+    }
+
+    @Override
+    public <NEW_ROOT extends T_ROOT> JpaQueryDecor<NEW_ROOT, T_RESULT> usingSubtype(Class<NEW_ROOT> subtype) {
+        return new JpaQueryDecor<>(subtype, this.resultClass, this);
+    }
+
+    @Override
+    public JpaQueryDecor<T_ROOT, T_ROOT> selectingRoot() {
+        return F.cast(super.selectingRoot());
     }
 
     @Override
@@ -63,6 +73,11 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
 
     @Override
     public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(List<Selection<?>> selections) {
+        return F.cast(super.selectingTuple(selections));
+    }
+
+    @Override
+    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(SingularAttribute<T_ROOT, ?>... selections) {
         return F.cast(super.selectingTuple(selections));
     }
 

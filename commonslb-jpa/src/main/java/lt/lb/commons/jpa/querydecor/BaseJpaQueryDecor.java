@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
+import javax.persistence.LockModeType;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Tuple;
@@ -28,13 +30,13 @@ import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.MapAttribute;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.collections.CollectionOp;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase1;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Query;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Subquery;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase4;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -112,6 +114,12 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         return this.dec4 != null;
     }
 
+    public abstract <NEW_ROOT extends T_ROOT> BaseJpaQueryDecor<NEW_ROOT, T_RESULT, ?> usingSubtype(Class<NEW_ROOT> subtype);
+
+    public BaseJpaQueryDecor<T_ROOT, T_ROOT, ?> selectingRoot() {
+        return selecting(rootClass, p -> p.root());
+    }
+
     public abstract <RES> BaseJpaQueryDecor<T_ROOT, RES, ?> selecting(
             Class<RES> resClass, Function<Phase2<T_ROOT>, Expression<RES>> func);
 
@@ -130,6 +138,20 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
 
     public BaseJpaQueryDecor<T_ROOT, Tuple, ?> selectingTuple(Selection<?>... selections) {
         return selectingTuple(Arrays.asList(selections));
+    }
+
+    public BaseJpaQueryDecor<T_ROOT, Tuple, ?> selectingTuple(SingularAttribute<T_ROOT, ?>... selections) {
+        for (SingularAttribute<T_ROOT, ?> att : selections) {
+            Objects.requireNonNull(att);
+        }
+        return selectingTuple(p -> {
+            Root<T_ROOT> root = p.root();
+            List<Selection<?>> sel = new ArrayList<>(selections.length);
+            for (SingularAttribute<T_ROOT, ?> att : selections) {
+                sel.add(root.get(att));
+            }
+            return sel;
+        });
     }
 
     public BaseJpaQueryDecor<T_ROOT, Long, ?> selectingCount() {
@@ -293,12 +315,52 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         return withDec3(c -> c.query().distinct(distinct));
     }
 
+    public M setOrderByAsc(SingularAttribute<T_ROOT, ?>... att) {
+        return withDec3(c -> {
+            CriteriaBuilder cb = c.cb();
+            Root<T_ROOT> root = c.root();
+            Order[] order = Stream.of(att)
+                    .map(at -> root.get(at))
+                    .map(m -> cb.asc(m))
+                    .toArray(s -> new Order[s]);
+            c.query().orderBy(order);
+        });
+    }
+
+    public M setOrderByDesc(SingularAttribute<T_ROOT, ?>... att) {
+        return withDec3(c -> {
+            CriteriaBuilder cb = c.cb();
+            Root<T_ROOT> root = c.root();
+            Order[] order = Stream.of(att)
+                    .map(at -> root.get(at))
+                    .map(m -> cb.desc(m))
+                    .toArray(s -> new Order[s]);
+            c.query().orderBy(order);
+        });
+    }
+
     public M setOrderBy(Order... order) {
         return withDec3(c -> c.query().orderBy(order));
     }
 
     public M setOrderBy(List<Order> order) {
         return withDec3(c -> c.query().orderBy(order));
+    }
+
+    public M setMaxResults(int max) {
+        return withDec4(p -> p.typedQuery().setMaxResults(max));
+    }
+
+    public M setFirstResult(int startPosition) {
+        return withDec4(p -> p.typedQuery().setFirstResult(startPosition));
+    }
+
+    public M setLockMode(LockModeType lock) {
+        return withDec4(p -> p.typedQuery().setLockMode(lock));
+    }
+
+    public M setFlushMode(FlushModeType type) {
+        return withDec4(p -> p.typedQuery().setFlushMode(type));
     }
 
     public M withDec3Subquery(Consumer<Phase3Subquery<T_ROOT, T_RESULT>> cons) {
@@ -418,7 +480,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         Phase2<T_ROOT> p2 = DecoratorPhases.of(em, builder, root);
         decorateQuery(p2, query, null, null);
 
-        if (resultClass == Tuple.class) {
+        if (Tuple.class.equals(resultClass)) {
             if (multiselection != null) {
                 query.multiselect(multiselection.apply(p2));
             }

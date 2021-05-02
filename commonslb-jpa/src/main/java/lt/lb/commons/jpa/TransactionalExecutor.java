@@ -1,7 +1,6 @@
 package lt.lb.commons.jpa;
 
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import lt.lb.uncheckedutils.CheckedExecutorUnified;
 
 /**
  *
@@ -9,13 +8,10 @@ import lt.lb.uncheckedutils.func.UncheckedSupplier;
  * frameworks such as Spring.
  *
  * To make use of @Transactional annotation, implementations should explicitly
- * implement this method.
+ * implement all relevant methods.
  *
  * @author laim0nas100
  */
-public interface TransactionalExecutor {
+public interface TransactionalExecutor extends CheckedExecutorUnified {
 
-    public default <T> SafeOpt<T> execute(UncheckedSupplier<T> supl) {
-        return SafeOpt.ofGet(supl);
-    }
 }
