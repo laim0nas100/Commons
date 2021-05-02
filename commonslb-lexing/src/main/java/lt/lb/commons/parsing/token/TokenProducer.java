@@ -1,4 +1,4 @@
-package lt.lb.commons.parsing;
+package lt.lb.commons.parsing.token;
 
 import java.io.Serializable;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  */
 public interface TokenProducer<T extends Token> {
 
-    public T produce(String value, int[] pos);
+    public T produce(String value, TokenPos pos);
     
     public static final DefaultTokenProducer DEFAULT_TOKEN_PROD = new DefaultTokenProducer();
     public static final DefaultLiteralProducer DEFAULT_LITERAL_PROD = new DefaultLiteralProducer();
@@ -18,7 +18,7 @@ public interface TokenProducer<T extends Token> {
     public static class DefaultTokenProducer implements TokenProducer<Token>, Serializable {
 
         @Override
-        public Token produce(String value, int[] pos) {
+        public Token produce(String value, TokenPos pos) {
             return new Token(value, pos);
         }
 
@@ -27,7 +27,7 @@ public interface TokenProducer<T extends Token> {
     public static class DefaultLiteralProducer implements TokenProducer<Literal>, Serializable {
 
         @Override
-        public Literal produce(String value, int[] pos) {
+        public Literal produce(String value, TokenPos pos) {
             return new Literal(value, pos);
         }
 
@@ -36,7 +36,7 @@ public interface TokenProducer<T extends Token> {
     public static class DefaultLiteralStringProducer implements TokenProducer<LiteralString>, Serializable {
 
         @Override
-        public LiteralString produce(String value, int[] pos) {
+        public LiteralString produce(String value, TokenPos pos) {
             return new LiteralString(value, pos);
         }
 

@@ -1,4 +1,4 @@
-package lt.lb.commons.parsing;
+package lt.lb.commons.parsing.token;
 
 /**
  *
@@ -6,7 +6,7 @@ package lt.lb.commons.parsing;
  */
 public class LiteralString extends Literal {
 
-    public LiteralString(String value, int[] pos) {
+    public LiteralString(String value, TokenPos pos) {
         super(value, pos);
     }
 

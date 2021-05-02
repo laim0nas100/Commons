@@ -1,6 +1,6 @@
-package lt.lb.commons.parsing;
+package lt.lb.commons.parsing.token;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 /**
  *
@@ -9,11 +9,11 @@ import java.util.Arrays;
 public class Token {
 
     public final String value;
-    public final int[] pos;
+    public final TokenPos pos;
 
-    public Token(String value, int[] pos) {
+    public Token(String value, TokenPos pos) {
         this.value = value;
-        this.pos = pos;
+        this.pos = Objects.requireNonNull(pos);
 
     }
 
@@ -23,6 +23,6 @@ public class Token {
 
     @Override
     public String toString() {
-        return Arrays.toString(this.pos) + ":" + this.value + ":";
+        return this.pos + ":" + this.value + ":";
     }
 }

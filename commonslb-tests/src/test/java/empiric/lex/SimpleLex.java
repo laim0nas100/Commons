@@ -13,7 +13,7 @@ import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.parsing.LexerWithStrings;
-import lt.lb.commons.parsing.Token;
+import lt.lb.commons.parsing.token.Token;
 import org.junit.Test;
 
 /**

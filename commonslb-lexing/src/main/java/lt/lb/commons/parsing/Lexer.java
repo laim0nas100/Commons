@@ -1,5 +1,9 @@
 package lt.lb.commons.parsing;
 
+import lt.lb.commons.parsing.token.Comment;
+import lt.lb.commons.parsing.token.Token;
+import lt.lb.commons.parsing.token.TokenProducer;
+import lt.lb.commons.parsing.token.TokenPos;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,13 +12,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Optional;
 import lt.lb.commons.Equator;
-import lt.lb.commons.F;
 import lt.lb.commons.LineStringBuilder;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.collections.SelfSortingMap;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -332,8 +335,8 @@ public class Lexer {
 
     }
 
-    public int[] getCurrentPos() {
-        return new int[]{this.linePos, this.charPos};
+    public TokenPos getCurrentPos() {
+        return new TokenPos(this.linePos, this.charPos);
     }
 
     protected SafeOpt<Token> breakingKeyword() {
@@ -363,11 +366,11 @@ public class Lexer {
         this.advance(key.length());
     }
 
-    protected Comment comment(String value, int[] start, int[] end) {
+    protected Comment comment(String value, TokenPos start, TokenPos end) {
         return new Comment(value, start, end);
     }
 
-    protected Token literal(String value, int[] pos) {
+    protected Token literal(String value, TokenPos pos) {
         for (String token : this.keywords.getOrderedList()) {
             if (equator.equate(value, token)) {
                 return keywords.get(token).produce(token, pos);
@@ -386,7 +389,7 @@ public class Lexer {
         if (token.isPresent()) {
             return token.asOptional();
         }
-        int[] pos = new int[]{this.linePos, this.charPos};
+        TokenPos pos = getCurrentPos();
 
         while (true) {
             SafeOpt<Character> currentChar = this.getCurrentChar();
@@ -419,7 +422,7 @@ public class Lexer {
                     } else {
                         if (this.saveComments) {
                             String comment = lines[linePos].substring(this.charPos);
-                            Token lineComment = this.comment(comment, getCurrentPos(), new int[]{linePos, this.currentLineLen() - 1});
+                            Token lineComment = this.comment(comment, getCurrentPos(), new TokenPos(linePos, this.currentLineLen() - 1));
                             this.linePos++; // just skip line
                             this.charPos = 0;
 
@@ -440,7 +443,7 @@ public class Lexer {
                     } else {
                         this.advanceByTokenKey(this.commentStart);
                         LineStringBuilder comment = new LineStringBuilder();
-                        int[] startPos = this.getCurrentPos();
+                        TokenPos startPos = this.getCurrentPos();
                         while (!this.tryToMatch(commentEnd, equatorBreaking)) {
                             SafeOpt<Character> advance = this.advance(1);
                             if (saveComments) {
@@ -455,7 +458,7 @@ public class Lexer {
 
                         if (saveComments) {
                             comment.removeFromEnd(1);
-                            int[] endPos = this.getCurrentPos();
+                            TokenPos endPos = this.getCurrentPos();
                             return Optional.ofNullable(comment(comment.toString(), startPos, endPos));
                         }
                     }
