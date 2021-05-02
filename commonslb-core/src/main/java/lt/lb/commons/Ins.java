@@ -539,7 +539,7 @@ public class Ins<T> {
     }
 
     /**
-     * Comparator of types. Broader types (like {@code Object}) come first. Null
+     * Comparator of types. Broader types (like {@link Object}) come first. Null
      * parameters comes first.
      */
     public static final Comparator<Class> typeComparator = new Comparator<Class>() {

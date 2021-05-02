@@ -26,15 +26,16 @@ public interface CloneSupport<T> extends Cloneable {
 
     /**
      * Explicit public method for cloning, masking
-     * {@link CloneNotSupportedException} in {@link IllegalArgumentException}
+     * {@link CloneNotSupportedException} in
+     * {@link UnsupportedOperationException}
      *
      * @return
      */
-    public default T uncheckedClone() {
+    public default T uncheckedClone() throws UnsupportedOperationException {
         try {
             return clone();
         } catch (CloneNotSupportedException ex) {
-            throw new IllegalArgumentException(ex);
+            throw new UnsupportedOperationException(ex);
         }
     }
 

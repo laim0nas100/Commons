@@ -13,6 +13,7 @@ import lt.lb.uncheckedutils.func.UncheckedFunction;
  * Generalized way to parse common values from string.
  *
  * @author laim0nas100
+ * @param <T>
  */
 @FunctionalInterface
 public interface StringParser<T> extends Function<T, SafeOpt<String>> {

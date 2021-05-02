@@ -59,7 +59,7 @@ public abstract class AsyncUtil {
                 return compl.get();
             }
             try {
-                T value = getter.uncheckedGet();
+                T value = getter.getUnchecked();
                 compl.complete(value);
 
             } catch (TimeoutException | InterruptedException ex) {

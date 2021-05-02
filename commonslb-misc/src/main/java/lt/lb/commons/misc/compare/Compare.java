@@ -308,6 +308,10 @@ public abstract class Compare {
     public static <T> SimpleCompare<T> of(CompareNull nullCmp, Comparator<T> cmp) {
         return new SimpleCompare<>(nullCmp, cmp);
     }
+    
+    public static <T> SimpleCompare<T> of(Comparator<T> cmp) {
+        return new SimpleCompare<>(CompareNull.NULL_THROW, cmp);
+    }
 
     public static <T extends Comparable<T>> SimpleCompare<T> of(CompareNull nullCmp) {
         Comparator<T> cmp = Comparator.naturalOrder();

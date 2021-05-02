@@ -1,5 +1,6 @@
 package lt.lb.commons.parsing;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -124,5 +125,21 @@ public class StringOp extends org.apache.commons.lang3.StringUtils {
         result += numbS.substring(index, Math.min(numbS.length(), index + 4));
 
         return result;
+    }
+
+    public static int[] indexesOf(CharSequence str, CharSequence searchSeq) {
+        int pos = 0;
+        ArrayList<Integer> list = new ArrayList<>();
+        while (true) {
+            int index = indexOf(str, searchSeq, pos);
+            if (index >= 0) {
+                pos = index;
+                list.add(index);
+            } else {
+                break;
+            }
+        }
+        return list.stream().mapToInt(m -> m).toArray();
+
     }
 }

@@ -5,348 +5,88 @@
  */
 package empiric.experimental;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import lt.lb.commons.DLog;
 import lt.lb.commons.F;
+import lt.lb.commons.Ins;
+import lt.lb.commons.Lazy;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.misc.UUIDgenerator;
-import lt.lb.commons.parsing.Literal;
-import lt.lb.commons.parsing.Token;
+import lt.lb.commons.misc.compare.ComparatorBuilder;
+import lt.lb.commons.misc.compare.Compare;
+import lt.lb.commons.misc.compare.Compare.SimpleCompare;
+import lt.lb.commons.parsing.Lexer;
+import lt.lb.commons.parsing.token.Literal;
+import lt.lb.commons.parsing.StringOp;
+import lt.lb.commons.parsing.token.Token;
+import lt.lb.commons.parsing.token.TokenPos;
+import lt.lb.commons.parsing.token.TokenProducer;
+import lt.lb.commons.parsing.token.match.DefaultMatchedTokenProducer;
+import lt.lb.commons.parsing.token.match.MatchedTokenProducer;
+import lt.lb.commons.parsing.token.match.MatchedTokens;
+import lt.lb.commons.parsing.token.match.TokenMatcher;
+import lt.lb.commons.parsing.token.match.TokenMatchers;
 
 /**
  *
  * @author laim0nas100
  */
 public class TokenFiniteAutomata {
-    public static ILineAppender log = ILineAppender.empty;
 
-    public static class TraversedResult {
-
-        public String id;
-
-        public ArrayList<ResultNode> nodeList = new ArrayList<>();
-
-        public TNode endNode;
-
-        public String getStringResult() {
-            StringBuilder sb = new StringBuilder();
-            For.elements().iterate(nodeList, (i, n) -> {
-//                if (n.appendable) {
-                sb.append(n.value);
-//                }
-            });
-
-            return sb.toString();
-        }
-
-        public String toString() {
-            return id + "  " + this.getStringResult();
-        }
-
-    }
-
-    public static class TNumberNode extends TLiteralNode {
-
-        public TNumberNode(boolean canEnd) {
-            super(canEnd);
-        }
-
-        @Override
-        public boolean matches(Token token) {
-            if (super.matches(token)) {
-                Literal lit = F.cast(token);
-                try {
-                    Double.parseDouble(lit.value);
-                    return true;
-                } catch (NumberFormatException ex) {
-                    return false;
-                }
-            }
-            return false;
-        }
-
-    }
-
-    public static class TLiteralNode extends TNode {
-
-        public TLiteralNode(boolean canEnd) {
-            super(canEnd);
-        }
-
-        @Override
-        public boolean matches(Token token) {
-            return token instanceof Literal;
-        }
-
-    }
-
-    public static abstract class TNode {
-
-        @Override
-        public int hashCode() {
-            int hash = 7;
-            hash = 73 * hash + Objects.hashCode(this.id);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final TNode other = (TNode) obj;
-            if (!Objects.equals(this.id, other.id)) {
-                return false;
-            }
-            return true;
-        }
-
-        public boolean appendable = true;
-        public boolean canEnd = false;
-        public final String id = UUIDgenerator.nextUUID("TGraphNode");
-        protected ArrayList<TNode> linkedTo = new ArrayList<>();
-
-        public TNode(boolean canEnd) {
-            this.canEnd = canEnd;
-        }
-
-        public boolean isKeyword() {
-            return false;
-        }
-
-        public void linkTo(TNode n) {
-            linkedTo.add(n);
-        }
-
-        public boolean isLinkedTo(TNode other) {
-            return linkedTo.contains(other);
-        }
-
-        public Optional<TNode> getFirstMatch(Token token) {
-            return linkedTo.stream().filter(n -> {
-                return n.matches(token);
-            }).findFirst();
-        }
-
-        public abstract boolean matches(Token token);
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Keyword:").append(this.isKeyword()).append(" Can End:").append(this.canEnd).append(" Appendable:").append(this.appendable);
-            return sb.toString();
-        }
-
-    }
-
-    public static class TKeywordNode extends TNode {
-
-        public final String keyword;
-
-        public TKeywordNode(String keyWord, boolean canEnd) {
-            this(keyWord, canEnd, true);
-        }
-
-        public TKeywordNode(String keyWord, boolean canEnd, boolean appendable) {
-            super(canEnd);
-            this.keyword = keyWord;
-            this.appendable = appendable;
-        }
-
-        @Override
-        public boolean isKeyword() {
-            return true;
-        }
-
-        @Override
-        public boolean matches(Token token) {
-            return this.keyword.equals(token.value);
-        }
-
-    }
-
-    public static class ResultNode {
-
-        public String value;
-        public boolean appendable = true;
-        public boolean isKeyword = true;
-        public Token token;
-        public TNode tnode;
-
-    }
-
-    public static class TGraph {
-
-        public TNode beginNode;
-        public String graphId = UUIDgenerator.nextUUID("TGraph");
-        public HashMap<String, TNode> nodes = new HashMap<>();
-        public HashMap<String, TGraph> connectedGraphs = new HashMap<>();
-
-        public TGraph(String name) {
-            this.graphId = name;
-        }
-
-        public void connect(TGraph gr) {
-            this.connectedGraphs.put(gr.graphId, gr);
-        }
-
-        public void connectAtEnd(TGraph gr) {
-            For.entries().iterate(this.connectedGraphs, (i, g) -> {
-                g.connect(gr);
-            });
-        }
-
-        public boolean matches(Token token) {
-            return beginNode.matches(token);
-        }
-
-        public void addNodes(TNode... nodeArray) {
-            For.elements().iterate(nodeArray, (i, n) -> {
-                nodes.putIfAbsent(n.id, n);
-            });
-        }
-
-        private TraversedResult traverse(ReadOnlyIterator<Token> stream, TraversedResult res, TNode node) {
-
-            Token token = stream.getCurrent();
-            if (token == null) {
-                throw new IllegalStateException("Current token is null");
-            }
-            ResultNode resNode = new ResultNode();
-            resNode.token = token;
-            resNode.appendable = node.appendable;
-            resNode.tnode = node;
-            resNode.isKeyword = node.isKeyword();
-
-            log.appendLine(node, token);
-
-            boolean isLiteral = token instanceof Literal;
-            boolean nodeIsLiteral = !node.isKeyword();
-            if (isLiteral != nodeIsLiteral) {
-                throw new IllegalStateException("Node and token mismatch " + node + " " + token);
-            }
-            if (isLiteral) {
-                Literal lit = F.cast(token);
-                resNode.value = lit.value;
-                res.nodeList.add(resNode);
-            } else {
-                resNode.value = token.value;
-                res.nodeList.add(resNode);
-            }
-
-            if (!stream.hasNext()) {
-                if (node.canEnd) {
-                    return res;
-                } else {
-                    throw new IllegalStateException("Illegal stream end on node " + node);
-                }
-            } else {
-                Token next = stream.next();
-
-                Optional<TNode> firstMatch = node.getFirstMatch(next);
-
-                if (!firstMatch.isPresent()) {// maybe can end?
-                    if (node.canEnd) {
-                        res.endNode = node;
-                        return res;
-                    }
-                    throw new IllegalStateException("Illegal end on " + node.getClass().getSimpleName() + " " + node);
-                } else {
-                    return traverse(stream, res, firstMatch.get());
-                }
-            }
-
-        }
-
-        public TraversedResult traverse(ReadOnlyIterator<Token> stream) {
-            if (beginNode == null) {
-                throw new IllegalStateException("Begin node is null");
-            }
-            TraversedResult res = new TraversedResult();
-            res.id = this.graphId;
-            return traverse(stream, res, beginNode);
-
-        }
-
-        public static <T> T getLast(List<T> list) {
-            int size = list.size();
-            return list.get(size - 1);
-        }
-
-        public void fullTraverse(ReadOnlyIterator<Token> stream, List<TraversedResult> resList) {
-            log.appendLine("Traverse ", this.graphId);
-            TraversedResult res = this.traverse(stream);
-
-            Token t = stream.getCurrent();
-            // if same token
-
-            int size = resList.size();
-            if (size > 0) {
-                TraversedResult lastResult = getLast(resList);
-                ResultNode lastNode = getLast(lastResult.nodeList);
-                if (t == lastNode.token) {
-                    log.appendLine("Repeated token parsing. Exiting");
-                    return;
-                }
-
-            }
-
-            resList.add(res);
-
-            if (t != null) {
-                SafeOpt<TGraph> find = For.entries().find(this.connectedGraphs, (k, g) -> g.matches(t)).map(m->m.val);
-                if (find.isPresent()) {
-                    TGraph nextGraph = find.get();
-
-                    nextGraph.fullTraverse(stream, resList);
-                } else {
-                    log.appendLine("Can't proceed after", t);
-                }
-            }
-
-        }
-    }
-
-    public static abstract class BaseStatement implements IStatement {
-
-        protected Map<String, TGraph> links = new HashMap<>();
-        public TGraph beginGraph;
-
-        public final void linkTo(TGraph from, TGraph to) {
-            links.put(from.graphId, to);
-        }
-    }
-
-    public static abstract class ExactStatement extends BaseStatement {
-
-        public ExactStatement(TGraph begin, TGraph... parts) {
-            this.beginGraph = begin;
-            if (parts.length > 0) {
-                this.linkTo(begin, parts[0]);
-            }
-            for (int i = 1; i < parts.length; i++) {
-                this.linkTo(parts[i - 1], parts[i]);
-            }
-        }
-    }
-
-    public interface IStatement<Product> {
-
-        public Product parse(ReadOnlyIterator<TraversedResult> iter);
-
+    public static final String OPERATOR_AND = "AND";
+    public static final String OPERATOR_OR = "OR";
+    public static final String OPERATOR_NOT = "NOT";
+
+    public static final String OPERATOR_WILD_QUESTION = "?";
+    public static final String OPERATOR_WILD_STAR = "*";
+    public static final String OPERATOR_WILD_QUESTION_ESC = "\\?";
+    public static final String OPERATOR_WILD_STAR_ESC = "\\*";
+
+
+    public static void main(String[] args) throws Exception {
+        Lexer lexer = new Lexer();
+        lexer.addKeywordBreaking(OPERATOR_WILD_QUESTION, OPERATOR_WILD_QUESTION_ESC, OPERATOR_WILD_STAR, OPERATOR_WILD_STAR_ESC);
+
+        String term = "*hell?o\\?" + "__REV__" + "**something else";
+        lexer.resetLines(Arrays.asList(term));
+        ArrayList<Token> tokens = lexer.getRemainingTokens();
+
+        TokenMatcher wildStar = TokenMatchers.exact(OPERATOR_WILD_STAR).named("wild_star");
+        TokenMatcher wildQuestion = TokenMatchers.exact(OPERATOR_WILD_QUESTION).named("wild_question");
+        TokenMatcher wildStarEsc = TokenMatchers.exact(OPERATOR_WILD_STAR_ESC).named("wild_star_esc");
+        TokenMatcher wildQuestionEsc = TokenMatchers.exact( OPERATOR_WILD_QUESTION_ESC).named("wild_question_escape");
+        TokenMatcher literal = TokenMatchers.literalType();
+
+        TokenMatcher wildCard = TokenMatchers.or(wildStar, wildQuestion).named("wild_card");
+        TokenMatcher wildCard_Literal = TokenMatchers.concat(wildCard, literal);
+        TokenMatcher literal_wildCard = TokenMatchers.concat(literal, wildCard);
+        TokenMatcher wildCard_Literal_wildcard = TokenMatchers.concat(wildCard, literal, wildCard);
+
+        DLog.main().async = false;
+        DLog.printLines(tokens);
+        List<TokenMatcher> asList = Arrays.asList(wildCard_Literal_wildcard, literal_wildCard, wildCard_Literal, wildCard, wildStar, wildQuestion, wildStarEsc, wildQuestionEsc, literal);
+        DefaultMatchedTokenProducer producer = new DefaultMatchedTokenProducer(tokens.iterator(), asList);
+        
+        producer.forEachRemaining(DLog::print);
+
+        DLog.close();
     }
 
 }
