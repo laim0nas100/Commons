@@ -2,6 +2,7 @@ package lt.lb.commons.iteration;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * Generalized paged iteration
@@ -37,95 +38,114 @@ public interface PagedIteration<PageInfo, T> extends Iterable<T> {
 
     public boolean hasNextPage(PageInfo info);
 
+    public static class SimplePagesIterator<PageInfo, T> implements Iterator<Iterator<T>> {
+
+        public SimplePagesIterator(PagedIteration<PageInfo, T> paged) {
+            this.paged = Objects.requireNonNull(paged, "PagedIteration is null");
+        }
+
+        protected PageInfo lastPage = null;
+        protected boolean lastPageUsed = false;
+        protected boolean firstGot = false;
+
+        protected PagedIteration<PageInfo, T> paged;
+
+        @Override
+        public boolean hasNext() {
+            if (!firstGot) {
+
+                lastPage = paged.getFirstPage();
+                firstGot = true;
+                return true;
+            }
+            return !lastPageUsed || paged.hasNextPage(lastPage);
+        }
+
+        @Override
+        public Iterator<T> next() {
+
+            if (hasNext()) {
+                if (!lastPageUsed) {
+                    Iterator<T> items = paged.getItems(lastPage);
+                    lastPageUsed = true;
+                    return items;
+                } else {
+                    lastPage = paged.getNextPage(lastPage);
+                    lastPageUsed = true;
+                    return paged.getItems(lastPage);
+                }
+            } else {
+                throw new NoSuchElementException("No next value");
+            }
+        }
+    }
+
     /**
      * Construct iterator of pages, if such need arises
+     *
      * @return
      */
     public default Iterator<Iterator<T>> toPagedIterators() {
-        return new Iterator<Iterator<T>>() {
-            PageInfo lastPage = null;
-            boolean lastPageUsed = false;
-            boolean firstGot = false;
+        return new CachedNextCheckIterator<>(new SimplePagesIterator<>(this));
+    }
 
-            @Override
-            public boolean hasNext() {
-                if (!firstGot) {
+    public static class SimplePagedIterator<T, PageInfo> implements Iterator<T> {
 
-                    lastPage = getFirstPage();
-                    firstGot = true;
-                    return true;
-                }
-                return !lastPageUsed || hasNextPage(lastPage);
+        protected Iterator<T> current = null;
+        protected PageInfo currentPage = null;
+        protected boolean endReached = false;
+        protected boolean firstGot = false;
+
+        protected PagedIteration<PageInfo, T> paged;
+
+        public SimplePagedIterator(PagedIteration<PageInfo, T> paged) {
+            this.paged = Objects.requireNonNull(paged, "PagedIteration is null");
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (endReached) {
+                return false;
             }
+            if (!firstGot) {
 
-            @Override
-            public Iterator<T> next() {
-
-                if (hasNext()) {
-                    if (!lastPageUsed) {
-                        Iterator<T> items = getItems(lastPage);
-                        lastPageUsed = true;
-                        return items;
-                    } else {
-                        lastPage = getNextPage(lastPage);
-                        lastPageUsed = true;
-                        return getItems(lastPage);
+                currentPage = paged.getFirstPage();
+                current = paged.getItems(currentPage);
+                firstGot = true;
+                return hasNext();
+            }
+            if (current.hasNext()) {
+                return true;
+            } else {
+                while (paged.hasNextPage(currentPage)) {
+                    currentPage = paged.getNextPage(currentPage);
+                    current = paged.getItems(currentPage);
+                    if (current.hasNext()) {
+                        return true;
                     }
-                } else {
-                    throw new NoSuchElementException("No next value");
                 }
+                endReached = true;
+                return false;
             }
-        };
+        }
+
+        @Override
+        public T next() {
+            if (hasNext()) {
+                return current.next();
+            } else {
+                throw new NoSuchElementException("No next value");
+            }
+        }
     }
 
     /**
      * Construct iterator of items based on this paged access
-     * @return 
+     *
+     * @return
      */
     @Override
     public default Iterator<T> iterator() {
-
-        return new Iterator<T>() {
-            Iterator<T> current = null;
-            PageInfo currentPage = null;
-            boolean endReached = false;
-            boolean firstGot = false;
-
-            @Override
-            public boolean hasNext() {
-                if (endReached) {
-                    return false;
-                }
-                if (!firstGot) {
-
-                    currentPage = getFirstPage();
-                    current = getItems(currentPage);
-                    firstGot = true;
-                    return hasNext();
-                }
-                if (current.hasNext()) {
-                    return true;
-                } else {
-                    while (hasNextPage(currentPage)) {
-                        currentPage = getNextPage(currentPage);
-                        current = getItems(currentPage);
-                        if (current.hasNext()) {
-                            return true;
-                        }
-                    }
-                    endReached = true;
-                    return false;
-                }
-            }
-
-            @Override
-            public T next() {
-                if (hasNext()) {
-                    return current.next();
-                } else {
-                    throw new NoSuchElementException("No next value");
-                }
-            }
-        };
+        return new CachedNextCheckIterator<>(new SimplePagedIterator<>(this));
     }
 }
