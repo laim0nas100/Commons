@@ -15,13 +15,15 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import lt.lb.commons.Equator;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.PairLeft;
 import lt.lb.commons.containers.tuples.PairRight;
+import lt.lb.commons.iteration.EmptyImmutableList;
+import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;
@@ -599,6 +601,41 @@ public class CollectionOp {
             col.add(item);
         }
 
+        return col;
+    }
+
+    /**
+     * Checks if collection is null or empty then returns a null, otherwise
+     * makes a collection, adds all given items to it and returns it
+     *
+     * @param <T>
+     * @param <C>
+     * @param maker
+     * @param items
+     * @return
+     */
+    public static <T, C extends Collection<T>> C lazyInit(Function<C, C> maker, C items) {
+
+        if (items == null || items.isEmpty()) {
+            return null;
+        } else {
+            return maker.apply(items);
+        }
+    }
+
+    /**
+     * Checks if collection is null or empty and returns empty immutable list to
+     * iterate, otherwise returns a given collection
+     *
+     * @param <T>
+     * @param <C>
+     * @param col
+     * @return
+     */
+    public static <T, C extends Collection<T>> Iterable<T> lazyIterable(C col) {
+        if (col == null || col.isEmpty()) {
+            return EmptyImmutableList.getInstance();
+        }
         return col;
     }
 }
