@@ -1,5 +1,7 @@
 package lt.lb.commons.containers.caching;
 
+import lt.lb.commons.containers.caching.lazy.LazyProxy;
+
 /**
  *
  * boolean primitive condition check.
@@ -22,7 +24,7 @@ public interface Condition {
      * @param second
      * @return
      */
-    public static Condition ensureLoadOrder(LazyValue first, LazyValue second) {
+    public static Condition ensureLoadOrder(LazyProxy first, LazyProxy second) {
         return now -> first.isLoadedBefore(now) && first.getLoaded() <= second.getLoaded();
     }
 
