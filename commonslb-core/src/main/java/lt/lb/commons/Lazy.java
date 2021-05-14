@@ -19,7 +19,7 @@ import lt.lb.uncheckedutils.func.UncheckedSupplier;
  * @author laim0nas100
  * @param <T>
  */
-public class Lazy<T> implements Supplier<T> {
+public class Lazy<T> implements UncheckedSupplier<T> {
 
     protected final Supplier<T> supl;
     protected final Executor exe;
@@ -62,8 +62,8 @@ public class Lazy<T> implements Supplier<T> {
     }
 
     public Lazy<T> eager() {
-        if (initialized.compareAndSet(false, true)) {
-            exe.execute(future);
+        if (!future.isDone()) {
+            exe.execute(future); // will not run more than once
         }
         return this;
     }
@@ -157,24 +157,6 @@ public class Lazy<T> implements Supplier<T> {
 
     /**
      * Populate and return value, or throw {@link NestedException} if any
-     * occurred.
-     *
-     * @return
-     */
-    @Override
-    public T get() {
-
-        try {
-            eager();
-            return future.get();
-        } catch (InterruptedException | ExecutionException th) {
-            initialized.compareAndSet(true, false);
-            throw NestedException.of(th);
-        }
-    }
-
-    /**
-     * Populate and return value, or throw {@link NestedException} if any
      * occurred, waiting given amount of time.
      *
      * @param time
@@ -186,18 +168,8 @@ public class Lazy<T> implements Supplier<T> {
             eager();
             return future.get(time, unit);
         } catch (TimeoutException | InterruptedException | ExecutionException th) {
-            initialized.compareAndSet(true, false);
             throw NestedException.of(th);
         }
-    }
-
-    /**
-     * Populate and return value as a {@link SafeOpt}.
-     *
-     * @return
-     */
-    public SafeOpt<T> safeGet() {
-        return SafeOpt.ofGet(this::get);
     }
 
     /**
@@ -208,8 +180,14 @@ public class Lazy<T> implements Supplier<T> {
      * @param unit
      * @return
      */
-    public SafeOpt<T> safeGet(long time, TimeUnit unit) {
+    public SafeOpt<T> getSafe(long time, TimeUnit unit) {
         return SafeOpt.ofGet(() -> get(time, unit));
+    }
+
+    @Override
+    public T getUnchecked() throws Throwable {
+        eager();
+        return future.get();
     }
 
 }
