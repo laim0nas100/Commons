@@ -14,7 +14,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.caching.LazyDependantValue;
+import lt.lb.commons.containers.caching.lazy.LazyProxy;
+import lt.lb.commons.containers.caching.lazy.LazyValue;
 import lt.lb.commons.iteration.For;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -33,11 +34,11 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
 
     protected Map<String, DR> composable = new HashMap<>();
 
-    protected LazyDependantValue<Map<String, Integer>> rowAndComposedKeyOrder;
-    protected LazyDependantValue<List<R>> rowsInOrder;
-    protected LazyDependantValue<List> rowsAndComposedInOrder;
-    protected LazyDependantValue<List<R>> nestedRowsInOrder;
-    protected LazyDependantValue<Map<String, Integer>> visibleRowsOrder;
+    protected LazyProxy<Map<String, Integer>> rowAndComposedKeyOrder;
+    protected LazyProxy<List<R>> rowsInOrder;
+    protected LazyProxy<List> rowsAndComposedInOrder;
+    protected LazyProxy<List<R>> nestedRowsInOrder;
+    protected LazyProxy<Map<String, Integer>> visibleRowsOrder;
 
     @Override
     public Map<String, U> getUpdateMap() {
@@ -53,7 +54,7 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         composableKey = key;
         this.conf = conf;
         this.conf.configureUpdates(updates, me());
-        rowAndComposedKeyOrder = new LazyDependantValue<>(() -> {
+        rowAndComposedKeyOrder = new LazyValue<>(() -> {
             HashMap<String, Integer> indexMap = new HashMap<>();
             for (R row : rowMap.values()) {
                 indexMap.put(row.getKey(), this.getRowIndex(row.getKey()));

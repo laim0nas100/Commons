@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import lt.lb.commons.Predicates;
-import lt.lb.commons.containers.caching.LazyValue;
+import lt.lb.commons.containers.caching.lazy.LazyValue;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.reflect.FieldFactory;
 import lt.lb.commons.reflect.FieldHolder;

@@ -24,7 +24,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.util.StringConverter;
 import lt.lb.commons.F;
 import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.commons.containers.caching.LazyValue;
+import lt.lb.commons.containers.caching.lazy.LazyValue;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.NodeSync;
 import lt.lb.commons.datasync.extractors.Extractors;
