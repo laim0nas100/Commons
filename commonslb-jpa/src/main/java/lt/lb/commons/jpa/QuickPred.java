@@ -1,10 +1,11 @@
 package lt.lb.commons.jpa;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaBuilder.In;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import lt.lb.commons.containers.collections.CollectionOp;
@@ -35,33 +36,62 @@ public class QuickPred {
 //            return func.apply(cb).apply(exp1, exp2, exp3);
 //        };
 //    }
+    public static <T extends Comparable<T>> Predicate inRange(CriteriaBuilder cb, Expression<T> exp, T min, T max) {
+        boolean nMin = min == null;
+        boolean nMax = max == null;
+        if (nMin && nMax) { // no range, just allow any
+            return bool(cb, true);
+        } else if (!nMax && !nMin) { // full range
+            return cb.and(cb.lessThanOrEqualTo(exp, max), cb.greaterThanOrEqualTo(exp, min));
+
+        } else if (nMin) {
+            return cb.lessThanOrEqualTo(exp, max);
+        } else {
+            return cb.greaterThanOrEqualTo(exp, min);
+        }
+    }
+
+    public static <T extends Comparable<T>> Predicate inRangeExc(CriteriaBuilder cb, Expression<T> exp, T min, T max) {
+        boolean nMin = min == null;
+        boolean nMax = max == null;
+        if (nMin && nMax) { // no range, just allow any
+            return bool(cb, true);
+        } else if (!nMax && !nMin) { // full range
+            return cb.and(cb.lessThan(exp, max), cb.greaterThan(exp, min));
+
+        } else if (nMin) {
+            return cb.lessThan(exp, max);
+        } else {
+            return cb.greaterThan(exp, min);
+        }
+    }
 
     public static <T> Predicate bool(CriteriaBuilder cb, boolean b) {
         return b ? cb.conjunction() : cb.disjunction();
     }
 
-    public static <T> Predicate inEmptyAllowed(CriteriaBuilder cb, Expression<T> exp, Collection<T> col) {
+    public static <T> Predicate in_emptyTrue(CriteriaBuilder cb, Expression<T> exp, Collection<T> col) {
         if (CollectionOp.isEmpty(col)) {
             return bool(cb, true);
         }
         return exp.in(col);
     }
 
-    public static <T> Predicate inEmptyDisallowed(CriteriaBuilder cb, Expression<T> exp, Collection<T> col) {
+    public static <T> Predicate in_emptyFalse(CriteriaBuilder cb, Expression<T> exp, Collection<T> col) {
         if (CollectionOp.isEmpty(col)) {
             return bool(cb, false);
         }
         return exp.in(col);
     }
 
-    public static <T> Predicate notInEmptyAllowed(CriteriaBuilder cb, Expression<T> exp, Collection<T> col) {
+    public static <T> Predicate notIn_emptyTrue(CriteriaBuilder cb, Expression<T> exp, Collection<T> col) {
         if (CollectionOp.isEmpty(col)) {
             return bool(cb, true);
         }
         return exp.in(col).not();
     }
 
-    public static <T> Predicate notInEmptyDisallowed(CriteriaBuilder cb, Expression<T> exp, Collection<T> col) {
+    public static <T> Predicate notIn_emptyFalse(CriteriaBuilder cb, Expression<T> exp, Collection<T> col) {
         if (CollectionOp.isEmpty(col)) {
             return bool(cb, false);
         }
@@ -74,6 +104,56 @@ public class QuickPred {
 
     public static Predicate isFalseOrNull(CriteriaBuilder cb, Expression<Boolean> exp) {
         return cb.or(cb.isFalse(exp), cb.isNull(exp));
+    }
+
+    public static <T> Predicate splitNotIn(CriteriaBuilder cb, int chunk, Expression<T> exp, Collection<T> collection) {
+        return split(false, cb, chunk, exp, collection);
+    }
+
+    public static <T> Predicate splitIn(CriteriaBuilder cb, int chunk, Expression<T> exp, Collection<T> collection) {
+        return split(true, cb, chunk, exp, collection);
+    }
+
+    public static <T> Predicate split(boolean in, CriteriaBuilder cb, int chunk, Expression<T> exp, Collection<T> collection) {
+        if (collection.isEmpty()) {
+            return bool(cb, !in);
+        }
+        chunk = Math.max(chunk, 100);
+        List<Predicate> preds = new ArrayList<>();
+        Set<T> subSet = new HashSet<>();
+        int i = 0;
+        for (T item : collection) {
+            subSet.add(item);
+            i++;
+
+            if (i % chunk == 0) {
+                if (in) {
+                    preds.add(exp.in(subSet));
+                } else {
+                    preds.add(exp.in(subSet).not());
+                }
+                subSet.clear();
+            }
+        }
+        if (!subSet.isEmpty()) {
+            if (in) {
+                preds.add(exp.in(subSet));
+            } else {
+                preds.add(exp.in(subSet).not());
+            }
+        }
+
+        return in ? or(cb, preds) : and(cb, preds);
+    }
+
+    public static Predicate or(CriteriaBuilder cb, Collection<Predicate> preds) {
+        Predicate[] toArray = preds.stream().toArray(s -> new Predicate[s]);
+        return cb.or(toArray);
+    }
+
+    public static Predicate and(CriteriaBuilder cb, Collection<Predicate> preds) {
+        Predicate[] toArray = preds.stream().toArray(s -> new Predicate[s]);
+        return cb.and(toArray);
     }
 
 }
