@@ -50,6 +50,7 @@ public class EmptyImmutableList<T> implements List<T> {
 
     @Override
     public void clear() {
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     @Override
