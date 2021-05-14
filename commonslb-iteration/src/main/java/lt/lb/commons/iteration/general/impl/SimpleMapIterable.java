@@ -1,7 +1,7 @@
 package lt.lb.commons.iteration.general.impl;
 
 import java.util.Map;
-import lt.lb.uncheckedutils.SafeOpt;
+import java.util.Optional;
 import lt.lb.commons.iteration.general.IterationMap;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
@@ -18,8 +18,8 @@ public class SimpleMapIterable extends SimpleAbstractIteration<SimpleMapIterable
     }
 
     @Override
-    public <K, V> SafeOpt<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter) {
-        return SimpleImpl.find(map, workoutBounds(), onlyIncludingFirst, onlyIncludingLast, resolveAccessor(iter), iter);
+    public <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter) {
+        return SimpleImpl.find(map, workoutBounds(), onlyIncludingFirst, onlyIncludingLast, resolveAccessor(iter), iter).asOptional();
     }
 
 }

@@ -1,6 +1,7 @@
 package lt.lb.commons.threads.sync;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.Equator;
 import lt.lb.uncheckedutils.SafeOpt;
@@ -100,7 +101,7 @@ public class ThreadBoundedState {
     }
 
     private int nameToIndex(String stateName) {
-        SafeOpt<Integer> find = nameToStateIndex(stateName);
+        Optional<Integer> find = nameToStateIndex(stateName);
         if (!find.isPresent()) {
             throw new IllegalArgumentException("State with name " + stateName + " was not found");
         } else {
@@ -114,7 +115,7 @@ public class ThreadBoundedState {
      * @param stateName
      * @return
      */
-    public SafeOpt<Integer> nameToStateIndex(String stateName) {
+    public Optional<Integer> nameToStateIndex(String stateName) {
         return For.elements().find(states, (i, st) -> Objects.equals(st.name, stateName)).map(t -> t.index);
     }
 

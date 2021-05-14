@@ -3,6 +3,7 @@ package regression.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,15 +38,15 @@ public class CollectionOpTest {
         Stream<Integer> stream = list.stream();
 
         IterIterableBiCons<Integer> f = (i, value) -> value == toFind;
-        SafeOpt<Integer> find1 = For.elements().find(array, f).map(m -> m.index);
-        SafeOpt<Integer> find2 = For.elements().find(list, f).map(m -> m.index);
-        SafeOpt<Integer> find3 = For.elements().find(stream, f).map(m -> m.index);
+        Optional<Integer> find1 = For.elements().find(array, f).map(m -> m.index);
+        Optional<Integer> find2 = For.elements().find(list, f).map(m -> m.index);
+        Optional<Integer> find3 = For.elements().find(stream, f).map(m -> m.index);
 
-        SafeOpt<Integer> find4 = For.elements().findBackwards(array, f).map(m -> m.index);
-        SafeOpt<Integer> find5 = For.elements().findBackwards(list, f).map(m -> m.index);
+        Optional<Integer> find4 = For.elements().findBackwards(array, f).map(m -> m.index);
+        Optional<Integer> find5 = For.elements().findBackwards(list, f).map(m -> m.index);
 
         int indexOf = list.indexOf(toFind);
-        assertThat(SafeOpt.of(indexOf))
+        assertThat(Optional.of(indexOf))
                 .isEqualTo(find1)
                 .isEqualTo(find2)
                 .isEqualTo(find3)
@@ -63,36 +64,36 @@ public class CollectionOpTest {
         IntegerValue count2 = new IntegerValue(0);
         IntegerValue count3 = new IntegerValue(0);
 
-        SafeOpt<Integer> find1 = For.elements().find(array, (i, a) -> {
+        Optional<Integer> find1 = For.elements().find(array, (i, a) -> {
             count1.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
-        SafeOpt<Integer> find2 = For.elements().find(list, (i, a) -> {
+        Optional<Integer> find2 = For.elements().find(list, (i, a) -> {
             count2.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
-        SafeOpt<Integer> find3 = For.elements().find(stream, (i, a) -> {
+        Optional<Integer> find3 = For.elements().find(stream, (i, a) -> {
             count3.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
 
         IntegerValue count4 = new IntegerValue(0);
         IntegerValue count5 = new IntegerValue(0);
-        SafeOpt<Integer> find4 = For.elements().findBackwards(array, (i, a) -> {
+        Optional<Integer> find4 = For.elements().findBackwards(array, (i, a) -> {
             count4.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
-        SafeOpt<Integer> find5 = For.elements().findBackwards(list, (i, a) -> {
+        Optional<Integer> find5 = For.elements().findBackwards(list, (i, a) -> {
             count5.incrementAndGet();
             return a == randomPick;
         }).map(m -> m.index);
 
-        assertThat(SafeOpt.of(list.indexOf(randomPick)))
+        assertThat(Optional.of(list.indexOf(randomPick)))
                 .isEqualTo(find1)
                 .isEqualTo(find2)
                 .isEqualTo(find3);
 
-        assertThat(SafeOpt.of(list.lastIndexOf(randomPick)))
+        assertThat(Optional.of(list.lastIndexOf(randomPick)))
                 .isEqualTo(find4)
                 .isEqualTo(find5);
 

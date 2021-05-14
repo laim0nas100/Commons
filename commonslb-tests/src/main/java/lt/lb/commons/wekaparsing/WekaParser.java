@@ -70,7 +70,7 @@ public class WekaParser<T> {
         //try to match derived class
         return For.entries().find(printers, (c, pr) -> {
             return Ins.of(cls).instanceOf(c);
-        }).map(m -> m.val).asOptional();
+        }).map(m -> m.val);
     }
 
     protected String wekaAttributePrint(Object attr) {

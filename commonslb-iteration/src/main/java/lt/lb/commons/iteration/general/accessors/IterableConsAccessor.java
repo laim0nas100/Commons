@@ -1,8 +1,8 @@
 package lt.lb.commons.iteration.general.accessors;
 
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -13,11 +13,7 @@ public class IterableConsAccessor implements IterIterableAccessor {
     @Override
     public <T> SafeOpt<IterIterableResult<T>> tryVisit(int index, T val, IterIterableCons<T> iter) {
         IterIterableResult<T> res = new IterIterableResult<>(index, val);
-        if (iter.visit(res)) {
-            return SafeOpt.of(res);
-        } else {
-            return SafeOpt.empty();
-        }
+        return AccessorImpl.visitUncaught(iter,res);
     }
 
 }

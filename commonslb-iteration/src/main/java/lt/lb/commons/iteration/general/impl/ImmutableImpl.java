@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.accessors.IterIterableAccessor;
 import lt.lb.commons.iteration.general.accessors.IterMapAccessor;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
 import lt.lb.commons.iteration.general.result.IterMapResult;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  * Iteration implementation without restrictions. Should be as fast as possible.

@@ -8,14 +8,18 @@ package regression.core.iteration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.function.Supplier;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
+import lt.lb.commons.datafill.NumberFill;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.interfaces.CloneSupport;
 import lt.lb.commons.iteration.For;
+import lt.lb.commons.iteration.PagedIteration;
 import lt.lb.commons.iteration.general.IterationAbstract;
 import lt.lb.commons.iteration.general.IterationIterable;
 import lt.lb.commons.iteration.general.IterationIterableUnchecked;
@@ -263,12 +267,59 @@ public class IterationTest {
         assertThat(caughtException.getError().get()).isInstanceOf(Error.class);
 
         Assertions.assertThatExceptionOfType(Error.class).isThrownBy(() -> {
-            SafeOpt<Void> irrelevant = For.elements().iterate(Arrays.asList(1, 2, 3, 4, 5, 6, 7), (i, item) -> {
+            For.elements().iterate(Arrays.asList(1, 2, 3, 4, 5, 6, 7), (i, item) -> {
                 if (i == 3) {
                     throw new Error("Fail on index 3");
                 }
             });
         });
 
+    }
+    
+    
+    @Test
+    public void pagedIteration(){
+        Random rng = new Random();
+        List<Integer> asList = NumberFill.fillArrayList(1000, ()->rng.nextInt(1000));
+        int pageSize = 100;
+        PagedIteration<Integer, Integer> paged = new PagedIteration<Integer, Integer>(){
+            @Override
+            public Integer getFirstPage() {
+                return 0;
+            }
+
+            @Override
+            public Iterator<Integer> getItems(Integer info) {
+                int to = Math.min(info + pageSize, asList.size());
+                return asList.subList(info, to).iterator();
+            }
+
+            @Override
+            public Integer getNextPage(Integer info) {
+                return Math.min(info + pageSize, asList.size());
+            }
+
+            @Override
+            public boolean hasNextPage(Integer info) {
+                return info < asList.size()-1;
+            }
+        };
+        
+        List<Integer> col_1 = new ArrayList<>();
+        List<Integer> col_2 = new ArrayList<>();
+        
+        for(Integer c:asList){
+            col_1.add(c);
+        }
+        for(Integer c:paged){
+            col_2.add(c);
+        }
+        
+        assertThat(col_2)
+                .isEqualTo(col_1)
+                .isEqualTo(asList)
+                ;
+        
+        
     }
 }

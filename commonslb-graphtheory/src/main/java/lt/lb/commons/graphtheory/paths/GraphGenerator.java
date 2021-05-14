@@ -44,7 +44,7 @@ public class GraphGenerator {
         while (true) {
             Optional<GNode> find = For.entries().find(gr.nodes, (ID, node) -> {
                 return node.degree() < minNodeDegree;
-            }).map(m -> m.val).asOptional();
+            }).map(m -> m.val);
             if (!find.isPresent()) {
                 return;
             }

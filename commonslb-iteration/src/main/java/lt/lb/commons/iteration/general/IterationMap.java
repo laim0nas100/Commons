@@ -1,7 +1,7 @@
 package lt.lb.commons.iteration.general;
 
 import java.util.Map;
-import lt.lb.uncheckedutils.SafeOpt;
+import java.util.Optional;
 import lt.lb.commons.iteration.general.cons.IterMapBiCons;
 import lt.lb.commons.iteration.general.cons.IterMapBiConsNoStop;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
@@ -23,7 +23,7 @@ public interface IterationMap<E extends IterationMap<E>> extends IterationAbstra
      * @param iter iteration logic
      * @return
      */
-    public <K, V> SafeOpt<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter);
+    public <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapCons<K, V> iter);
 
     /**
      * Iterate through map entries
@@ -34,15 +34,15 @@ public interface IterationMap<E extends IterationMap<E>> extends IterationAbstra
      * @param iter iteration logic
      * @return
      */
-    public default <K, V> SafeOpt<IterMapResult<K, V>> find(Map<K, V> map, IterMapBiCons<K, V> iter) {
+    public default <K, V> Optional<IterMapResult<K, V>> find(Map<K, V> map, IterMapBiCons<K, V> iter) {
         return find(map, (IterMapCons<K, V>) iter);
     }
 
-    public default <K, V> SafeOpt<Void> iterate(Map<K, V> map, IterMapConsNoStop<K, V> iter) {
-        return find(map, iter).keepError();
+    public default <K, V> Optional<Void> iterate(Map<K, V> map, IterMapConsNoStop<K, V> iter) {
+        return find(map, iter).map(m -> null);
     }
 
-    public default <K, V> SafeOpt<Void> iterate(Map<K, V> map, IterMapBiConsNoStop<K, V> iter) {
-        return find(map, iter).keepError();
+    public default <K, V> Optional<Void> iterate(Map<K, V> map, IterMapBiConsNoStop<K, V> iter) {
+        return find(map, iter).map(m -> null);
     }
 }

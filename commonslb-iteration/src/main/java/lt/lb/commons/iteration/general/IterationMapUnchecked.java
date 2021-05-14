@@ -1,12 +1,12 @@
 package lt.lb.commons.iteration.general;
 
 import java.util.Map;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.cons.unchecked.IterMapBiConsNoStopUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterMapBiConsUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterMapConsNoStopUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterMapConsUnchecked;
 import lt.lb.commons.iteration.general.result.IterMapResult;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *

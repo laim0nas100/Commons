@@ -6,13 +6,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableBiConsNoStopUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableBiConsUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableConsNoStopUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableConsUnchecked;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *

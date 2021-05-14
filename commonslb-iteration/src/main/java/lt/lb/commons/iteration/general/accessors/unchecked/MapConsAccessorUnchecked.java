@@ -1,10 +1,10 @@
 package lt.lb.commons.iteration.general.accessors.unchecked;
 
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.accessors.*;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
 import lt.lb.uncheckedutils.NestedException;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -15,15 +15,7 @@ public class MapConsAccessorUnchecked extends MapConsAccessor {
     @Override
     public <K, V> SafeOpt<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter) {
         IterMapResult<K, V> res = new IterMapResult<>(index, key, val);
-        try {
-            if (iter.visit(res)) {
-                return SafeOpt.of(res);
-            } else {
-                return SafeOpt.empty();
-            }
-        } catch (Throwable ex) {
-            return SafeOpt.error(NestedException.unwrap(ex));
-        }
+        return AccessorImpl.visitCaught(iter, res);
     }
 
 }

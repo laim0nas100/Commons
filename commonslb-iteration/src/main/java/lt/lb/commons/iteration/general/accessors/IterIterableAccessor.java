@@ -1,8 +1,8 @@
 package lt.lb.commons.iteration.general.accessors;
 
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
