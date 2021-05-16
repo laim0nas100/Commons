@@ -17,18 +17,18 @@ import lt.lb.commons.parsing.MapWiring.SimpleStringMapWiring;
  */
 public class MapParserTest {
 
-    public Map makeMap(ParamTest test, boolean asString) {
+    public Map makeMap(SimpleStringMapWiring wiring,ParamTest test, boolean asString) {
         HashMap<String, Object> map = new HashMap<>();
-        put(map, "int_1", test.val_1, asString);
-        put(map, "float_2", test.val_2, asString);
-        put(map, "list_float_3", test.val_3, asString);
-        put(map, "list_bool_4", test.val_4, asString);
-        put(map, "list_str_null_5", test.val_5, asString);
+        put(wiring,map, "int_1", test.val_1, asString);
+        put(wiring,map, "float_2", test.val_2, asString);
+        put(wiring,map, "list_float_3", test.val_3, asString);
+        put(wiring,map, "list_bool_4", test.val_4, asString);
+        put(wiring,map, "list_str_null_5", test.val_5, asString);
         return map;
     }
 
-    public void put(Map map, String key, Object obj, boolean asString) {
-        map.put(key, asString ? String.valueOf(obj) : obj);
+    public void put(SimpleStringMapWiring wiring,Map map, String key, Object obj, boolean asString) {
+        map.put(key, asString ? wiring.asString(obj) : obj);
     }
 
     @Test
@@ -41,8 +41,8 @@ public class MapParserTest {
         test.val_3 = Arrays.asList(1.5F, 2.5F, 5.5F);
         test.val_4 = Arrays.asList(true, true, false);
         test.val_5 = null;
-        Map stringMap = makeMap(test, true);
-        Map map = makeMap(test, false);
+        Map stringMap = makeMap(mapParser,test, true);
+        Map map = makeMap(mapParser,test, false);
 
         mapParser.wireToString = false;
         ParamTest populate = mapParser.populateObject(ParamTest::new, map);

@@ -51,6 +51,10 @@ public interface MapWiring {
         public boolean wireToString = false;
         public boolean allowDublicateKeyOverride = false;
 
+        public static final String nullValue = "null"; // the value when using String.ofValue
+        public NullCheckStringParser stringParser = new NullCheckStringParser(nullValue);
+
+        @Override
         public <T> Map populateMap(T object, Map map) {
             Objects.requireNonNull(object);
             Objects.requireNonNull(map);
@@ -97,7 +101,7 @@ public interface MapWiring {
                 return;
             }
             if (wireToString) {
-                map.put(key, String.valueOf(value));
+                map.put(key, asString(value));
                 return;
             }
             map.put(key, value);
@@ -121,7 +125,7 @@ public interface MapWiring {
             if (skipNullFields && value == null) {
                 return;
             }
-            final String finalStr = String.valueOf(value);
+            final String finalStr = asString(value);
             Checked.uncheckedRun(() -> {
                 SafeOpt parsed = parse(finalStr, field.getType(), () -> getGenericParamType(field));
                 parsed.throwIfErrorAsNested();
@@ -129,6 +133,10 @@ public interface MapWiring {
                 field.set(obj, parsedValue);
             });
 
+        }
+
+        public String asString(Object obj) {
+            return obj == null ? nullValue : String.valueOf(obj);
         }
 
         public SafeOpt<Class[]> getGenericParamType(Field field) {
@@ -212,8 +220,12 @@ public interface MapWiring {
 
         public static class NullCheckStringParser implements StringParser<String> {
 
-            public final String nullValue = "null";
-            
+            public final String nullValue;
+
+            public NullCheckStringParser(String nullValue) {
+                this.nullValue = Objects.requireNonNull(nullValue);
+            }
+
             @Override
             public SafeOpt<String> parseOptString(String p) {
                 if (p == null) {
@@ -225,13 +237,10 @@ public interface MapWiring {
                 return SafeOpt.of(p);
             }
 
-
         }
 
-        public NullCheckStringParser parser = new NullCheckStringParser();
-
         public StringParser<String> getStringParser(Class type) {
-            return parser;
+            return stringParser;
         }
 
     }
