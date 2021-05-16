@@ -48,7 +48,7 @@ public interface MapWiring {
         public boolean noSkip = true;
 
         public boolean skipNullFields = false;
-        public boolean wireToString = false;
+        public boolean wireToString = true;
         public boolean allowDublicateKeyOverride = false;
 
         public static final String nullValue = "null"; // the value when using String.ofValue
@@ -119,7 +119,7 @@ public interface MapWiring {
             boolean contains = map.containsKey(key);
 
             if (noSkip && !contains) {
-                throw new IllegalArgumentException("Failed to find a parameter:" + name.value());
+                throw new IllegalArgumentException("Failed to find a parameter:" + key);
             }
             Object value = map.get(key);
             if (skipNullFields && value == null) {
