@@ -5,8 +5,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import lt.lb.commons.containers.values.ValueProxy;
-import lt.lb.uncheckedutils.NestedException;
 import lt.lb.commons.threads.sync.SynchronizedValueSupplier;
+import lt.lb.uncheckedutils.NestedException;
 
 /**
  *
