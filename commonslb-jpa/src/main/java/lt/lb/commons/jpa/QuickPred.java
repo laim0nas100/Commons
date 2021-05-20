@@ -120,29 +120,13 @@ public class QuickPred {
         }
         chunk = Math.max(chunk, 100);
         List<Predicate> preds = new ArrayList<>();
-        Set<T> subSet = new HashSet<>();
-        int i = 0;
-        for (T item : collection) {
-            subSet.add(item);
-            i++;
-
-            if (i % chunk == 0) {
-                if (in) {
-                    preds.add(exp.in(subSet));
-                } else {
-                    preds.add(exp.in(subSet).not());
-                }
-                subSet.clear();
-            }
-        }
-        if (!subSet.isEmpty()) {
+        CollectionOp.doBatchSet(chunk, collection, subSet -> {
             if (in) {
                 preds.add(exp.in(subSet));
             } else {
                 preds.add(exp.in(subSet).not());
             }
-        }
-
+        });
         return in ? or(cb, preds) : and(cb, preds);
     }
 

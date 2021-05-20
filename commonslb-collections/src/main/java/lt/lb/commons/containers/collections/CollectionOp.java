@@ -5,16 +5,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.RandomAccess;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -23,7 +29,6 @@ import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.PairLeft;
 import lt.lb.commons.containers.tuples.PairRight;
 import lt.lb.commons.iteration.EmptyImmutableList;
-import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;
@@ -637,5 +642,94 @@ public class CollectionOp {
             return EmptyImmutableList.getInstance();
         }
         return col;
+    }
+
+    /**
+     * Do a batching operation using lists.
+     *
+     * @param <K>
+     * @param <V>
+     * @param batch size of a batch
+     * @param myMap the list to take items from
+     * @param consMap what to do with items
+     */
+    public static <K, V> void doBatchMap(int batch, Map<K, V> myMap, Consumer<Map<K, V>> consMap) {
+        doBatch(batch,
+                () -> new LinkedHashMap<>(batch),
+                (map, entry) -> map.put(entry.getKey(), entry.getValue()),
+                myMap.entrySet().iterator(),
+                consMap
+        );
+    }
+
+    /**
+     * Do a batching operation using lists.
+     *
+     * @param <T>
+     * @param batch size of a batch
+     * @param collection the collection to take items from
+     * @param cons what to do with items
+     */
+    public static <T> void doBatchList(int batch, Collection<T> collection, Consumer<List<T>> cons) {
+        doBatch(batch,
+                () -> new ArrayList<>(batch),
+                (list, item) -> {
+                    list.add(item);
+                },
+                collection.iterator(),
+                cons
+        );
+    }
+
+    /**
+     * Do a batching operation using sets.
+     *
+     * @param <T>
+     * @param batch size of a batch
+     * @param collection the collection to take items from
+     * @param cons what to do with items
+     */
+    public static <T> void doBatchSet(int batch, Collection<T> collection, Consumer<Set<T>> cons) {
+        doBatch(batch,
+                () -> new LinkedHashSet<>(batch),
+                (set, item) -> {
+                    set.add(item);
+                },
+                collection.iterator(),
+                cons
+        );
+    }
+
+    /**
+     * Do a batching operation.
+     *
+     * @param <T>
+     * @param <C>
+     * @param batch size of a batch
+     * @param bagSupply new bag supplier
+     * @param addFunc how to add to a bag
+     * @param iterator items to batch iterator
+     * @param cons what to do with items
+     */
+    public static <T, C> void doBatch(int batch, Supplier<C> bagSupply, BiConsumer<C, T> addFunc, Iterator<T> iterator, Consumer<C> cons) {
+        Objects.requireNonNull(bagSupply);
+        Objects.requireNonNull(addFunc);
+        Objects.requireNonNull(iterator);
+        Objects.requireNonNull(cons);
+        int i = 0;
+        C bag = bagSupply.get();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            addFunc.accept(bag, next);
+            i++;
+            if (i % batch == 0) {
+                cons.accept(bag);
+                bag = bagSupply.get();
+            }
+
+        }
+        if (i % batch != 0) { // some items left
+            cons.accept(bag);
+        }
     }
 }
