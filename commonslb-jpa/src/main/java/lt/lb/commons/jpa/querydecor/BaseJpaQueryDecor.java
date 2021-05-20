@@ -124,7 +124,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
             Class<RES> resClass, Function<Phase2<T_ROOT>, Expression<RES>> func);
 
     public <RES> BaseJpaQueryDecor<T_ROOT, RES, ?> selecting(
-            SingularAttribute<T_ROOT, RES> att) {
+            SingularAttribute<? super T_ROOT, RES> att) {
         Objects.requireNonNull(att);
         Class<RES> res = att.getJavaType();
         return selecting(res, p -> p.root().get(att));
@@ -140,14 +140,14 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         return selectingTuple(Arrays.asList(selections));
     }
 
-    public BaseJpaQueryDecor<T_ROOT, Tuple, ?> selectingTuple(SingularAttribute<T_ROOT, ?>... selections) {
-        for (SingularAttribute<T_ROOT, ?> att : selections) {
+    public BaseJpaQueryDecor<T_ROOT, Tuple, ?> selectingTuple(SingularAttribute<? super T_ROOT, ?>... selections) {
+        for (SingularAttribute<? super T_ROOT, ?> att : selections) {
             Objects.requireNonNull(att);
         }
         return selectingTuple(p -> {
             Root<T_ROOT> root = p.root();
             List<Selection<?>> sel = new ArrayList<>(selections.length);
-            for (SingularAttribute<T_ROOT, ?> att : selections) {
+            for (SingularAttribute<? super T_ROOT, ?> att : selections) {
                 sel.add(root.get(att));
             }
             return sel;
@@ -158,7 +158,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         return selecting(Long.class, c -> c.cb().count(c.root()));
     }
 
-    public <RES> BaseJpaQueryDecor<T_ROOT, Long, ?> selectingCount(SingularAttribute<T_ROOT, RES> att) {
+    public <RES> BaseJpaQueryDecor<T_ROOT, Long, ?> selectingCount(SingularAttribute<? super T_ROOT, RES> att) {
         Objects.requireNonNull(att);
         return selecting(Long.class, c -> c.cb().count(c.root().get(att)));
     }
@@ -167,7 +167,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         return selecting(Long.class, c -> c.cb().countDistinct(c.root()));
     }
 
-    public <RES> BaseJpaQueryDecor<T_ROOT, Long, ?> selectingCountDistinct(SingularAttribute<T_ROOT, RES> att) {
+    public <RES> BaseJpaQueryDecor<T_ROOT, Long, ?> selectingCountDistinct(SingularAttribute<? super T_ROOT, RES> att) {
         Objects.requireNonNull(att);
         return selecting(Long.class, c -> c.cb().countDistinct(c.root().get(att)));
     }
@@ -192,17 +192,17 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         }
     }
 
-    public static <T> void lazyPredicates(ArrayDeque<Function<T, Predicate>> predMakers, T item, List<Predicate> collector) {
+    public static <T> void lazyPredicates(ArrayDeque<Function<T,Predicate>> predMakers, T item, List<Predicate> collector) {
         if (predMakers == null || predMakers.isEmpty()) {
             return;
         }
-        for (Function<T, Predicate> maker : predMakers) {
+        for (Function<T,Predicate> maker : predMakers) {
             SafeOpt.ofNullable(maker).map(func -> func.apply(item))
                     .ifPresent(collector::add).throwIfErrorAsNested();
         }
     }
 
-    public <T> M withPred(SingularAttribute<T_ROOT, T> att, BiFunction<CriteriaBuilder, Expression<T>, Predicate> func) {
+    public <T> M withPred(SingularAttribute<? super T_ROOT, T> att, BiFunction<CriteriaBuilder, Expression<T>, Predicate> func) {
         Objects.requireNonNull(func);
         Function<Phase2<T_ROOT>, Predicate> fun = (Phase2<T_ROOT> t) -> func.apply(t.cb(), t.root().get(att));
         M of = me();
@@ -315,7 +315,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         return withDec3(c -> c.query().distinct(distinct));
     }
 
-    public M setOrderByAsc(SingularAttribute<T_ROOT, ?>... att) {
+    public M setOrderByAsc(SingularAttribute<? super T_ROOT, ?>... att) {
         return withDec3(c -> {
             CriteriaBuilder cb = c.cb();
             Root<T_ROOT> root = c.root();
@@ -327,7 +327,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         });
     }
 
-    public M setOrderByDesc(SingularAttribute<T_ROOT, ?>... att) {
+    public M setOrderByDesc(SingularAttribute<? super T_ROOT, ?>... att) {
         return withDec3(c -> {
             CriteriaBuilder cb = c.cb();
             Root<T_ROOT> root = c.root();
