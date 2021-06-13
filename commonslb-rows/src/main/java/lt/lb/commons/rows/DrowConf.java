@@ -45,8 +45,9 @@ public interface DrowConf<R extends Drow, C, N, L, U extends Updates> extends Up
      * Should check if row is displayed and visible
      *
      * @param row
+     * @param dirty if row was explicitly updated
      */
-    public void renderRow(R row);
+    public void renderRow(R row, boolean dirty);
 
     /**
      * Override this for different distribution of cell widths after hiding or

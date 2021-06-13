@@ -11,17 +11,15 @@ import lt.lb.commons.rows.Drows;
  * @param <C> BaseCell
  * @param <N> Node
  */
-public class BaseLine<DR extends Drows<?,?,DR,?>, C extends BaseCell<N, ?>, N> {
-    
+public class BaseLine<DR extends Drows<?, ?, DR, ?>, C extends BaseCell<N, ?>, N> {
+
     protected DR originalRows;
     protected List<C> cells = new ArrayList<>();
     protected List<N> renderedNodes = new ArrayList<>();
-    
-    public static final Runnable empty = ()->{
-        
-    };
-    protected Runnable derender = empty;
-    
+    protected int lastVisibleIndex = -1;
+
+    protected Runnable derender = null;
+
     public BaseLine(DR originalRows) {
         this.originalRows = originalRows;
     }
@@ -62,7 +60,7 @@ public class BaseLine<DR extends Drows<?,?,DR,?>, C extends BaseCell<N, ?>, N> {
     public List<C> getCells() {
         return cells;
     }
-    
+
     public void setCells(List<C> cells) {
         this.cells = cells;
     }
@@ -75,14 +73,14 @@ public class BaseLine<DR extends Drows<?,?,DR,?>, C extends BaseCell<N, ?>, N> {
     public List<N> getRenderedNodes() {
         return renderedNodes;
     }
-    
+
     public void setRenderedNodes(List<N> renderedNodes) {
         this.renderedNodes = renderedNodes;
     }
 
     /**
      * Routine to remove drawn things
-     *
+     * 
      * @return
      */
     public Runnable getDerender() {
@@ -94,11 +92,11 @@ public class BaseLine<DR extends Drows<?,?,DR,?>, C extends BaseCell<N, ?>, N> {
      */
     public void derender() {
         Runnable derend = getDerender();
-        if(derend == empty){
+        if (derend == null) {
             return;
         }
         derend.run();
-        setDerender(empty);
+        setDerender(null);
     }
 
     /**
@@ -109,5 +107,20 @@ public class BaseLine<DR extends Drows<?,?,DR,?>, C extends BaseCell<N, ?>, N> {
     public void setDerender(Runnable derender) {
         this.derender = derender;
     }
-    
+
+    /**
+     *
+     * Last index this line was rendered at relative to configured {@link Drows}
+     * -1 if was not visible before
+     *
+     * @return
+     */
+    public int getLastVisibleIndex() {
+        return lastVisibleIndex;
+    }
+
+    public void setLastVisibleIndex(int lastVisibleIndex) {
+        this.lastVisibleIndex = lastVisibleIndex;
+    }
+
 }

@@ -36,6 +36,8 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
 
     protected boolean displayed = false;
 
+    protected boolean dirtyRender = true;
+
     protected List<C> cells = new ArrayList<>();
     protected Conf config;
     protected L line;
@@ -88,6 +90,16 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         config.configureUpdates(updates, me());
 
     }
+    
+    /**
+     * Check if row is dirty and then render it
+     * @return 
+     */
+    protected boolean checkSetDirtyRender(){
+        boolean dirty = dirtyRender;
+        dirtyRender = false;
+        return dirty;
+    }
 
     @Override
     public R initUpdates() {
@@ -103,8 +115,11 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         U u_visible = updates.get(UPDATES_ON_VISIBLE);
 
         u_render.addUpdate(getRenderOrder(), () -> {
-            reorderColSpans();
-            config.renderRow(me());
+            if (checkSetDirtyRender() ) {
+                reorderColSpans();
+                config.renderRow(me(),checkSetDirtyRender());
+            }
+
         });
 
         u_display.addFollowUp(u_refresh);
@@ -672,6 +687,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     /**
      * Returns a node, that satisfy the given node predicate.
      *
+     * @param <T>
      * @param pred
      * @return
      */
@@ -682,6 +698,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     /**
      * Supplier that returns a node, that satisfy the given node-index.
      *
+     * @param <T>
      * @param i
      * @return
      */

@@ -318,11 +318,11 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         composeRows(-1, rows);
     }
 
-    public Integer getRowIndex(String key) {
+    public int getRowIndex(String key) {
         return keyOrder.indexOf(key);
     }
 
-    public Integer getVisibleRowIndex(String key) {
+    public int getVisibleRowIndex(String key) {
         return visibleRowsOrder.get().getOrDefault(key, -1);
     }
 

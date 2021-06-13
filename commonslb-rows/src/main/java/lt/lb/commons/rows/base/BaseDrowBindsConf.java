@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.rows.Drow;
 import lt.lb.commons.rows.DrowConf;
+import lt.lb.commons.rows.Drows;
 import lt.lb.commons.rows.OrderedRunnable;
 import lt.lb.commons.rows.UpdateHolder;
 import lt.lb.commons.rows.Updates;
@@ -71,6 +72,31 @@ public abstract class BaseDrowBindsConf<R extends Drow, C, N, L, U extends Updat
             this.order = order;
         }
 
+    }
+
+    /**
+     * Do some base checks, derender line if was rendered, set new last visible
+     * index if index was changed
+     *
+     * @param line
+     * @param rowIndex
+     * @param dirty
+     * @return whether to continue rendering process
+     */
+    protected boolean baseDerenderContinue(BaseLine line, int rowIndex, boolean dirty) {
+        int lastIndex = line.getLastVisibleIndex();
+        if (lastIndex < 0 && rowIndex < 0) { // was not redered
+            return false;
+        }
+
+        line.derender();
+        line.setLastVisibleIndex(lastIndex);
+        if (lastIndex >= 0 && rowIndex < 0) {
+            //not visible anymore
+            return false;
+        }
+
+        return (dirty || lastIndex != rowIndex);
     }
 
 }

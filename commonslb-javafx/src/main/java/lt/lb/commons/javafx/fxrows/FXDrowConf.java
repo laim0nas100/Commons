@@ -14,11 +14,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lt.lb.commons.F;
 import lt.lb.commons.datasync.Valid;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.rows.base.BaseDrowSyncConf;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -51,7 +52,9 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
     public FXCell createCell(List<Node> nodes, Node enclosingNode, FXDrow r) {
         FXCell cell = new FXCell();
         cell.setNodes(nodes);
-        SafeOpt.ofNullable(enclosingNode).select(Pane.class).ifPresent(cell::setEnclosed);
+        if(enclosingNode instanceof Pane){
+            cell.setEnclosed(F.cast(enclosingNode));
+        }
         return cell;
 
     }
@@ -67,11 +70,14 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
     }
 
     @Override
-    public void renderRow(FXDrow row) {
+    public void renderRow(FXDrow row, boolean dirty) {
         FXLine line = row.getLine();
-        FXDrows rows = line.getRows();
-        line.derender();
-
+        FXDrows rows = line.getRows().getLastParentOrMe();
+        int rowIndex = rows.getVisibleRowIndex(row.getKey());
+        if(!baseDerenderContinue(line, rowIndex, dirty)){
+            return;
+        }
+        
         GridPane grid = rows.grid;
         line.setDerender(() -> {
             for (Node n : line.getRenderedNodes()) {
@@ -84,8 +90,8 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
         if (!row.isActive()) {
             return; // nothing else to do here
         }
-        Integer rowIndex = rows.getVisibleRowIndex(row.getKey());
-        if (rowIndex == -1) {
+
+        if (rowIndex < 0) {
             throw new IllegalArgumentException(row.getKey() + " was not in " + rows.getComposableKey());
         }
 

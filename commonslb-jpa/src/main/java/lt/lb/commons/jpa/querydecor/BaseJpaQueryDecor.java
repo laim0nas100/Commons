@@ -31,6 +31,7 @@ import javax.persistence.metamodel.MapAttribute;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import lt.lb.commons.containers.collections.CollectionOp;
+import lt.lb.commons.func.Lambda;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase1;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Query;
@@ -192,18 +193,20 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         }
     }
 
-    public static <T> void lazyPredicates(ArrayDeque<Function<T,Predicate>> predMakers, T item, List<Predicate> collector) {
+    public static <T> void lazyPredicates(ArrayDeque<Function<T, Predicate>> predMakers, T item, List<Predicate> collector) {
         if (predMakers == null || predMakers.isEmpty()) {
             return;
         }
-        for (Function<T,Predicate> maker : predMakers) {
+        for (Function<T, Predicate> maker : predMakers) {
             SafeOpt.ofNullable(maker).map(func -> func.apply(item))
                     .ifPresent(collector::add).throwIfErrorAsNested();
         }
     }
 
     public <T> M withPred(SingularAttribute<? super T_ROOT, T> att, BiFunction<CriteriaBuilder, Expression<T>, Predicate> func) {
+        Objects.requireNonNull(att);
         Objects.requireNonNull(func);
+
         Function<Phase2<T_ROOT>, Predicate> fun = (Phase2<T_ROOT> t) -> func.apply(t.cb(), t.root().get(att));
         M of = me();
         of.pred2 = lazyAdd(of.pred2, fun);
@@ -211,6 +214,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
     }
 
     public <T, C extends Collection<T>> M withPred(PluralAttribute<T_ROOT, C, T> att, BiFunction<CriteriaBuilder, Expression<C>, Predicate> func) {
+        Objects.requireNonNull(att);
         Objects.requireNonNull(func);
         Function<Phase2<T_ROOT>, Predicate> fun = (Phase2<T_ROOT> t) -> func.apply(t.cb(), t.root().get(att));
         M of = me();
@@ -219,6 +223,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
     }
 
     public <K, V, MAP extends Map<K, V>> M withPred(MapAttribute<T_ROOT, K, V> att, BiFunction<CriteriaBuilder, Expression<MAP>, Predicate> func) {
+        Objects.requireNonNull(att);
         Objects.requireNonNull(func);
         Function<Phase2<T_ROOT>, Predicate> fun = (Phase2<T_ROOT> t) -> func.apply(t.cb(), t.root().get(att));
         M of = me();
@@ -231,6 +236,18 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         M of = me();
         of.pred2 = lazyAdd(of.pred2, func);
         return of;
+    }
+
+    public <T> M withPredFunc(Function<Root<T_ROOT>, Expression<T>> att, Function<CriteriaBuilder, Function<Expression<T>, Predicate>> func) {
+        return withPred(QueryDecor.of(att, func));
+    }
+
+    public <T> M withPredFunc(Function<Root<T_ROOT>, Expression<T>> att, T val, Function<CriteriaBuilder, BiFunction<Expression<T>, T, Predicate>> func) {
+        return withPred(QueryDecor.of(att, val, func));
+    }
+
+    public <T> M withPredFunc(Function<Root<T_ROOT>, Expression<T>> att, T val, T val2, Function<CriteriaBuilder, Lambda.L3R<Expression<T>, T, T, Predicate>> func) {
+        return withPred(QueryDecor.of(att, val, val2, func));
     }
 
     public <RES> M withSubqueryPred(BaseJpaQueryDecor<T_ROOT, RES, ?> decor, Function<Subquery<RES>, Predicate> func) {
