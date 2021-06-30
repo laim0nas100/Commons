@@ -81,7 +81,7 @@ public class DLog {
 
     public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultDLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    public CloseableExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(10));
+    public CloseableExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(1));
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
     public DLog() {
