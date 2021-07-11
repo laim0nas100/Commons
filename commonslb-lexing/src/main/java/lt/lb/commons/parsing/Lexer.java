@@ -1,9 +1,5 @@
 package lt.lb.commons.parsing;
 
-import lt.lb.commons.parsing.token.Comment;
-import lt.lb.commons.parsing.token.Token;
-import lt.lb.commons.parsing.token.TokenProducer;
-import lt.lb.commons.parsing.token.TokenPos;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +12,10 @@ import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.containers.collections.SelfSortingMap;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.parsing.token.Comment;
+import lt.lb.commons.parsing.token.Token;
+import lt.lb.commons.parsing.token.TokenPos;
+import lt.lb.commons.parsing.token.TokenProducer;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.SafeOpt;
 

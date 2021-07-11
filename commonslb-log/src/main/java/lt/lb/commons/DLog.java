@@ -18,7 +18,11 @@ import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
 
 /**
- * Simple logger oriented to debuging.
+ * Simple logger oriented to debugging, not intended to replace an serious
+ * logging framework such as log4j.
+ *
+ * Debugging using print statements, yes. Sometimes the easiest way is the most
+ * efficient one.
  *
  * @author laim0nas100
  */
@@ -46,6 +50,27 @@ public class DLog {
     public boolean surroundString = true;
     protected boolean closed = false;
     public Optional<Consumer<Supplier<String>>> override = Optional.empty();
+
+    /**
+     * Set to a minimal log output. No stackTrace, timestamp, threadName and
+     * surroundString
+     *
+     * @param log
+     */
+    public static void setMinimal(DLog log) {
+        log.timeStamp = false;
+        log.threadName = false;
+        log.stackTrace = false;
+        log.surroundString = false;
+    }
+
+    /**
+     * Set to a minimal log output. No stackTrace, timestamp, threadName and
+     * surroundString
+     */
+    public static void setMinimal() {
+        setMinimal(main());
+    }
 
     /**
      * Override-able decorators.
