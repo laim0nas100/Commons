@@ -6,5 +6,5 @@ Example how to use sub-projects as dependencies
 	<dependency>
 	    <groupId>com.github.laim0nas100.Commons</groupId>
 	    <artifactId>commonslb-core</artifactId>
-	    <version>2021.07v1</version>
+	    <version>2021.07v2</version>
 	</dependency>
