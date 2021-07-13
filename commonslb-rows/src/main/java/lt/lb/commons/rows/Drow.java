@@ -90,12 +90,13 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         config.configureUpdates(updates, me());
 
     }
-    
+
     /**
      * Check if row is dirty and then render it
-     * @return 
+     *
+     * @return
      */
-    protected boolean checkSetDirtyRender(){
+    protected boolean checkSetDirtyRender() {
         boolean dirty = dirtyRender;
         dirtyRender = false;
         return dirty;
@@ -114,11 +115,21 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         U u_disable = updates.get(UPDATES_ON_DISABLE);
         U u_visible = updates.get(UPDATES_ON_VISIBLE);
 
+        u_refresh.addUpdate(getRenderOrder(), ()->{
+            dirtyRender = true;
+        });
+        
+        u_disable.addUpdate(getRenderOrder(), ()->{
+            dirtyRender = true;
+        });
+        
+        u_visible.addUpdate(getRenderOrder(), () -> {
+            dirtyRender = true;
+        });
+
         u_render.addUpdate(getRenderOrder(), () -> {
-            if (checkSetDirtyRender() ) {
-                reorderColSpans();
-                config.renderRow(me(),checkSetDirtyRender());
-            }
+            reorderColSpans();
+            config.renderRow(me(), checkSetDirtyRender());
 
         });
 

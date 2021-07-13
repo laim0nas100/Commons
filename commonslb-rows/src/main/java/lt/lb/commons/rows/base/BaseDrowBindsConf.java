@@ -89,14 +89,19 @@ public abstract class BaseDrowBindsConf<R extends Drow, C, N, L, U extends Updat
             return false;
         }
 
-        line.derender();
-        line.setLastVisibleIndex(lastIndex);
+        line.setLastVisibleIndex(rowIndex);
         if (lastIndex >= 0 && rowIndex < 0) {
             //not visible anymore
+            line.derender();
             return false;
+        } else {
+            boolean rerender = (dirty || lastIndex != rowIndex);
+            if (rerender) {
+                line.derender();
+            }
+            return rerender;
         }
 
-        return (dirty || lastIndex != rowIndex);
     }
 
 }
