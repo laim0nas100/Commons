@@ -238,16 +238,14 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
     }
 
     /**
-     * Replace characters starting at specific index
+     * Replace character at specific index
      *
      * @param index
-     * @param chars
+     * @param c
      * @return
      */
-    public LineStringBuilder setCharAt(int index, Character... chars) {
-        for (int i = index; i < chars.length; i++) {
-            sb.setCharAt(i, chars[i]);
-        }
+    public LineStringBuilder setCharAt(int index, char c) {
+        sb.setCharAt(index, c);
         return this;
     }
 
