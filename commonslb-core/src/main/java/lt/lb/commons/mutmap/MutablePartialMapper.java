@@ -162,7 +162,7 @@ public class MutablePartialMapper {
                 .sorted((e1, e2) -> {
                     MutableMapOrder k1 = e1.getKey();
                     MutableMapOrder k2 = e2.getKey();
-                    int cmp = Ins.typeComparator.compare(k1.from, k2.from);
+                    int cmp = Ins.TYPE_COMPARATOR.compare(k1.from, k2.from);
                     if (cmp == 0) {
                         return Integer.compare(k1.order, k2.order);
                     } else {

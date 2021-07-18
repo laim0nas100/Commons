@@ -5,7 +5,9 @@ import java.util.Objects;
 
 /**
  *
- * Dynamic, null-safe instanceOf operation, with either Class or Object (but not both)
+ * Dynamic, null-safe instanceOf operation, with either Class or Object (but not
+ * both). Can be used to pass more detailed type information instead of
+ * {@link Class}.
  *
  * @author laim0nas100
  */
@@ -23,7 +25,7 @@ public class Ins<T> {
 
         @Override
         public int compareTo(Class o) {
-            return Ins.typeComparator.compare(clazz, o);
+            return Ins.TYPE_COMPARATOR.compare(clazz, o);
         }
 
         /**
@@ -169,6 +171,24 @@ public class Ins<T> {
         if (clazz != null && ob != null) {
             throw new IllegalArgumentException("Can only provide one or the other");
         }
+    }
+
+    /**
+     * Any type. Will return {@code true} for everything except for {code null}.
+     * 
+     * Optionally choose whether to include primitive types.
+     *
+     *
+     * @param includePrimitives
+     * @return
+     */
+    public static InsCl any(boolean includePrimitives) {
+        return new InsCl(false, Object.class, null) {
+            @Override
+            protected boolean instanceOf0(Class c) {
+                return !(!includePrimitives && c.isPrimitive());
+            }
+        };
     }
 
     /**
@@ -414,6 +434,7 @@ public class Ins<T> {
         if (Boolean.TYPE.equals(type)) {
             return Boolean.class;
         }
+
         if (Character.TYPE.equals(type)) {
             return Character.class;
         }
@@ -509,14 +530,11 @@ public class Ins<T> {
     protected boolean allNull(Object[] arr, boolean ifNull) {
 
         for (int i = 0; i < arr.length; i++) {
-            if (ifNull) {
-                if (arr[i] != null) {
-                    return false;
-                }
-            } else {
-                if (arr[i] == null) {
-                    return false;
-                }
+            if (ifNull && arr[i] != null) {
+                return false;
+            }
+            if (!ifNull && arr[i] == null) {
+                return false;
             }
         }
         return true;
@@ -525,14 +543,11 @@ public class Ins<T> {
     protected boolean anyNull(Object[] arr, boolean ifNull) {
 
         for (int i = 0; i < arr.length; i++) {
-            if (ifNull) {
-                if (arr[i] == null) {
-                    return true;
-                }
-            } else {
-                if (arr[i] != null) {
-                    return true;
-                }
+            if (ifNull && arr[i] == null) {
+                return true;
+            }
+            if (!ifNull && arr[i] != null) {
+                return true;
             }
         }
         return false;
@@ -542,7 +557,7 @@ public class Ins<T> {
      * Comparator of types. Broader types (like {@link Object}) come first. Null
      * parameters comes first.
      */
-    public static final Comparator<Class> typeComparator = new Comparator<Class>() {
+    public static final Comparator<Class> TYPE_COMPARATOR = new Comparator<Class>() {
         @Override
         public int compare(Class o1, Class o2) {
             if (o1 == null && o2 == null) {
@@ -552,11 +567,11 @@ public class Ins<T> {
             if (o1 == null) {
                 return -1;
             }
-            
+
             if (o2 == null) {
                 return 1;
             }
-            
+
             boolean i_1 = instanceOfClass(o1, o2);
             boolean i_2 = instanceOfClass(o2, o1);
             if (i_1 && !i_2) {

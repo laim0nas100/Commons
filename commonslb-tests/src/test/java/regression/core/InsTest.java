@@ -34,7 +34,7 @@ public class InsTest {
         assert !numberIns.superClassOfAll("");
         assert !numberIns.superClassOfAny(null, null, null);
         
-        ExtComparable<Class> cmp = ExtComparable.from(Ins.typeComparator,Number.class);
+        ExtComparable<Class> cmp = ExtComparable.from(Ins.TYPE_COMPARATOR,Number.class);
         assert cmp.greaterThan(Object.class);
         assert cmp.greaterThanOrEq(Number.class);
         assert cmp.exactly(Number.class);
@@ -44,7 +44,7 @@ public class InsTest {
         assert cmp.notEqual(null);
         
         List<Class> list = Lists.newArrayList(Number.class,Object.class,Integer.class,String.class);
-        Collections.sort(list, Ins.typeComparator);
+        Collections.sort(list, Ins.TYPE_COMPARATOR);
         
         assertThat(list).containsExactly(Object.class,Number.class,Integer.class,String.class);
         

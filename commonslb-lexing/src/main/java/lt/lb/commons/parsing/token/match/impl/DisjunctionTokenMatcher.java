@@ -17,7 +17,7 @@ public class DisjunctionTokenMatcher extends CompositeTokenMatcher {
         super(assertSameLength(matchers), name, matchers);
         Ins.InsCl<Token> insToken = Ins.of(Token.class);
         minTypes = new Class[length];
-        Compare.SimpleCompare<Class> cmpTypes = Compare.of(Ins.typeComparator); // broader types comes first (smaller)
+        Compare.SimpleCompare<Class> cmpTypes = Compare.of(Ins.TYPE_COMPARATOR); // broader types comes first (smaller)
         if (length > 0) {
             for (int pos = 0; pos < length; pos++) {
                 Class<? extends Token> requiredType = matchers[0].requiredType(pos);

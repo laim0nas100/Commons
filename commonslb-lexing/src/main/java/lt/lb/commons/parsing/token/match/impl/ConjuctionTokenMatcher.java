@@ -17,7 +17,7 @@ public class ConjuctionTokenMatcher extends CompositeTokenMatcher {
         super(assertSameLength(matchers), name, matchers);
 
         maxTypes = new Class[length];
-        Compare.SimpleCompare<Class> cmpTypes = Compare.of(Ins.typeComparator); // broader types comes first (smaller)
+        Compare.SimpleCompare<Class> cmpTypes = Compare.of(Ins.TYPE_COMPARATOR); // broader types comes first (smaller)
         if (length > 0) {
             for (int pos = 0; pos < length; pos++) {
                 maxTypes[pos] = matchers[0].requiredType(pos);
