@@ -42,6 +42,23 @@ public interface Formatters<Format> extends Map<CellSelectorBase, List<Consumer<
     }
 
     /**
+     * Apply applicable decorators for given cell and format.
+     *
+     * @param <T>
+     * @param cell
+     * @param format
+     */
+    public default <T> void applyApplicable(CellPrep<T> cell, Format format) {
+        For.entries().iterate(this, (selector, list) -> {
+            if (selector.test(cell)) {
+                list.forEach(c -> {
+                    c.accept(format);
+                });
+            }
+        });
+    }
+
+    /**
      * Get applicable decorators for each cell, resolving it in parallel (order
      * remains correct). Performance gains when cell collection is big.
      *

@@ -24,6 +24,8 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
     protected Predicate<CellPrep> include;
     protected Predicate<CellPrep> exclude;
 
+    public abstract String id();
+
     public void includeOR(Predicate<CellPrep> pred) {
         Objects.requireNonNull(pred);
         if (include == null) {
@@ -148,7 +150,14 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
     @Override
     public boolean test(CellPrep t) {
 
-        return nullFalse(prev, t) || (nullTrue(include, t) && nullTrueNot(exclude, t));
+        if (nullFalse(prev, t)) { // satisfied by parent predicate, no need to check mine.
+            return true;
+        }
+        if (include != null || exclude != null) {
+            return (nullTrue(include, t) && nullTrueNot(exclude, t));
+        }
+        return false;
+
     }
 
     public static class CellSelector extends CellSelectorBase {
@@ -271,6 +280,11 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
             s.includeAND(c -> set.contains(c.colIndex));
 
             return s;
+        }
+
+        @Override
+        public String id() {
+            return String.valueOf(keys);
         }
 
     }
