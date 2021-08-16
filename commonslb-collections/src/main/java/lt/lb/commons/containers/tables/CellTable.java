@@ -616,8 +616,10 @@ public class CellTable<Format, T> {
     }
 
     /**
-     * Removes every cell in given range, but keeps rows. Use this to "stream" a
+     * Removes every cell in given range, but keeps rows.Use this to "stream" a
      * big table. Write some rows, export them, clear cells.
+     *
+     * @param range
      */
     public void clearOnlyCells(IntRange range) {
         IntRange allowed = IntRange.of(0, rows.size());

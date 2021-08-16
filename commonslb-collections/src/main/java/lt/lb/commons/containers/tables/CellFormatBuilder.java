@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import lt.lb.commons.containers.tables.CellSelectorBase.CellSelector;
 import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
 import lt.lb.commons.misc.IntRange;
 import lt.lb.fastid.FastID;
@@ -112,7 +111,7 @@ public class CellFormatBuilder<Format, T> {
      * @return
      */
     public CellFormatBuilder<Format, T> cleanHorizontalMerge() {
-        return this.forEachCell(c -> c.horizontalMerge = TableCellMerge.NONE);
+        return forEachCell(c -> c.horizontalMerge = TableCellMerge.NONE);
     }
 
     /**
@@ -121,7 +120,7 @@ public class CellFormatBuilder<Format, T> {
      * @return
      */
     public CellFormatBuilder<Format, T> cleanVerticalMerge() {
-        return this.forEachCell(c -> c.verticalMerge = TableCellMerge.NONE);
+        return forEachCell(c -> c.verticalMerge = TableCellMerge.NONE);
     }
 
     /**
@@ -130,7 +129,7 @@ public class CellFormatBuilder<Format, T> {
      * @return
      */
     public CellFormatBuilder<Format, T> cleanDiagonalMerge() {
-        return this.forEachCell(c -> c.diagonalMerge = TableCellMerge.NONE);
+        return forEachCell(c -> c.diagonalMerge = TableCellMerge.NONE);
     }
 
     /**
@@ -139,7 +138,7 @@ public class CellFormatBuilder<Format, T> {
      * @return
      */
     public CellFormatBuilder<Format, T> cleanAllMerge() {
-        return this.forEachCell(c -> {
+        return forEachCell(c -> {
             c.diagonalMerge = TableCellMerge.NONE;
             c.verticalMerge = TableCellMerge.NONE;
             c.horizontalMerge = TableCellMerge.NONE;
@@ -172,7 +171,7 @@ public class CellFormatBuilder<Format, T> {
      * @return
      */
     public CellFormatIndexCollector<Format, T> cleanSelectionStart() {
-        return this.cleanSelection().addToSelection();
+        return cleanSelection().addToSelection();
     }
 
     /**
@@ -222,7 +221,7 @@ public class CellFormatBuilder<Format, T> {
         }
 
         public CellFormatBuilder<Format, T> withFullTable() {
-            return this.appendOrNew(CellSelector.full());
+            return appendOrNew(CellSelector.full());
         }
 
         /**
@@ -232,7 +231,7 @@ public class CellFormatBuilder<Format, T> {
          * @return
          */
         public CellFormatBuilder<Format, T> withRows(Integer... rows) {
-            return this.appendOrNew(CellSelector.rows(rows));
+            return appendOrNew(CellSelector.rows(rows));
         }
 
         /**
@@ -242,21 +241,7 @@ public class CellFormatBuilder<Format, T> {
          * @return
          */
         public CellFormatBuilder<Format, T> withColumns(Integer... columns) {
-            return this.appendOrNew(CellSelector.columns(columns));
-//            if (columns.length == 0) {
-//                return this.withFullTable();
-//            }
-//            LinkedList<CellPrep<T>> cells = new LinkedList<>();
-//
-//            for (CellTable.Row<T> row : table.rows) {
-//                for (Integer ci : columns) {
-//                    if (ci < 0 || ci >= row.getCells().size()) {
-//                        throw new IllegalArgumentException("Invalid column index " + ci + " where row size" + row.getCells().size());
-//                    }
-//                    cells.add(row.getCells().get(ci));
-//                }
-//            }
-//            return this.appendOrNew(cells);
+            return appendOrNew(CellSelector.columns(columns));
         }
 
         /**
@@ -299,7 +284,7 @@ public class CellFormatBuilder<Format, T> {
          */
         public CellFormatBuilder<Format, T> withCellIds(Set<FastID> collection) {
             Objects.requireNonNull(collection);
-            return this.appendOrNew(CellSelector.cellsInclude(collection));
+            return appendOrNew(CellSelector.cellsInclude(collection));
 
         }
 
@@ -311,8 +296,18 @@ public class CellFormatBuilder<Format, T> {
          */
         public CellFormatBuilder<Format, T> withoutCellIds(Set<FastID> collection) {
             Objects.requireNonNull(collection);
-            return this.appendOrNew(CellSelector.cellsExclude(collection));
+            return appendOrNew(CellSelector.cellsExclude(collection));
+        }
 
+        /**
+         * Specify custom selector
+         *
+         * @param selector
+         * @return
+         */
+        public CellFormatBuilder<Format, T> withSelector(CellSelector selector) {
+            Objects.requireNonNull(selector);
+            return appendOrNew(selector);
         }
 
     }
