@@ -1,5 +1,6 @@
 package lt.lb.commons.jpa;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.Tuple;
@@ -9,7 +10,7 @@ import javax.persistence.TupleElement;
  *
  * @author laim0nas100
  */
-public interface CastTuple extends Tuple {
+public interface CastTuple extends Tuple, Iterator, Iterable {
 
     public default <X> X getCast(int index) {
         return (X) get(index);
@@ -19,6 +20,10 @@ public interface CastTuple extends Tuple {
         return (X) get(alias);
     }
 
+    public default <X> X nextCast() {
+        return (X) next();
+    }
+
     public static CastTuple of(Tuple tuple) {
         return new CastTupleImpl(tuple);
     }
@@ -26,6 +31,8 @@ public interface CastTuple extends Tuple {
     public static class CastTupleImpl implements CastTuple {
 
         public final Tuple real;
+        private int index = -1;
+        private List<TupleElement<?>> elems;
 
         public CastTupleImpl(Tuple real) {
             this.real = Objects.requireNonNull(real);
@@ -63,7 +70,10 @@ public interface CastTuple extends Tuple {
 
         @Override
         public List<TupleElement<?>> getElements() {
-            return real.getElements();
+            if (elems == null) {
+                elems = real.getElements();
+            }
+            return elems;
         }
 
         @Override
@@ -81,6 +91,19 @@ public interface CastTuple extends Tuple {
             return real.toString();
         }
 
-    }
+        @Override
+        public boolean hasNext() {
+            return getElements().size() > index + 1;
+        }
 
+        @Override
+        public Object next() {
+            return get(++index);
+        }
+
+        @Override
+        public Iterator iterator() {
+            return new CastTupleImpl(real);
+        }
+    }
 }
