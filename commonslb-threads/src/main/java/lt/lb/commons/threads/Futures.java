@@ -2,11 +2,15 @@ package lt.lb.commons.threads;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
@@ -16,10 +20,90 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
  */
 public class Futures {
 
+    public static class DoneFuture<T> implements Future<T> {
+
+        protected boolean done;
+        protected T res;
+
+        public DoneFuture(boolean done, T res) {
+            this.done = done;
+            this.res = res;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+
+        @Override
+        public boolean isDone() {
+            return done;
+        }
+
+        @Override
+        public T get() throws InterruptedException, ExecutionException {
+            return res;
+        }
+
+        @Override
+        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            return res;
+        }
+    }
+
+    public static class ThrowingFuture<T> implements Future<T> {
+
+        protected Supplier<? extends Throwable> exception;
+
+        public ThrowingFuture(Supplier<? extends Throwable> exception) {
+            this.exception = Objects.requireNonNull(exception);
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+
+        @Override
+        public boolean isDone() {
+            return true;
+        }
+
+        @Override
+        public T get() throws InterruptedException, ExecutionException {
+            throw new ExecutionException(exception.get());
+        }
+
+        @Override
+        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            throw new ExecutionException(exception.get());
+        }
+    }
+
+    public static final Future<?> emptyDone = new DoneFuture<>(true, null);
+
+    public static <V> Future<V> done(V result) {
+        return new DoneFuture<>(true, result);
+    }
+
+    public static <V> Future<V> exceptional(Supplier<? extends Throwable> exceptionSupply) {
+        return new ThrowingFuture<>(exceptionSupply);
+    }
+
     public static <V> FutureTask<V> ofCallable(Callable<V> call) {
         return new FutureTask<>(call);
     }
-    
+
     public static <V> FutureTask<V> ofSupplier(Supplier<V> call) {
         return new FutureTask<>(call::get);
     }
