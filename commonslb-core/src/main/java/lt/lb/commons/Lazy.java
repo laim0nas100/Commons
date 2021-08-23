@@ -53,12 +53,12 @@ public class Lazy<T> implements UncheckedSupplier<T> {
      */
     public Lazy(Supplier<T> supl, Executor exe) {
         this.supl = Objects.requireNonNull(supl);
+        this.exe = Objects.requireNonNull(exe);
         future = new FutureTask<>(() -> {
             T v = supl.get();
             initialized.set(true);
             return v;
         });
-        this.exe = exe;
     }
 
     public Lazy<T> eager() {
