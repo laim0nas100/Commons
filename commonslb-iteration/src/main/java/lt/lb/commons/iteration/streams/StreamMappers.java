@@ -341,7 +341,7 @@ public abstract class StreamMappers {
     ) {
 
         Objects.requireNonNull(toProxy, "toProxy is null");
-        Objects.requireNonNull(fromProxy, "froProxy is null");
+        Objects.requireNonNull(fromProxy, "fromProxy is null");
         Objects.requireNonNull(decorator, "decorator is null");
 
         return st -> st.map(toProxy).apply(decorator).map(fromProxy);

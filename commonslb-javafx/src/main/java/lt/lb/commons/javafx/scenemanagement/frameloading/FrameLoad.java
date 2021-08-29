@@ -11,6 +11,7 @@ import lt.lb.commons.javafx.scenemanagement.FrameManager;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public interface FrameLoad<T extends Frame> {
 

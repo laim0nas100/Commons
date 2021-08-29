@@ -6,14 +6,15 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.javafx.scenemanagement.BaseController;
 import lt.lb.commons.javafx.scenemanagement.FXMLFrame;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public class FXMLFrameLoad<T extends BaseController> extends BaseFrameLoad<FXMLFrame<T>> {
 
@@ -78,7 +79,7 @@ public class FXMLFrameLoad<T extends BaseController> extends BaseFrameLoad<FXMLF
 
     @Override
     public void decorateAfter() throws Exception {
-        super.decorateAfter(); //To change body of generated methods, choose Tools | Templates.
+        super.decorateAfter();
     }
 
 }

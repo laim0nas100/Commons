@@ -21,6 +21,7 @@ import lt.lb.commons.javafx.scenemanagement.FrameManager;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public abstract class BaseFrameLoad<T extends Frame> implements FrameLoad<T> {
 
