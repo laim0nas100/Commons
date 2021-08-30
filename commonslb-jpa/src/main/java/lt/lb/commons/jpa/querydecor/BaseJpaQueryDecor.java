@@ -356,6 +356,10 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, M extends BaseJpaQuery
         });
     }
 
+    public M setOrderBy(Function<Phase3Query<T_ROOT, T_RESULT>, List<Order>> func) {
+        return withDec3(c -> c.query().orderBy(func.apply(c)));
+    }
+
     public M setOrderBy(Order... order) {
         return withDec3(c -> c.query().orderBy(order));
     }
