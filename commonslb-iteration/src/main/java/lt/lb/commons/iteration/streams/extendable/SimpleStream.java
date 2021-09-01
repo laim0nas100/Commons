@@ -1,7 +1,6 @@
 package lt.lb.commons.iteration.streams.extendable;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lt.lb.commons.iteration.streams.extendable.StreamExtension.StreamExtensionsAll;
@@ -11,12 +10,18 @@ import lt.lb.commons.iteration.streams.extendable.StreamExtension.StreamExtensio
  * @author laim0nas100
  * @param <X>
  */
-public class SimpleStream<X> implements StreamExtensionsAll<X,SimpleStream<X>>  {
+public class SimpleStream<X> implements StreamExtensionsAll<X, SimpleStream<X>> {
 
     protected Stream<X> stream;
+    protected boolean remake;
 
     public SimpleStream(Stream<X> stream) {
+        this(stream, false);
+    }
+
+    public SimpleStream(Stream<X> stream, boolean remaking) {
         this.stream = Objects.requireNonNull(stream, "Supplied stream is null");
+        this.remake = remaking;
     }
 
     @Override
@@ -46,29 +51,11 @@ public class SimpleStream<X> implements StreamExtensionsAll<X,SimpleStream<X>>  
 
     @Override
     public <R> SimpleStream<R> reconstruct(Stream<R> modifiedStream) {
+        if (remake) {
+            return new SimpleStream<>(modifiedStream, remake);
+        }
         SimpleStream<R> ss = (SimpleStream) this;
         ss.stream = modifiedStream;
         return ss;
-    }
-
-    
-    public static void main(String[] args) {
-         AtomicInteger generator = new AtomicInteger(0);
-        SimpleStream<Integer> ss = new SimpleStream<>(Stream.generate(() -> generator.incrementAndGet()));
-
-        SimpleStream<Number> select = ss.limit(12).select(Number.class);
-        SimpleStream<String> map = select.map(m -> m + "");
-        
-//        map.forPairs((a,b)->{
-//            System.out.println(a+"_"+b);
-//        });
-        
-        map.forIndexed((index,b)->{
-            System.out.println(index+"_"+b);
-        });
-//        System.out.println(map.toList());
-//        System.out.println(map.toList());
-        
-        
     }
 }
