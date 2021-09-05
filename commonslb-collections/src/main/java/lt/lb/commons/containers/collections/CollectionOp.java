@@ -716,7 +716,10 @@ public class CollectionOp {
         Objects.requireNonNull(addFunc);
         Objects.requireNonNull(iterator);
         Objects.requireNonNull(cons);
-        int i = 0;
+        if (!iterator.hasNext()) {
+            return;
+        }
+        long i = 0;
         C bag = bagSupply.get();
         while (iterator.hasNext()) {
             T next = iterator.next();
