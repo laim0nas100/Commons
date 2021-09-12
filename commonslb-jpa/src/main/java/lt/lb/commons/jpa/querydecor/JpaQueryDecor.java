@@ -12,11 +12,9 @@ import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
 
 /**
  *
- * @author laim0nas100
- * @param <T_ROOT> query root class
- * @param <T_RESULT> query result class
+ * @{inheritDoc}
  */
-public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T_RESULT, JpaQueryDecor<T_ROOT, T_RESULT>> {
+public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T_RESULT, Void, JpaQueryDecor<T_ROOT, T_RESULT>> {
 
     protected JpaQueryDecor(Class<T_ROOT> rootClass, Class<T_RESULT> resultClass, JpaQueryDecor copy) {
         super(copy);
@@ -50,7 +48,7 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     }
 
     @Override
-    public <RES> JpaQueryDecor<T_ROOT, RES> selecting(Class<RES> resClass, Function<Phase2<T_ROOT>, Expression<RES>> func) {
+    public <RES> JpaQueryDecor<T_ROOT, RES> selecting(Class<RES> resClass, Function<Phase2<T_ROOT, Void>, Expression<RES>> func) {
         JpaQueryDecor<T_ROOT, RES> of = new JpaQueryDecor<>(rootClass, resClass, this);
         of.selection = func;
         return of;
@@ -62,7 +60,7 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     }
 
     @Override
-    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(Function<Phase2<T_ROOT>, List<Selection<?>>> selections) {
+    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(Function<Phase2<T_ROOT, Void>, List<Selection<?>>> selections) {
         JpaQueryDecor<T_ROOT, Tuple> of = new JpaQueryDecor<>(rootClass, Tuple.class, this);
         of.multiselection = selections;
         return of;

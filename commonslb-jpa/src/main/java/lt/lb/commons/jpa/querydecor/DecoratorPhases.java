@@ -1,12 +1,16 @@
 package lt.lb.commons.jpa.querydecor;
 
+import java.util.Objects;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.AbstractQuery;
+import javax.persistence.criteria.CommonAbstractCriteria;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+import lt.lb.commons.jpa.querydecor.LazyUtil.HiddenTypedQuery;
 
 /**
  *
@@ -18,8 +22,8 @@ import javax.persistence.criteria.Subquery;
  */
 public interface DecoratorPhases {
 
-    public static Phase1 of(EntityManager em, CriteriaBuilder cb) {
-        return new Phase1() {
+    public static <CTX> Phase1<CTX> of(EntityManager em, CriteriaBuilder cb, CTX ctx) {
+        return new Phase1<CTX>() {
             @Override
             public EntityManager em() {
                 return em;
@@ -29,11 +33,16 @@ public interface DecoratorPhases {
             public CriteriaBuilder cb() {
                 return cb;
             }
+
+            @Override
+            public CTX ctx() {
+                return ctx;
+            }
         };
     }
 
-    public static <T> Phase2<T> of(EntityManager em, CriteriaBuilder cb, Root<T> root) {
-        return new Phase2<T>() {
+    public static <T, CTX> Phase2<T, CTX> of(EntityManager em, CriteriaBuilder cb, Root<T> root, CTX ctx) {
+        return new Phase2<T, CTX>() {
             @Override
             public Root<T> root() {
                 return root;
@@ -48,11 +57,16 @@ public interface DecoratorPhases {
             public EntityManager em() {
                 return em;
             }
+
+            @Override
+            public CTX ctx() {
+                return ctx;
+            }
         };
     }
 
-    public static <T> Phase2<T> of(Phase1 p1, Root<T> root) {
-        return new Phase2<T>() {
+    public static <T, CTX> Phase2<T, CTX> of(Phase1<CTX> p1, Root<T> root) {
+        return new Phase2<T, CTX>() {
             @Override
             public Root<T> root() {
                 return root;
@@ -67,11 +81,45 @@ public interface DecoratorPhases {
             public EntityManager em() {
                 return p1.em();
             }
+
+            @Override
+            public CTX ctx() {
+                return p1.ctx();
+            }
         };
     }
 
-    public static <T, R> Phase3Query<T, R> of(EntityManager em, CriteriaBuilder cb, Root<T> root, CriteriaQuery<R> query) {
-        return new Phase3Query<T, R>() {
+    public static <T, CTX> Phase3Common<T, CTX> of(Phase2<T, CTX> p1, CommonAbstractCriteria criteria) {
+        return new Phase3Common<T, CTX>() {
+            @Override
+            public Root<T> root() {
+                return p1.root();
+            }
+
+            @Override
+            public CriteriaBuilder cb() {
+                return p1.cb();
+            }
+
+            @Override
+            public EntityManager em() {
+                return p1.em();
+            }
+
+            @Override
+            public CTX ctx() {
+                return p1.ctx();
+            }
+
+            @Override
+            public CommonAbstractCriteria query() {
+                return criteria;
+            }
+        };
+    }
+
+    public static <T, R, CTX> Phase3Query<T, R, CTX> of(EntityManager em, CriteriaBuilder cb, Root<T> root, CriteriaQuery<R> query, CTX ctx) {
+        return new Phase3Query<T, R, CTX>() {
             @Override
             public Root<T> root() {
                 return root;
@@ -91,11 +139,17 @@ public interface DecoratorPhases {
             public CriteriaQuery<R> query() {
                 return query;
             }
+
+            @Override
+            public CTX ctx() {
+                return ctx;
+            }
         };
     }
 
-    public static <T, R> Phase3Query<T, R> of(Phase2<T> p2, CriteriaQuery<R> query) {
-        return new Phase3Query<T, R>() {
+    public static <T, R, CTX> Phase3Query<T, R, CTX> of(Phase2<T, CTX> p2, CriteriaQuery<R> query) {
+        Objects.requireNonNull(p2);
+        return new Phase3Query<T, R, CTX>() {
             @Override
             public Root<T> root() {
                 return p2.root();
@@ -115,11 +169,16 @@ public interface DecoratorPhases {
             public CriteriaQuery<R> query() {
                 return query;
             }
+
+            @Override
+            public CTX ctx() {
+                return p2.ctx();
+            }
         };
     }
 
-    public static <T, R> Phase3Subquery<T, R> of(EntityManager em, CriteriaBuilder cb, Root<T> root, Subquery<R> query, AbstractQuery<?> parent) {
-        return new Phase3Subquery<T, R>() {
+    public static <T, R, CTX> Phase3Subquery<T, R, CTX> of(EntityManager em, CriteriaBuilder cb, Root<T> root, Subquery<R> query, AbstractQuery<?> parent, CTX ctx) {
+        return new Phase3Subquery<T, R, CTX>() {
             @Override
             public Root<T> root() {
                 return root;
@@ -136,7 +195,7 @@ public interface DecoratorPhases {
             }
 
             @Override
-            public Subquery<R> subquery() {
+            public Subquery<R> query() {
                 return query;
             }
 
@@ -144,11 +203,16 @@ public interface DecoratorPhases {
             public AbstractQuery<?> parent() {
                 return parent;
             }
+
+            @Override
+            public CTX ctx() {
+                return ctx;
+            }
         };
     }
 
-    public static <T, R> Phase3Subquery<T, R> of(EntityManager em, CriteriaBuilder cb, Root<T> root, Subquery<R> query) {
-        return new Phase3Subquery<T, R>() {
+    public static <T, R, CTX> Phase3Subquery<T, R, CTX> of(EntityManager em, CriteriaBuilder cb, Root<T> root, Subquery<R> query, CTX ctx) {
+        return new Phase3Subquery<T, R, CTX>() {
             @Override
             public Root<T> root() {
                 return root;
@@ -165,14 +229,19 @@ public interface DecoratorPhases {
             }
 
             @Override
-            public Subquery<R> subquery() {
+            public Subquery<R> query() {
                 return query;
+            }
+
+            @Override
+            public CTX ctx() {
+                return ctx;
             }
         };
     }
 
-    public static <T, R> Phase3Subquery<T, R> of(Phase2<T> p2, Subquery<R> query, AbstractQuery<?> parent) {
-        return new Phase3Subquery<T, R>() {
+    public static <T, R, CTX> Phase3Subquery<T, R, CTX> of(Phase2<T, CTX> p2, Subquery<R> query, AbstractQuery<?> parent) {
+        return new Phase3Subquery<T, R, CTX>() {
             @Override
             public Root<T> root() {
                 return p2.root();
@@ -189,7 +258,7 @@ public interface DecoratorPhases {
             }
 
             @Override
-            public Subquery<R> subquery() {
+            public Subquery<R> query() {
                 return query;
             }
 
@@ -198,11 +267,17 @@ public interface DecoratorPhases {
                 return parent;
             }
 
+            @Override
+            public CTX ctx() {
+                return p2.ctx();
+            }
+
         };
     }
 
-    public static <T, R> Phase3Subquery<T, R> of(Phase2<T> p2, Subquery<R> query) {
-        return new Phase3Subquery<T, R>() {
+    public static <T, R, CTX> Phase3Subquery<T, R, CTX> of(Phase2<T, CTX> p2, Subquery<R> query) {
+        Objects.requireNonNull(p2);
+        return new Phase3Subquery<T, R, CTX>() {
             @Override
             public Root<T> root() {
                 return p2.root();
@@ -219,44 +294,123 @@ public interface DecoratorPhases {
             }
 
             @Override
-            public Subquery<R> subquery() {
+            public Subquery<R> query() {
                 return query;
+            }
+
+            @Override
+            public CTX ctx() {
+                return p2.ctx();
             }
         };
     }
 
-    public static <T> Phase4<T> of(TypedQuery<T> query) {
-        return () -> query;
+    public static <T, CTX> Phase4Typed<T, CTX> of(TypedQuery<T> query, CTX ctx) {
+        return new Phase4Typed<T, CTX>() {
+            @Override
+            public TypedQuery<T> query() {
+                return query;
+            }
+
+            @Override
+            public CTX ctx() {
+                return ctx;
+            }
+        };
     }
 
-    public static interface Phase1 {
+    public static <CTX> Phase4<CTX> of(Query query, CTX ctx) {
+
+        return new Phase4<CTX>() {
+
+            @Override
+            public Query query() {
+                return query;
+            }
+
+            @Override
+            public CTX ctx() {
+                return ctx;
+            }
+        };
+    }
+
+    public static <CTX, T> Phase4Typed<T, CTX> ofCastedType(Query query, CTX ctx) {
+
+        return new Phase4Typed<T, CTX>() {
+
+            HiddenTypedQuery<T> hidden;
+
+            @Override
+            public TypedQuery<T> query() {
+                if (hidden == null) {
+                    hidden = new HiddenTypedQuery<>(query);
+                }
+                return hidden;
+            }
+
+            @Override
+            public CTX ctx() {
+                return ctx;
+            }
+        };
+    }
+
+    public static interface WithContext<CTX> {
+
+        public CTX ctx();
+    }
+
+    public static interface Phase1<CTX> extends WithContext<CTX> {
 
         public EntityManager em();
 
         public CriteriaBuilder cb();
+
     }
 
-    public static interface Phase2<T> extends Phase1 {
+    public static interface Phase2<T, CTX> extends Phase1<CTX> {
 
         public Root<T> root();
     }
 
-    public static interface Phase3Query<T, R> extends Phase2<T> {
+    public static interface Phase3Common<T, CTX> extends Phase2<T, CTX> {
 
+        public CommonAbstractCriteria query();
+
+    }
+
+    public static interface Phase3Abstract<T, R, CTX> extends Phase3Common<T, CTX> {
+
+        @Override
+        public AbstractQuery<R> query();
+
+        public default Phase3Query<T, R, CTX> castToP3Query() {
+            return (Phase3Query<T, R, CTX>) this;
+        }
+
+        public default Phase3Subquery<T, R, CTX> castToP3Subquery() {
+            return (Phase3Subquery<T, R, CTX>) this;
+        }
+    }
+
+    public static interface Phase3Query<T, R, CTX> extends Phase3Abstract<T, R, CTX> {
+
+        @Override
         public CriteriaQuery<R> query();
     }
 
-    public static interface Phase3Subquery<T, R> extends Phase2<T> {
+    public static interface Phase3Subquery<T, R, CTX> extends Phase3Abstract<T, R, CTX> {
 
         public default AbstractQuery<?> parent() {
-            return subquery().getParent();
+            return query().getParent();
         }
 
-        public default CriteriaQuery<?> parentQuery() {
+        public default CriteriaQuery<?> castParentAsQuery() {
             return (CriteriaQuery<?>) parent();
         }
 
-        public default Subquery<?> parentSubquery() {
+        public default Subquery<?> castParentAsSubquery() {
             return (Subquery<?>) parent();
         }
 
@@ -268,12 +422,21 @@ public interface DecoratorPhases {
             return parent() instanceof Subquery;
         }
 
-        public Subquery<R> subquery();
+        @Override
+        public Subquery<R> query();
     }
 
-    public static interface Phase4<T> {
+    public static interface Phase4<CTX> extends WithContext<CTX> {
 
-        public TypedQuery<T> typedQuery();
+        public Query query();
+
+    }
+
+    public static interface Phase4Typed<T, CTX> extends Phase4<CTX> {
+
+        @Override
+        public TypedQuery<T> query();
+
     }
 
 }
