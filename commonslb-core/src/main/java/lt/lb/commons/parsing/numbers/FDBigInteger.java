@@ -26,7 +26,6 @@ package lt.lb.commons.parsing.numbers;
  */
 import java.math.BigInteger;
 import java.util.Arrays;
-import jdk.internal.misc.VM;
 /**
  * A simple big integer package specifically for floating point base conversion.
  */
@@ -81,7 +80,6 @@ public /*@ spec_bigint_math @*/ class FDBigInteger {
 
     // Initialize FDBigInteger cache of powers of 5.
     static {
-        VM.initializeFromArchive(FDBigInteger.class);
         Object[] caches = archivedCaches;
         if (caches == null) {
             long[] long5pow = {
