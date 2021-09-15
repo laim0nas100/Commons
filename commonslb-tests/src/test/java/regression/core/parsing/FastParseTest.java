@@ -22,11 +22,11 @@ public class FastParseTest {
     }
 
     public List<String> getStrInt() {
-        return Arrays.asList("1", "2", "3", "-1", "-2", "-3", "1111111", "null", "NaN", "-+2", "  2");
+        return Arrays.asList("1", "2", "3", "-1", "-2", "-3", "1111111", "null", "fail", "-+2", "  2", null);
     }
 
     public List<Integer> getInts() {
-        return Arrays.asList(1, 2, 3, -1, -2, -3, 1111111, null, null, null, null);
+        return Arrays.asList(1, 2, 3, -1, -2, -3, 1111111, null, null, null, null, null);
     }
 
     public List<Long> getLongs() {
