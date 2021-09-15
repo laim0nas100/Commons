@@ -161,7 +161,7 @@ public class CollectionOp {
      */
     public static <T> ArrayList filterInPlace(Collection<T> col, Predicate<T> pred) {
         ArrayList<T> removed = new ArrayList<>();
-        filterInPlace(col, pred, removed);
+        filterInPlace(col, pred, removed::add);
         return removed;
     }
 
@@ -171,15 +171,15 @@ public class CollectionOp {
      * @param <C> collection type
      * @param col collection to modify
      * @param pred predicate to satisfy
-     * @param removed collection to collect removed items
+     * @param removedSink to collect removed items
      */
-    public static <T, C extends Collection<T>> void filterInPlace(C col, Predicate<T> pred, C removed) {
+    public static <T, C extends Collection<T>> void filterInPlace(C col, Predicate<T> pred, Consumer<? super T> removedSink) {
         Iterator<T> iterator = col.iterator();
         while (iterator.hasNext()) {
             T next = iterator.next();
             if (!pred.test(next)) {
                 iterator.remove();
-                removed.add(next);
+                removedSink.accept(next);
             }
         }
     }
