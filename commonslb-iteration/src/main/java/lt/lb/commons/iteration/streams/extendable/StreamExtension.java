@@ -1,5 +1,8 @@
 package lt.lb.commons.iteration.streams.extendable;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  *
  * @author laim0nas100
@@ -12,5 +15,17 @@ public interface StreamExtension<X, M extends DelegatingStream<X, M>> {
 
     public static interface StreamExtensionsAll<X, M extends DelegatingStream<X, M>> extends DelegatingStream<X, M>, StreamAppenders<X, M>, StreamCollectors<X, M>, StreamConsumers<X, M>, StreamFilters<X, M> {
 
+        //JDK 17 collision
+        @Override
+        public default List<X> toList() {
+            return StreamCollectors.super.toList();
+        }
+
+        @Override
+        public default Set<X> toSet(){
+            return StreamCollectors.super.toSet();
+        }
+        
+        
     }
 }

@@ -31,7 +31,6 @@ import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Common;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Query;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Subquery;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase4;
-import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase4Typed;
 import lt.lb.commons.jpa.querydecor.LazyUtil.LazyPredAdd;
 import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyAdd;
 import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyConsumers;
