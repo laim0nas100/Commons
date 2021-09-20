@@ -1,5 +1,6 @@
 package empiric.core;
 
+import java.lang.reflect.InvocationTargetException;
 import lt.lb.commons.containers.collections.PagedList;
 import lt.lb.commons.containers.collections.PagedHashList;
 import lt.lb.commons.containers.collections.PrefillArrayMapList;
@@ -16,6 +17,7 @@ import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.uncheckedutils.Checked;
+import org.magicwerk.brownies.collections.GapList;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -153,30 +155,30 @@ public class ListBench {
     }
     Benchmark b = new Benchmark();
 
-    public void benchBatch(int size, int iterations, int seed, Class<? extends List>... lists) throws InstantiationException, IllegalAccessException {
+    public void benchBatch(int size, int iterations, int seed, Class<? extends List>... lists) throws InstantiationException, IllegalAccessException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
 
         List<Long> bank = this.getBank(size, 1337);
         DLog.print("Size:", size);
         int runCount = 10;
 
         for (Class<? extends List> list : lists) {
-            List newInstance = list.newInstance();
+            List newInstance = list.getDeclaredConstructor().newInstance();
             DLog.print(b.executeBench(runCount, list.getSimpleName() + " write", makeBenchWrite(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
-            List newInstance = list.newInstance();
+            List newInstance = list.getDeclaredConstructor().newInstance();
             DLog.print(b.executeBench(runCount, list.getSimpleName() + " read", makeBenchRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
-            List newInstance = list.newInstance();
+            List newInstance = list.getDeclaredConstructor().newInstance();
             DLog.print(b.executeBench(runCount, list.getSimpleName() + " read>>write", makeBenchReadWrite(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
-            List newInstance = list.newInstance();
+            List newInstance = list.getDeclaredConstructor().newInstance();
             DLog.print(b.executeBench(runCount, list.getSimpleName() + " read<<write", makeBenchWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
         for (Class<? extends List> list : lists) {
-            List newInstance = list.newInstance();
+            List newInstance = list.getDeclaredConstructor().newInstance();
             DLog.print(b.executeBench(runCount, list.getSimpleName() + " random r w", makeBenchRandomWriteRead(makeList(bank, newInstance), new Random(seed), iterations)));
         }
 
@@ -223,19 +225,19 @@ public class ListBench {
 //    @Test
     public void listBench() throws Exception {
         DLog.print("List benchmark");
-        int size = 5000000;
+        int size = 30000000;
         int iterations = 50;
-        int seed = 10;
-//        Class<List>[] lists = new Class[]{ArrayList.class,GapList.class,PagedList.class,BigList.class};
-        Class<List>[] lists = new Class[]{PagedHashList.class, BigList.class};
+        int seed = 11;
+        Class<List>[] lists = new Class[]{PagedList.class,PagedHashList.class,BigList.class};
+//        Class<List>[] lists = new Class[]{PagedHashList.class, BigList.class};
 //        Class<List>[] lists = new Class[]{BigList.class};
         DLog.print("Waiting for input");
         DLog.print("Start " + System.in.read());
-        benchBatch(size / 10, iterations, seed, lists);
+//        benchBatch(size / 10, iterations, seed, lists);
         benchBatch(size, iterations, seed, lists);
-        benchBatch(size * 10, iterations, seed, lists);
-        benchBatch(size * 100, iterations, seed, lists);
-        benchBatch(size * 1000, iterations, seed, lists);
+//        benchBatch(size * 10, iterations, seed, lists);
+//        benchBatch(size * 100, iterations, seed, lists);
+//        benchBatch(size * 1000, iterations, seed, lists);
 //        benchBatch(size*5000, iterations, seed, lists);
 //        benchBatch(size*30000, iterations, seed, lists);
 
@@ -495,10 +497,10 @@ public class ListBench {
 //
 //        DLog.print("Validation test passed");
 
-//        ListOp.randomRemove.d(safeList, rndSeed, size);
-//        ListOp.randomRemove.d(toTest, rndSeed, size);
+        ListOp.randomRemove.d(safeList, rndSeed, size);
+        ListOp.randomRemove.d(toTest, rndSeed, size);
 //
-//        this.listEquals(safeList, toTest);
+        this.listEquals(safeList, toTest);
 //        DLog.print("List is valid after random add");
     }
 }
