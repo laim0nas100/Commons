@@ -416,11 +416,11 @@ public class PagedList<T> implements List<T> {
 
     @Override
     public String toString() {
-        String s = "";
+        StringBuilder s = new StringBuilder();
         for (Page p : pages) {
-            s += p.toString();
+            s.append(p.toString());
         }
-        return s;
+        return s.toString();
     }
 
     public int getPageSize() {
@@ -432,10 +432,10 @@ public class PagedList<T> implements List<T> {
     }
 
     public String getPageRepresentation() {
-        String s = "";
+        StringBuilder s = new StringBuilder();
         for (Page p : this.pages) {
-            s += " [" + p.items.size() + "]";
+            s.append(" [").append(p.items.size()).append("]");
         }
-        return s;
+        return s.toString();
     }
 }
