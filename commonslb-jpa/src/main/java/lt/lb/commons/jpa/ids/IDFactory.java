@@ -3,7 +3,6 @@ package lt.lb.commons.jpa.ids;
 import java.lang.reflect.Method;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import lt.lb.commons.F;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
 
 /**
