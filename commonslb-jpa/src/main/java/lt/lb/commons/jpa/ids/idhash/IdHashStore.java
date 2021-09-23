@@ -23,14 +23,4 @@ public interface IdHashStore {
      */
     public Object getMapping(Object id);
 
-    /**
-     * Get local hash. Default uses {@link System#identityHashCode}
-     *
-     * @param obj
-     * @return
-     */
-    public default Object getLocalHash(Object obj) {
-        return System.identityHashCode(obj);
-    }
-
 }

@@ -10,18 +10,34 @@ public interface IdHash {
 
     public Object entityId();
 
-    public default Object __entityIdMaybeMap() {
+    /**
+     * Call this method after persisting. Only registers if local hash has been
+     * called. If hashCode first time call was after entityID was assigned, then
+     * no registration is needed.
+     *
+     * @return
+     */
+    public default boolean __tryRegisterLocalHashId() {
         Object entityId = entityId();
         if (entityId == null) {
-            return null;
+            return false;
         }
         if (__idLocalHashCalled()) {
             IdHashStore idHashStore = __idHashStore();
             if (idHashStore != null) {
                 Object idLocal = __idLocalHash();
-                idHashStore.register(entityId, idLocal);
+                return idLocal == idHashStore.register(entityId, idLocal);
             }
         }
+        return false;
+    }
+
+    public default Object entityIdMaybeRegister() {
+        Object entityId = entityId();
+        if (entityId == null) {
+            return null;
+        }
+        __tryRegisterLocalHashId();
         return entityId;
     }
 
@@ -51,18 +67,19 @@ public interface IdHash {
         return false;
     }
 
+    /**
+     * Make sure this local id is not cached in the JVM, like ints form -128,127
+     * or Strings. Easy workaround is to use {@link HashHolder}.
+     *
+     * @return
+     */
     public default Object __idLocalHash() {
-        IdHashStore hashStore = __idHashStore();
-        if (hashStore == null) {
-            return System.identityHashCode(this);
-        } else {
-            return hashStore.getLocalHash(this);
-        }
+        return HashHolder.of(System.identityHashCode(this));
     }
 
     public default Object __idHash() {
 
-        Object entityId = __entityIdMaybeMap();
+        Object entityId = entityIdMaybeRegister();
         if (entityId == null) {
             return __idLocalHash();
         }

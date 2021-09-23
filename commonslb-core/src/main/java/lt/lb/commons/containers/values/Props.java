@@ -38,6 +38,11 @@ public class Props implements ForwardingMap<String, Object> {
             public void set(T v) {
                 props.put(key, v);
             }
+
+            @Override
+            public boolean isEmpty() {
+                return !props.containsKey(key);
+            }
         };
     }
 
@@ -69,10 +74,21 @@ public class Props implements ForwardingMap<String, Object> {
         public static <Type> PropGet<Type> of(String str) {
             return new PropGet<>(str);
         }
+
         public final String propKey;
 
         public PropGet(String propKey) {
             this.propKey = Objects.requireNonNull(propKey);
+        }
+
+        /**
+         * Gets if value is present in given Props object by his key.
+         *
+         * @param props
+         * @return
+         */
+        public boolean containsKey(Props props) {
+            return props.containsKey(propKey);
         }
 
         /**
