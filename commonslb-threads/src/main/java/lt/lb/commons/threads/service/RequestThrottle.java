@@ -33,7 +33,7 @@ public class RequestThrottle {
         long diff = now - call;
 
         if (diff >= waitNanos) {
-            lastCall.set(now);
+            
             int unchaged = requestsMade.get();
             while (true) {
                 int current = requestsMade.get();
@@ -42,6 +42,7 @@ public class RequestThrottle {
                 }
 
                 if (requestsMade.compareAndSet(current, 0)) {
+                    lastCall.set(now);
                     return;
                 }
             }
