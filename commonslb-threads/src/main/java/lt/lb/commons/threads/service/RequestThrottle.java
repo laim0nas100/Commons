@@ -1,16 +1,11 @@
 package lt.lb.commons.threads.service;
 
-import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.Java;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.Checked;
 
 /**
  * Only allow limited number of requests per given time window
@@ -53,6 +48,7 @@ public class RequestThrottle {
         }
     }
 
+    public boolean request() {
         updateTime(Java.getNanoTime());
         if (requestsMade.incrementAndGet() <= requestsPerWindow) {
             return true;
