@@ -1,6 +1,5 @@
 package lt.lb.commons.jpa.querydecor;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,9 +23,9 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.SingularAttribute;
-import lt.lb.commons.F;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase1;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Abstract;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Common;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Query;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Subquery;
@@ -36,7 +35,6 @@ import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyAdd;
 import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyConsumers;
 import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyInit;
 import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyPredicates;
-import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Abstract;
 
 /**
  *
@@ -323,7 +321,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         TypedQuery<T_RESULT> typed = em.createQuery(decorateQuery(em));
 
         if (needQ4()) {
-            lazyConsumers(dec4, DecoratorPhases.of(typed, getContext()));
+            lazyConsumers(dec4, DecoratorPhases.of(em, typed, getContext()));
         }
 
         return typed;
@@ -338,7 +336,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
             query = em.createQuery(decorateUpdateQuery(em));
         }
         if (needQ4()) {
-            lazyConsumers(dec4, DecoratorPhases.of(query, getContext()));
+            lazyConsumers(dec4, DecoratorPhases.of(em, query, getContext()));
         }
 
         return query;

@@ -305,7 +305,7 @@ public interface DecoratorPhases {
         };
     }
 
-    public static <T, CTX> Phase4Typed<T, CTX> of(TypedQuery<T> query, CTX ctx) {
+    public static <T, CTX> Phase4Typed<T, CTX> of(EntityManager em, TypedQuery<T> query, CTX ctx) {
         return new Phase4Typed<T, CTX>() {
             @Override
             public TypedQuery<T> query() {
@@ -316,10 +316,15 @@ public interface DecoratorPhases {
             public CTX ctx() {
                 return ctx;
             }
+
+            @Override
+            public EntityManager em() {
+                return em;
+            }
         };
     }
 
-    public static <CTX> Phase4<CTX> of(Query query, CTX ctx) {
+    public static <CTX> Phase4<CTX> of(EntityManager em, Query query, CTX ctx) {
 
         return new Phase4<CTX>() {
 
@@ -332,10 +337,15 @@ public interface DecoratorPhases {
             public CTX ctx() {
                 return ctx;
             }
+
+            @Override
+            public EntityManager em() {
+                return em;
+            }
         };
     }
 
-    public static <CTX, T> Phase4Typed<T, CTX> ofCastedType(Query query, CTX ctx) {
+    public static <CTX, T> Phase4Typed<T, CTX> ofCastedType(EntityManager em, Query query, CTX ctx) {
 
         return new Phase4Typed<T, CTX>() {
 
@@ -353,6 +363,11 @@ public interface DecoratorPhases {
             public CTX ctx() {
                 return ctx;
             }
+
+            @Override
+            public EntityManager em() {
+                return em;
+            }
         };
     }
 
@@ -361,9 +376,12 @@ public interface DecoratorPhases {
         public CTX ctx();
     }
 
-    public static interface Phase1<CTX> extends WithContext<CTX> {
+    public static interface WithEm<CTX> extends WithContext<CTX> {
 
         public EntityManager em();
+    }
+
+    public static interface Phase1<CTX> extends WithEm<CTX> {
 
         public CriteriaBuilder cb();
 
@@ -426,7 +444,7 @@ public interface DecoratorPhases {
         public Subquery<R> query();
     }
 
-    public static interface Phase4<CTX> extends WithContext<CTX> {
+    public static interface Phase4<CTX> extends WithEm<CTX> {
 
         public Query query();
 

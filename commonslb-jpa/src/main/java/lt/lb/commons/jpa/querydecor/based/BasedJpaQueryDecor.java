@@ -111,7 +111,7 @@ public abstract class BasedJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BasedJ
             multiselection = copy.multiselection;
         }
     }
-    
+
     protected CTX copyContext(CTX ctx) {
         return ctx;
     }
@@ -309,7 +309,7 @@ public abstract class BasedJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BasedJ
         TypedQuery<T_RESULT> typed = em.createQuery(produceCriteriaQuery(em));
 
         if (needQ4()) {
-            lazyConsumers(dec4, DecoratorPhases.of(typed, getContext()));
+            lazyConsumers(dec4, DecoratorPhases.of(em, typed, getContext()));
         }
 
         return typed;
@@ -323,7 +323,7 @@ public abstract class BasedJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BasedJ
             query = em.createQuery(produceUpdateQuery(em));
         }
         if (needQ4()) {
-            lazyConsumers(dec4, DecoratorPhases.of(query, getContext()));
+            lazyConsumers(dec4, DecoratorPhases.of(em, query, getContext()));
         }
 
         return query;
