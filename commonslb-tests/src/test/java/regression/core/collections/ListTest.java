@@ -210,10 +210,10 @@ public class ListTest {
                 new PagedList<>()
         );
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             RandomDistribution rng = RandomDistribution.uniform(new Random(Java.getCurrentTimeMillis()+i));
             Integer seed = rng.nextInt();
-            Integer size = rng.nextInt(5000, 6000);
+            Integer size = rng.nextInt(2000, 4000);
             for (List<Long> list : toTest) {
                 listBehaviourTest(list, safe, seed, size);
             }
