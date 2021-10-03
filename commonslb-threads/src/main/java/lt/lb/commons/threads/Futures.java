@@ -22,8 +22,8 @@ public class Futures {
 
     public static class DoneFuture<T> implements Future<T> {
 
-        protected boolean done;
-        protected T res;
+        protected final boolean done;
+        protected final T res;
 
         public DoneFuture(boolean done, T res) {
             this.done = done;
@@ -46,12 +46,12 @@ public class Futures {
         }
 
         @Override
-        public T get() throws InterruptedException, ExecutionException {
+        public T get() {
             return res;
         }
 
         @Override
-        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        public T get(long timeout, TimeUnit unit) {
             return res;
         }
     }
@@ -80,12 +80,12 @@ public class Futures {
         }
 
         @Override
-        public T get() throws InterruptedException, ExecutionException {
+        public T get() throws ExecutionException {
             throw new ExecutionException(exception.get());
         }
 
         @Override
-        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        public T get(long timeout, TimeUnit unit) throws ExecutionException {
             throw new ExecutionException(exception.get());
         }
     }
