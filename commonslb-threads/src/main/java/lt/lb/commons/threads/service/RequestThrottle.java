@@ -30,6 +30,7 @@ public class RequestThrottle {
 
     protected AtomicBoolean inReset = new AtomicBoolean(false);
     protected AtomicInteger whileInReset = new AtomicInteger();
+    protected AtomicBoolean waitReset = new AtomicBoolean(false);
 
     protected void updateTime(long now) {
         long call = lastReset.get();
@@ -41,24 +42,35 @@ public class RequestThrottle {
                 }
                 inReset.compareAndSet(true, false);
                 //exit reset mode, so now we can modify whileInRest, because whileInReset only changes in non-reset mode
-                requestsMade.addAndGet(whileInReset.getAndSet(0));
+                requestsMade.addAndGet(Math.abs(whileInReset.getAndSet(0)));
             }
         }
     }
 
+    /**
+     * Using both signs to determine if increment was successful. Will return
+     * negative value of the same amount if increment was not successful.
+     *
+     * @param atomic
+     * @param toAdd
+     * @param limit
+     * @param sumOffset
+     * @return
+     */
+    public static int signedAccumulate(AtomicInteger atomic, final int toAdd, final int limit, final int sumOffset) {
+        return atomic.accumulateAndGet(toAdd, (current, add) -> {
+            int abs = Math.abs(current);
+            int sum = abs + add;
+            return (sumOffset + sum) <= limit ? sum : -abs;
+        });
+    }
+
     public boolean request() {
         updateTime(Java.getNanoTime());
-        if (inReset.get() && whileInReset.incrementAndGet() <= requestsPerWindow) {
-            return true;
-        } else if (inReset.get()) { // only decrement if we exited reset mode, which means whileInRest has been set to zero.
-            whileInReset.decrementAndGet();
-            return false;
-        }
-        if (whileInReset.get() + requestsMade.incrementAndGet() <= requestsPerWindow) {
-            return true;
+        if (inReset.get()) {
+            return signedAccumulate(whileInReset, 1, requestsPerWindow, 0) >= 0;
         } else {
-            requestsMade.decrementAndGet();
-            return false;
+            return signedAccumulate(requestsMade, 1, requestsPerWindow, Math.abs(whileInReset.get())) >= 0;
         }
     }
 }
