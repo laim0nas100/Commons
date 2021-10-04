@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -32,7 +31,7 @@ import lt.lb.commons.iteration.EmptyImmutableList;
 import lt.lb.commons.iteration.streams.StreamMapper;
 import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
 import lt.lb.commons.iteration.streams.StreamMappers;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -41,45 +40,54 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
 public class CollectionOp {
 
     /**
-     * Replace every item with new. Same as calling {@link Collection#clear() }
+     * Replace every item with new.Same as calling {@link Collection#clear()}
      * and {@link Collection#addAll(java.util.Collection)}
      *
      * @param <T>
+     * @param <C>
      * @param collection
      * @param newItems
+     * @return changed collection
      */
-    public static <T> void replace(Collection<T> collection, Collection<T> newItems) {
+    public static <T, C extends Collection<T>> C replace(C collection, Collection<T> newItems) {
         collection.clear();
         collection.addAll(newItems);
+        return collection;
     }
 
     /**
-     * Replace every item with new. Same as calling {@link Collection#clear() }
-     * and {@link Collection#add(java.lang.Object) } repeatedly.
+     * Replace every item with new.Same as calling {@link Collection#clear()}
+     * and {@link Collection#add(java.lang.Object)} repeatedly.
      *
      * @param <T>
+     * @param <C>
      * @param collection
      * @param newItems
+     * @return changed collection
      */
-    public static <T> void replace(Collection<T> collection, Iterable<T> newItems) {
+    public static <T, C extends Collection<T>> C replace(C collection, Iterable<T> newItems) {
         collection.clear();
         for (T item : newItems) {
             collection.add(item);
         }
+        return collection;
     }
 
     /**
-     * Replace every entry with new. Same as calling {@link Map#clear() } and
+     * Replace every entry with new.Same as calling {@link Map#clear()} and
      * {@link Map#putAll(java.util.Map)}
      *
      * @param <K>
      * @param <V>
+     * @param <M>
      * @param map
      * @param newItems
+     * @return changed map
      */
-    public static <K, V> void replace(Map<K, V> map, Map<K, V> newItems) {
+    public static <K, V, M extends Map<K, V>> M replace(M map, Map<K, V> newItems) {
         map.clear();
         map.putAll(newItems);
+        return map;
     }
 
     /**
@@ -204,8 +212,9 @@ public class CollectionOp {
         for (T item : col) {
             final int fi = i;
             FutureTask<Void> task = new FutureTask<>(() -> {
-                satisfied[fi] = pred.test(item);
-                if (satisfied[fi]) {
+                boolean sat = pred.test(item);
+                satisfied[fi] = sat;
+                if (sat) {
                     satisfiedCount.incrementAndGet();
                 }
                 return null;
@@ -216,12 +225,11 @@ public class CollectionOp {
             i++;
         }
 
-        UncheckedRunnable run = () -> {
+        Checked.uncheckedRun(() -> {
             for (Future future : deque) {
                 future.get();
             }
-        };
-        run.run(); // unchecked run
+        });
         int remove = size - satisfiedCount.get();
         if (remove > 0) {
             return removeByConditionIndex(col, satisfied, remove);
@@ -645,12 +653,12 @@ public class CollectionOp {
     }
 
     /**
-     * Do a batching operation using lists.
+     * Do a batching operation using maps.
      *
      * @param <K>
      * @param <V>
      * @param batch size of a batch
-     * @param myMap the list to take items from
+     * @param myMap the map to take items from
      * @param consMap what to do with items
      */
     public static <K, V> void doBatchMap(int batch, Map<K, V> myMap, Consumer<Map<K, V>> consMap) {
@@ -716,6 +724,9 @@ public class CollectionOp {
         Objects.requireNonNull(addFunc);
         Objects.requireNonNull(iterator);
         Objects.requireNonNull(cons);
+        if (batch <= 0) {
+            throw new IllegalArgumentException("Batch size must be positive");
+        }
         if (!iterator.hasNext()) {
             return;
         }
