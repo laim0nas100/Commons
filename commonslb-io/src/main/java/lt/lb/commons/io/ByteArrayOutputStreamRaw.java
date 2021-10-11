@@ -9,6 +9,7 @@ import java.util.Arrays;
 /**
  *
  * Unsynchronized {@link ByteArrayOutputStream}
+ *
  * @author laim0nas100.
  */
 public class ByteArrayOutputStreamRaw extends ByteArrayOutputStream {
@@ -68,37 +69,35 @@ public class ByteArrayOutputStreamRaw extends ByteArrayOutputStream {
         System.arraycopy(b, off, buf, count, len);
         count += len;
     }
-    
+
     @Override
     public void writeTo(OutputStream out) throws IOException {
         out.write(buf, 0, count);
     }
-    
+
     @Override
     public byte[] toByteArray() {
         return Arrays.copyOf(buf, count);
     }
-    
-    public byte[] rawByteArray(){
+
+    public byte[] rawByteArray() {
         return buf;
     }
-    
+
     @Override
-    public int size(){
+    public int size() {
         return count;
     }
-    
+
     @Override
     public String toString() {
         return new String(buf, 0, count);
     }
-    
+
     @Override
-    public synchronized String toString(String charsetName)
-        throws UnsupportedEncodingException
-    {
+    public String toString(String charsetName)
+            throws UnsupportedEncodingException {
         return new String(buf, 0, count, charsetName);
     }
-    
-    
+
 }
