@@ -10,9 +10,9 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.forwarded.ForwardingMap;
 import lt.lb.commons.iteration.For;
 import lt.lb.fastid.FastID;
+import lt.lb.prebuiltcollections.DelegatingMap;
 
 /**
  *
@@ -20,7 +20,7 @@ import lt.lb.fastid.FastID;
  */
 public interface Formatters<Format> extends Map<CellSelectorBase, List<Consumer<Format>>> {
 
-    public static interface ForwardingFormatters<Format> extends Formatters<Format>, ForwardingMap<CellSelectorBase, List<Consumer<Format>>> {
+    public static interface ForwardingFormatters<Format> extends Formatters<Format>, DelegatingMap<CellSelectorBase, List<Consumer<Format>>> {
 
     }
 

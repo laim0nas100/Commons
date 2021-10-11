@@ -1,7 +1,7 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
 import java.util.HashMap;
-import lt.lb.commons.containers.values.Props;
+import lt.lb.commons.containers.collections.Props;
 import lt.lb.commons.javafx.scenemanagement.Frame;
 
 /**

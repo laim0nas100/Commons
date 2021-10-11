@@ -3,8 +3,8 @@ package lt.lb.commons.javafx.scenemanagement.frames;
 import java.util.HashMap;
 import javafx.beans.value.ChangeListener;
 import javafx.stage.Stage;
-import lt.lb.commons.containers.values.Props;
-import lt.lb.commons.containers.values.Props.PropGet;
+import lt.lb.commons.containers.collections.Props;
+import lt.lb.commons.containers.collections.Props.PropGet;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.javafx.scenemanagement.Frame;
 

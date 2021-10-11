@@ -9,12 +9,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import lt.lb.commons.containers.forwarded.ForwardingStream;
 import lt.lb.commons.iteration.impl.ArrayROI;
 import lt.lb.commons.iteration.impl.CompositeROI;
 import lt.lb.commons.iteration.impl.IteratorROI;
 import lt.lb.commons.iteration.impl.ListROI;
 import lt.lb.commons.iteration.impl.StreamROI;
+import lt.lb.prebuiltcollections.DelegatingStream;
 
 /**
  *
@@ -105,7 +105,7 @@ public interface ReadOnlyIterator<T> extends Iterable<T>, Iterator<T>, AutoClose
     public default Stream<T> toStream() {
         ReadOnlyIterator<T> iter = this;
         Stream<T> stream = StreamSupport.stream(iter.spliterator(), false);
-        return new ForwardingStream<T>() {
+        return new DelegatingStream<T>() {
             @Override
             public void close() {
                 iter.close();

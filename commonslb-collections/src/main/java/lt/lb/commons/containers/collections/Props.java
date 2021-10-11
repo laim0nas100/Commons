@@ -1,17 +1,18 @@
-package lt.lb.commons.containers.values;
+package lt.lb.commons.containers.collections;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
-import lt.lb.commons.containers.forwarded.ForwardingMap;
+import lt.lb.commons.containers.values.ValueProxy;
+import lt.lb.prebuiltcollections.DelegatingMap;
 
 /**
  * Property class that stores any value (including null).
  *
  * @author laim0nas100
  */
-public class Props implements ForwardingMap<String, Object> {
+public class Props implements DelegatingMap<String, Object> {
 
     protected Map<String, Object> map;
 
