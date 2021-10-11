@@ -20,17 +20,16 @@ public class RequestThrottle {
     protected final int requestsPerWindow;
 
     protected final long waitNanos;
-    protected final AtomicLong lastReset = new AtomicLong(Java.getNanoTime());
+    protected final AtomicLong lastReset;
+    protected final AtomicBoolean inReset = new AtomicBoolean(false);
+    protected final AtomicInteger whileInReset = new AtomicInteger();
 
     public RequestThrottle(WaitTime timeWindow, int requestsPerWindow) {
         this.timeWindow = Objects.requireNonNull(timeWindow);
         this.requestsPerWindow = Math.max(1, requestsPerWindow);
+        this.lastReset = new AtomicLong(timeIncement());
         waitNanos = timeWindow.convert(TimeUnit.NANOSECONDS).time;
     }
-
-    protected AtomicBoolean inReset = new AtomicBoolean(false);
-    protected AtomicInteger whileInReset = new AtomicInteger();
-    protected AtomicBoolean waitReset = new AtomicBoolean(false);
 
     protected void updateTime(long now) {
         long call = lastReset.get();
@@ -66,11 +65,19 @@ public class RequestThrottle {
     }
 
     public boolean request() {
-        updateTime(Java.getNanoTime());
+        updateTime(timeIncement());
         if (inReset.get()) {
             return signedAccumulate(whileInReset, 1, requestsPerWindow, 0) >= 0;
         } else {
             return signedAccumulate(requestsMade, 1, requestsPerWindow, Math.abs(whileInReset.get())) >= 0;
         }
+    }
+
+    /**
+     * Should be always incrementing
+     * @return 
+     */
+    protected long timeIncement() {
+        return Java.getNanoTime();
     }
 }
