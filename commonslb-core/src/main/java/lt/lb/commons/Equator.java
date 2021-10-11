@@ -22,9 +22,9 @@ public interface Equator<T> extends org.apache.commons.collections4.Equator<T> {
     public static class EqualityProxy<T> {
 
         protected final T value;
-        protected final Equator<T> eq;
+        protected final Equator<? super T> eq;
 
-        public EqualityProxy(T value, Equator<T> eq) {
+        public EqualityProxy(T value, Equator<? super T> eq) {
             this.value = value;
             this.eq = Objects.requireNonNull(eq);
         }
@@ -48,7 +48,7 @@ public interface Equator<T> extends org.apache.commons.collections4.Equator<T> {
             }
             if (obj instanceof EqualityProxy) {
                 final EqualityProxy<T> other = (EqualityProxy<T>) obj;
-                return eq.equate(value, other.value);
+                return eq.equate(getValue(), other.getValue());
             } else {
                 return false;
             }
@@ -230,6 +230,20 @@ public interface Equator<T> extends org.apache.commons.collections4.Equator<T> {
         }
     }
 
+    public static interface SimpleIdentityEquator<T> extends Equator<T> {
+
+        @Override
+        public default boolean equate(T value1, T value2) {
+            return value1 == value2;
+        }
+
+        @Override
+        public default int hash(T value) {
+            return System.identityHashCode(value);
+        }
+
+    }
+
     /**
      * Only use the value provided by resolver
      *
@@ -259,6 +273,20 @@ public interface Equator<T> extends org.apache.commons.collections4.Equator<T> {
 
     }
 
+    public static interface ValueIdentityEquator<T, V> extends ValueEquator<T, V> {
+
+        @Override
+        public default boolean equate(T value1, T value2) {
+            return apply(value1) == apply(value2);
+        }
+
+        @Override
+        public default int hash(T value) {
+            return System.identityHashCode(apply(value));
+        }
+
+    }
+
     /**
      * Value and hashing property are the same
      *
@@ -278,6 +306,18 @@ public interface Equator<T> extends org.apache.commons.collections4.Equator<T> {
      */
     public static <T> Equator<T> simpleEquator() {
         return new SimpleEquator<T>() {
+        };
+    }
+
+    /**
+     * Use the object reference for comparing and {@link System#identityHashCode(java.lang.Object)
+     * } for hashing.
+     *
+     * @param <T>
+     * @return
+     */
+    public static <T> Equator<T> simpleIdentityEquator() {
+        return new SimpleIdentityEquator<T>() {
         };
     }
 
@@ -303,5 +343,18 @@ public interface Equator<T> extends org.apache.commons.collections4.Equator<T> {
      */
     public static <T, V> Equator<T> valueHashEquator(Function<T, V> resolver) {
         return (ValueHashEquator<T, V>) resolver::apply;
+    }
+
+    /**
+     * Use the object reference for comparing and {@link System#identityHashCode(java.lang.Object)
+     * } for hashing mapped value for each object.
+     *
+     * @param <T>
+     * @param <V>
+     * @param resolver
+     * @return
+     */
+    public static <T, V> Equator<T> valueIdentityEquator(Function<T, V> resolver) {
+        return (ValueIdentityEquator<T, V>) resolver::apply;
     }
 }
