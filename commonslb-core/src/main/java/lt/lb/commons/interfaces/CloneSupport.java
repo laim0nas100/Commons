@@ -2,6 +2,7 @@ package lt.lb.commons.interfaces;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -71,6 +72,7 @@ public interface CloneSupport<T> extends Cloneable {
      * @return cloned object or null
      */
     public static <A extends Cloneable> A cloneOrNullCast(A obj, Function<? super A, Object> cloningFunction) {
+        Objects.requireNonNull(cloningFunction, "Cloning function is null");
         return obj == null ? null : (A) cloningFunction.apply(obj);
     }
 
@@ -85,6 +87,7 @@ public interface CloneSupport<T> extends Cloneable {
      * @return cloned object or null
      */
     public static <D, A> A cloneOrNull(D obj, Function<? super D, A> cloningFunction) {
+        Objects.requireNonNull(cloningFunction, "Cloning function is null");
         return obj == null ? null : cloningFunction.apply(obj);
     }
 
@@ -145,13 +148,11 @@ public interface CloneSupport<T> extends Cloneable {
         }
 
         C cloned = collectionSupplier.get();
-
-        map.entrySet().forEach(entry -> {
+        for(Map.Entry<KK,AA> entry:map.entrySet()){
             K clonedKey = CloneSupport.cloneOrNull(entry.getKey(), keyCloningFuncion);
             A clonedValue = CloneSupport.cloneOrNull(entry.getValue(), cloningFuncion);
             cloned.put(clonedKey, clonedValue);
-        });
-
+        }
         return cloned;
     }
 
