@@ -9,11 +9,11 @@ import java.util.Set;
  * @param <X> element type
  * @param <M> implementation type
  */
-public interface StreamExtension<X, M extends DelegatingStream<X, M>> {
+public interface StreamExtension<X, M extends DecoratableStream<X, M>> {
 
     public M me();
 
-    public static interface StreamExtensionsAll<X, M extends DelegatingStream<X, M>> extends DelegatingStream<X, M>, StreamAppenders<X, M>, StreamCollectors<X, M>, StreamConsumers<X, M>, StreamFilters<X, M> {
+    public static interface StreamExtensionsAll<X, M extends DecoratableStream<X, M>> extends DecoratableStream<X, M>, StreamAppenders<X, M>, StreamCollectors<X, M>, StreamConsumers<X, M>, StreamFilters<X, M> {
 
         //JDK 17 collision
         @Override

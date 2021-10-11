@@ -10,7 +10,7 @@ import java.util.function.BiConsumer;
  * @param <X> element type
  * @param <M> implementation type
  */
-public interface StreamConsumers<X, M extends DelegatingStream<X, M>> extends StreamExtension<X, M> {
+public interface StreamConsumers<X, M extends DecoratableStream<X, M>> extends StreamExtension<X, M> {
     
     public default void forPairs(BiConsumer<? super X, ? super X> action) {
         Objects.requireNonNull(action, "Action must not be null");

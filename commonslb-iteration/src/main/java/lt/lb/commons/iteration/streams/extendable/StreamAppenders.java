@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
  * @param <X> element type
  * @param <M> implementation type
  */
-public interface StreamAppenders<X, M extends DelegatingStream<X, M>> extends StreamExtension<X, M> {
+public interface StreamAppenders<X, M extends DecoratableStream<X, M>> extends StreamExtension<X, M> {
 
     public default M append(Stream<? extends X> stream) {
         Objects.requireNonNull(stream, "Stream must not be null");

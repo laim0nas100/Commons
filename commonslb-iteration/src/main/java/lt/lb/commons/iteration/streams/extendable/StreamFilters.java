@@ -3,9 +3,9 @@ package lt.lb.commons.iteration.streams.extendable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import lt.lb.commons.Equator;
 
 /**
  *
@@ -13,13 +13,13 @@ import java.util.stream.Stream;
  * @param <X> element type
  * @param <M> implementation type
  */
-public interface StreamFilters<X, M extends DelegatingStream<X, M>> extends StreamExtension<X, M> {
+public interface StreamFilters<X, M extends DecoratableStream<X, M>> extends StreamExtension<X, M> {
 
-    public default <R> DelegatingStream<R, ?> select(Class<R> cls) {
+    public default <R> DecoratableStream<R, ?> select(Class<R> cls) {
         Objects.requireNonNull(cls, "Class must not be null");
-        return (DelegatingStream<R, ?>) me().filter(item -> cls.isInstance(item));
+        return (DecoratableStream<R, ?>) me().filter(item -> cls.isInstance(item));
     }
-    
+
     public default M nonNull() {
         return me().filter(Objects::nonNull);
     }
@@ -56,4 +56,9 @@ public interface StreamFilters<X, M extends DelegatingStream<X, M>> extends Stre
         return remove(col::contains);
     }
 
+    public default M distinct(Equator<? super X> equator) {
+        Objects.requireNonNull(equator, "Supplied equator is null");
+        return (M) me().map(s -> new Equator.EqualityProxy<>(s, equator)).distinct().map(m -> m.getValue());
+    }
+    
 }

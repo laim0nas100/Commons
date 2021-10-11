@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * @param <X> element type
  * @param <M> implementation type
  */
-public interface StreamCollectors<X, M extends DelegatingStream<X, M>> extends StreamExtension<X, M> {
+public interface StreamCollectors<X, M extends DecoratableStream<X, M>> extends StreamExtension<X, M> {
 
     public default String joining() {
         return me().map(m -> String.valueOf(m)).collect(Collectors.joining());

@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  * @param <X> element type
  * @param <M> implementation type
  */
-public interface DelegatingStream<X, M extends DelegatingStream<X, M>> extends Stream<X> {
+public interface DecoratableStream<X, M extends DecoratableStream<X, M>> extends Stream<X> {
 
     /**
      *
@@ -47,7 +47,7 @@ public interface DelegatingStream<X, M extends DelegatingStream<X, M>> extends S
      * @param modifiedStream
      * @return
      */
-    public <R> DelegatingStream<R, ?> reconstruct(Stream<R> modifiedStream);
+    public <R> DecoratableStream<R, ?> reconstruct(Stream<R> modifiedStream);
 
     /**
      *
@@ -124,7 +124,7 @@ public interface DelegatingStream<X, M extends DelegatingStream<X, M>> extends S
      * @param streamDecor intermediate mapper
      * @return resulting stream returned by mapper
      */
-    public default <R> DelegatingStream<R, ?> intermediateMap(Function<? super Stream<X>, ? extends Stream<R>> streamDecor) {
+    public default <R> DecoratableStream<R, ?> intermediateMap(Function<? super Stream<X>, ? extends Stream<R>> streamDecor) {
         Objects.requireNonNull(streamDecor, "Stream decorator must not be null");
         return reconstruct(streamDecor.apply(delegate()));
     }
@@ -136,7 +136,7 @@ public interface DelegatingStream<X, M extends DelegatingStream<X, M>> extends S
     }
 
     @Override
-    public default <R> DelegatingStream<R, ?> map(Function<? super X, ? extends R> mapper) {
+    public default <R> DecoratableStream<R, ?> map(Function<? super X, ? extends R> mapper) {
         Objects.requireNonNull(mapper, "Mapper must not be null");
         return intermediateMap(s -> s.map(mapper));
     }
@@ -160,7 +160,7 @@ public interface DelegatingStream<X, M extends DelegatingStream<X, M>> extends S
     }
 
     @Override
-    public default <R> DelegatingStream<R, ?> flatMap(Function<? super X, ? extends Stream<? extends R>> mapper) {
+    public default <R> DecoratableStream<R, ?> flatMap(Function<? super X, ? extends Stream<? extends R>> mapper) {
         Objects.requireNonNull(mapper, "Mapper must not be null");
         return intermediateMap(s -> s.flatMap(mapper));
     }
