@@ -1,14 +1,13 @@
 package lt.lb.commons.reflect.beans;
 
 import java.lang.reflect.Method;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import lt.lb.uncheckedutils.Checked;
+import lt.lb.commons.reflect.Refl;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class BasicBeanReadPropertyAccess<V, T> implements Supplier<T> {
 
@@ -18,7 +17,7 @@ public class BasicBeanReadPropertyAccess<V, T> implements Supplier<T> {
 
     @Override
     public T get() {
-        return Checked.uncheckedCall(() -> (T) read.invoke(object));
+        return Refl.invokeMethod(read, object);
     }
 
     public BasicBeanReadPropertyAccess(V object, String property) {
@@ -26,22 +25,32 @@ public class BasicBeanReadPropertyAccess<V, T> implements Supplier<T> {
         Class clazz = object.getClass();
         String cap = NameUtil.capitalize(property);
         String simpleReadName = "get" + cap;
-
-        Optional<Method> firstTry = Stream.of(clazz.getMethods())
-                .filter(p -> p.getName().equals(simpleReadName))
+        Method[] methods = Stream.of(clazz.getMethods())
                 .filter(p -> p.getParameterCount() == 0)
-                .findFirst();
+                .toArray(s -> new Method[s]);
 
-        if (!firstTry.isPresent()) {
-            readMethodName = "is" + NameUtil.capitalize(property);
-            read = Stream.of(clazz.getMethods())
-                    .filter(p -> p.getName().equals(readMethodName))
-                    .filter(p -> p.getParameterCount() == 0)
-                    .findFirst().orElseThrow(() -> new IllegalArgumentException("Failed to find read method of name:" + simpleReadName + " or " + readMethodName));
-        } else {
-            read = firstTry.get();
-            readMethodName = simpleReadName;
+        boolean found = false;
+        for (Method me : methods) {
+            if (simpleReadName.equals(me.getName())) {
+                found = true;
+                readMethodName = simpleReadName;
+                read = me;
+                break;
+            }
         }
-
+        if (!found) {
+            simpleReadName = "is" + cap;
+            for (Method me : methods) {
+                if (simpleReadName.equals(me.getName())) {
+                    found = true;
+                    readMethodName = simpleReadName;
+                    read = me;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            throw new IllegalArgumentException("Failed to find read method of name:" + simpleReadName + " or " + readMethodName);
+        }
     }
 }
