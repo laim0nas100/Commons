@@ -5,42 +5,13 @@
  */
 package empiric.experimental;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lt.lb.commons.DLog;
-import lt.lb.commons.F;
-import lt.lb.commons.Ins;
-import lt.lb.commons.Lazy;
-import lt.lb.commons.containers.values.Value;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
-import lt.lb.commons.iteration.For;
-import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.UUIDgenerator;
-import lt.lb.commons.misc.compare.ComparatorBuilder;
-import lt.lb.commons.misc.compare.Compare;
-import lt.lb.commons.misc.compare.Compare.SimpleCompare;
 import lt.lb.commons.parsing.Lexer;
-import lt.lb.commons.parsing.token.Literal;
-import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.parsing.token.Token;
-import lt.lb.commons.parsing.token.TokenPos;
-import lt.lb.commons.parsing.token.TokenProducer;
 import lt.lb.commons.parsing.token.match.DefaultMatchedTokenProducer;
-import lt.lb.commons.parsing.token.match.MatchedTokenProducer;
-import lt.lb.commons.parsing.token.match.MatchedTokens;
 import lt.lb.commons.parsing.token.match.TokenMatcher;
 import lt.lb.commons.parsing.token.match.TokenMatchers;
 

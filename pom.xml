@@ -155,6 +155,12 @@
             
             <dependency>
                 <groupId>com.github.laim0nas100</groupId>
+                <artifactId>ReadableCompare</artifactId>
+                <version>1.0</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>com.github.laim0nas100</groupId>
                 <artifactId>UncheckedUtils</artifactId>
                 <version>${unchecked.utils.version}</version>
             </dependency>

@@ -1,10 +1,10 @@
 package lt.lb.commons.misc;
 
 import java.util.Comparator;
-import lt.lb.commons.misc.compare.Compare;
-import lt.lb.commons.misc.compare.Compare.CompareNull;
-import lt.lb.commons.misc.compare.Compare.CompareOperator;
-import lt.lb.commons.misc.compare.Compare.SimpleCompare;
+import lt.lb.readablecompare.Compare;
+import lt.lb.readablecompare.CompareNull;
+import lt.lb.readablecompare.CompareOperator;
+import lt.lb.readablecompare.SimpleCompare;
 
 /**
  *

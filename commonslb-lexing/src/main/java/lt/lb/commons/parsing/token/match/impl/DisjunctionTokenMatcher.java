@@ -1,9 +1,11 @@
 package lt.lb.commons.parsing.token.match.impl;
 
 import lt.lb.commons.Ins;
-import lt.lb.commons.misc.compare.Compare;
 import lt.lb.commons.parsing.token.Token;
 import lt.lb.commons.parsing.token.match.TokenMatcher;
+import lt.lb.readablecompare.Compare;
+import lt.lb.readablecompare.CompareOperator;
+import lt.lb.readablecompare.SimpleCompare;
 
 /**
  *
@@ -17,7 +19,7 @@ public class DisjunctionTokenMatcher extends CompositeTokenMatcher {
         super(assertSameLength(matchers), name, matchers);
         Ins.InsCl<Token> insToken = Ins.of(Token.class);
         minTypes = new Class[length];
-        Compare.SimpleCompare<Class> cmpTypes = Compare.of(Ins.TYPE_COMPARATOR); // broader types comes first (smaller)
+        SimpleCompare<Class> cmpTypes = Compare.of(Ins.TYPE_COMPARATOR); // broader types comes first (smaller)
         if (length > 0) {
             for (int pos = 0; pos < length; pos++) {
                 Class<? extends Token> requiredType = matchers[0].requiredType(pos);
@@ -33,7 +35,7 @@ public class DisjunctionTokenMatcher extends CompositeTokenMatcher {
                     }
 
                     while (!Token.class.equals(maybeBroader)) {
-                        boolean greater = cmpTypes.compare(minTypes[pos], Compare.CompareOperator.GREATER, maybeBroader);
+                        boolean greater = cmpTypes.compare(minTypes[pos], CompareOperator.GREATER, maybeBroader);
                         if (greater) {
                             break;
                         } else {

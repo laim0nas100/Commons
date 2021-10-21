@@ -1,9 +1,10 @@
 package lt.lb.commons.parsing.token.match.impl;
 
 import lt.lb.commons.Ins;
-import lt.lb.commons.misc.compare.Compare;
 import lt.lb.commons.parsing.token.Token;
 import lt.lb.commons.parsing.token.match.TokenMatcher;
+import lt.lb.readablecompare.Compare;
+import lt.lb.readablecompare.SimpleCompare;
 
 /**
  *
@@ -17,7 +18,7 @@ public class ConjuctionTokenMatcher extends CompositeTokenMatcher {
         super(assertSameLength(matchers), name, matchers);
 
         maxTypes = new Class[length];
-        Compare.SimpleCompare<Class> cmpTypes = Compare.of(Ins.TYPE_COMPARATOR); // broader types comes first (smaller)
+        SimpleCompare<Class> cmpTypes = Compare.of(Ins.TYPE_COMPARATOR); // broader types comes first (smaller)
         if (length > 0) {
             for (int pos = 0; pos < length; pos++) {
                 maxTypes[pos] = matchers[0].requiredType(pos);
