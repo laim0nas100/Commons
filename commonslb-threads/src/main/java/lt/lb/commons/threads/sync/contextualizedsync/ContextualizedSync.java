@@ -12,6 +12,7 @@ import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.threads.sync.AtomicMap;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.PassableException;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.uncheckedutils.func.UncheckedSupplier;
@@ -27,6 +28,16 @@ import org.apache.logging.log4j.Logger;
  * @author laim0nas100
  */
 public class ContextualizedSync {
+
+    public static class ContextSyncException extends Exception {
+
+        public final LockCTX lock;
+
+        public ContextSyncException(LockCTX lock, String message) {
+            super(message);
+            this.lock = lock;
+        }
+    }
 
     public ContextualizedSync(int timesToRetry, WaitTime waitAtComplete) {
         this(timesToRetry, waitAtComplete, new ConcurrentHashMap<>());
@@ -199,7 +210,7 @@ public class ContextualizedSync {
         Objects.requireNonNull(lock);
         Objects.requireNonNull(call);
         if (lock.isUsed()) {
-            throw new IllegalArgumentException(lock + " is used, therefore cannot be used again");
+            return SafeOpt.error(new ContextSyncException(lock, "Lock:" + lock + " is used, therefore cannot be used again"));
         }
 
         atomic.changeIfPresent(lock.key, (presentLock) -> {
@@ -212,28 +223,32 @@ public class ContextualizedSync {
             return Checked.checkedCall(call);
         }
 
-        LockCTX establish = establish(lock);
+        try {
+            LockCTX establish = establish(lock);
 
-        int times = lock.timesToRetry;
-        while (establish != null) { // null means established
-            if (times <= 0) {
-                throw new IllegalStateException("Failed to lock locally with " + lock);
+            int times = lock.timesToRetry;
+            while (establish != null) { // null means established
+                if (times < 0) {
+                    return SafeOpt.error(new ContextSyncException(lock, "Failed to lock locally with " + lock));
+                }
+                times--;
+                try {
+                    establish.completable.get(lock.waitAtComplete.time, lock.waitAtComplete.unit); // this should be fast
+                } catch (InterruptedException | ExecutionException ex) {
+                    log.warn("Caught inside ContextualizedSync lock wait block, failed to enter with " + lock, ex);
+                } catch (TimeoutException ex) {
+                    // do nothing, just wait again
+                }
+                establish = establish(lock);
             }
-            times--;
-            try {
-                establish.completable.get(lock.waitAtComplete.time, lock.waitAtComplete.unit); // this should be fast
-            } catch (InterruptedException | ExecutionException ex) {
-                log.warn("Caught inside ContextualizedSync lock wait block, failed to enter with " + lock, ex);
-            } catch (TimeoutException ex) {
-                // do nothing, just wait again
-            }
-            establish = establish(lock);
+
+            SafeOpt<T> checkedCall = Checked.checkedCall(call);
+            destablish(lock);
+
+            return checkedCall;
+        } catch (Throwable th) {
+            return SafeOpt.error(th);
         }
-
-        SafeOpt<T> checkedCall = Checked.checkedCall(call);
-        destablish(lock);
-
-        return checkedCall;
 
     }
 
