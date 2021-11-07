@@ -12,7 +12,6 @@ import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.threads.sync.AtomicMap;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.PassableException;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.uncheckedutils.func.UncheckedSupplier;
@@ -37,6 +36,12 @@ public class ContextualizedSync {
             super(message);
             this.lock = lock;
         }
+
+        public ContextSyncException(LockCTX lock, String message, Throwable cause) {
+            super(message, cause);
+            this.lock = lock;
+        }
+        
     }
 
     public ContextualizedSync(int timesToRetry, WaitTime waitAtComplete) {
@@ -235,7 +240,7 @@ public class ContextualizedSync {
                 try {
                     establish.completable.get(lock.waitAtComplete.time, lock.waitAtComplete.unit); // this should be fast
                 } catch (InterruptedException | ExecutionException ex) {
-                    log.warn("Caught inside ContextualizedSync lock wait block, failed to enter with " + lock, ex);
+                    return SafeOpt.error(new ContextSyncException(lock, "Caught inside ContextualizedSync lock wait block, failed to enter with " + lock, ex));
                 } catch (TimeoutException ex) {
                     // do nothing, just wait again
                 }
