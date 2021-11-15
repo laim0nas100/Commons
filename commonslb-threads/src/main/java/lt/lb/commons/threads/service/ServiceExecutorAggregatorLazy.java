@@ -7,12 +7,12 @@ import lt.lb.commons.threads.executors.scheduled.DelayedTaskExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
- * {@link ServiceExecutorAggregator}, but using non-standard implementation
+ * {@link ServiceExecutorAggregatorBase}, but using non-standard implementation
  * executors, that does not keep active threads.
  *
  * @author laim0nas100
  */
-public class ServiceExecutorAggregatorLazy extends ServiceExecutorAggregator {
+public class ServiceExecutorAggregatorLazy extends ServiceExecutorAggregatorBase {
 
     protected WaitTime defaultWaitTime = WaitTime.ofSeconds(5);
 

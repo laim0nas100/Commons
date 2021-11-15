@@ -1,7 +1,10 @@
 package lt.lb.commons.threads.service;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.threads.Futures;
@@ -44,12 +47,12 @@ public abstract class BasicTaskExecutorQueue implements TaskExecutorQueue<String
 
     public static class BasicRunState {
 
-        public final Thread runner;
+        public final Thread submitter;
 
         public int nested;
 
         public BasicRunState(Thread runner) {
-            this.runner = runner;
+            this.submitter = runner;
         }
 
         public BasicRunState() {
@@ -59,7 +62,7 @@ public abstract class BasicTaskExecutorQueue implements TaskExecutorQueue<String
         @Override
         public int hashCode() {
             int hash = 7;
-            hash = 11 * hash + Objects.hashCode(this.runner);
+            hash = 11 * hash + Objects.hashCode(this.submitter);
             hash = 11 * hash + this.nested;
             return hash;
         }
@@ -79,7 +82,7 @@ public abstract class BasicTaskExecutorQueue implements TaskExecutorQueue<String
             if (this.nested != other.nested) {
                 return false;
             }
-            return Objects.equals(this.runner, other.runner);
+            return Objects.equals(this.submitter, other.submitter);
         }
 
     }
@@ -149,7 +152,7 @@ public abstract class BasicTaskExecutorQueue implements TaskExecutorQueue<String
                 return s.allow();
             }
             if (info.reentrant) {
-                if (Objects.equals(s.state.runner, stateNew.runner)) {
+                if (Objects.equals(s.state.submitter, stateNew.submitter)) {
                     s.state.nested++;// same thread
                     return s.allow();
                 }
@@ -203,6 +206,16 @@ public abstract class BasicTaskExecutorQueue implements TaskExecutorQueue<String
             return error;
         });
 
+    }
+
+    @Override
+    public Collection<ExecutorService> getServices() {
+        return Arrays.asList(getExecutor(), getScheduler());
+    }
+
+    @Override
+    public ExecutorService getMain() {
+        return getExecutor();
     }
 
 }

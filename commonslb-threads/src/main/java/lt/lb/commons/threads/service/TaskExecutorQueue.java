@@ -18,7 +18,7 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
  *
  * @author laim0nas100
  */
-public interface TaskExecutorQueue<P extends Serializable, R extends RunInfo<P>> {
+public interface TaskExecutorQueue<P extends Serializable, R extends RunInfo<P>> extends ServiceExecutorAggregator{
 
     public static interface RunInfo<P extends Serializable> {
 
@@ -56,7 +56,7 @@ public interface TaskExecutorQueue<P extends Serializable, R extends RunInfo<P>>
         return Futures.done(onFailedEnqueue(info));
     }
 
-    public default Optional<Throwable> submitMap(R info, UncheckedRunnable run) {
+    public default Optional<Throwable> submitWait(R info, UncheckedRunnable run) {
         return SafeOpt.ofFuture(submit(info, run)).flatMapOpt(m -> m).asOptional();
     }
 
