@@ -1,6 +1,5 @@
 package regression.core.collections;
 
-import lt.lb.commons.DLog;
 import lt.lb.commons.containers.collections.PrefillArrayList;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -17,8 +16,6 @@ public class PrefillArrayTest {
         list.set(5, "hi");
         list.set(10, "hey");
         
-        DLog.print(list);
-
         assertThat(list).hasSize(2)
                 .contains("hi")
                 .contains("hey");

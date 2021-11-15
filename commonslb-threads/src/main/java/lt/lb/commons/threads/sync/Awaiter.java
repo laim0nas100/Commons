@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import lt.lb.commons.Java;
 
 /**
  *
@@ -180,14 +179,14 @@ public interface Awaiter {
     public static void sharedAwait(Iterable<Awaiter> awaiters, long time, TimeUnit unit) throws InterruptedException, CancellationException, ExecutionException, TimeoutException {
         Objects.requireNonNull(awaiters, "Awaiters are null");
         long nanos = TimeUnit.NANOSECONDS.convert(time, unit);
-        long now = Java.getNanoTime();
+        long now = System.nanoTime();
         for (Awaiter a : awaiters) {
             if (nanos <= 0) {
                 throw new TimeoutException("Times up!");
             }
 
             a.await(nanos, TimeUnit.NANOSECONDS);
-            long after = Java.getNanoTime();
+            long after = System.nanoTime();
             long diff = after - now;
             now = after;
             nanos = nanos - diff;
@@ -208,14 +207,14 @@ public interface Awaiter {
     public static void sharedAwaitTime(Iterable<AwaiterTime> awaiters, long time, TimeUnit unit) throws InterruptedException, TimeoutException {
         Objects.requireNonNull(awaiters, "Awaiters are null");
         long nanos = TimeUnit.NANOSECONDS.convert(time, unit);
-        long now = Java.getNanoTime();
+        long now = System.nanoTime();
         for (AwaiterTime a : awaiters) {
             if (nanos <= 0) {
                 throw new TimeoutException("Times up!");
             }
 
             a.await(nanos, TimeUnit.NANOSECONDS);
-            long after = Java.getNanoTime();
+            long after = System.nanoTime();
             long diff = after - now;
             now = after;
             nanos = nanos - diff;
@@ -237,7 +236,7 @@ public interface Awaiter {
     public static boolean sharedAwaitTimeBool(Iterable<AwaiterTime> awaiters, long time, TimeUnit unit) throws InterruptedException {
         Objects.requireNonNull(awaiters, "Awaiters are null");
         long nanos = TimeUnit.NANOSECONDS.convert(time, unit);
-        long now = Java.getNanoTime();
+        long now = System.nanoTime();
         for (AwaiterTime a : awaiters) {
             if (nanos <= 0) {
                 return false;
@@ -245,7 +244,7 @@ public interface Awaiter {
             if (!a.awaitBool(nanos, TimeUnit.NANOSECONDS)) {
                 return false;
             }
-            long after = Java.getNanoTime();
+            long after = System.nanoTime();
             long diff = after - now;
             now = after;
             nanos = nanos - diff;

@@ -15,8 +15,6 @@ import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.uncheckedutils.func.UncheckedSupplier;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -60,8 +58,6 @@ public class ContextualizedSync {
 
     protected final int defaultRetries;
     protected final WaitTime defaultWait;
-
-    public static Logger log = LogManager.getLogger(ContextualizedSync.class);
 
     /**
      * Get current lock snapshot

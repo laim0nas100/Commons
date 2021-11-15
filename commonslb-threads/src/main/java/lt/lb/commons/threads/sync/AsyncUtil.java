@@ -1,4 +1,4 @@
-package lt.lb.commons.threads;
+package lt.lb.commons.threads.sync;
 
 import java.io.Closeable;
 import java.io.IOException;
