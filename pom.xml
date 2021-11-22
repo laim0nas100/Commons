@@ -10,8 +10,8 @@
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
-        <apache.commons.version>3.9</apache.commons.version>
-        <unchecked.utils.version>2021.09v1</unchecked.utils.version>
+        <apache.commons.version>3.12.0</apache.commons.version>
+        <unchecked.utils.version>2021.11v1</unchecked.utils.version>
         <javafx.compat.version>11</javafx.compat.version>
     </properties>
     <name>CommonsLB</name>
