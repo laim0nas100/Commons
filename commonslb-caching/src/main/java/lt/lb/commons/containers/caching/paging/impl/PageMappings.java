@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import lt.lb.commons.containers.caching.paging.LoadedPage;
 import lt.lb.commons.containers.caching.paging.SeqLoadedPage;
-import lt.lb.commons.containers.collections.readonly.ReadOnlyList;
-import lt.lb.commons.containers.collections.readonly.ReadOnlyMap;
+import lt.lb.prebuiltcollections.readonly.ReadOnlyList;
+import lt.lb.prebuiltcollections.readonly.ReadOnlyMap;
 
 /**
  *
