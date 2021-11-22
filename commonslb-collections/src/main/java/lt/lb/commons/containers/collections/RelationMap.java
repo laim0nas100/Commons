@@ -357,7 +357,7 @@ public class RelationMap<K, V> implements Map<K, V> {
                 return true;
             }
 
-            return Ins.instanceOf(child, parent);
+            return Ins.instanceOfClass(child, parent);
 
         }
     }
