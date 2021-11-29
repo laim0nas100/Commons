@@ -13,7 +13,7 @@ public interface StreamExtension<X, M extends DecoratableStream<X, M>> {
 
     public M me();
 
-    public static interface StreamExtensionsAll<X, M extends DecoratableStream<X, M>> extends DecoratableStream<X, M>, StreamAppenders<X, M>, StreamCollectors<X, M>, StreamConsumers<X, M>, StreamFilters<X, M> {
+    public static interface StreamExtensionsAll<X, M extends DecoratableStream<X, M>> extends DecoratableStream<X, M>, StreamAppenders<X, M>, StreamCollectors<X, M>, StreamConsumers<X, M>, StreamFilters<X, M>, StreamOptFilters<X, M> {
 
         //JDK 17 collision
         @Override
