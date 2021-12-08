@@ -46,7 +46,110 @@ public abstract class ImmutableCollections {
 
     }
 
-    public static <K, V> Map<K, V> mapOf(K k0, V v0, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
+    public static <K, V> Map<K, V> mapOf(
+            K k0, V v0,
+            K k1, V v1,
+            K k2, V v2,
+            K k3, V v3,
+            K k4, V v4,
+            K k5, V v5,
+            K k6, V v6,
+            K k7, V v7,
+            K k8, V v8,
+            K k9, V v9
+    ) {
+        return Collections.unmodifiableMap(
+                new MapBuilder<>(new HashMap<K, V>(10))
+                        .put(k0, v0)
+                        .put(k1, v1)
+                        .put(k2, v2)
+                        .put(k3, v3)
+                        .put(k4, v4)
+                        .put(k5, v5)
+                        .put(k6, v6)
+                        .put(k7, v7)
+                        .put(k8, v8)
+                        .put(k9, v9)
+                        .getMap());
+    }
+
+    public static <K, V> Map<K, V> mapOf(
+            K k0, V v0,
+            K k1, V v1,
+            K k2, V v2,
+            K k3, V v3,
+            K k4, V v4,
+            K k5, V v5,
+            K k6, V v6,
+            K k7, V v7,
+            K k8, V v8
+    ) {
+        return Collections.unmodifiableMap(
+                new MapBuilder<>(new HashMap<K, V>(9))
+                        .put(k0, v0)
+                        .put(k1, v1)
+                        .put(k2, v2)
+                        .put(k3, v3)
+                        .put(k4, v4)
+                        .put(k5, v5)
+                        .put(k6, v6)
+                        .put(k7, v7)
+                        .put(k8, v8)
+                        .getMap());
+    }
+
+    public static <K, V> Map<K, V> mapOf(
+            K k0, V v0,
+            K k1, V v1,
+            K k2, V v2,
+            K k3, V v3,
+            K k4, V v4,
+            K k5, V v5,
+            K k6, V v6,
+            K k7, V v7
+    ) {
+        return Collections.unmodifiableMap(
+                new MapBuilder<>(new HashMap<K, V>(8))
+                        .put(k0, v0)
+                        .put(k1, v1)
+                        .put(k2, v2)
+                        .put(k3, v3)
+                        .put(k4, v4)
+                        .put(k5, v5)
+                        .put(k6, v6)
+                        .put(k7, v7)
+                        .getMap());
+    }
+
+    public static <K, V> Map<K, V> mapOf(
+            K k0, V v0,
+            K k1, V v1,
+            K k2, V v2,
+            K k3, V v3,
+            K k4, V v4,
+            K k5, V v5,
+            K k6, V v6
+    ) {
+        return Collections.unmodifiableMap(
+                new MapBuilder<>(new HashMap<K, V>(7))
+                        .put(k0, v0)
+                        .put(k1, v1)
+                        .put(k2, v2)
+                        .put(k3, v3)
+                        .put(k4, v4)
+                        .put(k5, v5)
+                        .put(k6, v6)
+                        .getMap());
+    }
+
+    public static <K, V> Map<K, V> mapOf(
+            K k0, V v0,
+            K k1, V v1,
+            K k2, V v2,
+            K k3, V v3,
+            K k4, V v4,
+            K k5, V v5
+    ) {
         return Collections.unmodifiableMap(
                 new MapBuilder<>(new HashMap<K, V>(6))
                         .put(k0, v0)
@@ -58,7 +161,13 @@ public abstract class ImmutableCollections {
                         .getMap());
     }
 
-    public static <K, V> Map<K, V> mapOf(K k0, V v0, K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
+    public static <K, V> Map<K, V> mapOf(
+            K k0, V v0,
+            K k1, V v1,
+            K k2, V v2,
+            K k3, V v3,
+            K k4, V v4
+    ) {
         return Collections.unmodifiableMap(
                 new MapBuilder<>(new HashMap<K, V>(5))
                         .put(k0, v0)
@@ -69,7 +178,12 @@ public abstract class ImmutableCollections {
                         .getMap());
     }
 
-    public static <K, V> Map<K, V> mapOf(K k0, V v0, K k1, V v1, K k2, V v2, K k3, V v3) {
+    public static <K, V> Map<K, V> mapOf(
+            K k0, V v0,
+            K k1, V v1,
+            K k2, V v2,
+            K k3, V v3
+    ) {
         return Collections.unmodifiableMap(
                 new MapBuilder<>(new HashMap<K, V>(4))
                         .put(k0, v0)
