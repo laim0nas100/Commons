@@ -37,8 +37,8 @@ import lt.lb.commons.parsing.NumberParsing;
 import lt.lb.commons.javafx.fxrows.FXDrows;
 import lt.lb.commons.javafx.fxrows.FXDrowsConf;
 import lt.lb.uncheckedutils.Checked;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -165,7 +165,7 @@ public abstract class FXDefs {
 
     public static class SimpleListViewCell<P> extends ListCell<P> {
 
-        public static Logger logger = LogManager.getLogger(SimpleListViewCell.class);
+        public static Logger logger = LoggerFactory.getLogger(SimpleListViewCell.class);
         Lambda.L3<ListCell<P>, P, Boolean> decorator;
 
         public SimpleListViewCell(Lambda.L3<ListCell<P>, P, Boolean> decorator) {

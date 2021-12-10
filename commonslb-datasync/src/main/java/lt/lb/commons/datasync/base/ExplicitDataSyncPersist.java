@@ -7,8 +7,8 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.DataSyncPersist;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -16,9 +16,8 @@ import org.apache.logging.log4j.Logger;
  */
 public abstract class ExplicitDataSyncPersist<P, M> implements DataSyncPersist<P, M> {
 
-     private static Logger logger = LogManager.getLogger(ExplicitDataSyncPersist.class);
+    private static Logger logger = LoggerFactory.getLogger(ExplicitDataSyncPersist.class);
 
-    
     protected Value<Supplier<? extends P>> persistenceSupp = new Value<>();
     protected Value<Consumer<? super P>> persistenceSync = new Value<>();
     protected Value<Function<? super P, ? extends M>> persistGet = new Value<>();
@@ -41,8 +40,6 @@ public abstract class ExplicitDataSyncPersist<P, M> implements DataSyncPersist<P
         return persistenceSupp.get();
     }
 
-    
-    
     @Override
     public void withPersistSync(Consumer<? super P> persSync) {
         this.persistenceSync.set(persSync);

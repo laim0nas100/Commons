@@ -7,8 +7,8 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.DataSyncDisplay;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
  */
 public abstract class ExplicitDataSyncDisplay<D, M> implements DataSyncDisplay<D, M> {
 
-    private static Logger logger = LogManager.getLogger(ExplicitDataSyncDisplay.class);
+    private static Logger logger = LoggerFactory.getLogger(ExplicitDataSyncDisplay.class);
 
     public ExplicitDataSyncDisplay(ValueProxy<D> displaySync) {
         withDisplayProxy(displaySync);

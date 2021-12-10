@@ -11,9 +11,9 @@ import javafx.scene.control.Alert;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.uncheckedutils.Checked;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -101,7 +101,7 @@ public class FX {
         });
     }
     
-    public static Logger logger = LogManager.getLogger(FX.class);
+    private static Logger logger = LoggerFactory.getLogger(FX.class);
     
     public static void withAlert(UncheckedRunnable run) {
         Checked.checkedRun(run).ifPresent(ex -> {
