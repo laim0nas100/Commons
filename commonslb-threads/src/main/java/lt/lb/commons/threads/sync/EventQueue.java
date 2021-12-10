@@ -11,11 +11,10 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import lt.lb.commons.F;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
-import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.threads.executors.layers.BoundedNestedTaskExecutorLayer;
 import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -94,15 +93,15 @@ public class EventQueue {
     }
 
     public Future add(String tag, UncheckedRunnable run) {
-        return add(new Event(this, run, StringOp.split(tag, ",")));
+        return add(new Event(this, run, StringUtils.split(tag, ",")));
     }
 
     public Future add(String tag, Runnable run) {
-        return add(new Event(this, run, StringOp.split(tag, ",")));
+        return add(new Event(this, run, StringUtils.split(tag, ",")));
     }
 
     public Future add(String tag, Callable run) {
-        return add(new Event(this, run, StringOp.split(tag, ",")));
+        return add(new Event(this, run, StringUtils.split(tag, ",")));
     }
 
     private AtomicInteger ai = new AtomicInteger(1);

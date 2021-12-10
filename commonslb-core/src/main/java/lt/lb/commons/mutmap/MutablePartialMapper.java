@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lt.lb.commons.Ins;
 import lt.lb.commons.PosEq;
-import lt.lb.commons.parsing.StringOp;
 
 /**
  *
@@ -176,7 +175,7 @@ public class MutablePartialMapper {
     }
 
     public <From, To> MutableMapList<From, To> map(From from, To to, String nameToMatch) {
-        return map(from, to, n -> StringOp.equals(n, nameToMatch));
+        return map(from, to, n -> Objects.equals(n, nameToMatch));
     }
 
     public <From, To> MutableMapList<From, To> map(From from, To to) {

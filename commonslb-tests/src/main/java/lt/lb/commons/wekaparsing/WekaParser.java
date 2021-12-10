@@ -13,9 +13,9 @@ import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.wekaparsing.WekaDefaultParsers.WekaTransformer;
 import lt.lb.uncheckedutils.Checked;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -138,7 +138,7 @@ public class WekaParser<T> {
             throw new IllegalArgumentException("Class field count:" + fields.size() + " attribute count:" + attributes.size());
         }
         For.elements().iterate(attributes, (i, f) -> {
-            if (!StringOp.equals("?", f)) { // leave null otherwise
+            if (!StringUtils.equals("?", f)) { // leave null otherwise
                 Checked.uncheckedRun(() -> {
                     Field field = fields.get(i);
                     WekaTransformer wek = this.ensureWekaPrinter(field.getType());

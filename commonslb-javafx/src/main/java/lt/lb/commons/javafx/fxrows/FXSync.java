@@ -31,7 +31,7 @@ import lt.lb.commons.datasync.extractors.Extractors;
 import lt.lb.commons.func.BiConverter;
 import lt.lb.commons.javafx.FXDefs;
 import lt.lb.commons.misc.compare.ComparatorBuilder;
-import lt.lb.commons.parsing.StringOp;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.FuzzyScore;
 
 /**
@@ -219,7 +219,7 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
             this.value = value;
             this.asString = asString;
             this.query = query;
-            this.commonPrefixDistance = StringOp.getCommonPrefix(asString.toLowerCase(locale), query.toLowerCase(locale)).length();
+            this.commonPrefixDistance = StringUtils.getCommonPrefix(asString.toLowerCase(locale), query.toLowerCase(locale)).length();
             this.fuzzyScore = new FuzzyScore(locale).fuzzyScore(asString, query);
         }
 
@@ -265,7 +265,7 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
 
             @Override
             public T fromString(String query) {
-                if (StringOp.isEmpty(query)) {
+                if (StringUtils.isEmpty(query)) {
                     return null;
                 }
                 T get = mapped.getOrDefault(query, null);

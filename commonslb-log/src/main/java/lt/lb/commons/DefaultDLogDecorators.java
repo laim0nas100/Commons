@@ -7,9 +7,9 @@ import lt.lb.commons.containers.caching.lazy.LazyValue;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.parsing.StringOp;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.NestedException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -116,7 +116,7 @@ public class DefaultDLogDecorators {
             return () -> {
                 Value<String> trace = new Value<>();
                 Checked.uncheckedRun(() -> {
-                    trace.set(StringOp.remove(thMethod.get().invoke(th, 3).toString(), ".java"));
+                    trace.set(StringUtils.remove(thMethod.get().invoke(th, 3).toString(), ".java"));
                 });
                 return null;
             };

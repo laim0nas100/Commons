@@ -25,7 +25,7 @@ import lt.lb.commons.io.blobify.bytes.WriteableBytes;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.uncheckedutils.NestedException;
 import lt.lb.commons.misc.compare.ComparatorBuilder;
-import lt.lb.commons.parsing.StringOp;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -60,11 +60,11 @@ public class Blobbys {
             
             @Override
             public Boolean find(Path item) {
-                String relative = StringOp.replace(rootDirectory.relativize(item).toString(), "\\", "/");
-                if (StringOp.isAllBlank(relative)) { //just skip
+                String relative = StringUtils.replace(rootDirectory.relativize(item).toString(), "\\", "/");
+                if (StringUtils.isAllBlank(relative)) { //just skip
                     return false;
                 }
-                if (StringOp.contains(relative, Blobby.sep)) {
+                if (StringUtils.contains(relative, Blobby.sep)) {
                     throw NestedException.of(new IOException(relative + " contains reserved custom separator: " + Blobby.sep));
                 }
                 if (!Files.isDirectory(item)) {

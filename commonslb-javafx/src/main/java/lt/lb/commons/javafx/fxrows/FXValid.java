@@ -14,7 +14,7 @@ import javafx.scene.control.Tooltip;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.datasync.base.NodeValid;
 import lt.lb.commons.Equator;
-import lt.lb.commons.parsing.StringOp;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -68,7 +68,7 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
     public static <N extends Node> FXValid<String, N> valNotBlank() {
         FXValid<String, N> valid = new FXValid<>();
         valid.errorSupl = t -> "Must not be blank";
-        valid.isValid = t -> StringOp.isNotBlank(t);
+        valid.isValid = t -> StringUtils.isNotBlank(t);
         return valid;
     }
 
@@ -94,7 +94,7 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
     }
 
     public static Predicate<String> validatorSimplePath() {
-        return p -> SafeOpt.ofNullable(p).filter(StringOp::isAlphanumeric).map(Paths::get).filter(Files::notExists).isPresent();
+        return p -> SafeOpt.ofNullable(p).filter(StringUtils::isAlphanumeric).map(Paths::get).filter(Files::notExists).isPresent();
     }
 
     public static Predicate<String> validatorDirPath() {
@@ -112,9 +112,9 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
     public static <T> Predicate<String> validatorUnique(boolean in, boolean ignoreCase, Collection<T> list, Function<? super T, String> func) {
         return validatorUnique(in, list, func, (o1, o2) -> {
             if (ignoreCase) {
-                return StringOp.equalsIgnoreCase(o1, o2);
+                return StringUtils.equalsIgnoreCase(o1, o2);
             } else {
-                return StringOp.equals(o1, o2);
+                return StringUtils.equals(o1, o2);
             }
         });
     }

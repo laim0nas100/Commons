@@ -18,6 +18,7 @@ import lt.lb.commons.parsing.token.TokenPos;
 import lt.lb.commons.parsing.token.TokenProducer;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.SafeOpt;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -98,11 +99,11 @@ public class Lexer {
     /**
      * Override for case-insensitive keywords
      */
-    public Equator<String> equator = StringOp::equals;
+    public Equator<String> equator = StringUtils::equals;
     /**
      * Override for case-insensitive keywords
      */
-    public Equator<String> equatorBreaking = StringOp::equals;
+    public Equator<String> equatorBreaking = StringUtils::equals;
 
     public Lexer() {
         this.keywords = new SelfSortingMap<>(cmp, new HashMap<>());
@@ -226,15 +227,15 @@ public class Lexer {
      * @return
      */
     public boolean hasStrings() {
-        return StringOp.isNoneBlank(keyStringBegin, keyStringEnd, keyStringEscape);
+        return StringUtils.isNoneBlank(keyStringBegin, keyStringEnd, keyStringEscape);
     }
 
     public boolean hasLineComment() {
-        return StringOp.isNoneBlank(commentLine);
+        return StringUtils.isNoneBlank(commentLine);
     }
 
     public boolean hasMultilineComment() {
-        return StringOp.isNoneBlank(commentStart, commentEnd);
+        return StringUtils.isNoneBlank(commentStart, commentEnd);
     }
 
     /**

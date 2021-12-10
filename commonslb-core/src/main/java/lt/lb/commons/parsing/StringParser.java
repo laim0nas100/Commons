@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -95,9 +96,9 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
     }
 
     default String[] parseArray(String string) {
-        string = StringOp.remove(string, "[");
-        string = StringOp.remove(string, "]");
-        return StringOp.split(string, ", ");
+        string = StringUtils.remove(string, "[");
+        string = StringUtils.remove(string, "]");
+        return StringUtils.split(string, ", ");
     }
 
     default <O> SafeOpt<List<O>> parseOptAnyList(T p, Function<String, O> func) {

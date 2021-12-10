@@ -6,7 +6,7 @@ import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.values.StringValue;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.parsing.StringOp;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -74,7 +74,7 @@ public class CommentParser {
                         if (scanComment && inComment.get()) {//look for comment end
                             if (str.contains(commentEnd)) {
 
-                                int indexOf = StringOp.indexOf(str, commentEnd);
+                                int indexOf = StringUtils.indexOf(str, commentEnd);
                                 str = str.substring(indexOf + lenE);
 
                                 //skip all text until that comment end
@@ -90,8 +90,8 @@ public class CommentParser {
 
                         } else {
 
-                            if (scanLine && 0 <= StringOp.indexOf(str, lineComment)) {
-                                int indexOf = StringOp.indexOf(str, lineComment);
+                            if (scanLine && 0 <= StringUtils.indexOf(str, lineComment)) {
+                                int indexOf = StringUtils.indexOf(str, lineComment);
                                 str = str.substring(0, indexOf); // save everything before line comment start
                                 if (str.isEmpty()) {  // the comment was at the begining. Line cleared.
                                     toAdd = false;
@@ -99,7 +99,7 @@ public class CommentParser {
                                 }
                             } else {
 
-                                int iStart = StringOp.indexOf(str, commentStart);
+                                int iStart = StringUtils.indexOf(str, commentStart);
                                 if (scanComment && iStart >= 0) {
                                     if (str.substring(iStart + lenS).contains(commentEnd)) {// line contains both comment end and start, so we scan through subcomments
                                         StringBuilder builder = new StringBuilder();
@@ -108,11 +108,11 @@ public class CommentParser {
                                             if (!str.contains(commentStart)) {
                                                 break;
                                             }
-                                            int indexOf = StringOp.indexOf(str, commentStart);
+                                            int indexOf = StringUtils.indexOf(str, commentStart);
                                             String beforeComment = str.substring(0, indexOf);
                                             builder.append(beforeComment);
                                             str = str.substring(indexOf + lenS);
-                                            int iEnd = StringOp.indexOf(str, commentEnd);
+                                            int iEnd = StringUtils.indexOf(str, commentEnd);
                                             if (iEnd >= 0) {
                                                 str = str.substring(iEnd + lenE);
                                             } else {
@@ -121,7 +121,7 @@ public class CommentParser {
                                         } // no longer has multi line comments
                                         sb.append(builder.toString());
                                         if (scanLine && str.contains(lineComment)) {
-                                            int indexOf = StringOp.indexOf(str, lineComment);
+                                            int indexOf = StringUtils.indexOf(str, lineComment);
                                             sb.append(str.substring(0, indexOf));
                                             break;
                                         } else {
@@ -131,7 +131,7 @@ public class CommentParser {
                                         }
                                     } else {
                                         //simple end line with single comment start
-                                        int indexOf = StringOp.indexOf(str, commentStart);
+                                        int indexOf = StringUtils.indexOf(str, commentStart);
                                         str = str.substring(0, indexOf);
                                         inComment.setTrue();
                                         toAdd = !str.isEmpty();

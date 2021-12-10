@@ -3,8 +3,8 @@ package lt.lb.commons.io.blobify;
 import java.io.IOException;
 import lt.lb.commons.io.blobify.bytes.Bytes;
 import lt.lb.commons.io.blobify.bytes.ChunkyBytes;
-import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -83,7 +83,7 @@ public class Blobby {
     }
 
     public static Blobby fromSerializableString(String str) {
-        String[] split = StringOp.splitByWholeSeparator(str, sep);
+        String[] split = StringUtils.splitByWholeSeparator(str, sep);
 
         Blobby obj = new Blobby();
         obj.relativePath = split[0];

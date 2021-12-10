@@ -6,9 +6,9 @@ import java.util.Optional;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
-import lt.lb.commons.parsing.StringOp;
 import lt.lb.uncheckedutils.Checked;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -57,7 +57,7 @@ public class FieldChain {
     }
 
     public static FieldChain resolveChainOfClassParse(Class rootClass, String steps) throws Exception {
-        return resolveChainOfClass(rootClass, StringOp.split(steps, "."));
+        return resolveChainOfClass(rootClass, StringUtils.split(steps, "."));
     }
 
     public static FieldChain resolveChainOfClass(Class rootClass, String... steps) throws NoSuchFieldException {
@@ -207,7 +207,7 @@ public class FieldChain {
         }
 
         public static ObjectFieldChain ofChainParse(String steps, String separator) {
-            return ofChain(StringOp.split(steps, separator));
+            return ofChain(StringUtils.split(steps, separator));
         }
 
         public static ObjectFieldChain ofChainParse(String steps) {
