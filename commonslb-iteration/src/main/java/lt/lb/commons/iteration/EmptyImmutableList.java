@@ -24,7 +24,7 @@ public class EmptyImmutableList<T> implements List<T> {
         return empty;
     }
     
-    public static <T> EmptyROI emptyIterator(){
+    public static <T> EmptyROI<T> emptyIterator(){
         return emptyROI;
     }
 

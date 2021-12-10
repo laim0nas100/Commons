@@ -9,11 +9,10 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lt.lb.commons.Ins;
-import lt.lb.commons.parsing.StringOp;
 import lt.lb.commons.reflect.Refl;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -28,24 +27,24 @@ public class Fil {
 
     public Fil(String absolutePath) throws Exception {
         this.absolutePath = absolutePath;
-        fields = Refl.getFieldsOf(this.getClass(), f -> true).stream()
-                .filter(f -> f.isAnnotationPresent(FileInfo.class))
-                .filter(f -> Modifier.isPublic(f.getModifiers()))
-                .filter(f -> Ins.of(Fil.class).superClassOf(f.getType()))
-                .collect(Collectors.toList());
+        fields = Refl.getFieldsOf(this.getClass(),
+                f -> f.isAnnotationPresent(FileInfo.class)
+                && Modifier.isPublic(f.getModifiers())
+                && f.getType().isAssignableFrom(Fil.class)
+        );
 
         map = new LinkedHashMap<>();
         for (Field field : fields) {
             String fieldName = field.getName();
             FileInfo fileInfo = field.getAnnotation(FileInfo.class);
             String fileName = "";
-            if (StringOp.isNotEmpty(fileInfo.value())) {
+            if (StringUtils.isNotEmpty(fileInfo.value())) {
                 fileName = fileInfo.value();
             } else {
                 fileName = fieldName;
             }
 
-            if (StringOp.isNotEmpty(fileInfo.extension())) {
+            if (StringUtils.isNotEmpty(fileInfo.extension())) {
                 fileName = fileName + "." + fileInfo.extension();
             }
 
@@ -67,7 +66,7 @@ public class Fil {
     }
 
     public String getAbsolutePathWithSeparator() {
-        return StringOp.appendIfMissing(absolutePath, File.separator);
+        return StringUtils.appendIfMissing(absolutePath, File.separator);
     }
 
     public String getName() {
