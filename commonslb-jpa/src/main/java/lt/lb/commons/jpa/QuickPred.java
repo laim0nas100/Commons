@@ -19,11 +19,11 @@ import lt.lb.commons.func.Lambda;
  */
 public class QuickPred {
 
-    public static <T> Lambda.L2R<CriteriaBuilder, T, Predicate> unlift1(Lambda.L1R<CriteriaBuilder, Lambda.L1R<T, Predicate>> func) {
-        return (cb, exp) -> {
-            return func.apply(cb).apply(exp);
-        };
-    }
+//    public static <T> Lambda.L2R<CriteriaBuilder, T, Predicate> unlift1(Lambda.L1R<CriteriaBuilder, Lambda.L1R<T, Predicate>> func) {
+//        return (cb, exp) -> {
+//            return func.apply(cb).apply(exp);
+//        };
+//    }
 
 //    public static <T, Y> Lambda.L3R<CriteriaBuilder, T, Y, Predicate> unlift2(Lambda.L1R<CriteriaBuilder, Lambda.L2R<T, Y, Predicate>> func) {
 //        return (cb, exp1, exp2) -> {

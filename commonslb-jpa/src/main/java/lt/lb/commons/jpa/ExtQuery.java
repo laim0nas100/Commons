@@ -5,6 +5,7 @@ import java.util.List;
 /**
  *
  * @author laim0nas100
+ * @param <X>
  */
 public interface ExtQuery<X> {
 
