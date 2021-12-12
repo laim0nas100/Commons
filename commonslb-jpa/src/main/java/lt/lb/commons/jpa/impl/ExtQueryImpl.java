@@ -27,7 +27,7 @@ public class ExtQueryImpl<X> implements ExtQuery<X> {
     private final CriteriaBuilder cb;
     private final CriteriaQuery<X> q;
     private int first = -1;
-    private int pageSize = -1;
+    private int maxResults = -1;
     private List<Predicate> staticPredicates = new ArrayList<>();
     private List<Order> order = new ArrayList<>();
     
@@ -72,8 +72,8 @@ public class ExtQueryImpl<X> implements ExtQuery<X> {
         if (first > 0) {
             finalQuery = finalQuery.setFirstResult(first);
         }
-        if (pageSize > 0) {
-            finalQuery = finalQuery.setMaxResults(pageSize);
+        if (maxResults > 0) {
+            finalQuery = finalQuery.setMaxResults(maxResults);
         }
         return finalQuery.getResultList();
         
@@ -87,7 +87,7 @@ public class ExtQueryImpl<X> implements ExtQuery<X> {
     
     @Override
     public ExtQuery<X> setMaxResults(int max) {
-        this.pageSize = max;
+        this.maxResults = max;
         return this;
     }
     
