@@ -19,14 +19,12 @@ public class SelfSortingMap<K, V> implements Map<K, V> {
      *
      * Initialize as a simple map
      *
-     * @param <K> key
-     * @param <V> value
      * @param cmp Comparator to sort items in queue
      * @param map
      */
     public SelfSortingMap(Comparator<K> cmp, Map<K, V> map) {
-        this.list = new PriorityQueue<>(cmp);
-        this.map = map;
+        this.list = new PriorityQueue<>(Objects.requireNonNull(cmp));
+        this.map = Objects.requireNonNull(map);
     }
 
     @Override

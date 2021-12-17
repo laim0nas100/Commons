@@ -2,7 +2,7 @@ package lt.lb.commons.misc.numbers;
 
 /**
  * Simple number addition overflow check.
- * 
+ *
  * @author laim0nas100
  */
 public class OverflowCheck {
@@ -10,7 +10,7 @@ public class OverflowCheck {
     public static boolean willOverflowIfAdd(float a, float b) {
         return willOverflowIfAdd(a, b, Float.MIN_VALUE, Float.MAX_VALUE);
     }
-    
+
     public static boolean willOverflowIfAdd(double a, double b) {
         return willOverflowIfAdd(a, b, Double.MIN_VALUE, Double.MAX_VALUE);
     }
@@ -26,12 +26,12 @@ public class OverflowCheck {
         }
         return false;
     }
-    
-    public static boolean willOverflowIfAdd(byte a, byte b){
+
+    public static boolean willOverflowIfAdd(byte a, byte b) {
         return willOverflowIfAdd(a, b, Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
-    
-    public static boolean willOverflowIfAdd(short a, short b){
+
+    public static boolean willOverflowIfAdd(short a, short b) {
         return willOverflowIfAdd(a, b, Short.MIN_VALUE, Short.MAX_VALUE);
     }
 

@@ -67,15 +67,24 @@ public class RequestThrottle {
     public boolean request() {
         updateTime(timeIncement());
         if (inReset.get()) {
-            return signedAccumulate(whileInReset, 1, requestsPerWindow, 0) >= 0;
+            boolean ok = signedAccumulate(whileInReset, 1, requestsPerWindow, 0) >= 0;
+            if (!ok && !inReset.get()) {
+                return signedAccumulate(requestsMade, 1, requestsPerWindow, Math.abs(whileInReset.get())) >= 0;
+            }
+            return ok;
         } else {
-            return signedAccumulate(requestsMade, 1, requestsPerWindow, Math.abs(whileInReset.get())) >= 0;
+            boolean ok = signedAccumulate(requestsMade, 1, requestsPerWindow, Math.abs(whileInReset.get())) >= 0;
+            if (!ok && inReset.get()) {
+                return signedAccumulate(whileInReset, 1, requestsPerWindow, 0) >= 0;
+            }
+            return ok;
         }
     }
 
     /**
      * Should be always incrementing
-     * @return 
+     *
+     * @return
      */
     protected long timeIncement() {
         return Java.getNanoTime();

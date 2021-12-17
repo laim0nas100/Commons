@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import lt.lb.commons.F;
 import lt.lb.uncheckedutils.Checked;
 
 /**
@@ -99,7 +98,7 @@ public class RecursiveRedirection {
         }
     }
 
-    protected ThreadLocal<RecInfo> local = ThreadLocal.withInitial(() -> new RecInfo());
+    private final ThreadLocal<RecInfo> local = ThreadLocal.withInitial(() -> new RecInfo());
 
     protected Consumer<RedirectedRunnable> onDefault = Runnable::run;
     protected Map<Integer, Consumer<RedirectedRunnable>> map = new HashMap<>();
@@ -128,11 +127,9 @@ public class RecursiveRedirection {
     public Optional<Throwable> execute(final int stackCall, Runnable run) {
         RecInfo rec = local.get();
         if (loopProtection) {
-
-            if (rec.getVisited().contains(stackCall)) {
+            if (!rec.getVisited().add(stackCall)) {
                 throw new IllegalArgumentException("Looping on stack call " + stackCall);
             }
-            rec.getVisited().add(stackCall);
         }
 
         final int wasBefore = rec.stackCall;
