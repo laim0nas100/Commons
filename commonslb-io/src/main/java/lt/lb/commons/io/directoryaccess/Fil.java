@@ -30,7 +30,7 @@ public class Fil {
         fields = Refl.getFieldsOf(this.getClass(),
                 f -> f.isAnnotationPresent(FileInfo.class)
                 && Modifier.isPublic(f.getModifiers())
-                && f.getType().isAssignableFrom(Fil.class)
+                && Fil.class.isAssignableFrom(f.getType())
         );
 
         map = new LinkedHashMap<>();

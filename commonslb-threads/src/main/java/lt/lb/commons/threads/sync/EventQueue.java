@@ -1,5 +1,6 @@
 package lt.lb.commons.threads.sync;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -8,10 +9,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import lt.lb.commons.threads.ForwardingFuture;
 import lt.lb.commons.threads.executors.layers.BoundedNestedTaskExecutorLayer;
+import lt.lb.commons.threads.executors.layers.NestedTaskSubmitionExecutorLayer;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class EventQueue {
 
-    private ExecutorService nested;
     public boolean preventRunningTagCancel = true;
     public boolean preventRunningSelfTagCancel = true;
     private ConcurrentLinkedDeque<Event> running = new ConcurrentLinkedDeque<>();
@@ -32,22 +35,25 @@ public class EventQueue {
     public Consumer<Event> eventCallbackAfter = ev -> {
     };
 
-    private int autoCleanUpAfter = 100;
+    private int autoCleanUpAfter = 10;
+    private ExecutorService exe;
 
     public EventQueue(ExecutorService exe) {
-        nested = new BoundedNestedTaskExecutorLayer(exe, 1);
+        this.exe = new NestedTaskSubmitionExecutorLayer(exe);
     }
 
     public static final String defaultTag = "DEFAULT";
 
-    public static class Event extends FutureTask<Void> {
+    public static class Event implements Runnable, ForwardingFuture {
 
         public final String[] tags;
         public final EventQueue queue;
+        public final FutureTask<Void> task;
+        private AtomicBoolean running = new AtomicBoolean(false);
 
         public Event(EventQueue q, Callable call, String[] tag) {
-            super(call);
             this.queue = q;
+            this.task = new FutureTask<>(call);
             this.tags = tag;
         }
 
@@ -56,24 +62,38 @@ public class EventQueue {
         }
 
         public Event(EventQueue q, UncheckedRunnable run, String[] tag) {
-            this(q, UncheckedRunnable.toCallable(run), tag);
+            this(q, Executors.callable(run), tag);
         }
 
         @Override
         public void run() {
+            if (!running.compareAndSet(false, true)) {
+                return;
+            }
             queue.running.add(this);
             ConcurrentLinkedDeque<Event> local = queue.runningLocal.get();
             local.add(this);
             Checked.checkedRun(() -> {
                 queue.eventCallbackBefore.accept(this);
             });
-            super.run();
+            task.run();
             Checked.checkedRun(() -> {
                 queue.eventCallbackAfter.accept(this);
             });
             local.remove(this);
             queue.running.remove(this);
         }
+
+        @Override
+        public Future delegate() {
+            return task;
+        }
+
+        @Override
+        public String toString() {
+            return "Event " + Arrays.toString(tags);
+        }
+
     }
 
     private ConcurrentLinkedDeque<Event> events = new ConcurrentLinkedDeque<>();
@@ -111,13 +131,13 @@ public class EventQueue {
             throw new IllegalStateException("Is shutdown");
         }
         events.add(ev);
-        nested.execute(ev);
+        exe.execute(ev);
         if (ai.getAndIncrement() % autoCleanUpAfter == 0) {
             ai.set(1);
             Iterator<Event> iterator = events.iterator();
             while (iterator.hasNext()) {
                 Event next = iterator.next();
-                if (next.isDone()) {
+                if (next != null && next.isDone()) {
                     iterator.remove();
                 }
             }
