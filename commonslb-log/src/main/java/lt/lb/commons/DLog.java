@@ -18,7 +18,7 @@ import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
 
 /**
- * Simple logger oriented to debugging, not intended to replace an serious
+ * Simple logger oriented to debugging, not intended to replace a serious
  * logging framework such as log4j.
  *
  * Debugging using print statements, yes. Sometimes the easiest way is the most
@@ -27,17 +27,17 @@ import lt.lb.uncheckedutils.Checked;
  * @author laim0nas100
  */
 public class DLog {
-
+    
     private static DLog mainLog = new DLog();
-
+    
     public static DLog main() {
         return mainLog;
     }
-
+    
     public static enum LogStream {
         FILE, STD_OUT, STD_ERR
     }
-
+    
     protected PrintStream printStream = new PrintStream(new FileOutputStream(FileDescriptor.out));
     protected boolean closeable = false;
     public boolean async = true;
@@ -103,24 +103,24 @@ public class DLog {
      * Used in printStackStrace
      */
     public Lambda.L3R<Throwable, Integer, Integer, Supplier<String>> printStackDecorator = DefaultDLogDecorators.stackTraceFullSupplier();
-
+    
     public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultDLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     public CloseableExecutor exe = new FastWaitingExecutor(1, WaitTime.ofSeconds(1));
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
-
+    
     public DLog() {
-
+        
     }
-
+    
     public static void useTimeFormat(String format) {
         useTimeFormat(main(), format);
     }
-
+    
     public static void useTimeFormat(DLog log, String format) {
         log.timeStringFormat = DateTimeFormatter.ofPattern(format);
     }
-
+    
     public static void changeStream(DLog log, LogStream c, String... path) throws IOException {
         boolean closeable = false;
         PrintStream stream;
@@ -140,14 +140,14 @@ public class DLog {
                     break;
             }
         }
-
+        
         assignStream(log, stream, closeable);
     }
-
+    
     public static void changeStream(LogStream c, String... path) throws IOException {
         changeStream(main(), c, path);
     }
-
+    
     public static void assignStream(DLog log, PrintStream stream, boolean closeable) {
         close(log);
         log.closed = false;
@@ -155,11 +155,11 @@ public class DLog {
         log.closeable = closeable;
         log.printStream = stream;
     }
-
+    
     public static void assignStream(PrintStream stream, boolean closeable) {
         assignStream(main(), stream, closeable);
     }
-
+    
     public static void await(DLog log, long timeout, TimeUnit tu) throws InterruptedException, TimeoutException {
         if (log.closed) {
             return;
@@ -171,15 +171,15 @@ public class DLog {
         } catch (ExecutionException e) {
         }
     }
-
+    
     public static void await(long timeout, TimeUnit tu) throws InterruptedException, TimeoutException {
         await(main(), timeout, tu);
     }
-
+    
     public static void flushBuffer() {
         flushBuffer(main());
     }
-
+    
     public static void flushBuffer(DLog log) {
         while (!log.list.isEmpty()) {
             String string = log.list.pollFirst();
@@ -188,11 +188,11 @@ public class DLog {
             }
         }
     }
-
+    
     public static void close() {
         close(main());
     }
-
+    
     public static void close(DLog log) {
         if (log.closed) {
             throw new IllegalStateException("Is allready closed");
@@ -210,106 +210,130 @@ public class DLog {
             shutdownRequest.get();
             log.exe.close();
         });
-
+        
     }
-
+    
     public static void printLines(Iterable col) {
         printLines(main(), col);
     }
-
+    
     public static void printLines(DLog log, Iterable col) {
         if (log.disable || log.closed) {
             return;
         }
         processString(log, log.printLinesDecorator.apply(col));
     }
-
+    
     public static void printLines(DLog log, Iterator iter) {
         if (log.disable || log.closed) {
             return;
         }
         processString(log, log.printIterDecorator.apply(iter));
     }
-
+    
     public static void printLines(Iterator iter) {
         printLines(main(), iter);
     }
-
+    
     public static void printLines(DLog log, ReadOnlyIterator iter) {
         if (log.disable || log.closed) {
             return;
         }
         processString(log, log.printIterDecorator.apply(iter));
     }
-
+    
     public static void printLines(ReadOnlyIterator iter) {
         printLines(main(), iter);
     }
-
+    
     public static void print(DLog log, Supplier<String> sup) {
         if (log.disable || log.closed) {
             return;
         }
         processString(log, sup);
-
+        
     }
-
+    
     public static void print(Supplier<String> sup) {
         print(DLog.main(), sup);
     }
-
+    
     public static <T> void print(DLog log, T... objects) {
         if (log.disable || log.closed) {
             return;
         }
         processString(log, log.printDecorator.apply(objects));
     }
-
+    
     public static <T> void print(T... objects) {
         print(main(), objects);
     }
-
+    
     public static <T> void println(DLog log, T... objects) {
         if (log.disable || log.closed) {
             return;
         }
-
+        
         processString(log, log.printLnDecorator.apply(objects));
     }
-
+    
     public static <T> void println(T... objects) {
         println(main(), objects);
     }
-
+    
     public static void printStackTrace() {
+        if (main().disable || main().closed) {
+            return;
+        }
         printStackTrace(main(), -1, 0, new Throwable());
     }
-
+    
     public static void printStackTrace(DLog log) {
+        if (log.disable || log.closed) {
+            return;
+        }
         printStackTrace(log, -1, 0, new Throwable());
     }
-
+    
     public static void printStackTrace(int depth) {
+        if (main().disable || main().closed) {
+            return;
+        }
         printStackTrace(main(), depth, 0, new Throwable());
     }
-
+    
     public static void printStackTrace(DLog log, int depth) {
+        if (log.disable || log.closed) {
+            return;
+        }
         printStackTrace(log, depth, 0, new Throwable());
     }
-
+    
     public static void printStackTrace(int depth, Throwable th) {
+        if (main().disable || main().closed) {
+            return;
+        }
         printStackTrace(main(), depth, 0, th);
     }
-
+    
     public static void printStackTrace(DLog log, int depth, Throwable th) {
+        if (log.disable || log.closed) {
+            return;
+        }
         printStackTrace(log, depth, 0, th);
     }
-
+    
     public static void printStackTrace(int depth, int reduceBy, Throwable th) {
+        if (main().disable || main().closed) {
+            return;
+        }
         printStackTrace(main(), depth, reduceBy, th);
     }
-
+    
     public static void printStackTrace(DLog log, int depth, int reduceBy, Throwable th) {
+        if (log.disable || log.closed) {
+            return;
+        }
         long millis = System.currentTimeMillis();
         final String threadName = Thread.currentThread().getName();
         Supplier<String> supplier = log.printStackDecorator.apply(th, depth, reduceBy);
@@ -317,70 +341,77 @@ public class DLog {
             log.override.get().accept(supplier);
             return;
         }
-
+        
         if (log.async) {
             log.exe.execute(() -> logThis(log, log.finalPrintDecorator.apply(log, "", threadName, millis, supplier.get())));
         } else {
             logThis(log, log.finalPrintDecorator.apply(log, "", threadName, millis, supplier.get()));
         }
-
+        
     }
-
+    
     private static void processString(DLog log, Supplier<String> string) {
         if (!log.override.isPresent()) {
             long millis = System.currentTimeMillis();
             final String threadName = Thread.currentThread().getName();
-
+            
             final String trace = log.stackTrace ? log.stackTraceSupplier.apply(new Throwable()).get() : "";
-
+            
             if (log.async) {
                 log.exe.execute(() -> logThis(log, log.finalPrintDecorator.apply(log, trace, threadName, millis, string.get())));
             } else {
                 logThis(log, log.finalPrintDecorator.apply(log, trace, threadName, millis, string.get()));
             }
-
+            
         } else {
             log.override.get().accept(string);
         }
     }
-
+    
     private static void logThis(DLog log, String res) {
         if (log.display) {
             System.out.println(res);
         }
-
+        
         if (log.keepBufferForFile || log.closeable) {
             log.list.add(res);
         }
         if (log.closeable) {
             flushBuffer(log);
         }
-
+        
     }
-
+    
     public static String getZonedDateTime(String format) {
         return ZonedDateTime.now(ZoneOffset.systemDefault()).format(DateTimeFormatter.ofPattern(format));
     }
-
+    
     public static String getZonedDateTime(DateTimeFormatter format, long millis) {
         return Instant.ofEpochMilli(millis).atZone(ZoneOffset.systemDefault()).format(format);
     }
-
+    
     public static void printProperties(Properties properties) {
+        printProperties(DLog.main(), properties);
+    }
+    
+    public static void printProperties(DLog log, Properties properties) {
+        if (log.disable || log.closed) {
+            return;
+        }
         Object[] toArray = properties.keySet().toArray();
-
+        
         for (Object o : toArray) {
             String property = properties.getProperty((String) o);
-            println(o.toString() + " : " + property);
+            println(log, o.toString() + " : " + property);
         }
     }
-
+    
     public static PrintStream getPrintStream() {
         return getPrintStream(main());
     }
-
+    
     public static PrintStream getPrintStream(DLog log) {
         return log.printStream;
     }
-
+    
 }
