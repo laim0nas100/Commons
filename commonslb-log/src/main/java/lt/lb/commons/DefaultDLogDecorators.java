@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.caching.lazy.LazyValue;
-import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.uncheckedutils.Checked;
@@ -112,15 +111,7 @@ public class DefaultDLogDecorators {
             }
         });
 
-        return (th) -> {
-            return () -> {
-                Value<String> trace = new Value<>();
-                Checked.uncheckedRun(() -> {
-                    trace.set(StringUtils.remove(thMethod.get().invoke(th, 3).toString(), ".java"));
-                });
-                return null;
-            };
-        };
+        return (th) -> () -> Checked.uncheckedCall(() -> StringUtils.remove(thMethod.get().invoke(th, 3).toString(), ".java"));
 
     }
 
@@ -143,7 +134,7 @@ public class DefaultDLogDecorators {
                 }
                 return b.toString();
             };
-            
+
             return string;
         };
 
