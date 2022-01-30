@@ -1,6 +1,6 @@
 package lt.lb.commons.jpa.searchpart;
 
-import lt.lb.commons.interfaces.CloneSupport;
+import lt.lb.commons.clone.CloneSupport;
 
 /**
  *

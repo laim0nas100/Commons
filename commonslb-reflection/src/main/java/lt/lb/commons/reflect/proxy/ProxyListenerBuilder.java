@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import lt.lb.commons.ArrayOp;
-import lt.lb.commons.interfaces.CloneSupport;
+import lt.lb.commons.clone.CloneSupport;
 
 /**
  *

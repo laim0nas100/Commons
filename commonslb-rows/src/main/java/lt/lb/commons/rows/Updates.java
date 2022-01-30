@@ -9,8 +9,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lt.lb.commons.F;
+import lt.lb.commons.clone.CloneSupport;
 import lt.lb.commons.containers.values.BindingValue;
-import lt.lb.commons.interfaces.CloneSupport;
 
 /**
  *

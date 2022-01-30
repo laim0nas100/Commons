@@ -1,7 +1,9 @@
 package empiric.core;
 
 import java.util.ArrayList;
-import lt.lb.commons.interfaces.CloneSupport;
+import lt.lb.commons.DLog;
+import lt.lb.commons.clone.CloneSupport;
+import lt.lb.commons.clone.Cloner;
 
 /**
  *
@@ -49,10 +51,73 @@ public class CloneTest {
 
     }
 
+    public static class A implements CloneSupport<A> {
+
+        String value;
+
+        A ref;
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+
+        public A getRef() {
+            return ref;
+        }
+
+        public void setRef(A ref) {
+            this.ref = ref;
+        }
+
+        public A() {
+        }
+
+        public A(String v) {
+            this.value = v;
+        }
+
+        protected A(A old, Cloner cloner) {
+            cloner.refStoreIfPossible(old, this); // must store before any more references can get constructed
+            this.setRef(cloner.cloneOrNull(old.getRef()));
+            this.setValue(old.getValue());
+        }
+
+        @Override
+        public A clone() throws CloneNotSupportedException {
+            return clone(Cloner.refCountingOfTypes(A.class));
+        }
+
+        @Override
+        public A clone(Cloner cloner) throws CloneNotSupportedException {
+            return new A(this, cloner);
+        }
+
+        @Override
+        public String toString() {
+            return System.identityHashCode(this) + "A{" + "value=" + value + '}';
+        }
+
+    }
+
     public static void main(String[] args) {
 
-        ArrayList<Child> list = new ArrayList<>();
-        ArrayList<Child> cloneCollectionCast = CloneSupport.cloneCollectionCast(list, () -> new ArrayList<>());
+        DLog.main().async = false;
+        A one = new A("HELLO");
+        A two = new A("BYE");
+        A three = new A("HI");
+        one.setRef(two);
+        two.setRef(three);
+        three.setRef(one);
+        
+
+        DLog.println(one,two,three);
+        one.uncheckedClone();
+        A cloned = three.uncheckedClone();
+        DLog.println(cloned);
 
     }
 }
