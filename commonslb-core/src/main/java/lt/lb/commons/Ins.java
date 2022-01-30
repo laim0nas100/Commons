@@ -1,7 +1,15 @@
 package lt.lb.commons;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.regex.Pattern;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -12,6 +20,22 @@ import java.util.Objects;
  * @author laim0nas100
  */
 public class Ins<T> {
+
+    static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class};
+    static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class};
+    static final Class[] OTHER_IMMUTABLE_TYPES = {String.class, UUID.class, Pattern.class, BigDecimal.class, BigInteger.class};
+    static final Class[] WRAPPER_TYPES = ArrayUtils.addAll(NUMBER_TYPES, Boolean.class, Character.class);
+
+    /**
+     * Checks if the class is in any of the JVM immutable types as defined above
+     *
+     * @param cls
+     * @return
+     */
+    public static boolean isJVMImmutable(Class cls) {
+        InsCl ins = Ins.of(cls);
+        return cls.isPrimitive() || ins.instanceOfAny(WRAPPER_TYPES) || ins.instanceOfAny(OTHER_IMMUTABLE_TYPES) || ins.instanceOfAny(DATE_TYPES);
+    }
 
     public static class InsCl<T> extends Ins<T> implements Comparable<Class> {
 
@@ -175,7 +199,7 @@ public class Ins<T> {
 
     /**
      * Any type. Will return {@code true} for everything except for {code null}.
-     * 
+     *
      * Optionally choose whether to include primitive types.
      *
      *
