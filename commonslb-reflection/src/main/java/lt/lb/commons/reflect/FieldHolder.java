@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.function.Predicate;
-import lt.lb.commons.F;
 import lt.lb.commons.iteration.For;
 
 /**

@@ -66,7 +66,7 @@ public class RequestThrottle {
 
     public boolean request() {
         updateTime(timeIncement());
-        if (inReset.get()) {
+        if (inReset.get()) { // this is relevent very rarely
             boolean ok = signedAccumulate(whileInReset, 1, requestsPerWindow, 0) >= 0;
             if (!ok && !inReset.get()) {
                 return signedAccumulate(requestsMade, 1, requestsPerWindow, Math.abs(whileInReset.get())) >= 0;

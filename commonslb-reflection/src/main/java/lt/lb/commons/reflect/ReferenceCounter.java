@@ -1,4 +1,3 @@
-
 package lt.lb.commons.reflect;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -10,7 +9,7 @@ import lt.lb.commons.containers.tuples.Tuple;
 
 /**
  *
- * 
+ *
  * @author laim0nas100
  */
 public class ReferenceCounter<T> {

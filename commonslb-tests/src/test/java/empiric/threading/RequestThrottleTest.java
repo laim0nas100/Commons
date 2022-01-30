@@ -71,7 +71,7 @@ public class RequestThrottleTest {
         }));
 
         futures.add(pool.submit(() -> {
-            expect(testMe(100, new RequestThrottle(WaitTime.ofSeconds(1), 20)), 20);
+            expect(testMe(90, new RequestThrottle(WaitTime.ofSeconds(1), 20)), 20);
         }));
 
         futures.add(pool.submit(() -> {
@@ -80,7 +80,7 @@ public class RequestThrottleTest {
         
         
         futures.add(pool.submit(() -> {
-            expect(testMe(100, new RequestThrottle(WaitTime.ofMillis(500), 7)), 14);
+            expect(testMe(90, new RequestThrottle(WaitTime.ofMillis(500), 7)), 14);
         }));
         
 
