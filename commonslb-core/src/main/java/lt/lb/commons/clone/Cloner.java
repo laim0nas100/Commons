@@ -55,7 +55,7 @@ public interface Cloner {
      */
     public static RefCountingCloner refCountingOfTypes(final Class... classes) {
         if (classes.length == 0) {
-            throw new IllegalArgumentException("Array of zero size if not allowed");
+            throw new IllegalArgumentException("Array of zero size is not allowed");
         }
         return new RefCountingCloner() {
             @Override

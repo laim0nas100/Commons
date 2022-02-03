@@ -1,13 +1,5 @@
 package lt.lb.commons.clone;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
-
 /**
  * Interface for cloning, explicitly declaring clone method publicly.
  *
