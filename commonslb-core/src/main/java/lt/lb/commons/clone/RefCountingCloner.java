@@ -88,7 +88,7 @@ public abstract class RefCountingCloner implements Cloner {
      * @return
      */
     public <T, Y> Supplier<Y> refStoreIfPossibleFunc(T key, Function<T, Y> func) {
-        Objects.requireNonNull(key, "Clone function is null");
+        Objects.requireNonNull(func, "Clone function is null");
         if (refCheckPossible(key)) {
             return refMap.computeIfAbsent(key, k -> new SimpleSupply<Y>(() -> func.apply(key)));
         }
