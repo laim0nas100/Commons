@@ -87,7 +87,7 @@ public abstract class RefCountingCloner implements Cloner {
      * @param func
      * @return
      */
-    public <T, Y> Supplier<Y> refStoreIfPossible(T key, Function<T, Y> func) {
+    public <T, Y> Supplier<Y> refStoreIfPossibleFunc(T key, Function<T, Y> func) {
         Objects.requireNonNull(key, "Clone function is null");
         if (refCheckPossible(key)) {
             return refMap.computeIfAbsent(key, k -> new SimpleSupply<Y>(() -> func.apply(key)));
@@ -114,7 +114,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <T, C extends Collection<T>> C cloneShallowCollection(C iter, Supplier<? extends C> collectionSupplier) {
-        Supplier<? extends C> ref = refStoreIfPossible(iter, c -> collectionSupplier.get());
+        Supplier<? extends C> ref = refStoreIfPossibleFunc(iter, c -> collectionSupplier.get());
         if (ref != null) {
             return ref.get();
         }
@@ -123,7 +123,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <A, D extends CloneSupport<A>> A cloneOrNull(D obj) {
-        Supplier<A> ref = refStoreIfPossible(obj, o -> o.uncheckedClone(this));
+        Supplier<A> ref = refStoreIfPossibleFunc(obj, o -> o.uncheckedClone(this));
         if (ref != null) {
             return ref.get();
         }
@@ -132,7 +132,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <A extends Cloneable> A cloneOrNullCast(A obj, Function<? super A, Object> cloningFunction) {
-        Supplier<Object> ref = refStoreIfPossible(obj, cloningFunction);
+        Supplier<Object> ref = refStoreIfPossibleFunc(obj, cloningFunction);
         if (ref != null) {
             return (A) ref.get();
         }
@@ -142,7 +142,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <D, A> A cloneOrNull(D obj, Function<? super D, A> cloningFunction) {
-        Supplier<A> ref = refStoreIfPossible(obj, cloningFunction);
+        Supplier<A> ref = refStoreIfPossibleFunc(obj, cloningFunction);
         if (ref != null) {
             return ref.get();
         }
@@ -151,7 +151,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <D extends A, A extends CloneSupport<A>, C extends Collection<D>> C cloneCollectionCast(Iterable<D> iter, Supplier<? extends C> collectionSupplier) {
-        Supplier<C> ref = refStoreIfPossible(iter, it -> Cloner.super.cloneCollectionCast(it, collectionSupplier));
+        Supplier<C> ref = refStoreIfPossibleFunc(iter, it -> Cloner.super.cloneCollectionCast(it, collectionSupplier));
         if (ref != null) {
             return ref.get();
         }
@@ -160,7 +160,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <A, D extends CloneSupport<A>, C extends Collection<A>> C cloneCollection(Iterable<D> iter, Supplier<? extends C> collectionSupplier) {
-        Supplier<C> ref = refStoreIfPossible(iter, it -> Cloner.super.cloneCollection(it, collectionSupplier));
+        Supplier<C> ref = refStoreIfPossibleFunc(iter, it -> Cloner.super.cloneCollection(it, collectionSupplier));
         if (ref != null) {
             return ref.get();
         }
@@ -169,7 +169,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <K, KK, A, AA, C extends Map<K, A>, CC extends Map<KK, AA>> C cloneMap(CC map, Supplier<? extends C> collectionSupplier, Function<KK, K> keyCloningFuncion, Function<AA, A> cloningFuncion) {
-        Supplier<C> ref = refStoreIfPossible(map, it -> Cloner.super.cloneMap(it, collectionSupplier, keyCloningFuncion, cloningFuncion));
+        Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMap(it, collectionSupplier, keyCloningFuncion, cloningFuncion));
         if (ref != null) {
             return ref.get();
         }
@@ -178,7 +178,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <D extends A, A extends CloneSupport<A>> A[] cloneArray(D[] iter, IntFunction<A[]> arraySupplier) {
-        Supplier<A[]> ref = refStoreIfPossible(iter, it -> Cloner.super.cloneArray(it, arraySupplier));
+        Supplier<A[]> ref = refStoreIfPossibleFunc(iter, it -> Cloner.super.cloneArray(it, arraySupplier));
         if (ref != null) {
             return ref.get();
         }
@@ -187,7 +187,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <D extends A, A extends CloneSupport<A>> D[] cloneArrayCast(D[] iter, IntFunction<D[]> arraySupplier) {
-        Supplier<D[]> ref = refStoreIfPossible(iter, it -> Cloner.super.cloneArrayCast(it, arraySupplier));
+        Supplier<D[]> ref = refStoreIfPossibleFunc(iter, it -> Cloner.super.cloneArrayCast(it, arraySupplier));
         if (ref != null) {
             return ref.get();
         }
@@ -196,7 +196,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <A, D extends A, C> C cloneAll(Iterable<D> iter, Supplier<C> sinkSupplier, BiConsumer<A, C> consumer, Function<D, A> cloningFuncion) {
-        Supplier<C> ref = refStoreIfPossible(iter, it -> Cloner.super.cloneAll(it, sinkSupplier, consumer, cloningFuncion));
+        Supplier<C> ref = refStoreIfPossibleFunc(iter, it -> Cloner.super.cloneAll(it, sinkSupplier, consumer, cloningFuncion));
         if (ref != null) {
             return ref.get();
         }
