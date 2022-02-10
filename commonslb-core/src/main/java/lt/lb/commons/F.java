@@ -63,9 +63,8 @@ public class F {
      * @return
      */
     public static <T> T ifWrap(T trueCase, T falseCase, Predicate<T> pred) {
-        return pred.test(trueCase) ? trueCase : falseCase;
+        return Objects.requireNonNull(pred, "Predicate is null").test(trueCase) ? trueCase : falseCase;
     }
-
 
     /**
      * Static cast function. Cast operation is quite significant, so this makes
