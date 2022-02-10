@@ -33,6 +33,7 @@ import javax.persistence.metamodel.MapAttribute;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
 
 /**
  * @param <T_ROOT> Root Class type
@@ -267,17 +268,16 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
     }
 
     public default SafeOpt<T_RESULT> buildUniqueResult(EntityManager em) {
-        return SafeOpt.ofGet(() -> {
-            TypedQuery<T_RESULT> query = build(em);
+        return SafeOpt.of(em).map(m -> {
+            TypedQuery<T_RESULT> query = build(m);
             List<T_RESULT> result = query.getResultList();
-            if (result != null && !result.isEmpty()) {
-                if (result.size() != 1) {
-                    throw new NonUniqueResultException(String.format("could not fetch unique result from query: %1s", query));
-                }
-                return result.get(0);
-            } else {
+            if (result == null || result.isEmpty()) {
                 return null;
             }
+            if (result.size() != 1) {
+                throw new NonUniqueResultException(String.format("could not fetch unique result from query: %1s", query));
+            }
+            return result.get(0);
         });
     }
 
@@ -303,6 +303,15 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
 
     public default List<T_RESULT> buildList(EntityManager em) {
         return build(em).getResultList();
+    }
+
+    public default <U> U build(EntityManager em, Function<TypedQuery<T_RESULT>, U> mapper) {
+        return Objects.requireNonNull(mapper, "Mapper is null").apply(build(em));
+    }
+
+    public default <U> SafeOpt<U> buildSafe(EntityManager em, UncheckedFunction<TypedQuery<T_RESULT>, U> mapper) {
+        Objects.requireNonNull(mapper, "Mapper is null");
+        return SafeOpt.of(em).map(m -> build(m)).map(mapper);
     }
 
     public default int executeDeleteOrUpdate(EntityManager em, boolean delete) {

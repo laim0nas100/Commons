@@ -68,7 +68,9 @@ public class LazyUtil {
 
     public static class LazyPredAdd {
 
-        public List<Predicate> preds;
+        private static final Predicate[] empty = new Predicate[0];
+
+        protected List<Predicate> preds;
 
         public LazyPredAdd() {
         }
@@ -88,7 +90,7 @@ public class LazyUtil {
             if (hasItems()) {
                 return preds.toArray(new Predicate[preds.size()]);
             }
-            return new Predicate[0];
+            return empty;
         }
     }
 
