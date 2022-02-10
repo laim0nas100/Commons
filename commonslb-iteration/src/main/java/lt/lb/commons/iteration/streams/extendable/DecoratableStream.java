@@ -116,11 +116,11 @@ public interface DecoratableStream<X, M extends DecoratableStream<X, M>> extends
     }
 
     /**
-     * Use intermediate operation on this instance. Not strictly enforced.
-     *
+     * Use intermediate operation on this instance.Not strictly enforced.
      * Implementations should override this method with their specific type
      * info.
      *
+     * @param <R> new mapped stream type
      * @param streamDecor intermediate mapper
      * @return resulting stream returned by mapper
      */
@@ -359,7 +359,7 @@ public interface DecoratableStream<X, M extends DecoratableStream<X, M>> extends
 
     public default <U> U chain(Function<? super M, U> chainMapper) {
         Objects.requireNonNull(chainMapper, "Chain mapper must not be null");
-        return chainMapper.apply((me()));
+        return chainMapper.apply(me());
     }
 
 }

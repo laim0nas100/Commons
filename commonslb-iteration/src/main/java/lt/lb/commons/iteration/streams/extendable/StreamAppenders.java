@@ -1,5 +1,6 @@
 package lt.lb.commons.iteration.streams.extendable;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Spliterator;
@@ -69,6 +70,7 @@ public interface StreamAppenders<X, M extends DecoratableStream<X, M>> extends S
      * @return
      */
     public static <T> Stream<? extends T> fromIterable(Iterable<? extends T> iterable, boolean parallel) {
+        Objects.requireNonNull(iterable, "Iterable must not be null");
         Spliterator<? extends T> spliterator = iterable.spliterator();
         return StreamSupport.stream(spliterator, parallel);
     }
@@ -82,6 +84,7 @@ public interface StreamAppenders<X, M extends DecoratableStream<X, M>> extends S
      * @return
      */
     public static <T> Stream<? extends T> fromIterator(Iterator<? extends T> iterator, boolean parallel) {
+        Objects.requireNonNull(iterator, "Iterator must not be null");
         if (!iterator.hasNext()) {
             return Stream.empty();
         }

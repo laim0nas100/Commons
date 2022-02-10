@@ -1,8 +1,10 @@
 package lt.lb.commons.iteration.streams.extendable;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import lt.lb.commons.F;
 import lt.lb.commons.iteration.streams.extendable.StreamExtension.StreamExtensionsAll;
 
 /**
@@ -14,6 +16,14 @@ public class SimpleStream<X> implements StreamExtensionsAll<X, SimpleStream<X>> 
 
     protected Stream<X> stream;
     protected boolean remake;
+
+    public SimpleStream(Collection<X> collection) {
+        this(collection, false);
+    }
+
+    public SimpleStream(Collection<X> collection, boolean remaking) {
+        this(Objects.requireNonNull(collection, "Supplied collection is nulll").stream(), remaking);
+    }
 
     public SimpleStream(Stream<X> stream) {
         this(stream, false);
@@ -36,17 +46,17 @@ public class SimpleStream<X> implements StreamExtensionsAll<X, SimpleStream<X>> 
 
     @Override
     public <R> SimpleStream<R> select(Class<R> cls) {
-        return (SimpleStream) StreamExtensionsAll.super.select(cls);
+        return F.cast(StreamExtensionsAll.super.select(cls));
     }
 
     @Override
     public <R> SimpleStream<R> flatMap(Function<? super X, ? extends Stream<? extends R>> mapper) {
-        return (SimpleStream) StreamExtensionsAll.super.flatMap(mapper);
+        return F.cast(StreamExtensionsAll.super.flatMap(mapper));
     }
 
     @Override
     public <R> SimpleStream<R> map(Function<? super X, ? extends R> mapper) {
-        return (SimpleStream) StreamExtensionsAll.super.map(mapper);
+        return F.cast(StreamExtensionsAll.super.map(mapper));
     }
 
     @Override
