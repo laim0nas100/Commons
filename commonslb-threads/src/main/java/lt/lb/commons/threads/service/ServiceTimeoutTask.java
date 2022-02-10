@@ -1,8 +1,10 @@
 package lt.lb.commons.threads.service;
 
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.Java;
@@ -13,12 +15,12 @@ import lt.lb.commons.threads.sync.WaitTime;
  *
  * @author laim0nas100
  */
-public class ServiceTimeoutTask<V> {
+public class ServiceTimeoutTask<T> {
 
     protected final LinkedList<Runnable> onUpdate = new LinkedList<>();
     protected final WaitTime time;
     protected final AtomicLong timedRequests = new AtomicLong(0);
-    protected final Callable<V> call;
+    protected final Callable<T> call;
     protected final AtomicLong lastCompleted = new AtomicLong(Long.MIN_VALUE);
     protected ScheduledExecutorService service;
     protected Executor exe;
@@ -27,26 +29,30 @@ public class ServiceTimeoutTask<V> {
     /**
      *
      * @param service service to manage calls
-     * @param time how long until a timeout
+     * @param time how long until a single request timeout
      * @param call Task to execute after timer reaches zero
      * @param exe executor that executes tasks
      */
-    public ServiceTimeoutTask(ScheduledExecutorService service, WaitTime time, Callable<V> call, Executor exe) {
+    public ServiceTimeoutTask(ScheduledExecutorService service, WaitTime time, Callable<T> call, Executor exe) {
         this.service = service;
         this.exe = exe;
         this.time = time;
         this.call = call;
     }
-    
-    
-    
-    protected Runnable makeDecrementer(){
+
+    protected Runnable makeDecrementer() {
         final long currentCommit = commitNr.get();
-        return ()->{
-             if (commitNr.get() <= currentCommit && onTimeoutArrive()) {
-                executeNow();
+        return () -> {
+            if(!Objects.equals(currentCommit, commitNr.get())){ // manual commit, don't decrement
+                return;
             }
-            cleanup();
+            if(!onTimeoutArrive()){// this function decrements timedRequests
+                return;
+            }
+            if (commitNr.compareAndSet(currentCommit, currentCommit + 1)) {// make sure not to override manual commit
+                executeNow();
+                cleanup();
+            }
         };
     }
 
@@ -66,17 +72,19 @@ public class ServiceTimeoutTask<V> {
     }
 
     protected boolean onTimeoutArrive() {
-
-        long get = timedRequests.decrementAndGet();
-        return get == 0;
+        return timedRequests.decrementAndGet() == 0;
     }
 
     protected void cleanup() {
 
     }
 
-    protected TimeAwareFutureTask<V> executeNow() {
-        TimeAwareFutureTask<V> task = new TimeAwareFutureTask<>(call, Java::getNanoTime, Long.MIN_VALUE);
+    /**
+     * Should increment the commitNr when executing
+     * @return 
+     */
+    protected TimeAwareFutureTask<T> executeNow() {
+        TimeAwareFutureTask<T> task = new TimeAwareFutureTask<>(call, Java::getNanoTime, Long.MIN_VALUE);
         exe.execute(task);
         return task;
     }

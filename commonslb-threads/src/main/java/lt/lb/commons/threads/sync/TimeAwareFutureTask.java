@@ -1,5 +1,6 @@
 package lt.lb.commons.threads.sync;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -20,7 +21,7 @@ public class TimeAwareFutureTask<T> extends FutureTask<T> {
 
     public TimeAwareFutureTask(Callable<T> callable, Supplier<Long> supp, long initialTimeValue) {
         super(callable);
-        timeCheck = supp;
+        timeCheck = Objects.requireNonNull(supp);
         startAt = new AtomicLong(initialTimeValue);
         finishedAt = new AtomicLong(initialTimeValue);
     }

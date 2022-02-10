@@ -21,21 +21,38 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
 
     protected long requestThreshold;
     protected AtomicReference<TimeAwareFutureTask<T>> lastCommitTask = new AtomicReference<>(new TimeAwareFutureTask<>());
-    protected final AtomicLong requests = new AtomicLong(0);
+    protected final AtomicLong requestsBeforeExecute = new AtomicLong(0);
     protected final long maxRequestsBeforeExecute;
     protected ConcurrentLinkedDeque<TimeAwareFutureTask<T>> futures = new ConcurrentLinkedDeque<>();
     protected final long timeoutNanos;
 
-    public ServiceRequestCommiter(ScheduledExecutorService service, WaitTime time, WaitTime timeout, long maxRequestsBeforeExecute, Callable<T> run, long requestThreshold, Executor exe) {
-        super(service, time, run, exe);
-        this.requestThreshold = requestThreshold;
+    private final static int maxThresholdErrorBar = 5;
+
+    /**
+     *
+     * @param timeout
+     * @param untimedRequestThreashold max threshold of requests that increment
+     * and don't decrement via timeout, only reset to zero when commit is made
+     * @param timedRequestThreshold max threshold of requests that increment and
+     * decrement via timeout
+     * @param service service to manage calls
+     * @param time how long until a single request timeout
+     * @param call Task to execute after timer reaches zero
+     * @param exe executor that executes tasks
+     */
+    public ServiceRequestCommiter(ScheduledExecutorService service, WaitTime time, WaitTime timeout, long untimedRequestThreashold, Callable<T> call, long timedRequestThreshold, Executor exe) {
+        super(service, time, call, exe);
+        this.requestThreshold = timedRequestThreshold;
         lastCommitTask.get().run();
-        this.maxRequestsBeforeExecute = maxRequestsBeforeExecute;
+        this.maxRequestsBeforeExecute = untimedRequestThreashold;
         this.timeoutNanos = timeout.toDuration().toNanos();
         service.scheduleWithFixedDelay(this::cancelStuck, timeout.time, timeout.time, timeout.unit);
     }
 
     protected void cancelStuck() {
+        if (futures.isEmpty()) {
+            return;
+        }
         Iterator<TimeAwareFutureTask<T>> iterator = futures.iterator();
         long lastDoneStarted = Long.MIN_VALUE;
         long lastDoneFinished = Long.MIN_VALUE;
@@ -74,9 +91,9 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
         if (val < 0) {
             timedRequests.compareAndSet(val, 0);
         }
-        long req = requests.get();
-        if (req < 0 || req >= maxRequestsBeforeExecute + 5) {
-            requests.compareAndSet(req, 0);
+        long req = requestsBeforeExecute.get();
+        if (req < 0 || req >= maxRequestsBeforeExecute + maxThresholdErrorBar) {
+            requestsBeforeExecute.compareAndSet(req, 0);
         }
     }
 
@@ -85,13 +102,12 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
             return false;
         }
         long n = task.startAt();
-        boolean started = n > Long.MIN_VALUE;
-        return started && (n < lastDoneStarted || timeoutNanos <= (now - n));
+        return (n > Long.MIN_VALUE) && (n < lastDoneStarted || timeoutNanos <= (now - n));
     }
 
     public void addRequest() {
         update();
-        long req = requests.getAndIncrement();
+        long req = requestsBeforeExecute.getAndIncrement();
         long timedRed = timedRequests.get();
         if (timedRed >= requestThreshold || req >= maxRequestsBeforeExecute) {
             commit();
@@ -107,11 +123,9 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
     }
 
     public Future<T> commit() {
-        commitNr.incrementAndGet();
-        service.execute(this::cleanup);
+
         long now = Java.getNanoTime();
-        timedRequests.set(0);
-        requests.set(0);
+
         TimeAwareFutureTask<T> lastTask = lastCommitTask.get();
 
         if (lastTask.isDone() && lastTask.finishedAt() > now) {
@@ -123,6 +137,10 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
         }
         TimeAwareFutureTask<T> task = new TimeAwareFutureTask<>(call, Java::getNanoTime, Long.MIN_VALUE);
         if (lastCommitTask.compareAndSet(lastTask, task)) {
+            commitNr.incrementAndGet();// actually  start new task
+            timedRequests.set(0);
+            requestsBeforeExecute.set(0);
+            service.execute(this::cleanup);
             lastCommitTask.set(task);
 
             exe.execute(task);
@@ -134,8 +152,8 @@ public class ServiceRequestCommiter<T> extends ServiceTimeoutTask {
     }
 
     @Override
-    protected TimeAwareFutureTask executeNow() {
-        TimeAwareFutureTask executeNow = super.executeNow();
+    protected TimeAwareFutureTask<T> executeNow() {
+        TimeAwareFutureTask<T> executeNow = super.executeNow();
         futures.add(executeNow);
         return executeNow;
     }
