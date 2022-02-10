@@ -79,7 +79,7 @@ public class Lazy<T> implements UncheckedSupplier<T> {
      * @param val
      * @return
      */
-    public <T> Lazy ofVal(T val) {
+    public static <T> Lazy<T> ofVal(T val) {
         return new Lazy<>(val);
     }
 
@@ -90,7 +90,7 @@ public class Lazy<T> implements UncheckedSupplier<T> {
      * @param supl
      * @return
      */
-    public <T> Lazy ofSupply(Supplier<T> supl) {
+    public static <T> Lazy<T> ofSupply(Supplier<T> supl) {
         return new Lazy<>(supl, Runnable::run);
     }
 
@@ -102,7 +102,7 @@ public class Lazy<T> implements UncheckedSupplier<T> {
      * @param supl
      * @return
      */
-    public <T> Lazy ofSupplyAsync(Supplier<T> supl) {
+    public static <T> Lazy<T> ofSupplyAsync(Supplier<T> supl) {
         return new Lazy<>(supl, ForkJoinPool.commonPool());
     }
 
@@ -115,7 +115,7 @@ public class Lazy<T> implements UncheckedSupplier<T> {
      * @param exe
      * @return
      */
-    public <T> Lazy ofSupplyAsync(Supplier<T> supl, Executor exe) {
+    public static <T> Lazy<T> ofSupplyAsync(Supplier<T> supl, Executor exe) {
         return new Lazy<>(supl, exe);
     }
 
@@ -126,7 +126,7 @@ public class Lazy<T> implements UncheckedSupplier<T> {
      * @param supl
      * @return
      */
-    public <T> Lazy ofSupply(UncheckedSupplier<T> supl) {
+    public static <T> Lazy<T> ofSupply(UncheckedSupplier<T> supl) {
         return new Lazy<>(supl, Runnable::run);
     }
 
@@ -138,7 +138,7 @@ public class Lazy<T> implements UncheckedSupplier<T> {
      * @param supl
      * @return
      */
-    public <T> Lazy ofSupplyAsync(UncheckedSupplier<T> supl) {
+    public static <T> Lazy<T> ofSupplyAsync(UncheckedSupplier<T> supl) {
         return new Lazy<>(supl, ForkJoinPool.commonPool());
     }
 
@@ -151,7 +151,7 @@ public class Lazy<T> implements UncheckedSupplier<T> {
      * @param exe
      * @return
      */
-    public <T> Lazy ofSupplyAsync(UncheckedSupplier<T> supl, Executor exe) {
+    public static <T> Lazy<T> ofSupplyAsync(UncheckedSupplier<T> supl, Executor exe) {
         return new Lazy<>(supl, exe);
     }
 
