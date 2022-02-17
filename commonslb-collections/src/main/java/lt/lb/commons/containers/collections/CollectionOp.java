@@ -28,9 +28,8 @@ import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.PairLeft;
 import lt.lb.commons.containers.tuples.PairRight;
 import lt.lb.commons.iteration.EmptyImmutableList;
-import lt.lb.commons.iteration.streams.StreamMapper;
-import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
-import lt.lb.commons.iteration.streams.StreamMappers;
+import lt.lb.commons.iteration.streams.MakeStream;
+import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.uncheckedutils.Checked;
 
 /**
@@ -377,14 +376,10 @@ public class CollectionOp {
         m1.retainAll(m2);
         m2.retainAll(m1); // get union
         ArrayList<Pair<T>> disjoined = new ArrayList<>();
-
-        StreamMapper<T, T> map = new StreamDecorator<T>()
-                .map(m -> new Equator.EqualityProxy<>(m, eq))
-                .apply(StreamMappers.filterNotIn(m2))
-                .map(m -> m.getValue());
-
-        map.map(m -> new PairLeft<>(m)).forEach(item -> disjoined.add(item)).startingWithOpt(left);
-        map.map(m -> new PairRight<>(m)).forEach(item -> disjoined.add(item)).startingWithOpt(right);
+        MakeStream.from(left).map(m -> new Equator.EqualityProxy<>(m, eq))
+                .notIn(m2).map(m -> m.getValue()).map(PairLeft::new).forEach(disjoined::add);
+        MakeStream.from(right).map(m -> new Equator.EqualityProxy<>(m, eq))
+                .notIn(m2).map(m -> m.getValue()).map(PairRight::new).forEach(disjoined::add);
 
         return disjoined;
     }
@@ -662,6 +657,7 @@ public class CollectionOp {
      * @param consMap what to do with items
      */
     public static <K, V> void doBatchMap(int batch, Map<K, V> myMap, Consumer<Map<K, V>> consMap) {
+        Objects.requireNonNull(myMap);
         doBatch(batch,
                 () -> new LinkedHashMap<>(batch),
                 (map, entry) -> map.put(entry.getKey(), entry.getValue()),
@@ -679,6 +675,7 @@ public class CollectionOp {
      * @param cons what to do with items
      */
     public static <T> void doBatchList(int batch, Collection<T> collection, Consumer<List<T>> cons) {
+        Objects.requireNonNull(collection);
         doBatch(batch,
                 () -> new ArrayList<>(batch),
                 (list, item) -> {
@@ -698,6 +695,7 @@ public class CollectionOp {
      * @param cons what to do with items
      */
     public static <T> void doBatchSet(int batch, Collection<T> collection, Consumer<Set<T>> cons) {
+        Objects.requireNonNull(collection);
         doBatch(batch,
                 () -> new LinkedHashSet<>(batch),
                 (set, item) -> {

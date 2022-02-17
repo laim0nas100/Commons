@@ -1,10 +1,5 @@
 package empiric.core;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigInteger;
@@ -26,8 +21,8 @@ import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.io.CommentParser;
 import lt.lb.commons.io.TextFileIO;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
-import lt.lb.commons.iteration.streams.StreamMappers;
+import lt.lb.commons.iteration.streams.MakeStream;
+import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.misc.ArrayBasedCounter;
 import lt.lb.commons.threads.executors.FastExecutor;
 import org.junit.*;
@@ -102,11 +97,7 @@ public class CommonsTest {
         List<Integer> filterParallel = CollectionOp.filterParallel(collection, n -> n % 2 == 0, new FastExecutor(4));
         DLog.print("Removed after filter", filterParallel);
         DLog.print("Left after filter", collection);
-        List<Integer> filterDistinct = StreamDecorator.of(Integer.class)
-                .parallel()
-                .apply(StreamMappers.distinct(Equator.simpleHashEquator()))
-                .collectToList()
-                .startingWithOpt(collection);
+        List<Integer> filterDistinct = MakeStream.from(collection).parallel().distinct(Equator.simpleHashEquator()).toList();
 
         DLog.print("Filtered distinct", filterDistinct);
         Checked.checkedRun(() -> {

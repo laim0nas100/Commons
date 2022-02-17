@@ -2,6 +2,7 @@ package regression.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -16,9 +17,8 @@ import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.datafill.NumberFill;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
-import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
-import lt.lb.commons.iteration.streams.StreamMapperEnder;
-import lt.lb.commons.iteration.streams.StreamMappers;
+import lt.lb.commons.iteration.streams.MakeStream;
+import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.readablecompare.Compare;
 import lt.lb.readablecompare.CompareNull;
@@ -124,10 +124,7 @@ public class CollectionOpTest {
         for (Integer toFind : array) {
             toFindNoBackwards(toFind, array);
         }
-        Integer[] distinctArray = StreamDecorator.of(Integer.class)
-                .apply(StreamMappers.distinct(Equator.simpleEquator()))
-                .toArray(s -> new Integer[s])
-                .startingWith(array);
+        Integer[] distinctArray = MakeStream.from(array).distinct(Equator.simpleEquator()).toArray(s -> new Integer[s]);
         for (Integer toFind : distinctArray) {
             toFindNoBackwards(toFind, distinctArray);
             toFind(toFind, distinctArray);
@@ -156,6 +153,10 @@ public class CollectionOpTest {
         DLog.close();
     }
 
+    private static <T> List<T> mapPair(boolean left, Collection<? extends Pair<T>> pairs) {
+        return MakeStream.from(pairs).filter(m -> left ? m.g1 != null : m.g2 != null).map(m -> left ? m.g1 : m.g2).toList();
+    }
+
     @Test
     public void disjuctionTest() {
         List<Integer> list1 = Lists.newArrayList(1, 3, 5, 7, 8, 9);
@@ -163,18 +164,17 @@ public class CollectionOpTest {
 
         Equator<Integer> mod3 = (a, b) -> a % 3 == b % 3;
 
-        StreamMapperEnder<Pair<Integer>, Integer, List<Integer>> left = new StreamDecorator<Pair<Integer>>().filter(m -> m.g1 != null).map(m -> m.g1).collectToList();
-        StreamMapperEnder<Pair<Integer>, Integer, List<Integer>> right = new StreamDecorator<Pair<Integer>>().filter(m -> m.g2 != null).map(m -> m.g2).collectToList();
-
+//        StreamMapperEnder<Pair<Integer>, Integer, List<Integer>> left = new StreamDecorator<Pair<Integer>>().filter(m -> m.g1 != null).map(m -> m.g1).collectToList();
+//        StreamMapperEnder<Pair<Integer>, Integer, List<Integer>> right = new StreamDecorator<Pair<Integer>>().filter(m -> m.g2 != null).map(m -> m.g2).collectToList();
         ArrayList<Pair<Integer>> disjointPairs1 = CollectionOp.disjointPairs(list1, list2, Equator.simpleHashEquator());
 
-        assertThat(Lists.newArrayList(3)).containsOnlyElementsOf(left.startingWithOpt(disjointPairs1));
-        assertThat(Lists.newArrayList(2, 6, 10)).containsOnlyElementsOf(right.startingWithOpt(disjointPairs1));
+        assertThat(Lists.newArrayList(3)).containsOnlyElementsOf(mapPair(true, disjointPairs1));
+        assertThat(Lists.newArrayList(2, 6, 10)).containsOnlyElementsOf(mapPair(false, disjointPairs1));
 
         ArrayList<Pair<Integer>> intersectionPairs1 = CollectionOp.intersectionPairs(list1, list2, Equator.simpleHashEquator());
 
-        assertThat(Lists.newArrayList(1, 5, 7, 8, 9)).containsExactlyElementsOf(left.startingWithOpt(intersectionPairs1));
-        assertThat(Lists.newArrayList(1, 5, 9, 7, 8)).containsExactlyElementsOf(right.startingWithOpt(intersectionPairs1));
+        assertThat(Lists.newArrayList(1, 5, 7, 8, 9)).containsExactlyElementsOf(mapPair(true, intersectionPairs1));
+        assertThat(Lists.newArrayList(1, 5, 9, 7, 8)).containsExactlyElementsOf(mapPair(false, intersectionPairs1));
 
         ArrayList<Pair<Integer>> disjointPairs2 = CollectionOp.disjointPairs(list1, list2, mod3);
 
@@ -182,8 +182,8 @@ public class CollectionOpTest {
 
         ArrayList<Pair<Integer>> intersectionPairs2 = CollectionOp.intersectionPairs(list1, list2, mod3);
 
-        assertThat(Lists.newArrayList(1, 3, 5)).containsExactlyElementsOf(left.startingWithOpt(intersectionPairs2));
-        assertThat(Lists.newArrayList(1, 2, 6)).containsExactlyElementsOf(right.startingWithOpt(intersectionPairs2));
+        assertThat(Lists.newArrayList(1, 3, 5)).containsExactlyElementsOf(mapPair(true, intersectionPairs2));
+        assertThat(Lists.newArrayList(1, 2, 6)).containsExactlyElementsOf(mapPair(false, intersectionPairs2));
 
     }
 

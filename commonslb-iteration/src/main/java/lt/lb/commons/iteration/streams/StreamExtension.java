@@ -1,4 +1,4 @@
-package lt.lb.commons.iteration.streams.extendable;
+package lt.lb.commons.iteration.streams;
 
 import java.util.List;
 import java.util.Set;

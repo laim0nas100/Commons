@@ -1,4 +1,4 @@
-package lt.lb.commons.iteration.streams.extendable;
+package lt.lb.commons.iteration.streams;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -37,8 +37,7 @@ public interface DecoratableStream<X, M extends DecoratableStream<X, M>> extends
     public Stream<X> delegate();
 
     /**
-     * Create a new instance using modified stream with different parameter. Can
-     * be mutable or immutable, depends on the implementation.
+     * Create a new or the same instance using provided stream.
      *
      * Implementations should override this method with their specific type
      * info.

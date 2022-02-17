@@ -1,11 +1,10 @@
-package lt.lb.commons.iteration.streams.extendable;
+package lt.lb.commons.iteration.streams;
 
-import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
-import lt.lb.commons.iteration.streams.extendable.StreamExtension.StreamExtensionsAll;
+import lt.lb.commons.iteration.streams.StreamExtension.StreamExtensionsAll;
 
 /**
  *
@@ -17,14 +16,6 @@ public class SimpleStream<X> implements StreamExtensionsAll<X, SimpleStream<X>> 
     protected Stream<X> stream;
     protected boolean remake;
 
-    public SimpleStream(Collection<X> collection) {
-        this(collection, false);
-    }
-
-    public SimpleStream(Collection<X> collection, boolean remaking) {
-        this(Objects.requireNonNull(collection, "Supplied collection is nulll").stream(), remaking);
-    }
-
     public SimpleStream(Stream<X> stream) {
         this(stream, false);
     }
@@ -33,7 +24,7 @@ public class SimpleStream<X> implements StreamExtensionsAll<X, SimpleStream<X>> 
         this.stream = Objects.requireNonNull(stream, "Supplied stream is null");
         this.remake = remaking;
     }
-
+    
     @Override
     public Stream<X> delegate() {
         return stream;
