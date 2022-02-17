@@ -24,6 +24,10 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-misc</artifactId>
         </dependency>
+         <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-io</artifactId>
+        </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-collections</artifactId>

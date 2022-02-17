@@ -1,17 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.javafx;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import lt.lb.commons.F;
 
 /**
  *
@@ -22,20 +22,23 @@ public abstract class ExtTask<T> implements RunnableFuture {
 
     public final ReadOnlyBooleanProperty canceled = new SimpleBooleanProperty(false);
     public final SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
+    public final DoubleProperty progress = new SimpleDoubleProperty(0D);
     public final ReadOnlyBooleanProperty done = new SimpleBooleanProperty(false);
     public final ReadOnlyBooleanProperty failed = new SimpleBooleanProperty(false);
     public final ReadOnlyBooleanProperty interrupted = new SimpleBooleanProperty(false);
     public final ReadOnlyBooleanProperty running = new SimpleBooleanProperty(false);
 
+    protected AtomicBoolean runningAtomic = new AtomicBoolean(false);
+
     public HashMap<String, Object> valueMap = new HashMap<>();
     public ExtTask childTask;
-    private LinkedBlockingDeque<T> resultDeque = new LinkedBlockingDeque<>();
-    private T result;
-    private Thread currentThread;
-    private InvokeChildTask onInterrupted, onDone, onFailed, onCanceled, onSucceded;
-    private int timesToRun = 1;
-    private int timesRan = 0;
-    private Throwable error;
+    protected LinkedBlockingDeque resultDeque = new LinkedBlockingDeque();
+    protected Object result;
+    protected Thread currentThread;
+    protected InvokeChildTask onInterrupted, onDone, onFailed, onCanceled, onSucceded;
+    protected int timesToRun = 1;
+    protected int timesRan = 0;
+    protected Throwable error;
 
     public static interface InvokeChildTask {
 
@@ -57,7 +60,7 @@ public abstract class ExtTask<T> implements RunnableFuture {
     }
 
     public void reset() {
-        if (running.get()) {
+        if (runningAtomic.get()) {
             return;
         }
         setProperty(done, false);
@@ -71,10 +74,13 @@ public abstract class ExtTask<T> implements RunnableFuture {
 
     @Override
     public final void run() {
-        if (running.get() || (timesRan >= timesToRun && timesToRun > 0)) {
+        if (runningAtomic.get() || (timesRan >= timesToRun && timesToRun > 0)) {
             return;
         }
         if (!canceled.get()) {
+            if (!runningAtomic.compareAndSet(false, true)) {
+                return;
+            }
             timesRan++;
             currentThread = Thread.currentThread();
             setProperty(running, true);
@@ -82,6 +88,8 @@ public abstract class ExtTask<T> implements RunnableFuture {
                 T res = call();
                 if (res != null) {
                     resultDeque.addFirst(res);
+                } else {
+                    resultDeque.addLast(F.EMPTY_OBJECT);
                 }
 
             } catch (InterruptedException ex) {
@@ -101,13 +109,14 @@ public abstract class ExtTask<T> implements RunnableFuture {
         setProperty(done, true);
         tryRun(onDone);
         setProperty(running, false);
+        runningAtomic.set(false);
     }
 
     private void tryRun(InvokeChildTask r) {
         if (r != null) {
             try {
-                r.handle(this.childTask);
-            } catch (Exception e) {
+                r.handle(childTask);
+            } catch (Throwable e) {
             }
         }
     }
@@ -124,12 +133,12 @@ public abstract class ExtTask<T> implements RunnableFuture {
     }
 
     public boolean cancel() {
-        return this.cancel(true);
+        return cancel(true);
     }
 
     @Override
     public boolean isCancelled() {
-        return this.canceled.get();
+        return canceled.get();
     }
 
     @Override
@@ -140,47 +149,47 @@ public abstract class ExtTask<T> implements RunnableFuture {
     @Override
     public T get() throws InterruptedException {
         if (done.get()) {
-            return result;
+            return F.castOrNullIfEmptyObject(result);
         } else {
             result = resultDeque.takeLast();
-            return result;
+            return F.castOrNullIfEmptyObject(result);
         }
     }
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException {
         if (done.get()) {
-            return result;
+            return F.castOrNullIfEmptyObject(result);
         } else {
             result = resultDeque.pollLast(timeout, unit);
-            return result;
+            return F.castOrNullIfEmptyObject(result);
         }
     }
 
     protected abstract T call() throws Exception;
 
     public final void setOnFailed(InvokeChildTask handle) {
-        this.onFailed = handle;
+        onFailed = handle;
     }
 
     public final void setOnSucceeded(InvokeChildTask handle) {
-        this.onSucceded = handle;
+        onSucceded = handle;
     }
 
     public final void setOnCancelled(InvokeChildTask handle) {
-        this.onCanceled = handle;
+        onCanceled = handle;
     }
 
     public final void setOnInterrupted(InvokeChildTask handle) {
-        this.onInterrupted = handle;
+        onInterrupted = handle;
     }
 
     public final void setOnDone(InvokeChildTask handle) {
-        this.onDone = handle;
+        onDone = handle;
     }
 
     public final void appendOnDone(InvokeChildTask handle) {
-        if (this.onDone == null) {
+        if (onDone == null) {
             setOnDone(handle);
         } else {
             InvokeChildTask old = onDone;
@@ -196,6 +205,7 @@ public abstract class ExtTask<T> implements RunnableFuture {
     }
 
     public static ExtTask<Void> create(Runnable run) {
+        Objects.requireNonNull(run, "runnable is null");
         return new ExtTask<Void>() {
             @Override
             protected Void call() throws Exception {
@@ -205,10 +215,11 @@ public abstract class ExtTask<T> implements RunnableFuture {
         };
     }
 
-    public static ExtTask create(Callable call) {
-        return new ExtTask() {
+    public static <T> ExtTask<T> create(Callable<T> call) {
+        Objects.requireNonNull(call, "callable is null");
+        return new ExtTask<T>() {
             @Override
-            protected Object call() throws Exception {
+            protected T call() throws Exception {
                 return call.call();
             }
         };

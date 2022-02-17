@@ -253,6 +253,25 @@ public abstract class FXDefs {
         return cellFactoryString(null, textExtract);
     }
 
+    public static <N extends Number> SimpleChangeListener<N> numberDiffListener(final double diff, Consumer<? super N> consumer) {
+        Objects.requireNonNull(consumer);
+        return new SimpleChangeListener<N>() {
+
+            N lastAccepted;
+
+            @Override
+            public void accept(N newValue) {
+                if (lastAccepted == newValue) {
+                    return;
+                }
+                if ((F.eitherNull(lastAccepted, newValue)) || diff < Math.abs(lastAccepted.doubleValue() - newValue.doubleValue())) {
+                    lastAccepted = newValue;
+                    consumer.accept(newValue);
+                }
+            }
+        };
+    }
+
     public static interface SimpleChangeListener<P> extends ChangeListener<P>, Consumer<P> {
 
         @Override
