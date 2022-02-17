@@ -80,4 +80,21 @@ public class F {
         return (T) ob;
     }
 
+    /**
+     * If given object is null or is equal to {@link F##EMPTY_OBJECT} then return
+     * null, otherwise try to cast to given type.
+     *
+     * @param <T>
+     * @param ob
+     * @return
+     * @throws ClassCastException
+     */
+    public static <T> T castOrNullIfEmptyObject(Object ob) throws ClassCastException {
+        if (ob == null || F.EMPTY_OBJECT == ob) {
+            return null;
+        }
+        return (T) ob;
+
+    }
+
 }

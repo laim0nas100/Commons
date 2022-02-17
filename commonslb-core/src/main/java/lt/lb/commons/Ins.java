@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -37,7 +38,7 @@ public class Ins<T> {
         return cls.isPrimitive() || ins.instanceOfAny(WRAPPER_TYPES) || ins.instanceOfAny(OTHER_IMMUTABLE_TYPES) || ins.instanceOfAny(DATE_TYPES);
     }
 
-    public static class InsCl<T> extends Ins<T> implements Comparable<Class> {
+    public static class InsCl<T> extends Ins<T> {
 
         protected InsCl(boolean primitivePromotion, Class<T> cl, T ob) {
             super(primitivePromotion, cl, ob);
@@ -45,11 +46,6 @@ public class Ins<T> {
                 throw new IllegalArgumentException("Class must be provided");
             }
 
-        }
-
-        @Override
-        public int compareTo(Class o) {
-            return Ins.TYPE_COMPARATOR.compare(clazz, o);
         }
 
         /**
@@ -88,7 +84,7 @@ public class Ins<T> {
                 return false;
             }
             if (isNull) {
-                return allNull(objs, true);
+                return nullCheck(objs, false, false);
             }
 
             for (Object c : objs) {
@@ -115,7 +111,7 @@ public class Ins<T> {
                 return false;
             }
             if (isNull) {
-                return anyNull(objs, true);
+                return nullCheck(objs, true, true);
             }
 
             for (Object c : objs) {
@@ -142,7 +138,7 @@ public class Ins<T> {
                 return false;
             }
             if (isNull) {
-                return allNull(cls, true);
+                return nullCheck(cls, false, false);
             }
 
             for (Class c : cls) { // was are the of now
@@ -169,7 +165,7 @@ public class Ins<T> {
                 return false;
             }
             if (isNull) {
-                return anyNull(cls, true);
+                return nullCheck(cls, true, true);
             }
 
             for (Class c : cls) { // was are the of now
@@ -200,17 +196,29 @@ public class Ins<T> {
     /**
      * Any type. Will return {@code true} for everything except for {code null}.
      *
-     * Optionally choose whether to include primitive types.
-     *
-     *
-     * @param includePrimitives
      * @return
      */
-    public static InsCl any(boolean includePrimitives) {
+    public static InsCl any() {
         return new InsCl(false, Object.class, null) {
             @Override
             protected boolean instanceOf0(Class c) {
-                return !(!includePrimitives && c.isPrimitive());
+                return true;
+            }
+        };
+    }
+
+    /**
+     * Construct complex type check for everything except for {@code null}.
+     *
+     * @param classPredicate
+     * @return
+     */
+    public static InsCl ofPredicate(Predicate<Class> classPredicate) {
+        Objects.requireNonNull(classPredicate, "class predicate is null");
+        return new InsCl(false, Object.class, null) {
+            @Override
+            protected boolean instanceOf0(Class c) {
+                return classPredicate.test(c);
             }
         };
     }
@@ -287,7 +295,7 @@ public class Ins<T> {
             return false;
         }
         if (isNull) {
-            return allNull(cls, true);
+            return nullCheck(cls, false, false);
         }
 
         for (Class c : cls) {
@@ -315,7 +323,7 @@ public class Ins<T> {
             return false;
         }
         if (isNull) {
-            return anyNull(cls, true);
+            return nullCheck(cls, true, true);
         }
 
         for (Class c : cls) {
@@ -359,7 +367,7 @@ public class Ins<T> {
     }
 
     /**
-     * Null-friendly {@code Class.isAssignableFrom} version.
+     * Null-friendly {@link Class##isAssignableFrom(java.lang.Class)} version.
      *
      * @param what
      * @param of
@@ -379,8 +387,8 @@ public class Ins<T> {
     }
 
     /**
-     * Null-friendly {@code Class.isAssignableFrom} version with primitive
-     * promotion.
+     * Null-friendly {@link Class##isAssignableFrom(java.lang.Class)} version
+     * with primitive promotion.
      *
      * @param what
      * @param of
@@ -400,7 +408,7 @@ public class Ins<T> {
     }
 
     /**
-     * Null-friendly {@code Class.isInstance} version.
+     * Null-friendly {@link Class##isInstance(java.lang.Object)} version.
      *
      * @param what
      * @param of
@@ -420,7 +428,8 @@ public class Ins<T> {
     }
 
     /**
-     * Null-friendly {@code Class.isInstance} version with primitive promotion.
+     * Null-friendly {@link Class##isInstance(java.lang.Object)} version with
+     * primitive promotion.
      *
      * @param what
      * @param of
@@ -551,30 +560,23 @@ public class Ins<T> {
 
     }
 
-    protected boolean allNull(Object[] arr, boolean ifNull) {
+    /**
+     *
+     * @param arr array of items to check for nulls
+     * @param findNull true means to look for null, otherwise look for non-null
+     * @param ifFound value to return if any of the items satisfy nullability
+     * condition, return the inverse if the array is empty or none of the items
+     * satisfy the condition
+     * @return
+     */
+    public static boolean nullCheck(Object[] arr, final boolean findNull, final boolean ifFound) {
 
-        for (int i = 0; i < arr.length; i++) {
-            if (ifNull && arr[i] != null) {
-                return false;
-            }
-            if (!ifNull && arr[i] == null) {
-                return false;
+        for (Object ob : arr) {
+            if ((findNull && ob == null) || (!findNull && ob != null)) {
+                return ifFound;
             }
         }
-        return true;
-    }
-
-    protected boolean anyNull(Object[] arr, boolean ifNull) {
-
-        for (int i = 0; i < arr.length; i++) {
-            if (ifNull && arr[i] == null) {
-                return true;
-            }
-            if (!ifNull && arr[i] != null) {
-                return true;
-            }
-        }
-        return false;
+        return !ifFound;
     }
 
     /**
