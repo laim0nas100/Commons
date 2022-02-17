@@ -22,6 +22,21 @@ public class F {
     };
 
     /**
+     * Return true only if either of the arguments is null, similar to XOR.
+     * 
+     * 
+     * @param first
+     * @param second
+     * @return 
+     */
+    public static boolean eitherNull(Object first, Object second) {
+        if(first == second){
+            return false;
+        }
+        return first == null || second == null;
+    }
+
+    /**
      * Convenience wrapped null check instead of ? operator avoid duplication of
      * object when using ? operator. If java 9 is available, use
      * Object.requireNotNullElse
@@ -81,8 +96,8 @@ public class F {
     }
 
     /**
-     * If given object is null or is equal to {@link F##EMPTY_OBJECT} then return
-     * null, otherwise try to cast to given type.
+     * If given object is null or is equal to {@link F##EMPTY_OBJECT} then
+     * return null, otherwise try to cast to given type.
      *
      * @param <T>
      * @param ob

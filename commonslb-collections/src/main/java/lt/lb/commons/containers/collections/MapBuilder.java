@@ -10,7 +10,7 @@ import java.util.Objects;
 public class MapBuilder<K, V, M extends Map<K, V>> {
 
     protected M map;
-    
+
     public MapBuilder(M map) {
         this.map = Objects.requireNonNull(map);
     }
