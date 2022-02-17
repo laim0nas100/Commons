@@ -16,7 +16,6 @@ public class StreamROI<T> extends BaseROI<T> implements Consumer<T> {
     protected Stream<T> stream;
     protected boolean valueReady;
     protected T nextValue;
-//    protected Tuple<Boolean, T> nextItem = new Tuple<>(false, null); // <Is Present, Next item> must be mutable, so no prmitives
 
     public StreamROI(Stream<T> stream) {
         Objects.requireNonNull(stream);
@@ -32,6 +31,9 @@ public class StreamROI<T> extends BaseROI<T> implements Consumer<T> {
 
     @Override
     public boolean hasNext() {
+        if(closed){
+            return false;
+        }
         if (!valueReady) {
             return spliterator.tryAdvance(this);
         }
@@ -40,18 +42,19 @@ public class StreamROI<T> extends BaseROI<T> implements Consumer<T> {
 
     @Override
     public T next() {
+        assertClosed();
         if (!valueReady) { // item not present, try to get
             if (!spliterator.tryAdvance(this)) {
                 throw new NoSuchElementException();
             }
         }
         valueReady = false;
-        index++;
-        return setCurrent(nextValue);
+        return setCurrentInc(nextValue);
     }
 
     @Override
     public void close() {
+        super.close();
         stream.close();
     }
 

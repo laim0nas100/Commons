@@ -24,8 +24,7 @@ public class ListROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalItera
 
     @Override
     public T next() {
-        index++;
-        return setCurrent(iter.next());
+        return setCurrentInc(iter.next());
     }
 
     @Override
@@ -35,12 +34,7 @@ public class ListROI<T> extends BaseROI<T> implements ReadOnlyBidirectionalItera
 
     @Override
     public T previous() {
-        index--;
-        return setCurrent(iter.previous());
-    }
-
-    @Override
-    public void close() {
+        return setCurrentDec(iter.previous());
     }
 
     @Override

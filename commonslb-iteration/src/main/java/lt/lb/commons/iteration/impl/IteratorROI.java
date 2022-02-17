@@ -18,18 +18,16 @@ public class IteratorROI<T> extends BaseROI<T> {
 
     @Override
     public boolean hasNext() {
+        if(closed){
+            return false;
+        }
         return iter.hasNext();
     }
 
     @Override
     public T next() {
-        index++;
-        return setCurrent(iter.next());
+        assertClosed();
+        return setCurrentInc(iter.next());
     }
-
-    @Override
-    public void close() {
-    }
-
 
 }

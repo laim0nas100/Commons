@@ -27,6 +27,9 @@ public class CompositeROI<T> extends BaseROI<T> {
 
     @Override
     public boolean hasNext() {
+        if (closed) {
+            return false;
+        }
         ensureNewest();
         return currentIterator != null && currentIterator.hasNext();
 
@@ -34,6 +37,7 @@ public class CompositeROI<T> extends BaseROI<T> {
 
     @Override
     public T next() {
+        assertClosed();
         if (!hasNext()) {
             throw new NoSuchElementException("No next value");
         }
@@ -44,7 +48,7 @@ public class CompositeROI<T> extends BaseROI<T> {
 
     private void ensureNewest() {
         if (currentIterator == null || !currentIterator.hasNext()) {
-            if(currentIterator != null){
+            if (currentIterator != null) {
                 currentIterator.close();
                 currentIterator = null;
             }
@@ -57,10 +61,6 @@ public class CompositeROI<T> extends BaseROI<T> {
             }
 
         }
-    }
-
-    @Override
-    public void close() {
     }
 
 }
