@@ -1,4 +1,4 @@
-package lt.lb.commons.io;
+package lt.lb.commons.io.stream;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;

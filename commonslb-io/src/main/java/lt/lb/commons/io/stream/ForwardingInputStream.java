@@ -1,25 +1,14 @@
-package lt.lb.commons.io;
+package lt.lb.commons.io.stream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
 
 /**
  *
  * @author laim0nas100
  */
-public abstract class ForwardingExtInputStream extends ExtInputStream {
+public abstract class ForwardingInputStream extends InputStream {
 
-    public static ForwardingExtInputStream of(final InputStream stream){
-        Objects.requireNonNull(stream, "Delegate stream must not be null");
-        return new ForwardingExtInputStream() {
-            @Override
-            public InputStream delegate() {
-                return stream;
-            }
-        };
-    }
-    
     public abstract InputStream delegate();
 
     @Override
@@ -38,12 +27,12 @@ public abstract class ForwardingExtInputStream extends ExtInputStream {
     }
 
     @Override
-    public synchronized void reset() throws IOException {
+    public void reset() throws IOException {
         delegate().reset();
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
+    public void mark(int readlimit) {
         delegate().mark(readlimit);
     }
 
