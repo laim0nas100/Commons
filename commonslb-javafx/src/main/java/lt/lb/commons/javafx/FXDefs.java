@@ -3,6 +3,7 @@ package lt.lb.commons.javafx;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -254,6 +255,11 @@ public abstract class FXDefs {
     }
 
     public static <N extends Number> SimpleChangeListener<N> numberDiffListener(final double diff, Consumer<? super N> consumer) {
+        return diffListener((a, b) -> diff < Math.abs(a.doubleValue() - b.doubleValue()), consumer);
+    }
+
+    public static <N> SimpleChangeListener<N> diffListener(BiPredicate<N, N> change, Consumer<? super N> consumer) {
+        Objects.requireNonNull(change);
         Objects.requireNonNull(consumer);
         return new SimpleChangeListener<N>() {
 
@@ -264,7 +270,7 @@ public abstract class FXDefs {
                 if (lastAccepted == newValue) {
                     return;
                 }
-                if ((F.eitherNull(lastAccepted, newValue)) || diff < Math.abs(lastAccepted.doubleValue() - newValue.doubleValue())) {
+                if (F.eitherNull(lastAccepted, newValue) || change.test(lastAccepted, newValue)) {
                     lastAccepted = newValue;
                     consumer.accept(newValue);
                 }
