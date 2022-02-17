@@ -17,8 +17,13 @@ public class DTELoopingScheduledFuture<T> extends DTEScheduledFuture<T> {
 
     public DTELoopingScheduledFuture(DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
         super(exe, wait, call);
-        this.oneShot = false;
     }
+
+    @Override
+    public boolean isOneShot() {
+        return false;
+    }
+    
 
     @Override
     public void run() {

@@ -2,8 +2,12 @@ package empiric.threading;
 
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.DLog;
+import lt.lb.commons.threads.executors.FastExecutor;
+import lt.lb.commons.threads.executors.FastWaitingExecutor;
+import lt.lb.commons.threads.executors.scheduled.DelayedTaskExecutor;
 import lt.lb.commons.threads.service.BasicTaskExecutorQueue;
 import lt.lb.commons.threads.service.BasicTaskExecutorQueue.BasicRunInfo;
 import lt.lb.commons.threads.service.SimpleTaskExecutorQueue;
@@ -15,7 +19,7 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
  */
 public class SyncTest {
 
-    static SimpleTaskExecutorQueue q = new SimpleTaskExecutorQueue(Executors.newScheduledThreadPool(1)) {
+    static SimpleTaskExecutorQueue q = new SimpleTaskExecutorQueue(new DelayedTaskExecutor(ForkJoinPool.commonPool(),2), new FastWaitingExecutor(2)) {
         @Override
         public void afterRun(BasicRunInfo info, Optional<Throwable> error) {
             DLog.print("AFTER RUN:" + info.key + "-" + info.name);

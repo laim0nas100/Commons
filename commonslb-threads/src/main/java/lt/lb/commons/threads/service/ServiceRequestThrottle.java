@@ -2,7 +2,9 @@ package lt.lb.commons.threads.service;
 
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -12,39 +14,27 @@ import lt.lb.commons.threads.sync.WaitTime;
  */
 public class ServiceRequestThrottle {
 
-    protected final ScheduledExecutorService service;
     protected final WaitTime timeWindow;
-    protected final Runnable defaultRequest;
     protected final AtomicInteger requestsMade = new AtomicInteger(0);
     protected final int requestsPerWindow;
+    protected final ScheduledFuture<?> scheduledFuture;
 
-    public ServiceRequestThrottle(ScheduledExecutorService service, WaitTime timeWindow, int requestsPerWindow, Runnable defaultRequest) {
-        this.service = Objects.requireNonNull(service);
+    public ServiceRequestThrottle(ScheduledExecutorService service, WaitTime timeWindow, int requestsPerWindow) {
         this.timeWindow = Objects.requireNonNull(timeWindow);
         this.requestsPerWindow = Math.max(1, requestsPerWindow);
-        this.defaultRequest = Objects.requireNonNull(defaultRequest);
 
-        service.scheduleWithFixedDelay(() -> {
-            while(true){
-                if(requestsMade.compareAndSet(requestsMade.get(), 0)){ // nothing must be lost, so try until ok
-                    return;
-                }
-            }
+        scheduledFuture = Objects.requireNonNull(service).scheduleWithFixedDelay(() -> {
+            requestsMade.set(0);
         }, timeWindow.time, timeWindow.time, timeWindow.unit);
     }
 
-    public void addRequest() {
-        addRequest(defaultRequest);
+
+    public boolean request() {
+        return Atomic.signedIncrement(requestsMade, requestsPerWindow) >= 0;
     }
 
-    public void addRequest(Runnable run) {
-        Objects.requireNonNull(run);
-        if (requestsMade.incrementAndGet() <= requestsPerWindow) {
-            run.run();
-        } else {
-            requestsMade.decrementAndGet();
-        }
+    public void dispose() {
+        scheduledFuture.cancel(false);
     }
 
 }
-

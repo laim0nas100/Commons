@@ -1,9 +1,13 @@
 package lt.lb.commons.threads.executors.scheduled;
 
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -67,16 +71,24 @@ public interface ScheduleLoopCondition {
     /**
      * Schedule task given amount of times.
      *
+     * @param stopOnFailed if true, task stops scheduling when execution fails
      * @param times
      * @return
      */
-    public static ScheduleLoopCondition loopTimes(final int times) {
+    public static ScheduleLoopCondition loopTimes(final boolean stopOnFailed, final int times) {
 
         return new AbstractScheduleLoopCondition() {
             AtomicInteger counter = new AtomicInteger(times);
 
             @Override
             public boolean checkIfShouldLoop(FutureTask oldTask, FutureTask newTask) {
+                if (stopOnFailed && oldTask.isDone()) {
+                    try {
+                        oldTask.get();
+                    } catch (InterruptedException | ExecutionException ex) {
+                        return false;
+                    }
+                }
                 return counter.decrementAndGet() > 0;
             }
 
@@ -87,10 +99,25 @@ public interface ScheduleLoopCondition {
         };
     }
 
-    public static ScheduleLoopCondition loopWhen(Predicate<FutureTask<?>> condition) {
+    /**
+     * Schedule task while predicate returns true.
+     *
+     * @param stopOnFailed if true, task stops scheduling when execution fails
+     * @param condition
+     * @return
+     */
+    public static ScheduleLoopCondition loopWhen(final boolean stopOnFailed, Predicate<FutureTask<?>> condition) {
+        Objects.requireNonNull(condition, "Loop condition is null");
         return new AbstractScheduleLoopCondition() {
             @Override
             public boolean checkIfShouldLoop(FutureTask oldTask, FutureTask newTask) {
+                if (stopOnFailed && oldTask.isDone()) {
+                    try {
+                        oldTask.get();
+                    } catch (InterruptedException | ExecutionException ex) {
+                        return false;
+                    }
+                }
                 return condition.test(oldTask);
             }
         };

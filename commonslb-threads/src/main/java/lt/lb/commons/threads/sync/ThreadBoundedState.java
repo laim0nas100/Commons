@@ -4,11 +4,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.Equator;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.iteration.streams.StreamMapper.StreamDecorator;
-import lt.lb.commons.iteration.streams.StreamMapperEnder;
-import lt.lb.commons.iteration.streams.StreamMappers;
+import lt.lb.commons.iteration.streams.MakeStream;
+import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.misc.Range;
 
 /**
@@ -78,16 +76,13 @@ public class ThreadBoundedState {
     public void setAlias(String alias, int stateIndex) {
 
         //unique check
-        int count = stateInfoMapper.startingWith(states).intValue();
+        
+        int count = (int) new SimpleStream<>(MakeStream.from(states)).distinct(Equator.valueHashEquator(st -> st.name)).count();
         if (alias == null || count != states.length) {
             throw new IllegalArgumentException("Illegal name for state" + alias);
         }
         states[stateIndex].name = alias;
     }
-    private static final StreamMapperEnder<StateInfo, StateInfo, Long> stateInfoMapper
-            = new StreamDecorator<StateInfo>()
-                    .apply(StreamMappers.distinct(Equator.valueEquator(st -> st.name)))
-                    .count();
 
     /**
      * set thread bound of a state

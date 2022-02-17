@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package lt.lb.commons.threads.sync;
 
 import java.util.concurrent.TimeUnit;
@@ -14,37 +9,56 @@ import java.util.concurrent.TimeUnit;
 public class ConditionalWait {
 
     private volatile boolean keepWaiting = false;
+    private final Object lock = new Object();
 
-    public synchronized void conditionalWait() {
+    public void conditionalWait() {
+        if (!keepWaiting) {
+            return;
+        }
         try {
-            while (keepWaiting) {
-                this.wait();
+            synchronized (lock) {
+                while (keepWaiting) {
+                    lock.wait();
+                }
             }
+
         } catch (InterruptedException e) {
         }
     }
 
-    public synchronized void conditionalWait(TimeUnit tu, long timeOut) {
+    public void conditionalWait(WaitTime time) {
         if (!keepWaiting) {
             return;
         }
-        long waitTime = tu.convert(timeOut, TimeUnit.MILLISECONDS);
+        long waitTime = time.convert(TimeUnit.MILLISECONDS).time;
         try {
-            while (keepWaiting) {
-                this.wait(waitTime);
+            synchronized (lock) {
+                while (keepWaiting) {
+                    lock.wait(waitTime);
+                }
             }
-        } catch (Exception ex) {
+
+        } catch (InterruptedException ex) {
         }
 
     }
 
-    public synchronized void wakeUp() {
-        keepWaiting = false;
-        this.notifyAll();
+    public boolean isInWait() {
+        return keepWaiting;
     }
 
-    public synchronized void requestWait() {
+    public void wakeUp() {
+        keepWaiting = false;
+        synchronized (lock) {
+            lock.notifyAll();
+        }
+
+    }
+
+    public void requestWait() {
         keepWaiting = true;
-        this.notifyAll();
+        synchronized (lock) {
+            lock.notifyAll();
+        }
     }
 }

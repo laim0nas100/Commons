@@ -30,7 +30,6 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, ForwardingFutu
     public final Callable<T> call;
     public final WaitTime wait;
     public final long waitDurNanos;
-    public boolean oneShot = true;
     protected DelayedTaskExecutor exe;
 
     public DTEScheduledFuture(DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
@@ -39,6 +38,10 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, ForwardingFutu
         this.taskRef = new AtomicReference<>(new FutureTask<>(call));
         this.wait = Objects.requireNonNull(wait);
         waitDurNanos = wait.toDuration().toNanos();
+    }
+    
+    public boolean isOneShot(){
+        return true;
     }
 
     @Override

@@ -17,6 +17,8 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
 /**
  *
  * @author laim0nas100
+ * @param <P>
+ * @param <R>
  */
 public interface TaskExecutorQueue<P extends Serializable, R extends RunInfo<P>> extends ServiceExecutorAggregator{
 

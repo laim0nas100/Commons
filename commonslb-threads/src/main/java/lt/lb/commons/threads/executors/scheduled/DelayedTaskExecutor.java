@@ -8,22 +8,26 @@ import java.util.Objects;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.Java;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.commons.threads.ForwardingScheduledFuture;
 import lt.lb.commons.threads.executors.CloseableExecutor;
+import lt.lb.commons.threads.executors.FastExecutor;
+import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.Awaiter;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *
@@ -33,14 +37,19 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
 
     protected ThreadGroup tg = new ThreadGroup("DelayedTaskExecutor");
     protected DelayQueue<DTEScheduledFuture> dq = new DelayQueue<>();
+    protected ConcurrentLinkedDeque<Future> executed = new ConcurrentLinkedDeque<>();
     protected ExecutorService realExe;
     protected volatile boolean shutdown;
     protected final int maxSchedulingThreads;
     protected final AtomicInteger threadCount = new AtomicInteger(0);
     protected AtomicReference<CompletableFuture> oneShotCompletion = new AtomicReference<>();
+    protected AtomicReference<CompletableFuture> fullCompletion = new AtomicReference<>();
+
+    protected int cleanUpExecutedSize = 50;
+    protected int maxPollTimeSeconds = 60;
 
     public DelayedTaskExecutor() {
-        this(ForkJoinPool.commonPool());
+        this(new FastWaitingExecutor(Java.getAvailableProcessors(), WaitTime.ofSeconds(10)));
     }
 
     public DelayedTaskExecutor(ExecutorService reaExecutor) {
@@ -55,24 +64,66 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
         this.maxSchedulingThreads = maxSchedulingThreads;
     }
 
-    void cleanUp() {
+    boolean cleanUpOneShots() {
         CompletableFuture oneShots = oneShotCompletion.get();
-        if (oneShots != null) {
-            for (DTEScheduledFuture future : dq) {
-                if (future != null) {
-                    if (future.oneShot) {
-                        return; // found unfinished oneshot
-                    }
+        if (oneShots == null) {
+            return false;
+        }
+        for (DTEScheduledFuture future : dq) {
+            if (future != null) {
+                if (future.isOneShot()) {
+                    return false; // found unfinished oneshot, abort future completion
                 }
             }
-            oneShots.complete(null);
-            oneShotCompletion.compareAndSet(oneShots, new CompletableFuture());
         }
+        oneShots.complete(null);
+        oneShotCompletion.compareAndSet(oneShots, null);
+        return true;
+    }
+
+    boolean cleanUp() {
+
+        Iterator<Future> iterator = executed.iterator();
+        boolean complete = true;
+        while (iterator.hasNext()) {
+            Future fut = iterator.next();
+            if (fut == null) {
+                continue;
+            }
+            if (fut.isDone()) {
+                iterator.remove();
+            } else {
+                complete = false;
+            }
+
+        }
+
+        if (complete) {
+            for (DTEScheduledFuture future : dq) {
+                if (future != null) {
+                    return false;
+                }
+            }
+        }
+
+        CompletableFuture full = fullCompletion.get();
+        if (complete && full != null) {
+            full.complete(null);
+            fullCompletion.compareAndSet(full, null);
+            return true;
+        }
+
+        return false;
     }
 
     @Override
     public void execute(Runnable command) {
-        realExe.execute(command);
+        assertShutdown();
+        Objects.requireNonNull(command);
+        executed.add(realExe.submit(command));
+        if (executed.size() > cleanUpExecutedSize) {
+            cleanUp();
+        }
     }
 
     public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, UncheckedRunnable command) {
@@ -91,11 +142,15 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
         return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
     }
 
-    <T extends DTEScheduledFuture<?>> T schedule(T future) {
-
+    protected void assertShutdown() {
         if (shutdown) {
             throw new IllegalArgumentException("Shutdown has been called, can't schedule more");
         }
+    }
+
+    protected <T extends DTEScheduledFuture<?>> T schedule(T future) {
+        assertShutdown();
+
         future.nanoScheduled.set(Java.getNanoTime());
         dq.add(future);
 
@@ -113,24 +168,36 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
 
         Runnable handle = () -> {
             try {
-                while (!dq.isEmpty() && !shutdown) {
+                while (!dq.isEmpty() || !executed.isEmpty()) {
 
-                    DTEScheduledFuture take = dq.take();
-                    if (take != null) {
-                        execute(take);
+                    if (shutdown) {
+                        dq.clear();
+                    } else if (!dq.isEmpty()) {
+                        DTEScheduledFuture take = dq.poll(maxPollTimeSeconds, TimeUnit.SECONDS);
+                        if (take != null) {
+                            execute(take);
+                        }
                     }
-                    cleanUp();
+                    if (!executed.isEmpty()) {
+                        cleanUp();
+                    }
+
+                    cleanUpOneShots();
 
                 }
 
             } catch (Throwable th) {
                 // not our problem
             } finally {
-                threadCount.decrementAndGet();
-                if (!dq.isEmpty() && !shutdown) {
+
+                if ((shutdown && !executed.isEmpty()) || (!shutdown && !dq.isEmpty())) {
                     startSchedulingThread();
+                } else {
+                    threadCount.decrementAndGet();
+                    cleanUpOneShots();
+                    cleanUp();
                 }
-                cleanUp();
+
             }
         };
         new Thread(tg, handle).start();
@@ -151,6 +218,12 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
 
     public Awaiter awaitOneShotCompletion() {
         Awaiter awaiter = Awaiter.fromFutureAtomicReference(oneShotCompletion, CompletableFuture::new);
+        cleanUpOneShots();
+        return awaiter;
+    }
+
+    public Awaiter awaitFullCompletion() {
+        Awaiter awaiter = Awaiter.fromFutureAtomicReference(fullCompletion, CompletableFuture::new);
         cleanUp();
         return awaiter;
     }
@@ -160,6 +233,8 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
         shutdown = true;
         tg.interrupt();
         realExe.shutdown();
+        cleanUp();
+        cleanUpOneShots();
     }
 
     @Override
@@ -169,8 +244,8 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
 
     @Override
     public List<Runnable> shutdownNow() {
-      shutdown();
-      return realExe.shutdownNow();
+        shutdown();
+        return realExe.shutdownNow();
     }
 
     @Override

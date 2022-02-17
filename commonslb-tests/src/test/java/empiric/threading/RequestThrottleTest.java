@@ -1,20 +1,26 @@
 package empiric.threading;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lt.lb.commons.DLog;
+import lt.lb.commons.Java;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.service.RequestThrottle;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.description.Description;
 import org.junit.Test;
 
 /**
@@ -23,23 +29,38 @@ import org.junit.Test;
  */
 public class RequestThrottleTest {
 
-    public static boolean debug = false;
+    public static class Req implements Comparable<Req> {
 
-    public void req(Collection<Boolean> col, RequestThrottle th) {
-        boolean request = th.request();
-        col.add(request);
-        if (debug) {
-            DLog.print(request);
+        static final long start = Java.getNanoTime();
+
+        final boolean result;
+
+        public Req(boolean result) {
+            this.result = result;
+            this.time = Java.getNanoTime();
         }
-    }
-    ExecutorService pool = new FastWaitingExecutor(100);
 
-    public Collection<Boolean> testMe(long sleep, RequestThrottle th) {
-        return testMe(10, sleep, th);
+        final long time;
+
+        @Override
+        public int compareTo(Req o) {
+            return Long.compare(time, o.time);
+        }
+
+        @Override
+        public String toString() {
+            return Duration.ofNanos(time - start).toMillis() + " " + (result ? "+" : "-");
+        }
+
     }
 
-    public Collection<Boolean> testMe(int times, long sleep, RequestThrottle th) {
-        ConcurrentLinkedDeque<Boolean> col = new ConcurrentLinkedDeque<>();
+    public void req(Collection<Req> col, RequestThrottle th) {
+        col.add(new Req(th.request()));
+    }
+    ExecutorService pool = new FastWaitingExecutor(1000, WaitTime.ofSeconds(2)); // maximum throughput
+
+    public Collection<Req> testMe(int times, long sleep, RequestThrottle th) {
+        ConcurrentLinkedDeque<Req> col = new ConcurrentLinkedDeque<>();
         Callable<Void> run = () -> {
             for (int i = 0; i < times; i++) {
                 req(col, th);
@@ -67,22 +88,20 @@ public class RequestThrottleTest {
 
         List<Future> futures = new ArrayList<>();
         futures.add(pool.submit(() -> {
-            expect(testMe(250, new RequestThrottle(WaitTime.ofSeconds(1), 20)), 60);
+            testThrottle(250, WaitTime.ofSeconds(1), 20);
         }));
 
         futures.add(pool.submit(() -> {
-            expect(testMe(90, new RequestThrottle(WaitTime.ofSeconds(1), 20)), 20);
+            testThrottle(90, WaitTime.ofSeconds(1), 20);
         }));
 
         futures.add(pool.submit(() -> {
-            expect(testMe(300, new RequestThrottle(WaitTime.ofSeconds(1), 10)), 60);
+            testThrottle(300, WaitTime.ofSeconds(1), 10);
         }));
-        
-        
+
         futures.add(pool.submit(() -> {
-            expect(testMe(90, new RequestThrottle(WaitTime.ofMillis(500), 7)), 14);
+            testThrottle(90, WaitTime.ofMillis(500), 7);
         }));
-        
 
         for (Future f : futures) {
             f.get();
@@ -91,41 +110,76 @@ public class RequestThrottleTest {
 
     }
 
-    private static void expect(Collection<Boolean> list, long positive) {
-        long negative = 100 - positive;
-        Assertions.assertThat(count(list, true)).isLessThanOrEqualTo(positive);
-        Assertions.assertThat(count(list, false)).isGreaterThanOrEqualTo(negative);
+    private void testThrottle(int sleepMillis, WaitTime period, int timesInPeriod) {
+        List<List<Req>> periods = getPeriods(10, sleepMillis, period, timesInPeriod);
+        long periodNano = period.convert(TimeUnit.NANOSECONDS).time;
+        for (List<Req> local : periods) {
+            boolean positive = local.get(0).result;
+            long firstTime = local.get(0).time;
+            long lastTime = local.get(local.size() - 1).time;
+            Assertions.assertThat(local).isSorted();
+            if (positive) {
+                Assertions.assertThat(local.size()).describedAs("Period times size").isLessThanOrEqualTo(timesInPeriod).isGreaterThan(timesInPeriod - 2);
+                Assertions.assertThat(lastTime - firstTime).describedAs("Period first and last times").isLessThanOrEqualTo(periodNano);
+
+            }
+        }
+
     }
 
-    private static long count(Collection<Boolean> list, boolean positive) {
-        return list.stream().filter(f -> f == positive).count();
+    private List<List<Req>> getPeriods(int times, int sleepMillis, WaitTime period, int timesInPeriod) {
+
+        Collection<Req> testMe = testMe(times, sleepMillis, new RequestThrottle(period, timesInPeriod));
+
+        List<Req> collect = testMe.stream().sorted().collect(Collectors.toList());
+
+        Req prev = null;
+
+        List<List<Req>> periods = new ArrayList<>();
+
+        List<Req> localList = new ArrayList<>();
+        for (Req r : collect) {
+            if (prev == null) {
+                prev = r;
+                localList.add(r);
+                continue;
+            }
+
+            if (prev.result != r.result) {
+                periods.add(localList);
+                localList = new ArrayList<>();
+            }
+
+            localList.add(r);
+            prev = r;
+        }
+        periods.add(localList);
+
+        return periods;
+
+    }
+
+    private static long count(Collection<Req> list, boolean positive) {
+        return list.stream().filter(f -> f.result == positive).count();
     }
 
     public static void main(String[] args) throws Exception {
 
-        debug = false;
         RequestThrottleTest test = new RequestThrottleTest();
 
         Checked.checkedRun(() -> {
+            DLog.setMinimal();
             DLog.print("-----------");
-            Collection<Boolean> testMe = test.testMe(100, new RequestThrottle(WaitTime.ofMillis(500), 7));
+            List<List<Req>> testThrottle = test.getPeriods(10, 90, WaitTime.ofSeconds(1), 20);
 
-            DLog.print(count(testMe, true), count(testMe, false));
+            for (List<Req> local : testThrottle) {
+                DLog.print("--- change ---" + local.size());
+                for (Req r : local) {
+                    DLog.print(r);
+                }
+            }
         });
-
-        Checked.checkedRun(() -> {
-            DLog.print("-----------");
-            Collection<Boolean> testMe = test.testMe(300, new RequestThrottle(WaitTime.ofSeconds(1), 10));
-
-            DLog.print(count(testMe, true), count(testMe, false));
-        });
-
-        Checked.checkedRun(() -> {
-            DLog.print("-----------");
-            Collection<Boolean> testMe = test.testMe(250, new RequestThrottle(WaitTime.ofSeconds(1), 20));
-
-            DLog.print(count(testMe, true), count(testMe, false));
-        });
+        test.pool.shutdown();
 
     }
 }
