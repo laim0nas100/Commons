@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import lt.lb.commons.F;
+import lt.lb.commons.Nulls;
 import lt.lb.commons.iteration.For;
 import lt.lb.fastid.FastID;
 import lt.lb.prebuiltcollections.DelegatingMap;
@@ -74,7 +74,7 @@ public interface Formatters<Format> extends Map<CellSelectorBase, List<Consumer<
             cells.stream().parallel().forEach(cell -> {
                 if (selector.test(cell)) {
                     map.compute(cell.id, (id, list) -> {
-                        list = F.nullSupp(list, ArrayList::new);
+                        list = Nulls.requireNonNullElseGet(list, ArrayList::new);
                         list.addAll(formats);
                         return list;
                     });
@@ -102,7 +102,7 @@ public interface Formatters<Format> extends Map<CellSelectorBase, List<Consumer<
             cells.stream().forEach(cell -> {
                 if (selector.test(cell)) {
                     map.compute(cell.id, (id, list) -> {
-                        list = F.nullSupp(list, ArrayList::new);
+                        list = Nulls.requireNonNullElseGet(list, ArrayList::new);
                         list.addAll(formats);
                         return list;
                     });

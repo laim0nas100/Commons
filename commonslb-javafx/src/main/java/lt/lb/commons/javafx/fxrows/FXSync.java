@@ -22,8 +22,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.util.StringConverter;
-import lt.lb.commons.F;
-import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.caching.lazy.LazyValue;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.commons.datasync.base.NodeSync;
@@ -31,6 +30,7 @@ import lt.lb.commons.datasync.extractors.Extractors;
 import lt.lb.commons.func.BiConverter;
 import lt.lb.commons.javafx.FXDefs;
 import lt.lb.commons.misc.compare.ComparatorBuilder;
+import lt.lb.uncheckedutils.SafeOpt;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.FuzzyScore;
 
@@ -317,7 +317,7 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         sync.withDisplaySup(() -> box.isSelected());
 
         sync.withDisplaySync(supl -> {
-            boolean con = F.nullWrap(supl, false);
+            boolean con = Nulls.requireNonNullElse(supl, false);
             box.setSelected(con);
         });
 
@@ -346,7 +346,7 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         sync.withDisplaySup(() -> box.isSelected());
 
         sync.withDisplaySync(supl -> {
-            boolean con = F.nullWrap(supl, false);
+            boolean con = Nulls.requireNonNullElse(supl, false);
             box.setSelected(con);
         });
 

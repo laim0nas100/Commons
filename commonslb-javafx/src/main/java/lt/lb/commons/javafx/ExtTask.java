@@ -11,7 +11,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import lt.lb.commons.F;
+import lt.lb.commons.Nulls;
 
 /**
  *
@@ -89,7 +89,7 @@ public abstract class ExtTask<T> implements RunnableFuture {
                 if (res != null) {
                     resultDeque.addFirst(res);
                 } else {
-                    resultDeque.addLast(F.EMPTY_OBJECT);
+                    resultDeque.addLast(Nulls.EMPTY_OBJECT);
                 }
 
             } catch (InterruptedException ex) {
@@ -149,20 +149,20 @@ public abstract class ExtTask<T> implements RunnableFuture {
     @Override
     public T get() throws InterruptedException {
         if (done.get()) {
-            return F.castOrNullIfEmptyObject(result);
+            return Nulls.castOrNullIfEmptyObject(result);
         } else {
             result = resultDeque.takeLast();
-            return F.castOrNullIfEmptyObject(result);
+            return Nulls.castOrNullIfEmptyObject(result);
         }
     }
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException {
         if (done.get()) {
-            return F.castOrNullIfEmptyObject(result);
+            return Nulls.castOrNullIfEmptyObject(result);
         } else {
             result = resultDeque.pollLast(timeout, unit);
-            return F.castOrNullIfEmptyObject(result);
+            return Nulls.castOrNullIfEmptyObject(result);
         }
     }
 

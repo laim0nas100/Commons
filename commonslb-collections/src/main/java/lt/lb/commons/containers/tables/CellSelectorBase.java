@@ -1,16 +1,10 @@
 package lt.lb.commons.containers.tables;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Predicate;
-import lt.lb.commons.F;
-import lt.lb.commons.misc.IntRange;
-import lt.lb.fastid.FastID;
+import lt.lb.commons.Nulls;
 
 /**
  *
@@ -74,7 +68,7 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
             this.excludeAND(selector.exclude);
         }
         if (changed) {
-            mergedAND = F.nullSupp(mergedAND, ArrayList::new);
+            mergedAND = Nulls.requireNonNullElseGet(mergedAND, ArrayList::new);
             mergedAND.add(selector);
         }
     }
@@ -91,7 +85,7 @@ public abstract class CellSelectorBase implements Predicate<CellPrep> {
             this.excludeOR(selector.exclude);
         }
         if (changed) {
-            mergedOR = F.nullSupp(mergedOR, ArrayList::new);
+            mergedOR = Nulls.requireNonNullElseGet(mergedOR, ArrayList::new);
             mergedOR.add(selector);
         }
     }

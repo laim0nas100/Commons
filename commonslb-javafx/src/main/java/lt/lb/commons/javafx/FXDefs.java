@@ -28,16 +28,16 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-import lt.lb.commons.F;
-import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.containers.values.StringValue;
 import lt.lb.commons.func.Lambda;
-import lt.lb.commons.misc.Range;
-import lt.lb.commons.parsing.NumberParsing;
 import lt.lb.commons.javafx.fxrows.FXDrows;
 import lt.lb.commons.javafx.fxrows.FXDrowsConf;
+import lt.lb.commons.misc.Range;
+import lt.lb.commons.parsing.NumberParsing;
 import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.SafeOpt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -270,7 +270,7 @@ public abstract class FXDefs {
                 if (lastAccepted == newValue) {
                     return;
                 }
-                if (F.eitherNull(lastAccepted, newValue) || change.test(lastAccepted, newValue)) {
+                if (Nulls.eitherNull(lastAccepted, newValue) || change.test(lastAccepted, newValue)) {
                     lastAccepted = newValue;
                     consumer.accept(newValue);
                 }

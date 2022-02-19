@@ -84,7 +84,7 @@ public class Ins<T> {
                 return false;
             }
             if (isNull) {
-                return nullCheck(objs, false, false);
+                return Nulls.allNull(objs);
             }
 
             for (Object c : objs) {
@@ -111,7 +111,7 @@ public class Ins<T> {
                 return false;
             }
             if (isNull) {
-                return nullCheck(objs, true, true);
+                return Nulls.anyNull(objs);
             }
 
             for (Object c : objs) {
@@ -138,7 +138,7 @@ public class Ins<T> {
                 return false;
             }
             if (isNull) {
-                return nullCheck(cls, false, false);
+                return Nulls.allNull(cls);
             }
 
             for (Class c : cls) { // was are the of now
@@ -165,7 +165,7 @@ public class Ins<T> {
                 return false;
             }
             if (isNull) {
-                return nullCheck(cls, true, true);
+                return Nulls.anyNull(cls);
             }
 
             for (Class c : cls) { // was are the of now
@@ -295,7 +295,7 @@ public class Ins<T> {
             return false;
         }
         if (isNull) {
-            return nullCheck(cls, false, false);
+            return Nulls.allNull(cls);
         }
 
         for (Class c : cls) {
@@ -323,7 +323,7 @@ public class Ins<T> {
             return false;
         }
         if (isNull) {
-            return nullCheck(cls, true, true);
+            return Nulls.anyNull(cls);
         }
 
         for (Class c : cls) {
@@ -558,25 +558,6 @@ public class Ins<T> {
 
         return type;
 
-    }
-
-    /**
-     *
-     * @param arr array of items to check for nulls
-     * @param findNull true means to look for null, otherwise look for non-null
-     * @param ifFound value to return if any of the items satisfy nullability
-     * condition, return the inverse if the array is empty or none of the items
-     * satisfy the condition
-     * @return
-     */
-    public static boolean nullCheck(Object[] arr, final boolean findNull, final boolean ifFound) {
-
-        for (Object ob : arr) {
-            if ((findNull && ob == null) || (!findNull && ob != null)) {
-                return ifFound;
-            }
-        }
-        return !ifFound;
     }
 
     /**
