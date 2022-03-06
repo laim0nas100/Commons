@@ -1,9 +1,11 @@
 package lt.lb.commons.reflect.fields;
 
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lt.lb.commons.Ins.InsCl;
+import lt.lb.commons.Nulls;
+import lt.lb.commons.iteration.streams.MakeStream;
+import lt.lb.commons.iteration.streams.SimpleStream;
 
 /**
  *
@@ -11,18 +13,17 @@ import lt.lb.commons.Ins.InsCl;
  */
 public abstract class ReflFields {
 
-    public static <T> Stream<T> doClassSuperIterationStream(Class node, Function<Class, Stream<T>> func) {
-        Objects.requireNonNull(node);
-        Objects.requireNonNull(func);
-        Stream<T> st = Stream.empty();
+    public static <T> SimpleStream<T> doClassSuperIterationStream(Class node, Function<Class, Stream<T>> func) {
+        Nulls.requireNonNulls(node, func);
+        SimpleStream<T> st = MakeStream.fromValues();
         while (node != null) {
-            st = Stream.concat(st, func.apply(node));
+            st.append(func.apply(node));
             node = node.getSuperclass();
         }
         return st;
     }
 
-    public static <S> Stream<IField<S, ?>> getFieldsOf(Class<S> cls) {
+    public static <S> SimpleStream<IField<S, ?>> getFieldsOf(Class<S> cls) {
         return doClassSuperIterationStream(cls, n -> Stream.of(n.getDeclaredFields()))
                 .map(field -> {
                     return (IField<S, ?>) () -> field;
@@ -30,9 +31,8 @@ public abstract class ReflFields {
 
     }
 
-    public static <S, T> Stream<IField<S, T>> getFieldsOfType(Class<S> sourceClass, InsCl<T> typeClass) {
-        Objects.requireNonNull(sourceClass);
-        Objects.requireNonNull(typeClass);
+    public static <S, T> SimpleStream<IField<S, T>> getFieldsOfType(Class<S> sourceClass, InsCl<T> typeClass) {
+        Nulls.requireNonNulls(sourceClass, typeClass);
         return doClassSuperIterationStream(sourceClass, n -> Stream.of(n.getDeclaredFields()))
                 .filter(field -> typeClass.instanceOf(field.getType()))
                 .map(field -> {
@@ -41,9 +41,8 @@ public abstract class ReflFields {
 
     }
 
-    public static <S, T> Stream<IStaticField<S, T>> getConstantFields(Class<S> sourceClass, InsCl<T> typeClass) {
-        Objects.requireNonNull(sourceClass);
-        Objects.requireNonNull(typeClass);
+    public static <S, T> SimpleStream<IStaticField<S, T>> getConstantFields(Class<S> sourceClass, InsCl<T> typeClass) {
+        Nulls.requireNonNulls(sourceClass, typeClass);
         return doClassSuperIterationStream(sourceClass, n -> Stream.of(n.getDeclaredFields()))
                 .filter(field -> typeClass.instanceOf(field.getType()))
                 .map(field -> {

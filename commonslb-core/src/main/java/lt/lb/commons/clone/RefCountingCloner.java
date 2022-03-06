@@ -48,6 +48,7 @@ public abstract class RefCountingCloner implements Cloner {
 
         private Supplier<Y> valueSupply;
         private boolean done = false;
+        private boolean initiated = false;
         private Y value;
 
         public SimpleSupply(Supplier<Y> valueSupply) {
@@ -64,8 +65,13 @@ public abstract class RefCountingCloner implements Cloner {
             if (done) {
                 return value;
             } else {
+                if (initiated) {
+                    throw new IllegalStateException("Cyclic clone dependency");
+                }
+                initiated = true;
                 value = valueSupply.get();
                 done = true;
+                initiated = false;
                 return value;
             }
         }

@@ -9,8 +9,7 @@ import java.util.function.Supplier;
 public abstract class Nulls {
 
     /**
-     * ad hoc empty object to be used instead of null, so that null becomes
-     * available as a value.
+     * ad hoc empty object to be used instead of null where null values are not supported.
      */
     public static final Object EMPTY_OBJECT = new Object() {
         @Override
@@ -35,7 +34,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##isNull(java.lang.Object) }
+     * {@link Objects##isNull(java.lang.Object)}
      *
      * @param obj
      * @return
@@ -45,7 +44,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##nonNull(java.lang.Object) }
+     * {@link Objects##nonNull(java.lang.Object)}
      *
      * @param obj
      * @return
@@ -55,8 +54,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##requireNonNull(java.lang.Object, java.util.function.Supplier)
-     * }
+     * {@link Objects##requireNonNull(java.lang.Object, java.util.function.Supplier)}
      *
      * @param obj
      * @param supplier
@@ -68,7 +66,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##requireNonNull(java.lang.Object, java.lang.Object) }
+     * {@link Objects##requireNonNull(java.lang.Object, java.lang.Object)}
      *
      * @param obj
      * @param defaultObj
@@ -79,17 +77,18 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##requireNonNull(java.lang.Object,  java.util.function.Supplier)
-     * }
+     * {@link Objects##requireNonNull(java.lang.Object,  java.util.function.Supplier)}
+     *
      *
      * @param obj
      * @param messageSupplier
      * @return
      */
     public static <T> T requireNonNull(T obj, Supplier<String> messageSupplier) {
-        if (obj == null)
-            throw new NullPointerException(messageSupplier == null ?
-                                           null : messageSupplier.get());
+        if (obj == null) {
+            throw new NullPointerException(messageSupplier == null
+                    ? null : messageSupplier.get());
+        }
         return obj;
     }
 
@@ -102,8 +101,9 @@ public abstract class Nulls {
      * @return
      */
     public static <T> T requireNonNull(T obj, String message) {
-        if (obj == null)
+        if (obj == null) {
             throw new NullPointerException(message);
+        }
         return obj;
     }
 
@@ -113,13 +113,26 @@ public abstract class Nulls {
      *
      * @param objects
      */
-    public static void requireNonNull(Object... objects) {
+    public static void requireNonNulls(Object... objects) {
         requireNonNull(objects, "Object array is null");
         for (int i = 0; i < objects.length; i++) {
             if (objects[i] == null) {
-                throw new NullPointerException("item at index:" + i + " is null");
+                throw new NullPointerException("Parameter at index:" + i + " is null");
             }
         }
+    }
+
+    /**
+     * {@link Objects##requireNonNull(java.lang.Object)}
+     *
+     * @param obj
+     * @return
+     */
+    public static <T> T requireNonNull(T obj) {
+        if (obj == null) {
+            throw new NullPointerException("Required parameter was null");
+        }
+        return obj;
     }
 
     /**
@@ -131,7 +144,7 @@ public abstract class Nulls {
         if (objects.length == 0) {
             return false;
         }
-        return nullCheck(objects, true, true);
+        return nullCheck(objects, true) >= 0;
     }
 
     /**
@@ -143,7 +156,7 @@ public abstract class Nulls {
         if (objects.length == 0) {
             return false;
         }
-        return nullCheck(objects, true, false);
+        return nullCheck(objects, true) < 0;
     }
 
     /**
@@ -155,26 +168,26 @@ public abstract class Nulls {
         if (objects.length == 0) {
             return false;
         }
-        return nullCheck(objects, false, false);
+        return nullCheck(objects, false) < 0;
     }
 
     /**
+     * Return first index where null or non-null item is found, otherwise return
+     * -1.
      *
      * @param arr array of items to check for nulls
      * @param findNull true means to look for null, otherwise look for non-null
-     * @param ifFound value to return if any of the items satisfy nullability
-     * condition, return the inverse if the array is empty or none of the items
-     * satisfy the condition
      * @return
      */
-    public static boolean nullCheck(Object[] arr, final boolean findNull, final boolean ifFound) {
-
-        for (Object ob : arr) {
+    public static int nullCheck(Object[] arr, final boolean findNull) {
+        requireNonNull(arr, "Object array is null");
+        for (int i = 0; i < arr.length; i++) {
+            Object ob = arr[i];
             if ((findNull && ob == null) || (!findNull && ob != null)) {
-                return ifFound;
+                return i;
             }
         }
-        return !ifFound;
+        return -1;
     }
 
     /**

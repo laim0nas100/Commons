@@ -13,6 +13,7 @@ import lt.lb.commons.threads.sync.WaitTime;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public class ServiceTimeoutTask<T> {
 
@@ -32,7 +33,7 @@ public class ServiceTimeoutTask<T> {
      * @param call Task to execute after timer reaches zero
      * @param exe executor that executes tasks
      */
-    public ServiceTimeoutTask(ScheduledExecutorService service, WaitTime time, Callable<T> call, Executor exe) {
+    public ServiceTimeoutTask(ScheduledExecutorService service, Executor exe, WaitTime time, Callable<T> call) {
         this.service = service;
         this.exe = exe;
         this.time = time;
@@ -42,10 +43,10 @@ public class ServiceTimeoutTask<T> {
     protected Runnable makeDecrementer() {
         final long currentCommit = commitNr.get();
         return () -> {
-            if(!Objects.equals(currentCommit, commitNr.get())){ // manual commit, don't decrement
+            if (!Objects.equals(currentCommit, commitNr.get())) { // manual commit, don't decrement
                 return;
             }
-            if(!onTimeoutArrive()){// this function decrements timedRequests
+            if (!onTimeoutArrive()) {// this function decrements timedRequests
                 return;
             }
             if (commitNr.compareAndSet(currentCommit, currentCommit + 1)) {// make sure not to override manual commit
@@ -80,7 +81,8 @@ public class ServiceTimeoutTask<T> {
 
     /**
      * Should increment the commitNr when executing
-     * @return 
+     *
+     * @return
      */
     protected TimeAwareFutureTask<T> executeNow() {
         TimeAwareFutureTask<T> task = new TimeAwareFutureTask<>(call, Java::getNanoTime, Long.MIN_VALUE);
