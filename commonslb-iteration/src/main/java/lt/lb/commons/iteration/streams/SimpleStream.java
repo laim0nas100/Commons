@@ -1,10 +1,13 @@
 package lt.lb.commons.iteration.streams;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.iteration.streams.StreamExtension.StreamExtensionsAll;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -24,7 +27,7 @@ public class SimpleStream<X> implements StreamExtensionsAll<X, SimpleStream<X>> 
         this.stream = Objects.requireNonNull(stream, "Supplied stream is null");
         this.remake = remaking;
     }
-    
+
     @Override
     public Stream<X> delegate() {
         return stream;
@@ -48,6 +51,21 @@ public class SimpleStream<X> implements StreamExtensionsAll<X, SimpleStream<X>> 
     @Override
     public <R> SimpleStream<R> map(Function<? super X, ? extends R> mapper) {
         return F.cast(StreamExtensionsAll.super.map(mapper));
+    }
+
+    @Override
+    public <R> SimpleStream<R> mapSafeOpt(Consumer<Throwable> errorConsumer, Function<? super X, SafeOpt<? extends R>> mapper) {
+        return F.cast(StreamExtensionsAll.super.mapSafeOpt(errorConsumer, mapper));
+    }
+
+    @Override
+    public <R> SimpleStream<R> mapSafeOpt(Function<? super X, SafeOpt<? extends R>> mapper) {
+        return F.cast(StreamExtensionsAll.super.mapSafeOpt(mapper));
+    }
+
+    @Override
+    public <R> SimpleStream<R> mapOptional(Function<? super X, Optional<? extends R>> mapper) {
+        return F.cast(StreamExtensionsAll.super.mapOptional(mapper));
     }
 
     @Override

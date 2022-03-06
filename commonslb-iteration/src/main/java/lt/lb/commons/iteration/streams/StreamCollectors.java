@@ -1,12 +1,14 @@
 package lt.lb.commons.iteration.streams;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -57,10 +59,30 @@ public interface StreamCollectors<X, M extends DecoratableStream<X, M>> extends 
     }
 
     /**
+     * Quick-hand for {@link Collectors##toList() } wrapped in
+     * {@link Collections##unmodifiableList(java.util.List)}
+     *
+     * Allows null values.
+     */
+    public default List<X> toUnmodifiableList() {
+        return Collections.unmodifiableList(toList());
+    }
+
+    /**
      * Quick-hand for {@link Collectors##toSet() }
      */
     public default Set<X> toSet() {
         return me().collect(Collectors.toSet());
+    }
+
+    /**
+     * Quick-hand for {@link Collectors##toSet() } wrapped in
+     * {@link Collections##unmodifiableList(java.util.Set)}
+     *
+     * Allows null values.
+     */
+    public default Set<X> toUnmodifiableSet() {
+        return Collections.unmodifiableSet(toSet());
     }
 
     /**
@@ -75,12 +97,38 @@ public interface StreamCollectors<X, M extends DecoratableStream<X, M>> extends 
 
     /**
      * Quick-hand for
+     * {@link Collectors##toMap(java.util.function.Function, java.util.function.Function)}
+     * wrapped in {@link Collections##unmodifiableMap(java.util.Map) }
+     *
+     * Allows null values or keys.
+     */
+    public default <K, V> Map<K, V> toUnmodifiableMap(Function<? super X, ? extends K> keyMapper,
+            Function<? super X, ? extends V> valueMapper
+    ) {
+        return Collections.unmodifiableMap(toMap(keyMapper, valueMapper));
+    }
+
+    /**
+     * Quick-hand for
      * {@link Collectors##toMap(java.util.function.Function, java.util.function.Function, java.util.function.BinaryOperator) }
      */
     public default <K, V> Map<K, V> toMap(Function<? super X, ? extends K> keyMapper,
             Function<? super X, ? extends V> valueMapper,
             BinaryOperator<V> mergeFunction) {
         return me().collect(Collectors.toMap(keyMapper, valueMapper, mergeFunction));
+    }
+
+    /**
+     * Quick-hand for
+     * {@link Collectors##toMap(java.util.function.Function, java.util.function.Function, java.util.function.BinaryOperator)}
+     * wrapped in {@link Collections##unmodifiableMap(java.util.Map) }
+     *
+     * Allows null values or keys.
+     */
+    public default <K, V> Map<K, V> toUnmodifiableMap(Function<? super X, ? extends K> keyMapper,
+            Function<? super X, ? extends V> valueMapper,
+            BinaryOperator<V> mergeFunction) {
+        return Collections.unmodifiableMap(toMap(keyMapper, valueMapper, mergeFunction));
     }
 
     /**
@@ -176,6 +224,22 @@ public interface StreamCollectors<X, M extends DecoratableStream<X, M>> extends 
             Supplier<U> mapFactory, Collector<? super X, ?, D> downstream) {
 
         return me().collect(Collectors.groupingByConcurrent(classifier, mapFactory, downstream));
+    }
+
+    /**
+     * Quick-hand for
+     * {@link Collectors##partitioningBy(java.util.function.Predicate)}
+     */
+    public default <K> Map<Boolean, List<X>> partitioningBy(Predicate<? super X> classifier) {
+        return me().collect(Collectors.partitioningBy(classifier));
+    }
+
+    /**
+     * Quick-hand for
+     * {@link Collectors##partitioningBy(java.util.function.Predicate, java.util.stream.Collector)}
+     */
+    public default <K, D>  Map<Boolean, D> partitioningBy(Predicate<? super X> classifier, Collector<? super X, ?, D> downstream) {
+        return me().collect(Collectors.partitioningBy(classifier, downstream));
     }
 
 }
