@@ -1,5 +1,6 @@
 package lt.lb.commons.benchmarking;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -113,19 +114,20 @@ public class Benchmark {
     }
 
     public long execute(Executor exe, UncheckedRunnable... run) {
-
-        List<Promise> promises = new LinkedList<>();
+        List<Promise> promises = new ArrayList<>(run.length);
         for (UncheckedRunnable r : run) {
             promises.add(new Promise(r));
         }
-        Promise waiter = new Promise().waitFor(promises);
+        Promise waiter = promises.size() == 1 ? promises.get(0) : new Promise().waitFor(promises);
 
         Timer t = new Timer();
 
         for (Promise p : promises) {
             exe.execute(p);
         }
-        exe.execute(waiter);
+        if (promises.size() != 1) {
+            exe.execute(waiter);
+        }
         try {
             waiter.get();
         } catch (InterruptedException | ExecutionException ex) {
