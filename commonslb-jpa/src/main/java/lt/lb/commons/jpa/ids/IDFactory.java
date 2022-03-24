@@ -1,15 +1,38 @@
 package lt.lb.commons.jpa.ids;
 
 import java.lang.reflect.Method;
-import java.util.function.Function;
+import java.util.LinkedList;
+import java.util.Optional;
 import java.util.stream.Stream;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import lt.lb.commons.iteration.streams.SimpleStream;
+import lt.lb.commons.reflect.Refl;
+import lt.lb.commons.reflect.fields.IField;
+import lt.lb.commons.reflect.fields.IObjectField;
+import lt.lb.commons.reflect.fields.ReflFields;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
  * @author laim0nas100
+ * @param <I>
  */
 public interface IDFactory<I> {
+
+    public static interface IdGetter<O, R> extends UncheckedFunction<O, R> {
+
+        public boolean generated();
+    }
+    
+    
+    public default <T> Class<T> classResolve(T object) {
+        if (object == null) {
+            return null;
+        }
+        return (Class) object.getClass();
+    }
 
     /**
      * Polymorphic cast. Both have to share a common supertype.
@@ -57,7 +80,7 @@ public interface IDFactory<I> {
      * @return
      */
     public default <T> ID<T, I> of(Class<T> cls, T object) {
-        return ofId(null, defaultGetId(object));
+        return ofId(null, getId(object));
     }
 
     /**
@@ -67,7 +90,7 @@ public interface IDFactory<I> {
      * @return
      */
     public default <T> ID<T, I> of(T object) {
-        return ofId(null, defaultGetId(object));
+        return ofId(null, getId(object));
     }
 
     /**
@@ -81,23 +104,60 @@ public interface IDFactory<I> {
     }
 
     /**
-     * Finds first public method called 'getid' (case-insensitive)
+     * Finds first method or field with {@link Id} annotation, and resolves via
+     * getter method.
      *
      * @param cls
      * @return
      */
-    public default <T> Function<T, I> defaultIdGetter(Class cls) {
-        Method method = Stream.of(cls.getMethods()).filter(me -> me.getName().equalsIgnoreCase("getid")).findFirst().get();
-        return (UncheckedFunction<T, I>) (T item) -> (I) method.invoke(item);
+    public default <T> IdGetter<T, I> idGetter(Class cls) {
+        SimpleStream<IField> fields = ReflFields.getFieldsOf(cls);
+        Optional<IObjectField> objectField = fields.filter(f -> f.isAnnotationPresent(Id.class)).map(m -> m.asObjectField()).findFirst();
+        boolean generatedByField = false;
+        boolean generatedByMethod = false;
+        final Method method;
+        if (objectField.isPresent()) {
+            generatedByField = objectField.map(f -> f.isAnnotationPresent(GeneratedValue.class)).orElse(false);
+            String name = objectField.get().getName();
+            String methodName1 = "get" + name;
+            String methodName2 = "is" + name;
+            LinkedList<Method> methodsOf = Refl.getMethodsOf(cls, meth -> StringUtils.containsIgnoreCase(meth.getName(), methodName1) || StringUtils.containsIgnoreCase(meth.getName(), methodName2));
+            if (methodsOf.isEmpty()) {
+                throw new IllegalArgumentException("Failed to resolve a way to get Id form " + cls);
+            }
+            method = methodsOf.get(0);
+        } else {
+            Optional<Method> findFirst = Stream.of(cls.getMethods()).filter(me -> me.isAnnotationPresent(Id.class)).findFirst();
+            if (!findFirst.isPresent()) {
+                throw new IllegalArgumentException("Failed to resolve a way to get Id form " + cls);
+            }
+            method = findFirst.get();
+            generatedByField = method.isAnnotationPresent(GeneratedValue.class);
+        }
+
+        final boolean generated = generatedByField || generatedByMethod;
+
+        return new IdGetter<T, I>() {
+            @Override
+            public boolean generated() {
+                return generated;
+            }
+
+            @Override
+            public I applyUnchecked(T t) throws Throwable {
+                return (I) method.invoke(t);
+            }
+        };
     }
 
     /**
-     * Gets and casts ID from {@link IDFactory#defaultIdGetter(java.lang.Class) } method.
+     * Gets and casts ID from {@link IDFactory#idGetter(java.lang.Class)
+     * } method.
      *
      * @param ob
      * @return
      */
-    public default <T> I defaultGetId(T ob) {
-        return defaultIdGetter(ob.getClass()).apply(ob);
+    public default <T> I getId(T ob) {
+        return idGetter(classResolve(ob)).apply(ob);
     }
 }

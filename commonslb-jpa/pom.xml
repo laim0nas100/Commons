@@ -18,6 +18,10 @@
         </dependency>
         <dependency>
             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-reflection</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-iteration</artifactId>
         </dependency>
         <dependency>

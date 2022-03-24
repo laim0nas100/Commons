@@ -12,10 +12,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import lt.lb.commons.F;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
 import lt.lb.commons.jpa.EntityManagerAware;
 import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.JPACommands;
@@ -23,6 +19,9 @@ import lt.lb.commons.jpa.decorators.IQueryDecorator;
 import lt.lb.commons.jpa.ids.IDFactory;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.NestedException;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
+import lt.lb.uncheckedutils.func.UncheckedSupplier;
 
 public interface AbstractPersistenceAware extends JPACommands, EntityManagerAware {
 
@@ -56,11 +55,6 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
     }
 
     @Override
-    public default <T> boolean persist(Class<T> cls, T item) {
-        return this.persist(item);
-    }
-
-    @Override
     public default <T> boolean delete(T item) {
 
         if (item != null) {
@@ -74,34 +68,38 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
         return false;
     }
 
-    @Override
-    public default <T> boolean delete(Class<T> cls, T item) {
-        return delete(item);
-    }
-
     public default <T> boolean isDetached(T entity) {
-        return Checked.uncheckedCall(() -> {
-            if (entity == null) {
-                return true;
-            }
-            Object id = getIds().defaultGetId(entity);
+        if (entity == null) {
+            return false;
+        }
+        IDFactory ids = getIds();
+        Class cls = ids.classResolve(entity);
+        Object id = getIds().getId(entity);
 
-            EntityManager em = getEntityManager();
-            return id != null && !em.contains(entity) && this.find(entity.getClass(), id).isPresent();
-        });
+        return id != null && !getEntityManager().contains(entity) && find(cls, id).isPresent();
 
     }
 
     public default <T> boolean isTransient(T entity) {
-        return Checked.uncheckedCall(() -> {
-            if (entity == null) {
-                return true;
-            }
-            Object id = getIds().defaultGetId(entity);
+        if (entity == null) {
+            return false;
+        }
+        IDFactory ids = getIds();
+        Class cls = ids.classResolve(entity);
+        IDFactory.IdGetter getter = ids.idGetter(cls);
+        EntityManager em = getEntityManager();
+        Object id = getIds().getId(entity);
 
-            EntityManager em = getEntityManager();
-            return id == null && !em.contains(entity);
-        });
+        if(getter.generated()){ // easy case, id only appears after commit.
+            return id == null;
+        }else{ // id is set manually
+            if(id == null){
+                return !em.contains(entity);
+            }else{
+                return find(cls, id).isEmpty();
+            }
+        }
+
     }
 
     @Override
@@ -121,7 +119,6 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
             return item;
         } else {
             //with ID but not in base??
-//            return em.merge(item);
             throw new IllegalArgumentException("Trying to save removed item, " + item);
         }
     }
@@ -131,18 +128,13 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
         if (item == null) {
             return false;
         }
-        if (isTransient(item)) {
-            getEntityManager().persist(item);
-        } else if (isDetached(item)) {
-            getEntityManager().merge(item);
-        }
-
+        getEntityManager().persist(item);
         return true;
     }
 
     @Override
     public default <T> SafeOpt<T> find(Class<T> clz, Object primaryKey) {
-        return SafeOpt.ofNullable(getEntityManager().find(clz, primaryKey));
+        return SafeOpt.ofNullable(primaryKey).map(id -> getEntityManager().find(clz, id));
     }
 
     @Override

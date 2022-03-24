@@ -90,23 +90,9 @@ public interface TrasactionDelegatingEntityFacade extends AbstractPersistenceAwa
     }
 
     @Override
-    public default <T> boolean delete(Class<T> cls, T item) {
-        return executeTransaction(() -> {
-            return AbstractPersistenceAware.super.delete(cls, item);
-        });
-    }
-
-    @Override
     public default <T> boolean delete(T item) {
         return executeTransaction(() -> {
             return AbstractPersistenceAware.super.delete(item);
-        });
-    }
-
-    @Override
-    public default <T> boolean persist(Class<T> cls, T item) {
-        return executeTransaction(() -> {
-            return AbstractPersistenceAware.super.persist(cls, item);
         });
     }
 

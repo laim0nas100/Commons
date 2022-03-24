@@ -57,17 +57,9 @@ public interface EntityFacade extends EntityManagerAware {
 
     public <T> Stream<T> getAllStream(Class<T> cls);
 
-    public <T> boolean persist(Class<T> cls, T item);
-
     public <T> boolean persist(T item);
 
     public <T> boolean delete(T item);
-
-    public <T> boolean delete(Class<T> cls, T item);
-
-    public default <T> T update(Class<T> cls, T item) {
-        return this.update(item);
-    }
 
     /**
      * All-in-one method to update new or changed instances
