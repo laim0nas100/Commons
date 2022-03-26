@@ -12,7 +12,7 @@ public class GenericIDFactory<I> implements IDFactory<I> {
     protected Map<Class, IdGetter> getters = new ConcurrentHashMap<>();
 
     @Override
-    public <T> IdGetter<T, I> idGetter(Class cls) {
+    public <T> IdGetter<T, I> idGetter(Class<T> cls) {
         return getters.computeIfAbsent(cls, k -> IDFactory.super.idGetter(k));
     }
 

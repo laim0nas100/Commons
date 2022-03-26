@@ -4,7 +4,7 @@ package lt.lb.commons.jpa.ids;
  *
  * @author laim0nas100
  */
-public class IDLongFactory implements IDFactory<Long> {
+public class IDLongFactory extends GenericIDFactory<Long> {
 
     @Override
     public <T, P> IDLong<P> cast(ID<T, Long> id) {
@@ -18,22 +18,22 @@ public class IDLongFactory implements IDFactory<Long> {
 
     @Override
     public <T> IDLong<T> of(T object) {
-        return new IDLong(IDFactory.super.of(object));
+        return new IDLong(super.of(object));
     }
 
     @Override
     public <T> IDLong<T> of(Class<T> cls, T object) {
-        return new IDLong(IDFactory.super.of(cls, object));
+        return new IDLong(super.of(cls, object));
     }
 
     @Override
     public <T> IDLong<T> ofId(Long id) {
-        return new IDLong(IDFactory.super.ofId(id));
+        return new IDLong<>(id);
     }
 
     @Override
     public <T> IDLong<T> ofId(Class<T> cls, Long id) {
-        return new IDLong(IDFactory.super.ofId(cls, id));
+        return new IDLong(id);
     }
 
 }

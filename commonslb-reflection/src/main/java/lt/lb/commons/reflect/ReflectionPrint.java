@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import lt.lb.commons.F;
@@ -11,9 +12,12 @@ import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.interfaces.StringBuilderActions;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.iteration.For;
+import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.reflect.nodes.FinalReflectNode;
 import lt.lb.commons.reflect.nodes.ReflectNode;
 import lt.lb.commons.reflect.nodes.RepeatedReflectNode;
+import lt.lb.commons.reflect.unified.IObjectField;
+import lt.lb.commons.reflect.unified.ReflFields;
 import lt.lb.uncheckedutils.NestedException;
 
 /**
@@ -160,7 +164,8 @@ public class ReflectionPrint {
         LineStringBuilder sb = new LineStringBuilder();
 
         Class cls = obj.getClass();
-        LinkedList<Field> fieldsOf = Refl.getFieldsOf(cls, f -> true);
+        SimpleStream<IObjectField> regularFieldsOf = ReflFields.getRegularFieldsOf(cls);
+        List<Field> fieldsOf = regularFieldsOf.map(m->m.field()).toList();
         sb.append(cls.getSimpleName()).append("{");
         for (Field field : fieldsOf) {
             try {

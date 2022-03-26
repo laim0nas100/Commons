@@ -1,18 +1,20 @@
 package lt.lb.commons.io.directoryaccess;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import lt.lb.commons.Ins;
-import lt.lb.commons.reflect.Refl;
+import lt.lb.commons.F;
+import lt.lb.commons.reflect.unified.IObjectField;
+import lt.lb.commons.reflect.unified.ReflFields;
+import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.SafeOpt;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -20,44 +22,36 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class Fil {
 
-    protected List<Field> fields;
+    private static Logger logger = LoggerFactory.getLogger(Fil.class);
+
     protected Map<String, Fil> map;
 
     public final String absolutePath;
 
-    public Fil(String absolutePath) throws Exception {
+    public Fil(String absolutePath) {
         this.absolutePath = absolutePath;
-        fields = Refl.getFieldsOf(this.getClass(),
-                f -> f.isAnnotationPresent(FileInfo.class)
-                && Modifier.isPublic(f.getModifiers())
-                && Fil.class.isAssignableFrom(f.getType())
-        );
-
         map = new LinkedHashMap<>();
-        for (Field field : fields) {
-            String fieldName = field.getName();
-            FileInfo fileInfo = field.getAnnotation(FileInfo.class);
-            String fileName = "";
-            if (StringUtils.isNotEmpty(fileInfo.value())) {
-                fileName = fileInfo.value();
-            } else {
-                fileName = fieldName;
-            }
+        ReflFields.getRegularFieldsOf(this.getClass())
+                .filter(f -> f.isPublic() && f.isTypeOf(Fil.class) && f.isAnnotationPresent(FileInfo.class))
+                .forEachOrdered((IObjectField field) -> {
+                    FileInfo fileInfo = field.getAnnotation(FileInfo.class);
+                    String fileName = StringUtils.isNotEmpty(fileInfo.value()) ? fileInfo.value() : field.getName();
 
-            if (StringUtils.isNotEmpty(fileInfo.extension())) {
-                fileName = fileName + "." + fileInfo.extension();
-            }
+                    if (StringUtils.isNotEmpty(fileInfo.extension())) {
+                        fileName = fileName + "." + fileInfo.extension();
+                    }
+                    final String fName = fileName;
+                    Checked.checkedRun(() -> {
+                        Path newRoot = Paths.get(getAbsolutePathWithSeparator() + fName);
+                        Fil fieldInstance = create(newRoot, F.cast(field.getType()));
+                        field.set(this, fieldInstance);
+                        map.put(fName, fieldInstance);
+                    }).ifPresent(error -> {
+                        logger.error("Failed to parse field named:" + fName, error);
+                    });
 
-            String fileAbsolutePath = this.getAbsolutePathWithSeparator() + fileName;
+                });
 
-            Path newRoot = Paths.get(fileAbsolutePath);
-
-            Fil fieldInstance = create(newRoot, (Class<? extends Fil>) field.getType());
-
-            field.set(this, fieldInstance);
-            map.put(fileName, fieldInstance);
-
-        }
     }
 
     public static <T extends Fil> T create(Path path, Class<T> cls) throws Exception {

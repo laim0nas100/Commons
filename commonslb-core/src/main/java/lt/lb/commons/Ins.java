@@ -367,7 +367,7 @@ public class Ins<T> {
     }
 
     /**
-     * Null-friendly {@link Class##isAssignableFrom(java.lang.Class)} version.
+     * Null-friendly {@link Class#isAssignableFrom(java.lang.Class)} version.
      *
      * @param what
      * @param of
@@ -387,7 +387,7 @@ public class Ins<T> {
     }
 
     /**
-     * Null-friendly {@link Class##isAssignableFrom(java.lang.Class)} version
+     * Null-friendly {@link Class#isAssignableFrom(java.lang.Class)} version
      * with primitive promotion.
      *
      * @param what
@@ -408,7 +408,7 @@ public class Ins<T> {
     }
 
     /**
-     * Null-friendly {@link Class##isInstance(java.lang.Object)} version.
+     * Null-friendly {@link Class#isInstance(java.lang.Object)} version.
      *
      * @param what
      * @param of
@@ -428,7 +428,7 @@ public class Ins<T> {
     }
 
     /**
-     * Null-friendly {@link Class##isInstance(java.lang.Object)} version with
+     * Null-friendly {@link Class#isInstance(java.lang.Object)} version with
      * primitive promotion.
      *
      * @param what

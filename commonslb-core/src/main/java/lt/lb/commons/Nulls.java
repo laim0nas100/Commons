@@ -34,7 +34,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##isNull(java.lang.Object)}
+     * {@link Objects#isNull(java.lang.Object)}
      *
      * @param obj
      * @return
@@ -44,7 +44,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##nonNull(java.lang.Object)}
+     * {@link Objects#nonNull(java.lang.Object)}
      *
      * @param obj
      * @return
@@ -54,7 +54,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##requireNonNull(java.lang.Object, java.util.function.Supplier)}
+     * {@link Objects#requireNonNull(java.lang.Object, java.util.function.Supplier)}
      *
      * @param obj
      * @param supplier
@@ -66,7 +66,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##requireNonNull(java.lang.Object, java.lang.Object)}
+     * {@link Objects#requireNonNull(java.lang.Object, java.lang.Object)}
      *
      * @param obj
      * @param defaultObj
@@ -77,7 +77,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##requireNonNull(java.lang.Object,  java.util.function.Supplier)}
+     * {@link Objects#requireNonNull(java.lang.Object,  java.util.function.Supplier)}
      *
      *
      * @param obj
@@ -93,7 +93,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##requireNonNull(java.lang.Object,  java.lang.String)
+     * {@link Objects#requireNonNull(java.lang.Object,  java.lang.String)
      * }
      *
      * @param obj
@@ -123,7 +123,7 @@ public abstract class Nulls {
     }
 
     /**
-     * {@link Objects##requireNonNull(java.lang.Object)}
+     * {@link Objects#requireNonNull(java.lang.Object)}
      *
      * @param obj
      * @return
@@ -209,7 +209,7 @@ public abstract class Nulls {
     }
 
     /**
-     * If given object is null or is equal to {@link Nulls##EMPTY_OBJECT} then
+     * If given object is null or is equal to {@link Nulls#EMPTY_OBJECT} then
      * return null, otherwise try to cast to given type.
      *
      * @param <T>

@@ -1,4 +1,4 @@
-package lt.lb.commons.reflect.fields;
+package lt.lb.commons.reflect.unified;
 
 import java.lang.reflect.Modifier;
 

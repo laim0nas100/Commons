@@ -1,18 +1,19 @@
 package lt.lb.commons.jpa.ids;
 
-import java.lang.reflect.Method;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import lt.lb.commons.iteration.streams.SimpleStream;
-import lt.lb.commons.reflect.Refl;
-import lt.lb.commons.reflect.fields.IField;
-import lt.lb.commons.reflect.fields.IObjectField;
-import lt.lb.commons.reflect.fields.ReflFields;
+import lt.lb.commons.reflect.beans.NameUtil;
+import lt.lb.commons.reflect.unified.IField;
+import lt.lb.commons.reflect.unified.IObjectField;
+import lt.lb.commons.reflect.unified.IObjectMethod;
+import lt.lb.commons.reflect.unified.ReflFields;
+import lt.lb.commons.reflect.unified.ReflMethods;
+import static lt.lb.commons.reflect.unified.ReflMethods.getGetterMethodsOfType;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -25,8 +26,7 @@ public interface IDFactory<I> {
 
         public boolean generated();
     }
-    
-    
+
     public default <T> Class<T> classResolve(T object) {
         if (object == null) {
             return null;
@@ -110,29 +110,35 @@ public interface IDFactory<I> {
      * @param cls
      * @return
      */
-    public default <T> IdGetter<T, I> idGetter(Class cls) {
-        SimpleStream<IField> fields = ReflFields.getFieldsOf(cls);
-        Optional<IObjectField> objectField = fields.filter(f -> f.isAnnotationPresent(Id.class)).map(m -> m.asObjectField()).findFirst();
+    public default <T> IdGetter<T, I> idGetter(Class<T> cls) {
+        SimpleStream<IObjectField<T, I>> fields = ReflFields.getRegularFieldsOf(cls);
+        Optional<IObjectField<T,I>> objectFieldOpt = fields.filter(f -> f.isAnnotationPresent(Id.class)).findFirst();
         boolean generatedByField = false;
         boolean generatedByMethod = false;
-        final Method method;
-        if (objectField.isPresent()) {
-            generatedByField = objectField.map(f -> f.isAnnotationPresent(GeneratedValue.class)).orElse(false);
-            String name = objectField.get().getName();
-            String methodName1 = "get" + name;
-            String methodName2 = "is" + name;
-            LinkedList<Method> methodsOf = Refl.getMethodsOf(cls, meth -> StringUtils.containsIgnoreCase(meth.getName(), methodName1) || StringUtils.containsIgnoreCase(meth.getName(), methodName2));
-            if (methodsOf.isEmpty()) {
+        final IObjectMethod<T, I> method;
+        if (objectFieldOpt.isPresent()) {
+            IObjectField<T,I> objectField = objectFieldOpt.get();
+            generatedByField = objectField.isAnnotationPresent(GeneratedValue.class);
+
+            String methodName = "get" + NameUtil.capitalize(objectField.getName()); // should not be of type boolean
+            Optional<IObjectMethod<T, I>> uniqueMethod = ReflMethods.getGetterMethodsOfType(cls, objectField.getType())
+                    .filter(
+                            meth -> meth.nameIs(methodName)
+                    ).toUniqueOrEmpty();
+            if (uniqueMethod.isPresent()) {
+                method = uniqueMethod.get();
+            } else {
                 throw new IllegalArgumentException("Failed to resolve a way to get Id form " + cls);
             }
-            method = methodsOf.get(0);
+
         } else {
-            Optional<Method> findFirst = Stream.of(cls.getMethods()).filter(me -> me.isAnnotationPresent(Id.class)).findFirst();
+            SimpleStream<IObjectMethod<T, I>> getterMethods = ReflMethods.getGetterMethods(cls);
+            Optional<IObjectMethod<T, I>> findFirst = getterMethods.filter(me -> me.isAnnotationPresent(Id.class)).findFirst();
             if (!findFirst.isPresent()) {
                 throw new IllegalArgumentException("Failed to resolve a way to get Id form " + cls);
             }
             method = findFirst.get();
-            generatedByField = method.isAnnotationPresent(GeneratedValue.class);
+            generatedByMethod = method.isAnnotationPresent(GeneratedValue.class);
         }
 
         final boolean generated = generatedByField || generatedByMethod;
@@ -145,7 +151,7 @@ public interface IDFactory<I> {
 
             @Override
             public I applyUnchecked(T t) throws Throwable {
-                return (I) method.invoke(t);
+                return method.invoke(t);
             }
         };
     }
