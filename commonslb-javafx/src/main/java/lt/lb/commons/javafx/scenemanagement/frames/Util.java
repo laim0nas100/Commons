@@ -187,5 +187,21 @@ public abstract class Util {
         FX.submit(task);
         return task;
     }
+    
+    public static Future<StageFrame> newFxrowsFrame(Map<String, Frame> frameMap, FrameManager manager, String title, FXDrows rows) {
+
+        FutureTask<StageFrame> task = Futures.ofCallable(() -> {
+            ScrollPane scroll = new ScrollPane(rows.grid);
+            scroll.setFitToHeight(true);
+            scroll.setFitToWidth(true);
+            StageFrame frame = manager.newStageFrame(title, () -> scroll, d -> d.close()).get();
+
+            rows.syncManagedFromPersist();
+            rows.viewUpdate();
+            return frame;
+        });
+        FX.submit(task);
+        return task;
+    }
 
 }

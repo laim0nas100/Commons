@@ -133,7 +133,7 @@ public interface IterationIterable<E extends IterationIterable<E>> extends Itera
     public default <T> Optional<IterIterableResult<T>> find(Stream<T> stream, IterIterableCons<T> iter) {
         Objects.requireNonNull(stream, "Stream is null");
         Objects.requireNonNull(iter, "Iteration logic is null");
-        return find(ReadOnlyIterator.of(stream), iter);
+        return find(stream.iterator(), iter);
     }
 
     /**

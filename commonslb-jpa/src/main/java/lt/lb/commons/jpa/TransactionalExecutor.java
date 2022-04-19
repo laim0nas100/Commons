@@ -1,6 +1,6 @@
 package lt.lb.commons.jpa;
 
-import lt.lb.uncheckedutils.CheckedExecutorUnified;
+import lt.lb.uncheckedutils.concurrent.CheckedExecutorUnified;
 
 /**
  *

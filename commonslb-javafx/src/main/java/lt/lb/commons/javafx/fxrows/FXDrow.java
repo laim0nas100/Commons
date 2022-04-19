@@ -24,6 +24,11 @@ public class FXDrow extends SyncDrow<FXCell, Node, FXLine, FXUpdates, FXDrowConf
         b.setOnAction(eh);
         return add(b);
     }
+    
+    public FXDrow addButton(Button b, EventHandler<ActionEvent> eh) {
+        b.setOnAction(eh);
+        return add(b);
+    }
 
     public FXDrow addLabel(String str) {
         return add(new Label(str));

@@ -10,7 +10,6 @@ import lt.lb.commons.F;
 import lt.lb.commons.reflect.unified.IObjectField;
 import lt.lb.commons.reflect.unified.ReflFields;
 import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.SafeOpt;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,8 +27,11 @@ public class Fil {
 
     public final String absolutePath;
 
+    public final Path path;
+
     public Fil(String absolutePath) {
         this.absolutePath = absolutePath;
+        this.path = Paths.get(absolutePath);
         map = new LinkedHashMap<>();
         ReflFields.getRegularFieldsOf(this.getClass())
                 .filter(f -> f.isPublic() && f.isTypeOf(Fil.class) && f.isAnnotationPresent(FileInfo.class))
@@ -68,7 +70,7 @@ public class Fil {
     }
 
     public Path getPath() {
-        return Paths.get(absolutePath);
+        return path;
     }
 
     public boolean exists() {
@@ -85,7 +87,7 @@ public class Fil {
 
     @Override
     public String toString() {
-        return absolutePath;
+        return getPath().toString();
     }
 
 }

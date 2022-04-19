@@ -247,9 +247,9 @@ public interface StreamCollectors<X, M extends DecoratableStream<X, M>> extends 
     }
 
     /**
-     * Limits the size to 2 and collects items to a list.If only one item is
-     * present, returns it, otherwise the list was non-unique or empty, so
-     * returns empty {@link Optional}
+     * Limits the size to 2 and collects items to a list. If only one item is
+     * present, returns it wrapped in {@link Optional}, otherwise the list was
+     * non-unique, empty or the unique item was null - returns empty.
      *
      * @return unique item or empty.
      */

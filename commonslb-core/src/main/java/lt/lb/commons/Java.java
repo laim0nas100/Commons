@@ -10,6 +10,20 @@ import java.io.File;
  */
 public class Java {
 
+    /**
+     * Returns the system-dependent line separator string.  It always
+     * returns the same value - the initial value of the {@linkplain
+     * #getProperty(String) system property} {@code line.separator}.
+     *
+     * <p>On UNIX systems, it returns {@code "\n"}; on Microsoft
+     * Windows systems it returns {@code "\r\n"}.
+     *
+     * @return the system-dependent line separator string
+     * @since 1.7
+     */
+    public static final String getLineSeparator(){
+        return System.lineSeparator();
+    }
 
     /**
      * new File("").getAbsolutePath()
@@ -65,6 +79,16 @@ public class Java {
      */
     public static final String getUserName() {
         return System.getProperty("user.name");
+    }
+    
+    /**
+     *
+     * System.getProperty("user.home")
+     * 
+     * @return Currently active OS user home directory
+     */
+    public static final String getUserHome() {
+        return System.getProperty("user.home");
     }
 
     /**

@@ -133,7 +133,7 @@ public interface IterationIterableUnchecked<E extends IterationIterableUnchecked
     public default <T> SafeOpt<IterIterableResult<T>> find(Stream<T> stream, IterIterableConsUnchecked<T> iter) {
         Objects.requireNonNull(stream, "Stream is null");
         Objects.requireNonNull(iter, "Iteration logic is null");
-        return find(ReadOnlyIterator.of(stream), iter);
+        return find(stream.iterator(), iter);
     }
 
     /**

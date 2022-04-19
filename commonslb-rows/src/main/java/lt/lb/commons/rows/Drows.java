@@ -374,9 +374,22 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
         return newRow;
     }
 
+    public R getNewBefore(String key) {
+        R newRow = conf.newRow(me());
+        Integer rowIndex = this.getRowIndex(key);
+        this.addRow(Math.max(0, rowIndex), newRow);
+        return newRow;
+    }
+
     public R getNew() {
         R newRow = conf.newRow(me());
         addRow(newRow);
+        return newRow;
+    }
+
+    public R getNewAt(int index) {
+        R newRow = conf.newRow(me());
+        addRow(index, newRow);
         return newRow;
     }
 
@@ -431,7 +444,5 @@ public abstract class Drows<R extends Drow, L, DR extends Drows, U extends Updat
             }
         }
     }
-    
-    
 
 }

@@ -3,12 +3,12 @@ package lt.lb.commons.iteration.general.impl.unchecked;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.IterationIterableUnchecked;
 import lt.lb.commons.iteration.general.accessors.unchecked.DefaultAccessorResolverUnchecked;
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableConsUnchecked;
 import lt.lb.commons.iteration.general.impl.*;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *

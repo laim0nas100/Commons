@@ -1,7 +1,6 @@
 package lt.lb.commons.reflect.unified;
 
 import java.util.stream.Stream;
-import lt.lb.commons.Ins.InsCl;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.iteration.streams.SimpleStream;
 
