@@ -3,11 +3,15 @@ package lt.lb.commons.jpa.querydecor;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.Tuple;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Selection;
 import javax.persistence.metamodel.SingularAttribute;
 import lt.lb.commons.F;
+import lt.lb.commons.iteration.streams.MakeStream;
+import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
 
 /**
@@ -15,6 +19,36 @@ import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
  * @{inheritDoc}
  */
 public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T_RESULT, Void, JpaQueryDecor<T_ROOT, T_RESULT>> {
+
+    public static class JpaQueryDecorResultProvider<X> implements JpaQueryResultProvider<X> {
+
+        protected JpaQueryResultProvider<X> original;
+
+        public JpaQueryDecorResultProvider(JpaQueryResultProvider<X> original) {
+            this.original = Objects.requireNonNull(original, "Original result provided must be not null");
+        }
+
+        @Override
+        public Query originalQuery() {
+            return original.originalQuery();
+        }
+
+        @Override
+        public List<X> getResultList() {
+            return original.getResultList();
+        }
+
+        @Override
+        public SimpleStream<X> getResultStream() {
+            return new SimpleStream<>(original.getResultStream());
+        }
+
+        @Override
+        public JpaQueryDecorResultProvider<X> modified(Function<List<X>, List<X>> mapper) {
+            return new JpaQueryDecorResultProvider<>(original.modified(mapper));
+        }
+
+    }
 
     protected JpaQueryDecor(Class<T_ROOT> rootClass, Class<T_RESULT> resultClass, JpaQueryDecor copy) {
         super(copy);
@@ -100,16 +134,27 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     public JpaQueryDecor<T_ROOT, Long> selectingCount() {
         return F.cast(super.selectingCount());
     }
-    
+
     /**
      * Functor pattern
+     *
      * @param <U>
      * @param function
-     * @return 
+     * @return
      */
-    public <U> U chain(Function<JpaQueryDecor<T_ROOT, T_RESULT>,? extends U> function){
+    public <U> U chain(Function<JpaQueryDecor<T_ROOT, T_RESULT>, ? extends U> function) {
         Objects.requireNonNull(function);
         return function.apply(this);
+    }
+
+    @Override
+    public SimpleStream<T_RESULT> buildStream(EntityManager em) {
+        return MakeStream.from(super.buildStream(em));
+    }
+
+    @Override
+    public JpaQueryDecorResultProvider<T_RESULT> buildResult(EntityManager em) {
+        return new JpaQueryDecorResultProvider<>(super.buildResult(em));
     }
 
 }

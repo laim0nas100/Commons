@@ -133,6 +133,21 @@ public abstract class MakeStream {
         }
         return new SimpleStream<>(StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), parallel));
     }
+    
+    /**
+     * Converts given stream to SimpleStream, if given stream is not allready of such instance
+     *
+     * @param <T>
+     * @param array
+     * @return
+     */
+    public static <T> SimpleStream<T> from(Stream<T> stream){
+        Objects.requireNonNull(stream, "stream must not be null");
+        if(stream instanceof SimpleStream){
+            return (SimpleStream) stream;
+        }
+        return new SimpleStream<>(stream);
+    }
 
     /**
      * Converts array to Stream.
