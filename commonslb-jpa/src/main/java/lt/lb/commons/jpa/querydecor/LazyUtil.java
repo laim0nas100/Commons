@@ -1,6 +1,5 @@
 package lt.lb.commons.jpa.querydecor;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -26,7 +25,7 @@ import lt.lb.commons.containers.collections.CollectionOp;
  * @author laim0nas100
  */
 public class LazyUtil {
-
+    
     public static <T, E extends T> ArrayList<T> lazyAdd(ArrayList<T> current, E... items) {
         return CollectionOp.lazyAdd(ArrayList::new, current, items);
     }

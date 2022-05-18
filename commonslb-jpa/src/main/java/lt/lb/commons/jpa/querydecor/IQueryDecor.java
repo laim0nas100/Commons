@@ -76,12 +76,16 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
 
     public M withDec4(Consumer<DecoratorPhases.Phase4<CTX>> cons);
 
+    public M withResultModification(Function<List<T_RESULT>, List<T_RESULT>> func);
+    
     public <RES> IQueryDecor<T_ROOT, RES, CTX, ?> selecting(
             Class<RES> resClass, Function<DecoratorPhases.Phase2<T_ROOT, CTX>, Expression<RES>> func);
 
     public IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(Function<DecoratorPhases.Phase2<T_ROOT, CTX>, List<Selection<?>>> selections);
 
     public TypedQuery<T_RESULT> build(EntityManager em);
+
+    public JpaQueryResultProvider<T_RESULT> buildResult(EntityManager em);
 
     public Query buildDeleteOrUpdate(EntityManager em, boolean delete);
 
@@ -263,19 +267,23 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
         return withDec4(p -> p.query().setLockMode(lock));
     }
 
+    public default M setHint(String hint, Object value) {
+        return withDec4(p -> p.query().setHint(hint, value));
+    }
+
     public default M setFlushMode(FlushModeType type) {
         return withDec4(p -> p.query().setFlushMode(type));
     }
 
     public default SafeOpt<T_RESULT> buildUniqueResult(EntityManager em) {
         return SafeOpt.of(em).map(m -> {
-            TypedQuery<T_RESULT> query = build(m);
-            List<T_RESULT> result = query.getResultList();
+            JpaQueryResultProvider<T_RESULT> provider = buildResult(em);
+            List<T_RESULT> result = provider.getResultList();
             if (result == null || result.isEmpty()) {
                 return null;
             }
             if (result.size() != 1) {
-                throw new NonUniqueResultException(String.format("could not fetch unique result from query: %1s", query));
+                throw new NonUniqueResultException(String.format("could not fetch unique result from query: %1s", provider.originalQuery()));
             }
             return result.get(0);
         });
@@ -289,29 +297,20 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
     }
 
     public default Stream<T_RESULT> buildStream(EntityManager em) {
-        TypedQuery<T_RESULT> tq = build(em);
-        try {
-            return tq.getResultStream();
-        } catch (UnsupportedOperationException unsupported) {
-            return tq.getResultList().stream();
-        }
-    }
-
-    public default Stream<T_RESULT> buildListStream(EntityManager em) {
-        return build(em).getResultList().stream();
+        return buildResult(em).getResultStream();
     }
 
     public default List<T_RESULT> buildList(EntityManager em) {
-        return build(em).getResultList();
+        return buildResult(em).getResultList();
     }
 
-    public default <U> U build(EntityManager em, Function<TypedQuery<T_RESULT>, U> mapper) {
-        return Objects.requireNonNull(mapper, "Mapper is null").apply(build(em));
+    public default <U> U buildResult(EntityManager em, Function<JpaQueryResultProvider<T_RESULT>, U> mapper) {
+        return Objects.requireNonNull(mapper, "Mapper is null").apply(buildResult(em));
     }
 
-    public default <U> SafeOpt<U> buildSafe(EntityManager em, UncheckedFunction<TypedQuery<T_RESULT>, U> mapper) {
+    public default <U> SafeOpt<U> buildResultSafe(EntityManager em, UncheckedFunction<JpaQueryResultProvider<T_RESULT>, U> mapper) {
         Objects.requireNonNull(mapper, "Mapper is null");
-        return SafeOpt.of(em).map(m -> build(m)).map(mapper);
+        return SafeOpt.of(em).map(m -> buildResult(m)).map(mapper);
     }
 
     public default int executeDeleteOrUpdate(EntityManager em, boolean delete) {

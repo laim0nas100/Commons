@@ -100,5 +100,16 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     public JpaQueryDecor<T_ROOT, Long> selectingCount() {
         return F.cast(super.selectingCount());
     }
+    
+    /**
+     * Functor pattern
+     * @param <U>
+     * @param function
+     * @return 
+     */
+    public <U> U chain(Function<JpaQueryDecor<T_ROOT, T_RESULT>,? extends U> function){
+        Objects.requireNonNull(function);
+        return function.apply(this);
+    }
 
 }

@@ -72,6 +72,8 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     protected ArrayList<Consumer<Phase3Subquery<T_ROOT, T_RESULT, CTX>>> dec3Subquery = null;
     protected ArrayList<Consumer<Phase4<CTX>>> dec4 = null;
 
+    protected ArrayList<Function<List<T_RESULT>, List<T_RESULT>>> resultProviderModifiers = null;
+
     protected Function<Phase2<T_ROOT, CTX>, Expression<T_RESULT>> selection = null;
     protected Function<Phase2<T_ROOT, CTX>, List<Selection<?>>> multiselection = null;
 
@@ -97,6 +99,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
             dec3Query = lazyInit(copy.dec3Query);
             dec3Subquery = lazyInit(copy.dec3Subquery);
             dec4 = lazyInit(copy.dec4);
+            resultProviderModifiers = lazyInit(copy.resultProviderModifiers);
             context = copyContext((CTX) copy.context);
 
             selection = copy.selection;
@@ -316,6 +319,14 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     }
 
     @Override
+    public M withResultModification(Function<List<T_RESULT>, List<T_RESULT>> func) {
+        Objects.requireNonNull(func);
+        M of = me();
+        of.resultProviderModifiers = lazyAdd(of.resultProviderModifiers, func);
+        return of;
+    }
+
+    @Override
     public TypedQuery<T_RESULT> build(EntityManager em) {
 
         TypedQuery<T_RESULT> typed = em.createQuery(decorateQuery(em));
@@ -325,6 +336,18 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         }
 
         return typed;
+    }
+
+    @Override
+    public JpaQueryResultProvider<T_RESULT> buildResult(EntityManager em) {
+        JpaQueryResultProvider<T_RESULT> provider = JpaQueryResultProvider.of(build(em));
+
+        if (resultProviderModifiers != null) {
+            for (Function<List<T_RESULT>, List<T_RESULT>> func : resultProviderModifiers) {
+                provider = provider.modified(func);
+            }
+        }
+        return provider;
     }
 
     @Override
