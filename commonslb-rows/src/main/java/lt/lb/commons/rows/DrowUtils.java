@@ -20,7 +20,10 @@ public class DrowUtils {
          */
         public static Integer[] distributeSurplusRight(Integer[] columnSpan, int surplus) {
             Integer[] clone = ArrayUtils.clone(columnSpan);
-            while (clone.length > 0 && surplus > 0) {
+            if (clone.length <= 0) {
+                return clone;
+            }
+            while (surplus > 0) {
                 for (int i = clone.length - 1; i >= 0; i++) {
                     if (surplus <= 0) {
                         return clone;
@@ -43,7 +46,10 @@ public class DrowUtils {
          */
         public static Integer[] distributeSurplusLeft(Integer[] columnSpan, int surplus) {
             Integer[] clone = ArrayUtils.clone(columnSpan);
-            while (clone.length > 0 && surplus > 0) {
+            if (clone.length <= 0) {
+                return clone;
+            }
+            while (surplus > 0) {
                 for (int i = 0; i < clone.length; i++) {
                     if (surplus <= 0) {
                         return clone;
@@ -71,14 +77,17 @@ public class DrowUtils {
             if (odd) {
                 center++;
             }
-            while (clone.length > 0 && surplus > 0) {
+            if (clone.length <= 0) {
+                return clone;
+            }
+            while (surplus > 0) {
                 for (int i = 0; i < center; i++) {
                     if (surplus <= 0) {
                         return clone;
                     }
                     clone[i] += 1;
                     surplus--;
-                    
+
                     if (surplus <= 0) {
                         return clone;
                     }
@@ -87,8 +96,10 @@ public class DrowUtils {
                     surplus--;
 
                 }
-                if (odd) {
+                if (odd && surplus > 0) {
                     clone[center] += 1;
+                    surplus--;
+
                 }
             }
 
@@ -110,7 +121,10 @@ public class DrowUtils {
             if (odd) {
                 center++;
             }
-            while (clone.length > 0 && surplus > 0) {
+            if (clone.length <= 0) {
+                return clone;
+            }
+            while (surplus > 0) {
                 for (int i = 0; i < center; i++) {
                     if (surplus <= 0) {
                         return clone;
@@ -119,14 +133,15 @@ public class DrowUtils {
                     clone[endIndex] += 1;
                     surplus--;
 
-                   if (surplus <= 0) {
+                    if (surplus <= 0) {
                         return clone;
                     }
                     clone[i] += 1;
                     surplus--;
                 }
-                if (odd) {
+                if (odd && surplus > 0) {
                     clone[center] += 1;
+                    surplus--;
                 }
             }
 

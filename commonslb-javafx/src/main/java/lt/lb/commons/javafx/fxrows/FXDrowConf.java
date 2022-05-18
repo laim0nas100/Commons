@@ -122,7 +122,6 @@ public class FXDrowConf extends BaseDrowSyncConf<FXDrow, FXCell, Node, FXLine, F
             GridPane.setRowSpan(nodeCell, 1);
             GridPane.setValignment(nodeCell, defaultGridVPos);
             GridPane.setHalignment(nodeCell, cell.getAlign());
-
             colIndex += cell.getColSpan();
         }
 

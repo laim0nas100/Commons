@@ -13,6 +13,7 @@ import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.misc.RecursiveRedirection;
 import static lt.lb.commons.rows.BasicUpdates.*;
 import lt.lb.uncheckedutils.Checked;
@@ -115,14 +116,14 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         U u_disable = updates.get(UPDATES_ON_DISABLE);
         U u_visible = updates.get(UPDATES_ON_VISIBLE);
 
-        u_refresh.addUpdate(getRenderOrder(), ()->{
+        u_refresh.addUpdate(getRenderOrder(), () -> {
             dirtyRender = true;
         });
-        
-        u_disable.addUpdate(getRenderOrder(), ()->{
+
+        u_disable.addUpdate(getRenderOrder(), () -> {
             dirtyRender = true;
         });
-        
+
         u_visible.addUpdate(getRenderOrder(), () -> {
             dirtyRender = true;
         });
@@ -325,15 +326,18 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
             return true;
         }
         //calculate real colspans
-        List<Integer> cellIndex = this.getVisibleIndices();
-        int count = cellIndex.size();
+        int[] cellIndex = MakeStream.from(getVisibleIndices()).toIntArray(m -> m);
+        int count = cellIndex.length;
 
-        List<Integer> preferedColSpanOfVisible = this.getPreferedColSpanOfVisible();
-        double total = preferedColSpanOfVisible.stream().mapToInt(m -> m).sum();
-
+        List<Integer> colSpan = getPreferedColSpan();
+        double total = 0d;
+        for(int i = 0; i < count; i++){
+            total += colSpan.get(cellIndex[i]);
+        }
         for (int i = 0; i < count; i++) {
-            double ratioPrefered = preferedColSpanOfVisible.get(i) / total;
-            double ratioCurrent = getCell(cellIndex.get(i)).getColSpan() / totalVisible;
+            int idx = cellIndex[i];
+            double ratioPrefered = colSpan.get(idx) / total;
+            double ratioCurrent = getCell(idx).getColSpan() / totalVisible;
             if (!config.colspanWithinMargin(Math.abs(ratioCurrent - ratioPrefered), me())) {
                 return true;
             }
@@ -356,6 +360,7 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
         if (visibleCells.isEmpty()) {
             return;
         }
+        
         List<Integer> preferedColSpan = this.getPreferedColSpanOfVisible();
         double preferedTotal = preferedColSpan.stream().mapToDouble(m -> m.doubleValue()).sum();
         double mult = maxColSpan / preferedTotal;
