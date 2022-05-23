@@ -9,6 +9,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -20,6 +21,15 @@ public class Dir extends Fil {
 
     public Iterable<Fil> getFiles() {
         return files;
+    }
+    
+    public static <T extends Fil> T establishDirectory(Class<T> cls, String...paths) {
+        if(paths.length == 0){
+            throw new IllegalArgumentException("No path given");
+        }
+        String first = paths[0];
+        String[] more = ArrayUtils.remove(paths, 0);
+        return Checked.uncheckedCall(() -> Fil.create(Paths.get(first, more), cls));
     }
 
     public static <T extends Fil> T establishDirectory(String absolutePath, Class<T> cls) {
