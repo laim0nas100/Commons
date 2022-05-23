@@ -23,6 +23,8 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.SingularAttribute;
+import lt.lb.commons.F;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.DecoratedQueryWithFinalPhase;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase1;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Abstract;
@@ -50,12 +52,12 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     protected ArrayList<Function<Phase3Common<T_ROOT, CTX>, Predicate>> pred3Common = null;
     protected ArrayList<Function<Phase3Abstract<T_ROOT, T_RESULT, CTX>, Predicate>> pred3 = null;
     protected ArrayList<Function<Phase3Query<T_ROOT, T_RESULT, CTX>, Predicate>> pred3Query = null;
-    protected ArrayList<Function<Phase3Subquery<T_ROOT, T_RESULT, CTX>, Predicate>> pred3Subquery = null;
+    protected ArrayList<Function<Phase3Subquery<?, T_ROOT, T_RESULT, CTX>, Predicate>> pred3Subquery = null;
     protected ArrayList<Function<Phase2<T_ROOT, CTX>, Predicate>> pred2 = null;
 
     protected ArrayList<Function<Phase3Abstract<T_ROOT, T_RESULT, CTX>, Predicate>> pred3Having = null;
     protected ArrayList<Function<Phase3Query<T_ROOT, T_RESULT, CTX>, Predicate>> pred3QueryHaving = null;
-    protected ArrayList<Function<Phase3Subquery<T_ROOT, T_RESULT, CTX>, Predicate>> pred3SubqueryHaving = null;
+    protected ArrayList<Function<Phase3Subquery<?, T_ROOT, T_RESULT, CTX>, Predicate>> pred3SubqueryHaving = null;
     protected ArrayList<Function<Phase2<T_ROOT, CTX>, Predicate>> pred2Having = null;
 
     protected ArrayList<Consumer<Phase1<CTX>>> dec1 = null;
@@ -69,7 +71,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     /**
      * only when decorator is used to decorate a subquery
      */
-    protected ArrayList<Consumer<Phase3Subquery<T_ROOT, T_RESULT, CTX>>> dec3Subquery = null;
+    protected ArrayList<Consumer<Phase3Subquery<?, T_ROOT, T_RESULT, CTX>>> dec3Subquery = null;
     protected ArrayList<Consumer<Phase4<CTX>>> dec4 = null;
 
     protected ArrayList<Function<List<T_RESULT>, List<T_RESULT>>> resultProviderModifiers = null;
@@ -251,7 +253,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     }
 
     @Override
-    public M withPredSubquery(boolean having, Function<Phase3Subquery<T_ROOT, T_RESULT, CTX>, Predicate> func) {
+    public M withPredSubquery(boolean having, Function<Phase3Subquery<?, T_ROOT, T_RESULT, CTX>, Predicate> func) {
         Objects.requireNonNull(func);
         M of = me();
         if (having) {
@@ -303,7 +305,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     }
 
     @Override
-    public M withDec3Subquery(Consumer<Phase3Subquery<T_ROOT, T_RESULT, CTX>> cons) {
+    public M withDec3Subquery(Consumer<Phase3Subquery<?, T_ROOT, T_RESULT, CTX>> cons) {
         Objects.requireNonNull(cons);
         M of = me();
         of.dec3Subquery = lazyAdd(of.dec3Subquery, cons);
@@ -365,7 +367,19 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         return query;
     }
 
-    protected <PARENT_ROOT> void decorateQuery(Phase2<T_ROOT, CTX> p2, CommonAbstractCriteria commonCriteria, CriteriaQuery<T_RESULT> query, Subquery<T_RESULT> subquery, AbstractQuery<PARENT_ROOT> parentQuery) {
+    /**
+     * return last phase
+     *
+     * @param <PARENT_RESULT>
+     * @param p2
+     * @param commonCriteria
+     * @param query
+     * @param subquery
+     * @param parentQuery
+     * @param parentRoot
+     * @return
+     */
+    protected <PARENT_RESULT> Object decorateQuery(Phase2<T_ROOT, CTX> p2, CommonAbstractCriteria commonCriteria, CriteriaQuery<T_RESULT> query, Subquery<T_RESULT> subquery, AbstractQuery<?> parentQuery, Root<PARENT_RESULT> parentRoot) {
         if (countNonNull(commonCriteria, query, subquery) != 1) {
             throw new IllegalArgumentException("Supply only one of query,subquery or commonAbstractCriteria");
         }
@@ -381,6 +395,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
             if (predicates.hasItems()) {
                 applyWhere(commonCriteria, predicates.toArray());
             }
+            return p3Common;
 
         } else if (query != null || subquery != null) {
             LazyPredAdd predicates = new LazyPredAdd();
@@ -392,14 +407,14 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
             Phase3Abstract<T_ROOT, T_RESULT, CTX> p3 = null;
 
             Phase3Query<T_ROOT, T_RESULT, CTX> p3Q = null;
-            Phase3Subquery<T_ROOT, T_RESULT, CTX> p3Sub = null;
+            Phase3Subquery<?, T_ROOT, T_RESULT, CTX> p3Sub = null;
 
             if (query != null) {
                 p3Q = DecoratorPhases.of(p2, query);
                 p3 = p3Q;
 
             } else { // subquery must not be null
-                p3Sub = DecoratorPhases.of(p2, subquery, parentQuery);
+                p3Sub = DecoratorPhases.of(p2.em(), p2.cb(), parentRoot, p2.root(), subquery, parentQuery, p2.ctx());
                 p3 = p3Sub;
             }
             lazyConsumers(dec3, p3);
@@ -426,7 +441,10 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
             if (predicatesHaving.hasItems()) {
                 aq.having(predicatesHaving.toArray());
             }
+
+            return p3;
         }
+        return null;
 
     }
 
@@ -447,7 +465,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     }
 
     @Override
-    public CriteriaDelete<T_ROOT> decorateDeleteQuery(EntityManager em) {
+    public DecoratedQueryWithFinalPhase<Phase3Common<T_ROOT, CTX>, CriteriaDelete<T_ROOT>> decorateDeleteQuerRaw(EntityManager em) {
         Objects.requireNonNull(em);
         CriteriaBuilder builder = em.getCriteriaBuilder();
 
@@ -458,13 +476,12 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         CriteriaDelete<T_ROOT> query = builder.createCriteriaDelete(getRootClass());
         Root<T_ROOT> root = query.from(getRootClass());
         Phase2<T_ROOT, CTX> p2 = DecoratorPhases.of(em, builder, root, getContext());
-        decorateQuery(p2, query, null, null, null);
-        return query;
-
+        Object phase = decorateQuery(p2, query, null, null, null, null);
+        return new DecoratedQueryWithFinalPhase<>(F.cast(phase),query);
     }
 
     @Override
-    public CriteriaUpdate<T_ROOT> decorateUpdateQuery(EntityManager em) {
+    public DecoratedQueryWithFinalPhase<Phase3Common<T_ROOT, CTX>, CriteriaUpdate<T_ROOT>> decorateUpdateQueryRaw(EntityManager em) {
         Objects.requireNonNull(em);
         CriteriaBuilder builder = em.getCriteriaBuilder();
 
@@ -475,12 +492,17 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         CriteriaUpdate<T_ROOT> query = builder.createCriteriaUpdate(getRootClass());
         Root<T_ROOT> root = query.from(getRootClass());
         Phase2<T_ROOT, CTX> p2 = DecoratorPhases.of(em, builder, root, getContext());
-        decorateQuery(p2, query, null, null, null);
-        return query;
+        Object phase = decorateQuery(p2, query, null, null, null, null);
+        return new DecoratedQueryWithFinalPhase<>(F.cast(phase), query);
     }
 
     @Override
-    public CriteriaQuery<T_RESULT> decorateQuery(EntityManager em) {
+    public CriteriaUpdate<T_ROOT> decorateUpdateQuery(EntityManager em) {
+        return decorateUpdateQueryRaw(em).query;
+    }
+
+    @Override
+    public DecoratedQueryWithFinalPhase<Phase3Query<T_ROOT, T_RESULT, CTX>, CriteriaQuery<T_RESULT>> decorateQueryRaw(EntityManager em) {
         Objects.requireNonNull(em);
         CriteriaBuilder builder = em.getCriteriaBuilder();
 
@@ -491,7 +513,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         CriteriaQuery<T_RESULT> query = builder.createQuery(getResultClass());
         Root<T_ROOT> root = query.from(getRootClass());
         Phase2<T_ROOT, CTX> p2 = DecoratorPhases.of(em, builder, root, getContext());
-        decorateQuery(p2, null, query, null, null);
+        Object phase = decorateQuery(p2, null, query, null, null, null);
 
         if (Tuple.class.equals(getResultClass())) {
             if (multiselection != null) {
@@ -502,15 +524,16 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
                 query.select(selection.apply(p2));
             }
         }
-
-        return query;
-
+        
+        return new DecoratedQueryWithFinalPhase<>(F.cast(phase),query);
+        
     }
 
     @Override
-    public <PARENT_ROOT> Subquery<T_RESULT> decorateSubquery(EntityManager em, AbstractQuery<PARENT_ROOT> parentQuery) {
+    public <PARENT_ROOT> DecoratedQueryWithFinalPhase<Phase3Subquery<PARENT_ROOT, T_ROOT, T_RESULT, CTX>, Subquery<T_RESULT>> decorateSubqueryRaw(EntityManager em, AbstractQuery<?> parentQuery, Root<PARENT_ROOT> parentRoot) {
         Objects.requireNonNull(em);
         Objects.requireNonNull(parentQuery);
+        Objects.requireNonNull(parentRoot);
 
         CriteriaBuilder builder = em.getCriteriaBuilder();
         if (needQ1()) {
@@ -521,12 +544,11 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         Root<T_ROOT> root = subquery.from(getRootClass());
         Phase2<T_ROOT, CTX> p2 = DecoratorPhases.of(em, builder, root, getContext());
 
-        decorateQuery(p2, null, null, subquery, parentQuery);
+        Object phase = decorateQuery(p2, null, null, subquery, parentQuery, parentRoot);
         if (selection != null) {
             subquery.select(selection.apply(p2));
         }
 
-        return subquery;
-
+        return new DecoratedQueryWithFinalPhase<>(F.cast(phase), subquery);
     }
 }

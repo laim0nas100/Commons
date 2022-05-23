@@ -22,6 +22,16 @@ import lt.lb.commons.jpa.querydecor.LazyUtil.HiddenTypedQuery;
  */
 public interface DecoratorPhases {
 
+    public static class DecoratedQueryWithFinalPhase<P extends Phase2, Q extends CommonAbstractCriteria> {
+        public final P phase;
+        public final Q query;
+
+        public DecoratedQueryWithFinalPhase(P phase, Q query) {
+            this.phase = phase;
+            this.query = query;
+        }
+    }
+
     public static <CTX> Phase1<CTX> of(EntityManager em, CriteriaBuilder cb, CTX ctx) {
         return new Phase1<CTX>() {
             @Override
@@ -177,8 +187,14 @@ public interface DecoratorPhases {
         };
     }
 
-    public static <T, R, CTX> Phase3Subquery<T, R, CTX> of(EntityManager em, CriteriaBuilder cb, Root<T> root, Subquery<R> query, AbstractQuery<?> parent, CTX ctx) {
-        return new Phase3Subquery<T, R, CTX>() {
+    public static <P, T, R, CTX> Phase3Subquery<P, T, R, CTX> of(EntityManager em, CriteriaBuilder cb, Root<P> parentRoot, Root<T> root, Subquery<R> query, AbstractQuery<?> parent, CTX ctx) {
+        return new Phase3Subquery<P, T, R, CTX>() {
+
+            @Override
+            public Root<P> parentRoot() {
+                return parentRoot;
+            }
+
             @Override
             public Root<T> root() {
                 return root;
@@ -211,8 +227,14 @@ public interface DecoratorPhases {
         };
     }
 
-    public static <T, R, CTX> Phase3Subquery<T, R, CTX> of(EntityManager em, CriteriaBuilder cb, Root<T> root, Subquery<R> query, CTX ctx) {
-        return new Phase3Subquery<T, R, CTX>() {
+    public static <P, T, R, CTX> Phase3Subquery<P, T, R, CTX> of(EntityManager em, CriteriaBuilder cb, Root<P> parent, Root<T> root, Subquery<R> query, CTX ctx) {
+        return new Phase3Subquery<P, T, R, CTX>() {
+
+            @Override
+            public Root<P> parentRoot() {
+                return parent;
+            }
+
             @Override
             public Root<T> root() {
                 return root;
@@ -236,71 +258,6 @@ public interface DecoratorPhases {
             @Override
             public CTX ctx() {
                 return ctx;
-            }
-        };
-    }
-
-    public static <T, R, CTX> Phase3Subquery<T, R, CTX> of(Phase2<T, CTX> p2, Subquery<R> query, AbstractQuery<?> parent) {
-        return new Phase3Subquery<T, R, CTX>() {
-            @Override
-            public Root<T> root() {
-                return p2.root();
-            }
-
-            @Override
-            public CriteriaBuilder cb() {
-                return p2.cb();
-            }
-
-            @Override
-            public EntityManager em() {
-                return p2.em();
-            }
-
-            @Override
-            public Subquery<R> query() {
-                return query;
-            }
-
-            @Override
-            public AbstractQuery<?> parent() {
-                return parent;
-            }
-
-            @Override
-            public CTX ctx() {
-                return p2.ctx();
-            }
-
-        };
-    }
-
-    public static <T, R, CTX> Phase3Subquery<T, R, CTX> of(Phase2<T, CTX> p2, Subquery<R> query) {
-        Objects.requireNonNull(p2);
-        return new Phase3Subquery<T, R, CTX>() {
-            @Override
-            public Root<T> root() {
-                return p2.root();
-            }
-
-            @Override
-            public CriteriaBuilder cb() {
-                return p2.cb();
-            }
-
-            @Override
-            public EntityManager em() {
-                return p2.em();
-            }
-
-            @Override
-            public Subquery<R> query() {
-                return query;
-            }
-
-            @Override
-            public CTX ctx() {
-                return p2.ctx();
             }
         };
     }
@@ -407,8 +364,8 @@ public interface DecoratorPhases {
             return (Phase3Query<T, R, CTX>) this;
         }
 
-        public default Phase3Subquery<T, R, CTX> castToP3Subquery() {
-            return (Phase3Subquery<T, R, CTX>) this;
+        public default Phase3Subquery<?, T, R, CTX> castToP3Subquery() {
+            return (Phase3Subquery<?, T, R, CTX>) this;
         }
     }
 
@@ -418,7 +375,9 @@ public interface DecoratorPhases {
         public CriteriaQuery<R> query();
     }
 
-    public static interface Phase3Subquery<T, R, CTX> extends Phase3Abstract<T, R, CTX> {
+    public static interface Phase3Subquery<P, T, R, CTX> extends Phase3Abstract<T, R, CTX> {
+
+        public Root<P> parentRoot();
 
         public default AbstractQuery<?> parent() {
             return query().getParent();

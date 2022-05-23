@@ -32,6 +32,10 @@ import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.MapAttribute;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.DecoratedQueryWithFinalPhase;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Common;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Query;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Subquery;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
 
@@ -60,7 +64,7 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
 
     public M withPredQuery(boolean having, Function<DecoratorPhases.Phase3Query<T_ROOT, T_RESULT, CTX>, Predicate> func);
 
-    public M withPredSubquery(boolean having, Function<DecoratorPhases.Phase3Subquery<T_ROOT, T_RESULT, CTX>, Predicate> func);
+    public M withPredSubquery(boolean having, Function<DecoratorPhases.Phase3Subquery<?, T_ROOT, T_RESULT, CTX>, Predicate> func);
 
     public M withDec1(Consumer<DecoratorPhases.Phase1<CTX>> cons);
 
@@ -72,12 +76,12 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
 
     public M withDec3Query(Consumer<DecoratorPhases.Phase3Query<T_ROOT, T_RESULT, CTX>> cons);
 
-    public M withDec3Subquery(Consumer<DecoratorPhases.Phase3Subquery<T_ROOT, T_RESULT, CTX>> cons);
+    public M withDec3Subquery(Consumer<DecoratorPhases.Phase3Subquery<?, T_ROOT, T_RESULT, CTX>> cons);
 
     public M withDec4(Consumer<DecoratorPhases.Phase4<CTX>> cons);
 
     public M withResultModification(Function<List<T_RESULT>, List<T_RESULT>> func);
-    
+
     public <RES> IQueryDecor<T_ROOT, RES, CTX, ?> selecting(
             Class<RES> resClass, Function<DecoratorPhases.Phase2<T_ROOT, CTX>, Expression<RES>> func);
 
@@ -89,13 +93,29 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
 
     public Query buildDeleteOrUpdate(EntityManager em, boolean delete);
 
-    public CriteriaQuery<T_RESULT> decorateQuery(EntityManager em);
+    public DecoratedQueryWithFinalPhase<Phase3Query<T_ROOT, T_RESULT, CTX>, CriteriaQuery<T_RESULT>> decorateQueryRaw(EntityManager em);
 
-    public CriteriaDelete<T_ROOT> decorateDeleteQuery(EntityManager em);
+    public default CriteriaQuery<T_RESULT> decorateQuery(EntityManager em){
+        return decorateQueryRaw(em).query;
+    }
 
-    public CriteriaUpdate<T_ROOT> decorateUpdateQuery(EntityManager em);
+    public DecoratedQueryWithFinalPhase<Phase3Common<T_ROOT, CTX>, CriteriaDelete<T_ROOT>> decorateDeleteQuerRaw(EntityManager em);
 
-    public <PARENT_ROOT> Subquery<T_RESULT> decorateSubquery(EntityManager em, AbstractQuery<PARENT_ROOT> parentQuery);
+    public default CriteriaDelete<T_ROOT> decorateDeleteQuery(EntityManager em) {
+        return decorateDeleteQuerRaw(em).query;
+    }
+
+    public DecoratedQueryWithFinalPhase<Phase3Common<T_ROOT, CTX>, CriteriaUpdate<T_ROOT>> decorateUpdateQueryRaw(EntityManager em);
+
+    public default CriteriaUpdate<T_ROOT> decorateUpdateQuery(EntityManager em) {
+        return decorateUpdateQueryRaw(em).query;
+    }
+
+    public <PARENT_ROOT> DecoratedQueryWithFinalPhase<Phase3Subquery<PARENT_ROOT, T_ROOT, T_RESULT, CTX>, Subquery<T_RESULT>> decorateSubqueryRaw(EntityManager em, AbstractQuery<?> parentQuery, Root<PARENT_ROOT> parentRoot);
+
+    public default <PARENT_ROOT> Subquery<T_RESULT> decorateSubquery(EntityManager em, AbstractQuery<?> parentQuery, Root<PARENT_ROOT> parentRoot) {
+        return decorateSubqueryRaw(em, parentQuery, parentRoot).query;
+    }
 
     public default M withPred(Function<DecoratorPhases.Phase2<T_ROOT, CTX>, Predicate> func) {
         return withPred(false, func);
@@ -109,7 +129,7 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
         return withPredQuery(false, func);
     }
 
-    public default M withPredSubquery(Function<DecoratorPhases.Phase3Subquery<T_ROOT, T_RESULT, CTX>, Predicate> func) {
+    public default M withPredSubquery(Function<DecoratorPhases.Phase3Subquery<?, T_ROOT, T_RESULT, CTX>, Predicate> func) {
         return withPredSubquery(false, func);
     }
 
@@ -182,39 +202,22 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
         return withPred(t -> func.apply(t.cb(), t.root().get(att)));
     }
 
-    public default <RES> M withSubqueryPred(IQueryDecor<T_ROOT, RES, CTX, ?> decor, Function<Subquery<RES>, Predicate> func) {
-        Objects.requireNonNull(decor);
-        Objects.requireNonNull(func);
-
-        return withPredCommon(t -> {
-            Subquery<RES> subquery = t.query().subquery(decor.getResultClass());
-            subquery = decor.decorateSubquery(t.em(), subquery);
-            return func.apply(subquery);
-        });
-    }
-
-    public default <RES> M withSubquery(IQueryDecor<T_ROOT, RES, CTX, ?> decor, Function<DecoratorPhases.Phase3Subquery<T_ROOT, RES, CTX>, Predicate> func) {
+    public default <ROOT, RES> M withSubqueryPred(IQueryDecor<ROOT, RES, CTX, ?> decor, Function<DecoratorPhases.Phase3Subquery<T_ROOT, ROOT, RES, CTX>, Predicate> func) {
         Objects.requireNonNull(decor);
         Objects.requireNonNull(func);
 
         return withPredAny(t -> {
-            AbstractQuery<T_RESULT> query = t.query();
-            Subquery<RES> subquery = query.subquery(decor.getResultClass());
-            subquery = decor.decorateSubquery(t.em(), subquery);
-            DecoratorPhases.Phase3Subquery<T_ROOT, RES, CTX> p3 = DecoratorPhases.of(t.em(), t.cb(), t.root(), subquery, getContext());
-            return func.apply(p3);
+            DecoratedQueryWithFinalPhase<Phase3Subquery<T_ROOT, ROOT, RES, CTX>, Subquery<RES>> raw = decor.decorateSubqueryRaw(t.em(), t.query(), t.root());
+            return func.apply(DecoratorPhases.of(t.em(), t.cb(), t.root(), raw.phase.root(), raw.query, getContext()));
         });
     }
 
-    public default <RES> M withSubquery(IQueryDecor<T_ROOT, RES, CTX, ?> decor, Consumer<DecoratorPhases.Phase3Subquery<T_ROOT, RES, CTX>> cons) {
+    public default <ROOT, RES> M withSubquery(IQueryDecor<ROOT, RES, CTX, ?> decor, Consumer<DecoratorPhases.Phase3Subquery<T_ROOT, ROOT, RES, CTX>> cons) {
         Objects.requireNonNull(decor);
         Objects.requireNonNull(cons);
         return withDec3Any(t -> {
-            AbstractQuery<T_RESULT> query = t.query();
-            Subquery<RES> subquery = query.subquery(decor.getResultClass());
-            subquery = decor.decorateSubquery(t.em(), subquery);
-            DecoratorPhases.Phase3Subquery<T_ROOT, RES, CTX> p3 = DecoratorPhases.of(t.em(), t.cb(), t.root(), subquery, query, getContext());
-            cons.accept(p3);
+            DecoratedQueryWithFinalPhase<Phase3Subquery<T_ROOT, ROOT, RES, CTX>, Subquery<RES>> raw = decor.decorateSubqueryRaw(t.em(), t.query(), t.root());
+            cons.accept(DecoratorPhases.of(t.em(), t.cb(), t.root(), raw.phase.root(), raw.query, getContext()));
         });
     }
 
