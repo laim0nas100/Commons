@@ -33,8 +33,8 @@ public class Fil {
         this.absolutePath = absolutePath;
         this.path = Paths.get(absolutePath);
         map = new LinkedHashMap<>();
-        ReflFields.getRegularFieldsOf(this.getClass())
-                .filter(f -> f.isPublic() && f.isTypeOf(Fil.class) && f.isAnnotationPresent(FileInfo.class))
+        ReflFields.getLocalFields(getClass(),Fil.class)
+                .filter(f -> f.isPublic() && f.isAnnotationPresent(FileInfo.class))
                 .forEachOrdered((IObjectField field) -> {
                     FileInfo fileInfo = field.getAnnotation(FileInfo.class);
                     String fileName = StringUtils.isNotEmpty(fileInfo.value()) ? fileInfo.value() : field.getName();

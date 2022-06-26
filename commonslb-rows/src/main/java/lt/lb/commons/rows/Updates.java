@@ -26,7 +26,7 @@ public abstract class Updates<U extends Updates> implements CloneSupport<U> {
     public final String type;
     public boolean active = true;
     
-    public String getID() {
+    public Object getID() {
         return bindingValue.id;
     }
     
