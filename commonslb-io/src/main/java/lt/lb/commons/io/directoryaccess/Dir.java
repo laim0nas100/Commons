@@ -23,7 +23,7 @@ public class Dir extends Fil {
         return files;
     }
     
-    public static <T extends Fil> T establishDirectory(Class<T> cls, String...paths) {
+    public static <T extends Dir> T establishDirectory(Class<T> cls, String...paths) {
         if(paths.length == 0){
             throw new IllegalArgumentException("No path given");
         }
@@ -32,7 +32,7 @@ public class Dir extends Fil {
         return Checked.uncheckedCall(() -> Fil.create(Paths.get(first, more), cls));
     }
 
-    public static <T extends Fil> T establishDirectory(String absolutePath, Class<T> cls) {
+    public static <T extends Dir> T establishDirectory(String absolutePath, Class<T> cls) {
         return Checked.uncheckedCall(() -> Fil.create(Paths.get(absolutePath), cls));
     }
 
@@ -45,16 +45,16 @@ public class Dir extends Fil {
                 .withEnsuredCloseOperation((UncheckedRunnable) () -> dirStream.close())
                 .toArrayList();
 
-        for (Path path : paths) {
-            String key = FilenameUtils.getName(path.toAbsolutePath().toString());
+        for (Path p : paths) {
+            String key = FilenameUtils.getName(p.toAbsolutePath().toString());
             if (map.containsKey(key)) {
                 continue;
             }
-            if (Files.isDirectory(path)) {
-                Dir newDir = create(path, Dir.class);
+            if (Files.isDirectory(p)) {
+                Dir newDir = create(p, Dir.class);
                 map.put(key, newDir);
             } else {
-                Fil newFil = create(path, Fil.class);
+                Fil newFil = create(p, Fil.class);
                 map.put(key, newFil);
             }
         }
