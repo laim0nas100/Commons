@@ -1,5 +1,6 @@
-package lt.lb.commons.jpa;
+package lt.lb.commons.jpa.tuple;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -10,7 +11,7 @@ import javax.persistence.TupleElement;
  *
  * @author laim0nas100
  */
-public interface CastTuple extends Tuple, Iterator, Iterable {
+public interface CastTuple extends DelegatedTuple, Iterator, Iterable {
 
     public default <X> X getCast(int index) {
         return (X) get(index);
@@ -22,6 +23,10 @@ public interface CastTuple extends Tuple, Iterator, Iterable {
 
     public default <X> X nextCast() {
         return (X) next();
+    }
+    
+    public default List toList(){
+        return Arrays.asList(toArray());
     }
 
     public static CastTuple of(Tuple tuple) {
@@ -39,36 +44,6 @@ public interface CastTuple extends Tuple, Iterator, Iterable {
         }
 
         @Override
-        public <X> X get(TupleElement<X> tupleElement) {
-            return real.get(tupleElement);
-        }
-
-        @Override
-        public <X> X get(String alias, Class<X> type) {
-            return real.get(alias, type);
-        }
-
-        @Override
-        public Object get(String alias) {
-            return real.get(alias);
-        }
-
-        @Override
-        public <X> X get(int i, Class<X> type) {
-            return real.get(i, type);
-        }
-
-        @Override
-        public Object get(int i) {
-            return real.get(i);
-        }
-
-        @Override
-        public Object[] toArray() {
-            return real.toArray();
-        }
-
-        @Override
         public List<TupleElement<?>> getElements() {
             if (elems == null) {
                 elems = real.getElements();
@@ -78,17 +53,17 @@ public interface CastTuple extends Tuple, Iterator, Iterable {
 
         @Override
         public int hashCode() {
-            return real.hashCode();
+            return delegatedTuple().hashCode();
         }
 
         @Override
         public boolean equals(Object obj) {
-            return real.equals(obj);
+            return delegatedTuple().equals(obj);
         }
 
         @Override
         public String toString() {
-            return real.toString();
+            return delegatedTuple().toString();
         }
 
         @Override
@@ -103,7 +78,12 @@ public interface CastTuple extends Tuple, Iterator, Iterable {
 
         @Override
         public Iterator iterator() {
-            return new CastTupleImpl(real);
+            return new CastTupleImpl(delegatedTuple());
+        }
+
+        @Override
+        public Tuple delegatedTuple() {
+            return real;
         }
     }
 }

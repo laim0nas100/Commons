@@ -87,7 +87,7 @@ public class LazyUtil {
 
         public Predicate[] toArray() {
             if (hasItems()) {
-                return preds.toArray(new Predicate[preds.size()]);
+                return preds.toArray(new Predicate[0]);
             }
             return empty;
         }

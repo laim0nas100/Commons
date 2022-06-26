@@ -1,7 +1,6 @@
 package lt.lb.commons.jpa.querydecor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -13,6 +12,7 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.CommonAbstractCriteria;
+import javax.persistence.criteria.CompoundSelection;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
@@ -37,6 +37,7 @@ import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyAdd;
 import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyConsumers;
 import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyInit;
 import static lt.lb.commons.jpa.querydecor.LazyUtil.lazyPredicates;
+import lt.lb.commons.jpa.tuple.TupleProjection;
 
 /**
  *
@@ -76,8 +77,8 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
 
     protected ArrayList<Function<List<T_RESULT>, List<T_RESULT>>> resultProviderModifiers = null;
 
-    protected Function<Phase2<T_ROOT, CTX>, Expression<T_RESULT>> selection = null;
-    protected Function<Phase2<T_ROOT, CTX>, List<Selection<?>>> multiselection = null;
+    protected Function<Phase3Abstract<T_ROOT, T_RESULT, CTX>, ? extends Selection<T_RESULT>> selection = null;
+    protected TupleProjection<T_ROOT> tupleProjection = null;
 
     protected Class<T_ROOT> rootClass;
     protected Class<T_RESULT> resultClass;
@@ -103,9 +104,8 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
             dec4 = lazyInit(copy.dec4);
             resultProviderModifiers = lazyInit(copy.resultProviderModifiers);
             context = copyContext((CTX) copy.context);
-
             selection = copy.selection;
-            multiselection = copy.multiselection;
+            tupleProjection = copy.tupleProjection;
         }
     }
 
@@ -124,7 +124,7 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     }
 
     @Override
-    public CTX getContext() {
+    public CTX ctx() {
         return context;
     }
 
@@ -169,7 +169,10 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
 
     @Override
     public abstract <RES> BaseJpaQueryDecor<T_ROOT, RES, CTX, ?> selecting(
-            Class<RES> resClass, Function<Phase2<T_ROOT, CTX>, Expression<RES>> func);
+            Class<RES> resClass, Function<Phase3Abstract<T_ROOT, RES, CTX>, Selection<RES>> func);
+
+    @Override
+    public abstract <RES extends TupleProjection<T_ROOT>> BaseJpaQueryDecor<T_ROOT, RES, CTX, ?> selectingTupleProjection(RES projection);
 
     @Override
     public <RES> BaseJpaQueryDecor<T_ROOT, RES, CTX, ?> selecting(
@@ -180,31 +183,15 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     }
 
     @Override
-    public abstract BaseJpaQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(Function<Phase2<T_ROOT, CTX>, List<Selection<?>>> selections);
-
-    @Override
-    public BaseJpaQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(List<Selection<?>> selections) {
-        return selectingTuple(p -> selections);
+    public BaseJpaQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(Function<Phase3Abstract<T_ROOT, Tuple, CTX>, CompoundSelection<Tuple>> selection) {
+        Objects.requireNonNull(selection);
+        return selecting(Tuple.class, f -> selection.apply(f));
     }
 
     @Override
-    public BaseJpaQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(Selection<?>... selections) {
-        return selectingTuple(Arrays.asList(selections));
-    }
-
-    @Override
-    public BaseJpaQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(SingularAttribute<? super T_ROOT, ?>... selections) {
-        for (SingularAttribute<? super T_ROOT, ?> att : selections) {
-            Objects.requireNonNull(att);
-        }
-        return selectingTuple(p -> {
-            Root<T_ROOT> root = p.root();
-            List<Selection<?>> sel = new ArrayList<>(selections.length);
-            for (SingularAttribute<? super T_ROOT, ?> att : selections) {
-                sel.add(root.get(att));
-            }
-            return sel;
-        });
+    public <RES> BaseJpaQueryDecor<T_ROOT, RES, CTX, ?> selectingProjection(Class<RES> projection, Function<Phase3Abstract<T_ROOT, RES, CTX>, CompoundSelection<RES>> selection) {
+        Objects.requireNonNull(selection);
+        return selecting(projection, f -> selection.apply(f));
     }
 
     @Override
@@ -370,34 +357,45 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
     /**
      * return last phase
      *
-     * @param <PARENT_RESULT>
      * @param p2
      * @param commonCriteria
+     * @return
+     */
+    protected Phase3Common<T_ROOT, CTX> decorateCommonAbstractCriteria(Phase2<T_ROOT, CTX> p2, CommonAbstractCriteria commonCriteria) {
+        if (commonCriteria == null) {
+            throw new IllegalArgumentException("Supply only commonAbstractCriteria");
+        }
+
+        Phase3Common<T_ROOT, CTX> p3Common = DecoratorPhases.of(p2, commonCriteria);
+        LazyPredAdd predicates = new LazyPredAdd();
+        lazyConsumers(dec2, p2);
+        lazyPredicates(pred2, p2, predicates::add);
+        lazyConsumers(dec3Common, p3Common);
+        lazyPredicates(pred3Common, p3Common, predicates::add);
+
+        if (predicates.hasItems()) {
+            applyWhere(commonCriteria, predicates.toArray());
+        }
+        return p3Common;
+    }
+
+    /**
+     * return last phase
+     *
+     * @param <PARENT_RESULT>
+     * @param p2
      * @param query
      * @param subquery
      * @param parentQuery
      * @param parentRoot
      * @return
      */
-    protected <PARENT_RESULT> Object decorateQuery(Phase2<T_ROOT, CTX> p2, CommonAbstractCriteria commonCriteria, CriteriaQuery<T_RESULT> query, Subquery<T_RESULT> subquery, AbstractQuery<?> parentQuery, Root<PARENT_RESULT> parentRoot) {
-        if (countNonNull(commonCriteria, query, subquery) != 1) {
-            throw new IllegalArgumentException("Supply only one of query,subquery or commonAbstractCriteria");
+    protected <PARENT_RESULT> Phase3Abstract<T_ROOT, T_RESULT, CTX> decorateQuery(Phase2<T_ROOT, CTX> p2, CriteriaQuery<T_RESULT> query, Subquery<T_RESULT> subquery, AbstractQuery<?> parentQuery, Root<PARENT_RESULT> parentRoot) {
+        if (countNonNull(query, subquery) != 1) {
+            throw new IllegalArgumentException("Supply only one of query or subquery");
         }
 
-        if (commonCriteria != null) {
-            Phase3Common<T_ROOT, CTX> p3Common = DecoratorPhases.of(p2, commonCriteria);
-            LazyPredAdd predicates = new LazyPredAdd();
-            lazyConsumers(dec2, p2);
-            lazyPredicates(pred2, p2, predicates::add);
-            lazyConsumers(dec3Common, p3Common);
-            lazyPredicates(pred3Common, p3Common, predicates::add);
-
-            if (predicates.hasItems()) {
-                applyWhere(commonCriteria, predicates.toArray());
-            }
-            return p3Common;
-
-        } else if (query != null || subquery != null) {
+        if (query != null || subquery != null) {
             LazyPredAdd predicates = new LazyPredAdd();
             LazyPredAdd predicatesHaving = new LazyPredAdd();
 
@@ -476,8 +474,8 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         CriteriaDelete<T_ROOT> query = builder.createCriteriaDelete(getRootClass());
         Root<T_ROOT> root = query.from(getRootClass());
         Phase2<T_ROOT, CTX> p2 = DecoratorPhases.of(em, builder, root, getContext());
-        Object phase = decorateQuery(p2, query, null, null, null, null);
-        return new DecoratedQueryWithFinalPhase<>(F.cast(phase),query);
+        Phase3Common<T_ROOT, CTX> phase = decorateCommonAbstractCriteria(p2, query);
+        return new DecoratedQueryWithFinalPhase<>(phase, query);
     }
 
     @Override
@@ -492,8 +490,8 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         CriteriaUpdate<T_ROOT> query = builder.createCriteriaUpdate(getRootClass());
         Root<T_ROOT> root = query.from(getRootClass());
         Phase2<T_ROOT, CTX> p2 = DecoratorPhases.of(em, builder, root, getContext());
-        Object phase = decorateQuery(p2, query, null, null, null, null);
-        return new DecoratedQueryWithFinalPhase<>(F.cast(phase), query);
+        Phase3Common<T_ROOT, CTX> phase = decorateCommonAbstractCriteria(p2, query);
+        return new DecoratedQueryWithFinalPhase<>(phase, query);
     }
 
     @Override
@@ -513,20 +511,23 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         CriteriaQuery<T_RESULT> query = builder.createQuery(getResultClass());
         Root<T_ROOT> root = query.from(getRootClass());
         Phase2<T_ROOT, CTX> p2 = DecoratorPhases.of(em, builder, root, getContext());
-        Object phase = decorateQuery(p2, null, query, null, null, null);
+        Phase3Abstract<T_ROOT, T_RESULT, CTX> phase = decorateQuery(p2, query, null, null, null);
 
-        if (Tuple.class.equals(getResultClass())) {
-            if (multiselection != null) {
-                query.multiselect(multiselection.apply(p2));
+        if (selection != null) {
+            query.select(selection.apply(phase));
+        } else if (tupleProjection != null) {
+            List<Selection<?>> selections = tupleProjection.getAllSelections(phase);
+            if (selections.isEmpty()) {
+                throw new IllegalStateException("No selections specified in tupleProjection");
             }
+            query.multiselect(selections);
+
         } else {
-            if (selection != null) {
-                query.select(selection.apply(p2));
-            }
+            throw new IllegalStateException("No selection specified for query");
         }
-        
-        return new DecoratedQueryWithFinalPhase<>(F.cast(phase),query);
-        
+
+        return new DecoratedQueryWithFinalPhase<>(F.cast(phase), query);
+
     }
 
     @Override
@@ -544,9 +545,20 @@ public abstract class BaseJpaQueryDecor<T_ROOT, T_RESULT, CTX, M extends BaseJpa
         Root<T_ROOT> root = subquery.from(getRootClass());
         Phase2<T_ROOT, CTX> p2 = DecoratorPhases.of(em, builder, root, getContext());
 
-        Object phase = decorateQuery(p2, null, null, subquery, parentQuery, parentRoot);
+        Phase3Abstract<T_ROOT, T_RESULT, CTX> phase = decorateQuery(p2, null, subquery, parentQuery, parentRoot);
         if (selection != null) {
-            subquery.select(selection.apply(p2));
+            Selection<T_RESULT> apply = selection.apply(phase);
+            if (apply instanceof Expression) {
+                subquery.select(F.cast(apply));
+            } else {
+                throw new IllegalArgumentException(apply + " must be an expression to be used as subquery");
+            }
+
+        } else {
+            if (tupleProjection != null) {
+                throw new IllegalStateException("tuple projection is not possible for subquery");
+            }
+            throw new IllegalStateException("No selection specified for subquery");
         }
 
         return new DecoratedQueryWithFinalPhase<>(F.cast(phase), subquery);

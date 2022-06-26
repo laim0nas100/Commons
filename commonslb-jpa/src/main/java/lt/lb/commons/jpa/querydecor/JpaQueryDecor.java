@@ -6,13 +6,15 @@ import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.Tuple;
-import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.CompoundSelection;
 import javax.persistence.criteria.Selection;
 import javax.persistence.metamodel.SingularAttribute;
 import lt.lb.commons.F;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Abstract;
+import lt.lb.commons.jpa.tuple.TupleProjection;
 
 /**
  *
@@ -63,6 +65,7 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     public static <T> JpaQueryDecor<T, T> of(Class<T> root) {
         JpaQueryDecor<T, T> decor = new JpaQueryDecor<>(root, root, null);
         decor.selection = Phase2::root;
+        decor.tupleProjection = null;
         return decor;
     }
 
@@ -82,9 +85,18 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     }
 
     @Override
-    public <RES> JpaQueryDecor<T_ROOT, RES> selecting(Class<RES> resClass, Function<Phase2<T_ROOT, Void>, Expression<RES>> func) {
+    public <RES> JpaQueryDecor<T_ROOT, RES> selecting(Class<RES> resClass, Function<Phase3Abstract<T_ROOT, RES, Void>, Selection<RES>> func) {
         JpaQueryDecor<T_ROOT, RES> of = new JpaQueryDecor<>(rootClass, resClass, this);
         of.selection = func;
+        of.tupleProjection = null;
+        return of;
+    }
+
+    @Override
+    public <RES extends TupleProjection<T_ROOT>> JpaQueryDecor<T_ROOT, RES> selectingTupleProjection(RES projection) {
+        JpaQueryDecor<T_ROOT, RES> of = F.cast(new JpaQueryDecor<>(rootClass, projection.getResultType(), this));
+        of.selection = null;
+        of.tupleProjection = projection;
         return of;
     }
 
@@ -94,20 +106,13 @@ public class JpaQueryDecor<T_ROOT, T_RESULT> extends BaseJpaQueryDecor<T_ROOT, T
     }
 
     @Override
-    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(Function<Phase2<T_ROOT, Void>, List<Selection<?>>> selections) {
-        JpaQueryDecor<T_ROOT, Tuple> of = new JpaQueryDecor<>(rootClass, Tuple.class, this);
-        of.multiselection = selections;
-        return of;
+    public <RES> JpaQueryDecor<T_ROOT, RES> selectingProjection(Class<RES> projection, Function<Phase3Abstract<T_ROOT, RES, Void>, CompoundSelection<RES>> selection) {
+        return F.cast(super.selectingProjection(projection, selection));
     }
 
     @Override
-    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(Selection<?>... selections) {
-        return F.cast(super.selectingTuple(selections));
-    }
-
-    @Override
-    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(List<Selection<?>> selections) {
-        return F.cast(super.selectingTuple(selections));
+    public JpaQueryDecor<T_ROOT, Tuple> selectingTuple(Function<Phase3Abstract<T_ROOT, Tuple, Void>, CompoundSelection<Tuple>> selection) {
+        return F.cast(super.selectingTuple(selection));
     }
 
     @Override

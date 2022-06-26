@@ -34,741 +34,741 @@ import javax.persistence.criteria.Subquery;
  */
 public interface DelegatedCriteriaBuilder extends CriteriaBuilder {
 
-    public CriteriaBuilder delegate();
+    public CriteriaBuilder delegateCB();
 
     @Override
     public default CriteriaQuery<Object> createQuery() {
-        return delegate().createQuery();
+        return delegateCB().createQuery();
     }
 
     @Override
     public default <T> CriteriaQuery<T> createQuery(Class<T> resultClass) {
-        return delegate().createQuery(resultClass);
+        return delegateCB().createQuery(resultClass);
     }
 
     @Override
     public default CriteriaQuery<Tuple> createTupleQuery() {
-        return delegate().createTupleQuery();
+        return delegateCB().createTupleQuery();
     }
 
     @Override
     public default <T> CriteriaUpdate<T> createCriteriaUpdate(Class<T> targetEntity) {
-        return delegate().createCriteriaUpdate(targetEntity);
+        return delegateCB().createCriteriaUpdate(targetEntity);
     }
 
     @Override
     public default <T> CriteriaDelete<T> createCriteriaDelete(Class<T> targetEntity) {
-        return delegate().createCriteriaDelete(targetEntity);
+        return delegateCB().createCriteriaDelete(targetEntity);
     }
 
     @Override
     public default <Y> CompoundSelection<Y> construct(Class<Y> resultClass, Selection<?>... selections) {
-        return delegate().construct(resultClass, selections);
+        return delegateCB().construct(resultClass, selections);
     }
 
     @Override
     public default CompoundSelection<Tuple> tuple(Selection<?>... selections) {
-        return delegate().tuple(selections);
+        return delegateCB().tuple(selections);
     }
 
     @Override
     public default CompoundSelection<Object[]> array(Selection<?>... selections) {
-        return delegate().array(selections);
+        return delegateCB().array(selections);
     }
 
     @Override
     public default Order asc(Expression<?> x) {
-        return delegate().asc(x);
+        return delegateCB().asc(x);
     }
 
     @Override
     public default Order desc(Expression<?> x) {
-        return delegate().desc(x);
+        return delegateCB().desc(x);
     }
 
     @Override
     public default <N extends Number> Expression<Double> avg(Expression<N> x) {
-        return delegate().avg(x);
+        return delegateCB().avg(x);
     }
 
     @Override
     public default <N extends Number> Expression<N> sum(Expression<N> x) {
-        return delegate().sum(x);
+        return delegateCB().sum(x);
     }
 
     @Override
     public default Expression<Long> sumAsLong(Expression<Integer> x) {
-        return delegate().sumAsLong(x);
+        return delegateCB().sumAsLong(x);
     }
 
     @Override
     public default Expression<Double> sumAsDouble(Expression<Float> x) {
-        return delegate().sumAsDouble(x);
+        return delegateCB().sumAsDouble(x);
     }
 
     @Override
     public default <N extends Number> Expression<N> max(Expression<N> x) {
-        return delegate().max(x);
+        return delegateCB().max(x);
     }
 
     @Override
     public default <N extends Number> Expression<N> min(Expression<N> x) {
-        return delegate().min(x);
+        return delegateCB().min(x);
     }
 
     @Override
     public default <X extends Comparable<? super X>> Expression<X> greatest(Expression<X> x) {
-        return delegate().greatest(x);
+        return delegateCB().greatest(x);
     }
 
     @Override
     public default <X extends Comparable<? super X>> Expression<X> least(Expression<X> x) {
-        return delegate().least(x);
+        return delegateCB().least(x);
     }
 
     @Override
     public default Expression<Long> count(Expression<?> x) {
-        return delegate().count(x);
+        return delegateCB().count(x);
     }
 
     @Override
     public default Expression<Long> countDistinct(Expression<?> x) {
-        return delegate().countDistinct(x);
+        return delegateCB().countDistinct(x);
     }
 
     @Override
     public default Predicate exists(Subquery<?> subquery) {
-        return delegate().exists(subquery);
+        return delegateCB().exists(subquery);
     }
 
     @Override
     public default <Y> Expression<Y> all(Subquery<Y> subquery) {
-        return delegate().all(subquery);
+        return delegateCB().all(subquery);
     }
 
     @Override
     public default <Y> Expression<Y> some(Subquery<Y> subquery) {
-        return delegate().some(subquery);
+        return delegateCB().some(subquery);
     }
 
     @Override
     public default <Y> Expression<Y> any(Subquery<Y> subquery) {
-        return delegate().any(subquery);
+        return delegateCB().any(subquery);
     }
 
     @Override
     public default Predicate and(Expression<Boolean> x, Expression<Boolean> y) {
-        return delegate().and(x, y);
+        return delegateCB().and(x, y);
     }
 
     @Override
     public default Predicate and(Predicate... restrictions) {
-        return delegate().and(restrictions);
+        return delegateCB().and(restrictions);
     }
 
     @Override
     public default Predicate or(Expression<Boolean> x, Expression<Boolean> y) {
-        return delegate().or(x, y);
+        return delegateCB().or(x, y);
     }
 
     @Override
     public default Predicate or(Predicate... restrictions) {
-        return delegate().or(restrictions);
+        return delegateCB().or(restrictions);
     }
 
     @Override
     public default Predicate not(Expression<Boolean> restriction) {
-        return delegate().not(restriction);
+        return delegateCB().not(restriction);
     }
 
     @Override
     public default Predicate conjunction() {
-        return delegate().conjunction();
+        return delegateCB().conjunction();
     }
 
     @Override
     public default Predicate disjunction() {
-        return delegate().disjunction();
+        return delegateCB().disjunction();
     }
 
     @Override
     public default Predicate isTrue(Expression<Boolean> x) {
-        return delegate().isTrue(x);
+        return delegateCB().isTrue(x);
     }
 
     @Override
     public default Predicate isFalse(Expression<Boolean> x) {
-        return delegate().isFalse(x);
+        return delegateCB().isFalse(x);
     }
 
     @Override
     public default Predicate isNull(Expression<?> x) {
-        return delegate().isNull(x);
+        return delegateCB().isNull(x);
     }
 
     @Override
     public default Predicate isNotNull(Expression<?> x) {
-        return delegate().isNotNull(x);
+        return delegateCB().isNotNull(x);
     }
 
     @Override
     public default Predicate equal(Expression<?> x, Expression<?> y) {
-        return delegate().equal(x, y);
+        return delegateCB().equal(x, y);
     }
 
     @Override
     public default Predicate equal(Expression<?> x, Object y) {
-        return delegate().equal(x, y);
+        return delegateCB().equal(x, y);
     }
 
     @Override
     public default Predicate notEqual(Expression<?> x, Expression<?> y) {
-        return delegate().notEqual(x, y);
+        return delegateCB().notEqual(x, y);
     }
 
     @Override
     public default Predicate notEqual(Expression<?> x, Object y) {
-        return delegate().notEqual(x, y);
+        return delegateCB().notEqual(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate greaterThan(Expression<? extends Y> x, Expression<? extends Y> y) {
-        return delegate().greaterThan(x, y);
+        return delegateCB().greaterThan(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate greaterThan(Expression<? extends Y> x, Y y) {
-        return delegate().greaterThan(x, y);
+        return delegateCB().greaterThan(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate greaterThanOrEqualTo(Expression<? extends Y> x, Expression<? extends Y> y) {
-        return delegate().greaterThanOrEqualTo(x, y);
+        return delegateCB().greaterThanOrEqualTo(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate greaterThanOrEqualTo(Expression<? extends Y> x, Y y) {
-        return delegate().greaterThanOrEqualTo(x, y);
+        return delegateCB().greaterThanOrEqualTo(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate lessThan(Expression<? extends Y> x, Expression<? extends Y> y) {
-        return delegate().lessThan(x, y);
+        return delegateCB().lessThan(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate lessThan(Expression<? extends Y> x, Y y) {
-        return delegate().lessThan(x, y);
+        return delegateCB().lessThan(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate lessThanOrEqualTo(Expression<? extends Y> x, Expression<? extends Y> y) {
-        return delegate().lessThanOrEqualTo(x, y);
+        return delegateCB().lessThanOrEqualTo(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate lessThanOrEqualTo(Expression<? extends Y> x, Y y) {
-        return delegate().lessThanOrEqualTo(x, y);
+        return delegateCB().lessThanOrEqualTo(x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate between(Expression<? extends Y> v, Expression<? extends Y> x, Expression<? extends Y> y) {
-        return delegate().between(v, x, y);
+        return delegateCB().between(v, x, y);
     }
 
     @Override
     public default <Y extends Comparable<? super Y>> Predicate between(Expression<? extends Y> v, Y x, Y y) {
-        return delegate().between(v, x, y);
+        return delegateCB().between(v, x, y);
     }
 
     @Override
     public default Predicate gt(Expression<? extends Number> x, Expression<? extends Number> y) {
-        return delegate().gt(x, y);
+        return delegateCB().gt(x, y);
     }
 
     @Override
     public default Predicate gt(Expression<? extends Number> x, Number y) {
-        return delegate().gt(x, y);
+        return delegateCB().gt(x, y);
     }
 
     @Override
     public default Predicate ge(Expression<? extends Number> x, Expression<? extends Number> y) {
-        return delegate().ge(x, y);
+        return delegateCB().ge(x, y);
     }
 
     @Override
     public default Predicate ge(Expression<? extends Number> x, Number y) {
-        return delegate().ge(x, y);
+        return delegateCB().ge(x, y);
     }
 
     @Override
     public default Predicate lt(Expression<? extends Number> x, Expression<? extends Number> y) {
-        return delegate().lt(x, y);
+        return delegateCB().lt(x, y);
     }
 
     @Override
     public default Predicate lt(Expression<? extends Number> x, Number y) {
-        return delegate().lt(x, y);
+        return delegateCB().lt(x, y);
     }
 
     @Override
     public default Predicate le(Expression<? extends Number> x, Expression<? extends Number> y) {
-        return delegate().le(x, y);
+        return delegateCB().le(x, y);
     }
 
     @Override
     public default Predicate le(Expression<? extends Number> x, Number y) {
-        return delegate().le(x, y);
+        return delegateCB().le(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> neg(Expression<N> x) {
-        return delegate().neg(x);
+        return delegateCB().neg(x);
     }
 
     @Override
     public default <N extends Number> Expression<N> abs(Expression<N> x) {
-        return delegate().abs(x);
+        return delegateCB().abs(x);
     }
 
     @Override
     public default <N extends Number> Expression<N> sum(Expression<? extends N> x, Expression<? extends N> y) {
-        return delegate().sum(x, y);
+        return delegateCB().sum(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> sum(Expression<? extends N> x, N y) {
-        return delegate().sum(x, y);
+        return delegateCB().sum(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> sum(N x, Expression<? extends N> y) {
-        return delegate().sum(x, y);
+        return delegateCB().sum(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> prod(Expression<? extends N> x, Expression<? extends N> y) {
-        return delegate().prod(x, y);
+        return delegateCB().prod(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> prod(Expression<? extends N> x, N y) {
-        return delegate().prod(x, y);
+        return delegateCB().prod(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> prod(N x, Expression<? extends N> y) {
-        return delegate().prod(x, y);
+        return delegateCB().prod(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> diff(Expression<? extends N> x, Expression<? extends N> y) {
-        return delegate().diff(x, y);
+        return delegateCB().diff(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> diff(Expression<? extends N> x, N y) {
-        return delegate().diff(x, y);
+        return delegateCB().diff(x, y);
     }
 
     @Override
     public default <N extends Number> Expression<N> diff(N x, Expression<? extends N> y) {
-        return delegate().diff(x, y);
+        return delegateCB().diff(x, y);
     }
 
     @Override
     public default Expression<Number> quot(Expression<? extends Number> x, Expression<? extends Number> y) {
-        return delegate().quot(x, y);
+        return delegateCB().quot(x, y);
     }
 
     @Override
     public default Expression<Number> quot(Expression<? extends Number> x, Number y) {
-        return delegate().quot(x, y);
+        return delegateCB().quot(x, y);
     }
 
     @Override
     public default Expression<Number> quot(Number x, Expression<? extends Number> y) {
-        return delegate().quot(x, y);
+        return delegateCB().quot(x, y);
     }
 
     @Override
     public default Expression<Integer> mod(Expression<Integer> x, Expression<Integer> y) {
-        return delegate().mod(x, y);
+        return delegateCB().mod(x, y);
     }
 
     @Override
     public default Expression<Integer> mod(Expression<Integer> x, Integer y) {
-        return delegate().mod(x, y);
+        return delegateCB().mod(x, y);
     }
 
     @Override
     public default Expression<Integer> mod(Integer x, Expression<Integer> y) {
-        return delegate().mod(x, y);
+        return delegateCB().mod(x, y);
     }
 
     @Override
     public default Expression<Double> sqrt(Expression<? extends Number> x) {
-        return delegate().sqrt(x);
+        return delegateCB().sqrt(x);
     }
 
     @Override
     public default Expression<Long> toLong(Expression<? extends Number> number) {
-        return delegate().toLong(number);
+        return delegateCB().toLong(number);
     }
 
     @Override
     public default Expression<Integer> toInteger(Expression<? extends Number> number) {
-        return delegate().toInteger(number);
+        return delegateCB().toInteger(number);
     }
 
     @Override
     public default Expression<Float> toFloat(Expression<? extends Number> number) {
-        return delegate().toFloat(number);
+        return delegateCB().toFloat(number);
     }
 
     @Override
     public default Expression<Double> toDouble(Expression<? extends Number> number) {
-        return delegate().toDouble(number);
+        return delegateCB().toDouble(number);
     }
 
     @Override
     public default Expression<BigDecimal> toBigDecimal(Expression<? extends Number> number) {
-        return delegate().toBigDecimal(number);
+        return delegateCB().toBigDecimal(number);
     }
 
     @Override
     public default Expression<BigInteger> toBigInteger(Expression<? extends Number> number) {
-        return delegate().toBigInteger(number);
+        return delegateCB().toBigInteger(number);
     }
 
     @Override
     public default Expression<String> toString(Expression<Character> character) {
-        return delegate().toString(character);
+        return delegateCB().toString(character);
     }
 
     @Override
     public default <T> Expression<T> literal(T value) {
-        return delegate().literal(value);
+        return delegateCB().literal(value);
     }
 
     @Override
     public default <T> Expression<T> nullLiteral(Class<T> resultClass) {
-        return delegate().nullLiteral(resultClass);
+        return delegateCB().nullLiteral(resultClass);
     }
 
     @Override
     public default <T> ParameterExpression<T> parameter(Class<T> paramClass) {
-        return delegate().parameter(paramClass);
+        return delegateCB().parameter(paramClass);
     }
 
     @Override
     public default <T> ParameterExpression<T> parameter(Class<T> paramClass, String name) {
-        return delegate().parameter(paramClass, name);
+        return delegateCB().parameter(paramClass, name);
     }
 
     @Override
     public default <C extends Collection<?>> Predicate isEmpty(Expression<C> collection) {
-        return delegate().isEmpty(collection);
+        return delegateCB().isEmpty(collection);
     }
 
     @Override
     public default <C extends Collection<?>> Predicate isNotEmpty(Expression<C> collection) {
-        return delegate().isNotEmpty(collection);
+        return delegateCB().isNotEmpty(collection);
     }
 
     @Override
     public default <C extends Collection<?>> Expression<Integer> size(Expression<C> collection) {
-        return delegate().size(collection);
+        return delegateCB().size(collection);
     }
 
     @Override
     public default <C extends Collection<?>> Expression<Integer> size(C collection) {
-        return delegate().size(collection);
+        return delegateCB().size(collection);
     }
 
     @Override
     public default <E, C extends Collection<E>> Predicate isMember(Expression<E> elem, Expression<C> collection) {
-        return delegate().isMember(elem, collection);
+        return delegateCB().isMember(elem, collection);
     }
 
     @Override
     public default <E, C extends Collection<E>> Predicate isMember(E elem, Expression<C> collection) {
-        return delegate().isMember(elem, collection);
+        return delegateCB().isMember(elem, collection);
     }
 
     @Override
     public default <E, C extends Collection<E>> Predicate isNotMember(Expression<E> elem, Expression<C> collection) {
-        return delegate().isNotMember(elem, collection);
+        return delegateCB().isNotMember(elem, collection);
     }
 
     @Override
     public default <E, C extends Collection<E>> Predicate isNotMember(E elem, Expression<C> collection) {
-        return delegate().isNotMember(elem, collection);
+        return delegateCB().isNotMember(elem, collection);
     }
 
     @Override
     public default <V, M extends Map<?, V>> Expression<Collection<V>> values(M map) {
-        return delegate().values(map);
+        return delegateCB().values(map);
     }
 
     @Override
     public default <K, M extends Map<K, ?>> Expression<Set<K>> keys(M map) {
-        return delegate().keys(map);
+        return delegateCB().keys(map);
     }
 
     @Override
     public default Predicate like(Expression<String> x, Expression<String> pattern) {
-        return delegate().like(x, pattern);
+        return delegateCB().like(x, pattern);
     }
 
     @Override
     public default Predicate like(Expression<String> x, String pattern) {
-        return delegate().like(x, pattern);
+        return delegateCB().like(x, pattern);
     }
 
     @Override
     public default Predicate like(Expression<String> x, Expression<String> pattern, Expression<Character> escapeChar) {
-        return delegate().like(x, pattern, escapeChar);
+        return delegateCB().like(x, pattern, escapeChar);
     }
 
     @Override
     public default Predicate like(Expression<String> x, Expression<String> pattern, char escapeChar) {
-        return delegate().like(x, pattern, escapeChar);
+        return delegateCB().like(x, pattern, escapeChar);
     }
 
     @Override
     public default Predicate like(Expression<String> x, String pattern, Expression<Character> escapeChar) {
-        return delegate().like(x, pattern, escapeChar);
+        return delegateCB().like(x, pattern, escapeChar);
     }
 
     @Override
     public default Predicate like(Expression<String> x, String pattern, char escapeChar) {
-        return delegate().like(x, pattern, escapeChar);
+        return delegateCB().like(x, pattern, escapeChar);
     }
 
     @Override
     public default Predicate notLike(Expression<String> x, Expression<String> pattern) {
-        return delegate().notLike(x, pattern);
+        return delegateCB().notLike(x, pattern);
     }
 
     @Override
     public default Predicate notLike(Expression<String> x, String pattern) {
-        return delegate().notLike(x, pattern);
+        return delegateCB().notLike(x, pattern);
     }
 
     @Override
     public default Predicate notLike(Expression<String> x, Expression<String> pattern, Expression<Character> escapeChar) {
-        return delegate().notLike(x, pattern, escapeChar);
+        return delegateCB().notLike(x, pattern, escapeChar);
     }
 
     @Override
     public default Predicate notLike(Expression<String> x, Expression<String> pattern, char escapeChar) {
-        return delegate().notLike(x, pattern, escapeChar);
+        return delegateCB().notLike(x, pattern, escapeChar);
     }
 
     @Override
     public default Predicate notLike(Expression<String> x, String pattern, Expression<Character> escapeChar) {
-        return delegate().notLike(x, pattern, escapeChar);
+        return delegateCB().notLike(x, pattern, escapeChar);
     }
 
     @Override
     public default Predicate notLike(Expression<String> x, String pattern, char escapeChar) {
-        return delegate().notLike(x, pattern, escapeChar);
+        return delegateCB().notLike(x, pattern, escapeChar);
     }
 
     @Override
     public default Expression<String> concat(Expression<String> x, Expression<String> y) {
-        return delegate().concat(x, y);
+        return delegateCB().concat(x, y);
     }
 
     @Override
     public default Expression<String> concat(Expression<String> x, String y) {
-        return delegate().concat(x, y);
+        return delegateCB().concat(x, y);
     }
 
     @Override
     public default Expression<String> concat(String x, Expression<String> y) {
-        return delegate().concat(x, y);
+        return delegateCB().concat(x, y);
     }
 
     @Override
     public default Expression<String> substring(Expression<String> x, Expression<Integer> from) {
-        return delegate().substring(x, from);
+        return delegateCB().substring(x, from);
     }
 
     @Override
     public default Expression<String> substring(Expression<String> x, int from) {
-        return delegate().substring(x, from);
+        return delegateCB().substring(x, from);
     }
 
     @Override
     public default Expression<String> substring(Expression<String> x, Expression<Integer> from, Expression<Integer> len) {
-        return delegate().substring(x, from, len);
+        return delegateCB().substring(x, from, len);
     }
 
     @Override
     public default Expression<String> substring(Expression<String> x, int from, int len) {
-        return delegate().substring(x, from, len);
+        return delegateCB().substring(x, from, len);
     }
 
     @Override
     public default Expression<String> trim(Expression<String> x) {
-        return delegate().trim(x);
+        return delegateCB().trim(x);
     }
 
     @Override
     public default Expression<String> trim(Trimspec ts, Expression<String> x) {
-        return delegate().trim(ts, x);
+        return delegateCB().trim(ts, x);
     }
 
     @Override
     public default Expression<String> trim(Expression<Character> t, Expression<String> x) {
-        return delegate().trim(t, x);
+        return delegateCB().trim(t, x);
     }
 
     @Override
     public default Expression<String> trim(Trimspec ts, Expression<Character> t, Expression<String> x) {
-        return delegate().trim(ts, t, x);
+        return delegateCB().trim(ts, t, x);
     }
 
     @Override
     public default Expression<String> trim(char t, Expression<String> x) {
-        return delegate().trim(t, x);
+        return delegateCB().trim(t, x);
     }
 
     @Override
     public default Expression<String> trim(Trimspec ts, char t, Expression<String> x) {
-        return delegate().trim(ts, t, x);
+        return delegateCB().trim(ts, t, x);
     }
 
     @Override
     public default Expression<String> lower(Expression<String> x) {
-        return delegate().lower(x);
+        return delegateCB().lower(x);
     }
 
     @Override
     public default Expression<String> upper(Expression<String> x) {
-        return delegate().upper(x);
+        return delegateCB().upper(x);
     }
 
     @Override
     public default Expression<Integer> length(Expression<String> x) {
-        return delegate().length(x);
+        return delegateCB().length(x);
     }
 
     @Override
     public default Expression<Integer> locate(Expression<String> x, Expression<String> pattern) {
-        return delegate().locate(x, pattern);
+        return delegateCB().locate(x, pattern);
     }
 
     @Override
     public default Expression<Integer> locate(Expression<String> x, String pattern) {
-        return delegate().locate(x, pattern);
+        return delegateCB().locate(x, pattern);
     }
 
     @Override
     public default Expression<Integer> locate(Expression<String> x, Expression<String> pattern, Expression<Integer> from) {
-        return delegate().locate(x, pattern, from);
+        return delegateCB().locate(x, pattern, from);
     }
 
     @Override
     public default Expression<Integer> locate(Expression<String> x, String pattern, int from) {
-        return delegate().locate(x, pattern, from);
+        return delegateCB().locate(x, pattern, from);
     }
 
     @Override
     public default Expression<Date> currentDate() {
-        return delegate().currentDate();
+        return delegateCB().currentDate();
     }
 
     @Override
     public default Expression<Timestamp> currentTimestamp() {
-        return delegate().currentTimestamp();
+        return delegateCB().currentTimestamp();
     }
 
     @Override
     public default Expression<Time> currentTime() {
-        return delegate().currentTime();
+        return delegateCB().currentTime();
     }
 
     @Override
     public default <T> In<T> in(Expression<? extends T> expression) {
-        return delegate().in(expression);
+        return delegateCB().in(expression);
     }
 
     @Override
     public default <Y> Expression<Y> coalesce(Expression<? extends Y> x, Expression<? extends Y> y) {
-        return delegate().coalesce(x, y);
+        return delegateCB().coalesce(x, y);
     }
 
     @Override
     public default <Y> Expression<Y> coalesce(Expression<? extends Y> x, Y y) {
-        return delegate().coalesce(x, y);
+        return delegateCB().coalesce(x, y);
     }
 
     @Override
     public default <Y> Expression<Y> nullif(Expression<Y> x, Expression<?> y) {
-        return delegate().nullif(x, y);
+        return delegateCB().nullif(x, y);
     }
 
     @Override
     public default <Y> Expression<Y> nullif(Expression<Y> x, Y y) {
-        return delegate().nullif(x, y);
+        return delegateCB().nullif(x, y);
     }
 
     @Override
     public default <T> Coalesce<T> coalesce() {
-        return delegate().coalesce();
+        return delegateCB().coalesce();
     }
 
     @Override
     public default <C, R> SimpleCase<C, R> selectCase(Expression<? extends C> expression) {
-        return delegate().selectCase(expression);
+        return delegateCB().selectCase(expression);
     }
 
     @Override
     public default <R> Case<R> selectCase() {
-        return delegate().selectCase();
+        return delegateCB().selectCase();
     }
 
     @Override
     public default <T> Expression<T> function(String name, Class<T> type, Expression<?>... args) {
-        return delegate().function(name, type, args);
+        return delegateCB().function(name, type, args);
     }
 
     @Override
     public default <X, T, V extends T> Join<X, V> treat(Join<X, T> join, Class<V> type) {
-        return delegate().treat(join, type);
+        return delegateCB().treat(join, type);
     }
 
     @Override
     public default <X, T, E extends T> CollectionJoin<X, E> treat(CollectionJoin<X, T> join, Class<E> type) {
-        return delegate().treat(join, type);
+        return delegateCB().treat(join, type);
     }
 
     @Override
     public default <X, T, E extends T> SetJoin<X, E> treat(SetJoin<X, T> join, Class<E> type) {
-        return delegate().treat(join, type);
+        return delegateCB().treat(join, type);
     }
 
     @Override
     public default <X, T, E extends T> ListJoin<X, E> treat(ListJoin<X, T> join, Class<E> type) {
-        return delegate().treat(join, type);
+        return delegateCB().treat(join, type);
     }
 
     @Override
     public default <X, K, T, V extends T> MapJoin<X, K, V> treat(MapJoin<X, K, T> join, Class<V> type) {
-        return delegate().treat(join, type);
+        return delegateCB().treat(join, type);
     }
 
     @Override
     public default <X, T extends X> Path<T> treat(Path<X> path, Class<T> type) {
-        return delegate().treat(path, type);
+        return delegateCB().treat(path, type);
     }
 
     @Override
     public default <X, T extends X> Root<T> treat(Root<X> root, Class<T> type) {
-        return delegate().treat(root, type);
+        return delegateCB().treat(root, type);
     }
 
 }

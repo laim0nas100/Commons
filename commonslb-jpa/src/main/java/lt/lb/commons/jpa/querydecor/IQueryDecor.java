@@ -1,7 +1,5 @@
 package lt.lb.commons.jpa.querydecor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -19,12 +17,14 @@ import javax.persistence.Query;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.AbstractQuery;
+import javax.persistence.criteria.CompoundSelection;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
@@ -32,10 +32,14 @@ import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.MapAttribute;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
+import lt.lb.commons.F;
+import lt.lb.commons.Nulls;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.DecoratedQueryWithFinalPhase;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Common;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Query;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Subquery;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.WithContext;
+import lt.lb.commons.jpa.tuple.TupleProjection;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
 
@@ -46,7 +50,7 @@ import lt.lb.uncheckedutils.func.UncheckedFunction;
  * @param <M> implementation
  * @author laim0nas100
  */
-public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT, T_RESULT, CTX, M>> {
+public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT, T_RESULT, CTX, M>> extends WithContext<CTX> {
 
     public abstract <NEW_ROOT extends T_ROOT> IQueryDecor<NEW_ROOT, T_RESULT, CTX, ?> usingSubtype(Class<NEW_ROOT> subtype);
 
@@ -54,8 +58,10 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
 
     public Class<T_RESULT> getResultClass();
 
-    public CTX getContext();
-
+    public default CTX getContext(){
+        return ctx();
+    }
+    
     public M withPred(boolean having, Function<DecoratorPhases.Phase2<T_ROOT, CTX>, Predicate> func);
 
     public M withPredCommon(Function<DecoratorPhases.Phase3Common<T_ROOT, CTX>, Predicate> func);
@@ -83,10 +89,14 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
     public M withResultModification(Function<List<T_RESULT>, List<T_RESULT>> func);
 
     public <RES> IQueryDecor<T_ROOT, RES, CTX, ?> selecting(
-            Class<RES> resClass, Function<DecoratorPhases.Phase2<T_ROOT, CTX>, Expression<RES>> func);
+            Class<RES> resClass, Function<DecoratorPhases.Phase3Abstract<T_ROOT, RES, CTX>, Selection<RES>> func);
 
-    public IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(Function<DecoratorPhases.Phase2<T_ROOT, CTX>, List<Selection<?>>> selections);
+    public IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(Function<DecoratorPhases.Phase3Abstract<T_ROOT, Tuple, CTX>, CompoundSelection<Tuple>> selection);
 
+    public <RES> IQueryDecor<T_ROOT, RES, CTX, ?> selectingProjection(Class<RES> projection, Function<DecoratorPhases.Phase3Abstract<T_ROOT, RES, CTX>, CompoundSelection<RES>> selection);
+
+    public <RES extends TupleProjection<T_ROOT>> IQueryDecor<T_ROOT, RES, CTX, ?> selectingTupleProjection(RES projection);
+    
     public TypedQuery<T_RESULT> build(EntityManager em);
 
     public JpaQueryResultProvider<T_RESULT> buildResult(EntityManager em);
@@ -95,7 +105,7 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
 
     public DecoratedQueryWithFinalPhase<Phase3Query<T_ROOT, T_RESULT, CTX>, CriteriaQuery<T_RESULT>> decorateQueryRaw(EntityManager em);
 
-    public default CriteriaQuery<T_RESULT> decorateQuery(EntityManager em){
+    public default CriteriaQuery<T_RESULT> decorateQuery(EntityManager em) {
         return decorateQueryRaw(em).query;
     }
 
@@ -144,25 +154,39 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
         return selecting(res, p -> p.root().get(att));
     }
 
-    public default IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(List<Selection<?>> selections) {
-        return selectingTuple(p -> selections);
-    }
-
-    public default IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(Selection<?>... selections) {
-        return selectingTuple(Arrays.asList(selections));
-    }
-
     public default IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(SingularAttribute<? super T_ROOT, ?>... selections) {
-        for (SingularAttribute<? super T_ROOT, ?> att : selections) {
-            Objects.requireNonNull(att);
-        }
+        Nulls.requireNonNulls((Object[]) selections);
+        return selectingTuple(p -> {
+             Root<T_ROOT> root = p.root();
+            Selection[] selArray = new Selection[selections.length];
+            for (int i = 0; i < selections.length; i++) {
+                selArray[i] = root.get(selections[i]);
+            }
+            return p.cb().tuple(selArray);
+        });
+    }
+
+    public default IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(JpaExpResolve<? super T_ROOT, ?, ?, ?, CTX>... selections) {
+        Nulls.requireNonNulls((Object[]) selections);
         return selectingTuple(p -> {
             Root<T_ROOT> root = p.root();
-            List<Selection<?>> sel = new ArrayList<>(selections.length);
-            for (SingularAttribute<? super T_ROOT, ?> att : selections) {
-                sel.add(root.get(att));
+            Selection[] selArray = new Selection[selections.length];
+            for (int i = 0; i < selections.length; i++) {
+                selArray[i] = selections[i].resolve(p,F.cast(root));
             }
-            return sel;
+            return p.cb().tuple(selArray);
+        });
+    }
+
+    public default <RES> IQueryDecor<T_ROOT, RES, CTX, ?> selectingProjection(Class<RES> projection, SingularAttribute<? super T_ROOT, ?>... selections) {
+        Nulls.requireNonNulls((Object[]) selections);
+        return selectingProjection(projection, p -> {
+            Root<T_ROOT> root = p.root();
+            Selection[] selArray = new Selection[selections.length];
+            for (int i = 0; i < selections.length; i++) {
+                selArray[i] = root.get(selections[i]);
+            }
+            return p.cb().construct(projection,selArray);
         });
     }
 
@@ -224,11 +248,22 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
     public default M setDistinct(final boolean distinct) {
         return withDec3Any(c -> c.query().distinct(distinct));
     }
+    
+    public default M setOrderBy(boolean asc, JpaExpResolve<? super T_ROOT,?, ? extends Path<T_ROOT>,?, CTX>... att) {
+        Nulls.requireNonNulls((Object[]) att);
+        return withDec3Query(c -> {
+            CriteriaBuilder cb = c.cb();
+            Root<T_ROOT> root = c.root();
+            Order[] order = Stream.of(att)
+                    .map(at -> at.resolve(c,F.cast(root)))
+                    .map(m -> asc ? cb.asc(m) : cb.desc(m))
+                    .toArray(s -> new Order[s]);
+            c.query().orderBy(order);
+        });
+    }
 
     public default M setOrderBy(boolean asc, SingularAttribute<? super T_ROOT, ?>... att) {
-        for (SingularAttribute attribute : att) {
-            Objects.requireNonNull(attribute);
-        }
+        Nulls.requireNonNulls((Object[]) att);
         return withDec3Query(c -> {
             CriteriaBuilder cb = c.cb();
             Root<T_ROOT> root = c.root();

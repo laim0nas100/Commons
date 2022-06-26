@@ -8,8 +8,13 @@ import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.CommonAbstractCriteria;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+import lt.lb.commons.jpa.provider.CriteriaBuilderProvider;
+import lt.lb.commons.jpa.provider.CriteriaQueryProvider;
+import lt.lb.commons.jpa.provider.EntityManagerProvider;
 import lt.lb.commons.jpa.querydecor.LazyUtil.HiddenTypedQuery;
 
 /**
@@ -23,6 +28,7 @@ import lt.lb.commons.jpa.querydecor.LazyUtil.HiddenTypedQuery;
 public interface DecoratorPhases {
 
     public static class DecoratedQueryWithFinalPhase<P extends Phase2, Q extends CommonAbstractCriteria> {
+
         public final P phase;
         public final Q query;
 
@@ -333,20 +339,62 @@ public interface DecoratorPhases {
         public CTX ctx();
     }
 
-    public static interface WithEm<CTX> extends WithContext<CTX> {
-
-        public EntityManager em();
-    }
-
-    public static interface Phase1<CTX> extends WithEm<CTX> {
+    public static interface Phase1<CTX> extends WithContext<CTX>, EntityManagerProvider, CriteriaBuilderProvider {
 
         public CriteriaBuilder cb();
 
+        @Override
+        public default CriteriaBuilder getCriteriaBuilder() {
+            return cb();
+        }
+
+        public EntityManager em();
+
+        @Override
+        public default EntityManager getEntityManager() {
+            return em();
+        }
+
     }
 
-    public static interface Phase2<T, CTX> extends Phase1<CTX> {
+    public static interface PathContext<T, P extends Expression<T>, CTX> extends Phase1<CTX> {
+
+        public P path();
+
+        public default <R, E extends Expression<R>> PathContext<R, E, CTX> withPath(E newPath) {
+            PathContext<T, P, CTX> me = this;
+            return new PathContext<R, E, CTX>() {
+                @Override
+                public E path() {
+                    return newPath;
+                }
+
+                @Override
+                public CriteriaBuilder cb() {
+                    return me.cb();
+                }
+
+                @Override
+                public EntityManager em() {
+                    return me.em();
+                }
+
+                @Override
+                public CTX ctx() {
+                    return me.ctx();
+                }
+            };
+        }
+    }
+
+    public static interface Phase2<T, CTX> extends Phase1<CTX>, PathContext<T,Root<T>, CTX> {
 
         public Root<T> root();
+
+        @Override
+        public default Root<T> path() {
+            return root();
+        }
     }
 
     public static interface Phase3Common<T, CTX> extends Phase2<T, CTX> {
@@ -369,10 +417,15 @@ public interface DecoratorPhases {
         }
     }
 
-    public static interface Phase3Query<T, R, CTX> extends Phase3Abstract<T, R, CTX> {
+    public static interface Phase3Query<T, R, CTX> extends Phase3Abstract<T, R, CTX>, CriteriaQueryProvider<R> {
 
         @Override
         public CriteriaQuery<R> query();
+
+        @Override
+        public default CriteriaQuery<R> getCriteriaQuery() {
+            return query();
+        }
     }
 
     public static interface Phase3Subquery<P, T, R, CTX> extends Phase3Abstract<T, R, CTX> {
@@ -403,9 +456,16 @@ public interface DecoratorPhases {
         public Subquery<R> query();
     }
 
-    public static interface Phase4<CTX> extends WithEm<CTX> {
+    public static interface Phase4<CTX> extends EntityManagerProvider, WithContext<CTX> {
 
         public Query query();
+
+        public EntityManager em();
+
+        @Override
+        public default EntityManager getEntityManager() {
+            return em();
+        }
 
     }
 
