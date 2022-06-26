@@ -10,16 +10,18 @@ import lt.lb.commons.iteration.streams.SimpleStream;
  */
 public abstract class ReflFields extends ReflBase {
 
-    public static <S, T> SimpleStream<IField<S, T>> getFieldsOf(Class<S> cls) {
-        return doClassSuperIterationStream(cls, n -> Stream.of(n.getDeclaredFields()))
+    public static <S, T> SimpleStream<IField<S, T>> getFields(Class<S> cls) {
+        Nulls.requireNonNulls(cls);
+        return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
                 .map(field -> {
                     return (IField<S, T>) () -> field;
                 });
 
     }
 
-    public static <S, T> SimpleStream<IObjectField<S, T>> getRegularFieldsOf(Class<S> cls) {
-        return doClassSuperIterationStream(cls, n -> Stream.of(n.getDeclaredFields()))
+    public static <S, T> SimpleStream<IObjectField<S, T>> getLocalFields(Class<S> cls) {
+        Nulls.requireNonNulls(cls);
+        return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
                 .map(field -> {
                     return (IObjectField<S, T>) () -> field;
                 })
@@ -27,23 +29,41 @@ public abstract class ReflFields extends ReflBase {
 
     }
 
-    public static <S, T> SimpleStream<IStaticField<S, T>> getStaticFieldsOf(Class<S> cls) {
-        return doClassSuperIterationStream(cls, n -> Stream.of(n.getDeclaredFields()))
+    public static <S, T> SimpleStream<IObjectField<S, T>> getLocalFields(Class<S> cls, Class<T> type) {
+        Nulls.requireNonNulls(cls, type);
+        return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
+                .map(field -> {
+                    return (IObjectField<S, T>) () -> field;
+                })
+                .filter(f -> f.isNotStatic() && f.isTypeOf(type));
+
+    }
+
+    public static <S, T> SimpleStream<IStaticField<S, T>> getStaticFields(Class<S> cls) {
+        Nulls.requireNonNulls(cls);
+        return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
+                .<IStaticField<S, T>>map(field -> () -> field)
+                .filter(f -> f.isStatic());
+
+    }
+
+    public static <S, T> SimpleStream<IStaticField<S, T>> getStaticFields(Class<S> cls, Class<T> type) {
+        Nulls.requireNonNulls(cls, type);
+        return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
                 .map(field -> {
                     return (IStaticField<S, T>) () -> field;
                 })
-                .filter(f -> f.isStatic());
+                .filter(f -> f.isStatic() && f.isTypeOf(type));
 
     }
 
     public static <S, T> SimpleStream<IStaticField<S, T>> getConstantFields(Class<S> sourceClass, Class<T> typeClass) {
         Nulls.requireNonNulls(sourceClass, typeClass);
-        return doClassSuperIterationStream(sourceClass, n -> Stream.of(n.getDeclaredFields()))
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredFields()))
                 .map(field -> {
                     return (IStaticField<S, T>) () -> field;
                 })
-                .filter(f -> f.isStatic() && f.isFinal())
-                .filter(f -> f.isTypeOf(typeClass));
+                .filter(f -> f.isStatic() && f.isFinal() && f.isTypeOf(typeClass));
 
     }
 

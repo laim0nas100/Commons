@@ -1,5 +1,6 @@
 package lt.lb.commons.containers.collections;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -13,6 +14,28 @@ public class MapBuilder<K, V, M extends Map<K, V>> {
 
     public MapBuilder(M map) {
         this.map = Objects.requireNonNull(map);
+    }
+    
+    public MapBuilder<K,V,M> putAll(List<K> keys, List<V> values){
+        int size = keys.size();
+        if(size != values.size()){
+            throw new IllegalArgumentException("Keys size does not correspond to value size:"+size+" to "+values.size());
+        }
+        for(int i = 0; i < size; i++){
+            put(keys.get(i), values.get(i));
+        }
+        return this;
+    }
+    
+    public MapBuilder<K,V,M> putAll(K[] keys, V[] values){
+        int size = keys.length;
+        if(size != values.length){
+            throw new IllegalArgumentException("Keys size does not correspond to value size:"+size+" to "+values.length);
+        }
+        for(int i = 0; i < size; i++){
+            put(keys[i], values[i]);
+        }
+        return this;
     }
 
     public MapBuilder<K, V, M> put(K key, V val) {

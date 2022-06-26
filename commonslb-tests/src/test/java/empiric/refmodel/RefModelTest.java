@@ -1,19 +1,14 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package empiric.refmodel;
 
-import lt.lb.commons.refmodel.jparef.ListRef;
-import lt.lb.commons.refmodel.jparef.MapRef;
-import lt.lb.commons.refmodel.jparef.SingularRef;
 import java.util.Date;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
 import lt.lb.commons.DLog;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.refmodel.*;
+import lt.lb.commons.refmodel.jparef.ListRef;
+import lt.lb.commons.refmodel.jparef.MapRef;
+import lt.lb.commons.refmodel.jparef.SingularRef;
 import org.junit.*;
 
 /**

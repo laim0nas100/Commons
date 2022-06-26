@@ -2,12 +2,14 @@ package lt.lb.commons.func;
 
 import java.util.Objects;
 import java.util.function.Function;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.func.UncheckedFunction;
 
 /**
  *
  * @author laim0nas100
  */
-public interface BiConverter<A, B> extends Function<A,B> {
+public interface BiConverter<A, B> extends Function<A, B> {
 
     public B getFrom(A from);
 
@@ -75,6 +77,40 @@ public interface BiConverter<A, B> extends Function<A,B> {
             @Override
             public T getBackFrom(T to) {
                 return to;
+            }
+        };
+    }
+
+    public static <A, B> BiConverter<A, B> of(Function<A, B> from, Function<B, A> backFrom) {
+        Objects.requireNonNull(from, "From function is null");
+        Objects.requireNonNull(backFrom, "BackFrom function is null");
+
+        return new BiConverter<A, B>() {
+            @Override
+            public B getFrom(A val) {
+                return from.apply(val);
+            }
+
+            @Override
+            public A getBackFrom(B to) {
+                return backFrom.apply(to);
+            }
+        };
+    }
+    
+    public static <A, B> BiConverter<SafeOpt<A>, SafeOpt<B>> ofSafe(UncheckedFunction<A, B> from, UncheckedFunction<B, A> backFrom) {
+        Objects.requireNonNull(from, "From function is null");
+        Objects.requireNonNull(backFrom, "BackFrom function is null");
+
+        return new BiConverter<SafeOpt<A>, SafeOpt<B>>() {
+            @Override
+            public SafeOpt<B> getFrom(SafeOpt<A> val) {
+                return val.map(from);
+            }
+
+            @Override
+            public SafeOpt<A> getBackFrom(SafeOpt<B> to) {
+                return to.map(backFrom);
             }
         };
     }

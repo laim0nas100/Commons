@@ -3,8 +3,10 @@ package lt.lb.commons.reflect.unified;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -27,8 +29,8 @@ public interface IField<S, T> extends IMember, IAnnotatedElement, IFieldModifier
     }
 
     @Override
-    public default Class<S> getDeclaringClass() {
-        return (Class<S>) field().getDeclaringClass();
+    public default Class<?> getDeclaringClass() {
+        return field().getDeclaringClass();
     }
 
     @Override

@@ -173,7 +173,7 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
      */
     public <V> M thenComparingOptional(boolean emptyFirst, Function<? super T, Optional<? extends V>> func, Comparator<? super V> cmp) {
         Objects.requireNonNull(func, "Function is null");
-        Objects.requireNonNull(cmp, "Compaartor is null");
+        Objects.requireNonNull(cmp, "Comapartor is null");
         Comparator<T> comp = (v1, v2) -> {
             Optional<? extends V> apply1 = func.apply(v1);
             Optional<? extends V> apply2 = func.apply(v2);
@@ -207,7 +207,7 @@ public abstract class ComparatorBuilderBase<T, M extends ComparatorBuilderBase<T
      */
     public <V> M thenComparingNullable(boolean nullFirst, Function<? super T, ? extends V> func, Comparator<? super V> cmp) {
         Objects.requireNonNull(func, "Function is null");
-        Objects.requireNonNull(cmp, "Compaartor is null");
+        Objects.requireNonNull(cmp, "Comparator is null");
         Comparator<T> comp = (v1, v2) -> {
             V apply1 = func.apply(v1);
             V apply2 = func.apply(v2);

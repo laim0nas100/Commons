@@ -1,18 +1,14 @@
 package lt.lb.commons.jpa.ids;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.reflect.beans.NameUtil;
-import lt.lb.commons.reflect.unified.IField;
 import lt.lb.commons.reflect.unified.IObjectField;
 import lt.lb.commons.reflect.unified.IObjectMethod;
 import lt.lb.commons.reflect.unified.ReflFields;
 import lt.lb.commons.reflect.unified.ReflMethods;
-import static lt.lb.commons.reflect.unified.ReflMethods.getGetterMethodsOfType;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
 
 /**
@@ -111,7 +107,7 @@ public interface IDFactory<I> {
      * @return
      */
     public default <T> IdGetter<T, I> idGetter(Class<T> cls) {
-        SimpleStream<IObjectField<T, I>> fields = ReflFields.getRegularFieldsOf(cls);
+        SimpleStream<IObjectField<T, I>> fields = ReflFields.getLocalFields(cls);
         Optional<IObjectField<T,I>> objectFieldOpt = fields.filter(f -> f.isAnnotationPresent(Id.class)).findFirst();
         boolean generatedByField = false;
         boolean generatedByMethod = false;

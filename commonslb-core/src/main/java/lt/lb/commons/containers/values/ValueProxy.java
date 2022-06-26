@@ -10,6 +10,7 @@ import lt.lb.uncheckedutils.SafeOpt;
 /**
  *
  * @author laim0nas100
+ * @param <T>
  */
 public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
 

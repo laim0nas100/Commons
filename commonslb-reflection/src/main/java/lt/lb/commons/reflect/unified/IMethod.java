@@ -21,8 +21,8 @@ public interface IMethod<S, T> extends IMember, IAnnotatedElement, IMethodModifi
     }
 
     @Override
-    public default Class<S> getDeclaringClass() {
-        return (Class<S>) method().getDeclaringClass();
+    public default Class<?> getDeclaringClass() {
+        return method().getDeclaringClass();
     }
 
     @Override

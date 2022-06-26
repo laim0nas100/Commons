@@ -21,20 +21,15 @@ public abstract class ReflBase {
             this.node = Objects.requireNonNull(node);
         }
 
-        boolean first = true;
         protected Class node;
 
         @Override
         public boolean hasNext() {
-            return first || node.getSuperclass() != null;
+            return node.getSuperclass() != null;
         }
 
         @Override
         public Class next() {
-            if (first) {
-                first = false;
-                return node;
-            }
             Class parent = node.getSuperclass();
             if (parent != null) {
                 node = parent;
@@ -46,12 +41,27 @@ public abstract class ReflBase {
 
     }
 
-    public static SimpleStream<Class> superClassStream(Class child) {
-        return MakeStream.from(new SuperClassIterator(child));
+    public static SimpleStream<Class> inheritanceStream(Class child) {
+        Objects.requireNonNull(child);
+        return MakeStream.from(new SuperClassIterator(child))
+                .prepend(child)
+                .flatMap(cls -> MakeStream.from(cls.getInterfaces()).prepend(cls));
+    }
+    
+    public static SimpleStream<Class> superclassStream(Class child) {
+        Objects.requireNonNull(child);
+        return MakeStream.from(new SuperClassIterator(child))
+                .prepend(child);
+    }
+    
+    public static SimpleStream<Class> superclassInterfaceStream(Class child) {
+        Objects.requireNonNull(child);
+        return MakeStream.from(new SuperClassIterator(child))
+                .prepend(child).flatMap(cls -> MakeStream.from(cls.getInterfaces()));
     }
 
-    public static <T> SimpleStream<T> doClassSuperIterationStream(Class node, Function<Class, Stream<T>> func) {
+    public static <T> SimpleStream<T> doClassInheritanceStream(Class node, Function<Class, Stream<T>> func) {
         Nulls.requireNonNulls(node, func);
-        return superClassStream(node).flatMap(func);
+        return inheritanceStream(node).flatMap(func);
     }
 }

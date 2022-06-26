@@ -164,7 +164,7 @@ public class ReflectionPrint {
         LineStringBuilder sb = new LineStringBuilder();
 
         Class cls = obj.getClass();
-        SimpleStream<IObjectField> regularFieldsOf = ReflFields.getRegularFieldsOf(cls);
+        SimpleStream<IObjectField> regularFieldsOf = ReflFields.getLocalFields(cls);
         List<Field> fieldsOf = regularFieldsOf.map(m->m.field()).toList();
         sb.append(cls.getSimpleName()).append("{");
         for (Field field : fieldsOf) {

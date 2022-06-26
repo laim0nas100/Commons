@@ -135,10 +135,10 @@ public abstract class MakeStream {
     }
     
     /**
-     * Converts given stream to SimpleStream, if given stream is not allready of such instance
+     * Converts given stream to SimpleStream, if given stream is not already of such instance
      *
      * @param <T>
-     * @param array
+     * @param stream
      * @return
      */
     public static <T> SimpleStream<T> from(Stream<T> stream){

@@ -11,43 +11,57 @@ import lt.lb.commons.iteration.streams.SimpleStream;
  */
 public abstract class ReflMethods extends ReflBase {
 
-    public static <S> SimpleStream<IMethod<S, ?>> getMethodsOf(Class<S> cls) {
-        return doClassSuperIterationStream(cls, n -> Stream.of(n.getDeclaredMethods()))
-                .map(field -> {
-                    return (IMethod<S, ?>) () -> field;
-                });
+    public static <S, T> SimpleStream<IMethod<S, T>> getMethods(Class<S> sourceClass) {
+        Nulls.requireNonNulls(sourceClass);
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
+                .map(m -> (IMethod<S, T>) () -> m);
 
     }
 
-    public static <S, T> SimpleStream<IMethod<S, T>> getMethodsOfType(Class<S> sourceClass, Class<T> typeClass) {
+    public static <S, T> SimpleStream<IMethod<S, T>> getMethods(Class<S> sourceClass, Class<T> typeClass) {
         Nulls.requireNonNulls(sourceClass, typeClass);
-        return doClassSuperIterationStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
-                .map(method -> {
-                    return (IMethod<S, T>) () -> method;
-                })
-                .filter(m-> m.isReturnTypeOf(typeClass));
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
+                .map(m -> (IMethod<S, T>) () -> m)
+                .filter(m -> m.isReturnTypeOf(typeClass));
+
+    }
+
+    public static <S, T> SimpleStream<IStaticMethod<S, T>> getStaticMethods(Class<S> sourceClass) {
+        Nulls.requireNonNulls(sourceClass);
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
+                .map(m -> (IStaticMethod<S, T>) () -> m)
+                .filter(m -> m.isStatic());
 
     }
 
     public static <S, T> SimpleStream<IStaticMethod<S, T>> getStaticMethods(Class<S> sourceClass, Class<T> typeClass) {
         Nulls.requireNonNulls(sourceClass, typeClass);
-        return doClassSuperIterationStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
-                .map(m -> {
-                    return (IStaticMethod<S, T>) () -> m;
-                })
-                .filter(m -> m.isStatic())
-                .filter(method -> method.isReturnTypeOf(sourceClass));
-                
-                
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
+                .map(m -> (IStaticMethod<S, T>) () -> m)
+                .filter(m -> m.isStatic() && m.isReturnTypeOf(typeClass));
 
     }
 
-    public static <S,T> SimpleStream<IObjectMethod<S, T>> getGetterMethods(Class<S> sourceClass) {
+    public static <S, T> SimpleStream<IObjectMethod<S, T>> getLocalMethods(Class<S> sourceClass) {
+        Nulls.requireNonNulls(sourceClass);
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
+                .map(m -> (IObjectMethod<S, T>) () -> m)
+                .filter(m -> m.isNotStatic());
+
+    }
+
+    public static <S, T> SimpleStream<IObjectMethod<S, T>> getLocalMethods(Class<S> sourceClass, Class<T> typeClass) {
+        Nulls.requireNonNulls(sourceClass, typeClass);
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
+                .map(m -> (IObjectMethod<S, T>) () -> m)
+                .filter(m -> m.isNotStatic() && m.isReturnTypeOf(typeClass));
+
+    }
+
+    public static <S, T> SimpleStream<IObjectMethod<S, T>> getGetterMethods(Class<S> sourceClass) {
         Nulls.requireNonNull(sourceClass);
-        return doClassSuperIterationStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
-                .map(m -> {
-                    return (IObjectMethod<S, T>) () -> m;
-                })
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
+                .map(m -> (IObjectMethod<S, T>) () -> m)
                 .filter(m -> m.isPublic() && m.isNotStatic() && m.getParameterCount() == 0)
                 .filter(m -> {
                     if (m.nameIs("getClass")) {
@@ -62,17 +76,16 @@ public abstract class ReflMethods extends ReflBase {
     }
 
     public static <S, T> SimpleStream<IObjectMethod<S, T>> getGetterMethodsOfType(Class<S> sourceClass, Class<T> type) {
-        Nulls.requireNonNull(type);
-        return getGetterMethods(sourceClass).filter(method -> method.isReturnTypeOf(type)).map(m -> (IObjectMethod<S, T>) m);
+        Nulls.requireNonNulls(sourceClass,type);
+        return ReflMethods.<S, T>getGetterMethods(sourceClass)
+                .filter(method -> method.isReturnTypeOf(type));
 
     }
 
     public static <S> SimpleStream<IObjectMethod<S, Void>> getSetterMethods(Class<S> sourceClass) throws IntrospectionException {
         Nulls.requireNonNull(sourceClass);
-        return doClassSuperIterationStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
-                .map(method -> {
-                    return (IObjectMethod<S, Void>) () -> method;
-                })
+        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
+                .map(m -> (IObjectMethod<S, Void>) () -> m)
                 .filter(method -> method.isVoid() && method.isPublic() && method.getParameterCount() == 1)
                 .filter(method -> {
                     return method.nameStartsWith("set");
