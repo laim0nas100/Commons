@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>lt.lb.commons</groupId>
-        <artifactId>Commons</artifactId>
+        <artifactId>commons-root</artifactId>
         <version>local-jar</version>
     </parent>
     <artifactId>commonslb-tests</artifactId>

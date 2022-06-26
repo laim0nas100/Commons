@@ -7,7 +7,7 @@
     <name>CommonsLB Refmodel</name>
     <parent>
         <groupId>lt.lb.commons</groupId>
-        <artifactId>Commons</artifactId>
+        <artifactId>commons-root</artifactId>
         <version>local-jar</version>
     </parent>
     <dependencies>

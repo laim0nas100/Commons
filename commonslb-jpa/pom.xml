@@ -7,7 +7,7 @@
     <name>CommonsLB JPA</name>
     <parent>
         <groupId>lt.lb.commons</groupId>
-        <artifactId>Commons</artifactId>
+        <artifactId>commons-root</artifactId>
         <version>local-jar</version>
     </parent>
     <dependencies>
@@ -31,6 +31,10 @@
         <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-collections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-caching</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100</groupId>
