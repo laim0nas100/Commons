@@ -66,6 +66,7 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
      * @return updated value
      */
     public default T setAndGetSupl(Supplier<? extends T> func) {
+        Objects.requireNonNull(func, "Supplier is null");
         set(func.get());
         return get();
     }
@@ -85,6 +86,7 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
      * @return old value
      */
     public default T getAndSetSupl(Supplier<? extends T> func) {
+        Objects.requireNonNull(func, "Supplier is null");
         T got = this.get();
         set(func.get());
         return got;
