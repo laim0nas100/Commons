@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import javax.persistence.criteria.CollectionJoin;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.From;
@@ -12,6 +13,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ListJoin;
 import javax.persistence.criteria.MapJoin;
 import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.SetJoin;
 import javax.persistence.metamodel.Attribute;
@@ -56,6 +58,38 @@ public interface JpaExpResolve<SOURCE, CURRENT, SOURCE_P extends Path<SOURCE>, C
 
     public CURRENT_P resolve(Phase1<CTX> phase, SOURCE_P starting);
 
+    public default Function<DecoratorPhases.Phase2<SOURCE, CTX>, Predicate> in(CURRENT... objects) {
+        Objects.requireNonNull(objects);
+        if(objects.length == 0){
+            throw new IllegalArgumentException("Object array using 'in' via JpaExpResolve is empty");
+        }
+        return f -> resolve(f, (SOURCE_P) f.root()).in(objects);
+    }
+    
+    public default Function<DecoratorPhases.Phase2<SOURCE, CTX>, Predicate> in(Collection<CURRENT> objects) {
+        Objects.requireNonNull(objects);
+        if(objects.isEmpty()){
+            throw new IllegalArgumentException("Object collection using 'in' via JpaExpResolve is empty");
+        }
+        return f -> resolve(f, (SOURCE_P) f.root()).in(objects);
+    }
+    
+    public default Function<DecoratorPhases.Phase2<SOURCE, CTX>, Predicate> notIn(CURRENT... objects) {
+        Objects.requireNonNull(objects);
+        if(objects.length == 0){
+            throw new IllegalArgumentException("Object array using 'in' via JpaExpResolve is empty");
+        }
+        return f -> resolve(f, (SOURCE_P) f.root()).in(objects).not();
+    }
+    
+    public default Function<DecoratorPhases.Phase2<SOURCE, CTX>, Predicate> notIn(Collection<CURRENT> objects) {
+        Objects.requireNonNull(objects);
+        if(objects.isEmpty()){
+            throw new IllegalArgumentException("Object collection using 'in' via JpaExpResolve is empty");
+        }
+        return f -> resolve(f, (SOURCE_P) f.root()).in(objects).not();
+    }
+
     public default <EE, NRR extends Expression<EE>> JpaExpResolve<SOURCE, EE, SOURCE_P, NRR, CTX> then(BiFunction<Phase1<CTX>, ? super CURRENT_P, ? extends NRR> after) {
         Objects.requireNonNull(after);
         return (ph, r) -> after.apply(ph, resolve(ph, r));
@@ -72,12 +106,12 @@ public interface JpaExpResolve<SOURCE, CURRENT, SOURCE_P extends Path<SOURCE>, C
     public static <R, CTX> JpaRootResolve<R, CTX> ofRoot(CTX ctx) {
         return (ph, r) -> r;
     }
-    
-    public static <R> JpaRootResolve<R, ?> ofRoot(Attribute<R,?> att) {
+
+    public static <R> JpaRootResolve<R, ?> ofRoot(Attribute<R, ?> att) {
         return of();
     }
 
-    public static <R, CTX> JpaRootResolve<R, CTX> ofRoot(CTX ctx,Attribute<R,?> att) {
+    public static <R, CTX> JpaRootResolve<R, CTX> ofRoot(CTX ctx, Attribute<R, ?> att) {
         return (ph, r) -> r;
     }
 
