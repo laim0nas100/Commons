@@ -35,6 +35,7 @@ import javax.persistence.metamodel.SingularAttribute;
 import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.DecoratedQueryWithFinalPhase;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Common;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Query;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Subquery;
@@ -58,10 +59,10 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
 
     public Class<T_RESULT> getResultClass();
 
-    public default CTX getContext(){
+    public default CTX getContext() {
         return ctx();
     }
-    
+
     public M withPred(boolean having, Function<DecoratorPhases.Phase2<T_ROOT, CTX>, Predicate> func);
 
     public M withPredCommon(Function<DecoratorPhases.Phase3Common<T_ROOT, CTX>, Predicate> func);
@@ -96,7 +97,7 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
     public <RES> IQueryDecor<T_ROOT, RES, CTX, ?> selectingProjection(Class<RES> projection, Function<DecoratorPhases.Phase3Abstract<T_ROOT, RES, CTX>, CompoundSelection<RES>> selection);
 
     public <RES extends TupleProjection<T_ROOT>> IQueryDecor<T_ROOT, RES, CTX, ?> selectingTupleProjection(RES projection);
-    
+
     public TypedQuery<T_RESULT> build(EntityManager em);
 
     public JpaQueryResultProvider<T_RESULT> buildResult(EntityManager em);
@@ -157,7 +158,7 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
     public default IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(SingularAttribute<? super T_ROOT, ?>... selections) {
         Nulls.requireNonNulls((Object[]) selections);
         return selectingTuple(p -> {
-             Root<T_ROOT> root = p.root();
+            Root<T_ROOT> root = p.root();
             Selection[] selArray = new Selection[selections.length];
             for (int i = 0; i < selections.length; i++) {
                 selArray[i] = root.get(selections[i]);
@@ -166,13 +167,12 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
         });
     }
 
-    public default IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(JpaExpResolve<? super T_ROOT, ?, ?, ?, CTX>... selections) {
+    public default IQueryDecor<T_ROOT, Tuple, CTX, ?> selectingTuple(Function<Phase2<? super T_ROOT, CTX>, Selection<?>>... selections) {
         Nulls.requireNonNulls((Object[]) selections);
         return selectingTuple(p -> {
-            Root<T_ROOT> root = p.root();
             Selection[] selArray = new Selection[selections.length];
             for (int i = 0; i < selections.length; i++) {
-                selArray[i] = selections[i].resolve(p,F.cast(root));
+                selArray[i] = selections[i].apply(p);
             }
             return p.cb().tuple(selArray);
         });
@@ -186,7 +186,7 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
             for (int i = 0; i < selections.length; i++) {
                 selArray[i] = root.get(selections[i]);
             }
-            return p.cb().construct(projection,selArray);
+            return p.cb().construct(projection, selArray);
         });
     }
 
@@ -248,14 +248,13 @@ public interface IQueryDecor<T_ROOT, T_RESULT, CTX, M extends IQueryDecor<T_ROOT
     public default M setDistinct(final boolean distinct) {
         return withDec3Any(c -> c.query().distinct(distinct));
     }
-    
-    public default M setOrderBy(boolean asc, JpaExpResolve<? super T_ROOT,?, ? extends Path<T_ROOT>,?, CTX>... att) {
+
+    public default M setOrderBy(boolean asc, JpaExpResolve<? super T_ROOT, ?, ? extends Path<T_ROOT>, ?, CTX>... att) {
         Nulls.requireNonNulls((Object[]) att);
         return withDec3Query(c -> {
             CriteriaBuilder cb = c.cb();
-            Root<T_ROOT> root = c.root();
             Order[] order = Stream.of(att)
-                    .map(at -> at.resolve(c,F.cast(root)))
+                    .map(at -> at.apply(F.cast(c)))
                     .map(m -> asc ? cb.asc(m) : cb.desc(m))
                     .toArray(s -> new Order[s]);
             c.query().orderBy(order);

@@ -39,7 +39,7 @@ public class ContextualizedSync {
             super(message, cause);
             this.lock = lock;
         }
-        
+
     }
 
     public ContextualizedSync(int timesToRetry, WaitTime waitAtComplete) {
@@ -254,14 +254,15 @@ public class ContextualizedSync {
     }
 
     /**
-     * Forcefully (interrupting thread that has this lock) cancel and remove
-     * lock, if lock is present and was actually locked. Doesn't get "unlocked"
+     * Forcefully (optionally interrupting thread that has this lock) cancel and remove
+     * lock, if lock is present and was actually locked.Doesn't get "unlocked"
      * status when removed like this, but no longer occupies given context.
      *
      * @param lock
+     * @param interrupt
      * @return
      */
-    public boolean forceRemoveLock(LockCTX lock) {
+    public boolean forceRemoveLock(LockCTX lock, boolean interrupt) {
 
         Objects.requireNonNull(lock);
         if (!lock.isUsed()) {
@@ -275,12 +276,14 @@ public class ContextualizedSync {
                     throw new IllegalStateException(lock + " was never used, but now trying to unstuck it. Check your code.");
                 }
                 if (presentLock.isNotPrimary()) {
-                    ok.set(presentLock.primaryLock.completable.cancel(true));
+                    ok.set(presentLock.primaryLock.completable.cancel(interrupt));
                 } else {
-                    ok.set(presentLock.completable.cancel(true));
+                    ok.set(presentLock.completable.cancel(interrupt));
                 }
 
-                lock.thread.interrupt();
+                if (interrupt) {
+                    lock.thread.interrupt();
+                }
                 return null;
             } else {
                 return presentLock;

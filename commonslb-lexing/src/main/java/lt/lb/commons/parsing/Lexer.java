@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author laim0nas100
  */
+@Deprecated
 public class Lexer {
 
     /**

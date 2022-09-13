@@ -26,18 +26,23 @@ import javax.persistence.metamodel.SingularAttribute;
 import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase1;
+import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase2;
 
 /**
  *
  * @author laim0nas100
  */
-public interface JpaExpResolve<SOURCE, CURRENT, SOURCE_P extends Path<SOURCE>, CURRENT_P extends Expression<CURRENT>, CTX> {
+public interface JpaExpResolve<SOURCE, CURRENT, SOURCE_P extends Path<SOURCE>, CURRENT_P extends Expression<CURRENT>, CTX>
+        extends Function<Phase2<SOURCE, CTX>, CURRENT_P> 
 
-    public static interface JpaPathResolve<SOURCE, CURRENT, SOURCE_P extends Path<SOURCE>, CURRENT_P extends Path<CURRENT>, CTX> extends JpaExpResolve<SOURCE, CURRENT, SOURCE_P, CURRENT_P, CTX> {
+
+{
+
+    public static interface JpaPathResolve<SOURCE, CURRENT, SOURCE_P extends Path<SOURCE>, CURRENT_P extends Path<CURRENT>, CTX> extends JpaExpResolvePredicates<SOURCE, CURRENT, SOURCE_P, CURRENT_P, CTX> {
 
         public default <EE, NRR extends Path<EE>> JpaPathResolve<SOURCE, EE, SOURCE_P, NRR, CTX> thenPath(BiFunction<Phase1<CTX>, ? super CURRENT_P, ? extends NRR> after) {
             Objects.requireNonNull(after);
-            return (ph, r) -> after.apply(ph, resolve(ph, r));
+            return (ph, r) -> after.apply(ph, apply(ph, r));
         }
 
         public default <EE> JpaPathResolve<SOURCE, EE, SOURCE_P, Path<EE>, CTX> get(SingularAttribute<? super CURRENT, EE> att) {
@@ -56,43 +61,17 @@ public interface JpaExpResolve<SOURCE, CURRENT, SOURCE_P extends Path<SOURCE>, C
         }
     }
 
-    public CURRENT_P resolve(Phase1<CTX> phase, SOURCE_P starting);
+    public CURRENT_P apply(Phase1<CTX> phase, SOURCE_P starting);
 
-    public default Function<DecoratorPhases.Phase2<SOURCE, CTX>, Predicate> in(CURRENT... objects) {
-        Objects.requireNonNull(objects);
-        if(objects.length == 0){
-            throw new IllegalArgumentException("Object array using 'in' via JpaExpResolve is empty");
-        }
-        return f -> resolve(f, (SOURCE_P) f.root()).in(objects);
-    }
-    
-    public default Function<DecoratorPhases.Phase2<SOURCE, CTX>, Predicate> in(Collection<CURRENT> objects) {
-        Objects.requireNonNull(objects);
-        if(objects.isEmpty()){
-            throw new IllegalArgumentException("Object collection using 'in' via JpaExpResolve is empty");
-        }
-        return f -> resolve(f, (SOURCE_P) f.root()).in(objects);
-    }
-    
-    public default Function<DecoratorPhases.Phase2<SOURCE, CTX>, Predicate> notIn(CURRENT... objects) {
-        Objects.requireNonNull(objects);
-        if(objects.length == 0){
-            throw new IllegalArgumentException("Object array using 'in' via JpaExpResolve is empty");
-        }
-        return f -> resolve(f, (SOURCE_P) f.root()).in(objects).not();
-    }
-    
-    public default Function<DecoratorPhases.Phase2<SOURCE, CTX>, Predicate> notIn(Collection<CURRENT> objects) {
-        Objects.requireNonNull(objects);
-        if(objects.isEmpty()){
-            throw new IllegalArgumentException("Object collection using 'in' via JpaExpResolve is empty");
-        }
-        return f -> resolve(f, (SOURCE_P) f.root()).in(objects).not();
+    @Override
+    public default CURRENT_P apply(Phase2<SOURCE, CTX> phase) {
+        Objects.requireNonNull(phase);
+        return apply(phase, (SOURCE_P) phase.root());
     }
 
     public default <EE, NRR extends Expression<EE>> JpaExpResolve<SOURCE, EE, SOURCE_P, NRR, CTX> then(BiFunction<Phase1<CTX>, ? super CURRENT_P, ? extends NRR> after) {
         Objects.requireNonNull(after);
-        return (ph, r) -> after.apply(ph, resolve(ph, r));
+        return (ph, r) -> after.apply(ph, apply(ph, r));
     }
 
     public static <R, CTX> JpaRootResolve<R, CTX> of() {
@@ -124,7 +103,7 @@ public interface JpaExpResolve<SOURCE, CURRENT, SOURCE_P extends Path<SOURCE>, C
 
         public default <NEW, NEW_P extends From<CURRENT, NEW>> JpaFromResolve<SOURCE, NEW, SOURCE_P, NEW_P, CTX> thenFrom(BiFunction<Phase1<CTX>, ? super CURRENT_P, ? extends NEW_P> after) {
             Objects.requireNonNull(after);
-            return (ph, r) -> after.apply(ph, resolve(ph, r));
+            return (ph, r) -> after.apply(ph, apply(ph, r));
         }
 
         public default <NEW, CTX>

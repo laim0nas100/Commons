@@ -37,7 +37,7 @@ public class TupleProjectionSpec<R> implements TupleProjectionSpecList<R,Object>
             final Root<R> root = from.root();
             selections = new ArrayList<>(list.size());
             list.forEach(exp -> {
-                selections.add(exp.resolve(F.cast(from),F.cast(root)));
+                selections.add(exp.apply(F.cast(from),F.cast(root)));
             });
         }
         
