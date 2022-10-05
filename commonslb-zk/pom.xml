@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>lt.lb.commons</groupId>
+        <artifactId>commons-root</artifactId>
+        <version>local-jar</version>
+    </parent>
+    <artifactId>commonslb-zk</artifactId>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-core</artifactId>
+        </dependency>
+        <dependency>
+           <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-datasync</artifactId>
+        </dependency>
+        
+        <dependency>
+             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-iteration</artifactId>
+        </dependency>
+        
+        <dependency>
+             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-misc</artifactId>
+        </dependency>
+        
+        <dependency>
+             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-caching</artifactId>
+        </dependency>
+        <dependency>
+             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-reflection</artifactId>
+        </dependency>
+        <dependency>
+             <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-rows</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zk</artifactId>
+            <version>6.5.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zul</artifactId>
+            <version>6.5.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zkbind</artifactId>
+            <version>6.5.3</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <name>CommonsLB ZK</name>
+</project>
