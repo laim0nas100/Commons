@@ -43,19 +43,19 @@
         <dependency>
             <groupId>org.zkoss.zk</groupId>
             <artifactId>zk</artifactId>
-            <version>6.5.3</version>
+            <version>9.6.0.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.zkoss.zk</groupId>
             <artifactId>zul</artifactId>
-            <version>6.5.3</version>
+            <version>9.6.0.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.zkoss.zk</groupId>
             <artifactId>zkbind</artifactId>
-            <version>6.5.3</version>
+            <version>9.6.0.2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
