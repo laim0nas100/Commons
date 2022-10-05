@@ -33,6 +33,7 @@
         <module>commonslb-jpa</module>
         <module>commonslb-reflection</module>
         <module>commonslb-email</module>
+        <module>commonslb-zk</module>
         <module>commonslb-tests</module>
     </modules>
     <repositories>

@@ -3,58 +3,9 @@
 /File.txt
 /1
 /Param.txt
-/nbproject/private/
-/build/
-/dist/
-/nbproject/
-/target/
-/commons-refmodel - Copy/target/
-/commons-threads/target/
-/commons-jobs/target/
-/commons-jpa/target/
-/commonslb-core/target/
-/commonslb-graphtheory/target/
-/commonslb-javafx/target/
-/commonslb-refmodel/target/
-/lb/target/
-/commonslb-threads/target/
-/commonslb-jpa/target/
-/commonslb-jobs/target/
-/commonslb-core/nbproject/
-/commonslb-graphtheory/nbproject/
-/commonslb-reflection/nbproject/
-/commonslb-reflection/target/
-/commonslb-email/target/
-/commonslb-threads/nbproject/
-/Tests/nbproject/
-/Tests/target/
-/commonslb-tests/nbproject/
-/commonslb-tests/target/
-/commonslb-core - Copy/nbproject/
-/commonslb-core - Copy/target/
-/commonslb-log/nbproject/
-/commonslb-log/target/
-/commonslb-refmodel - Copy/target/
-/commonslb-collections/target/
-/commonslb-lexing/nbproject/
-/commonslb-lexing/target/
-/commonslb-caching/target/
-/commonslb-caching - Copy/target/
-/commonslb-caller/target/
-/commonslb-io - Copy/target/
-/commonslb-rows/target/
-/commonslb-io/target/
-/commonslb-datasync/nbproject/
-/commonslb-datasync/target/
-/commonslb-caller - Copy/target/
-/commonslb-iteration/target/
-/commonslb-iteration - Copy/target/
-/commonslb-misc/target/
+*build/
+*dist/
+*nbproject/
+*target/
 */nb-configuration.xml
 commonslb-tests/src/test/java/datagen/DataGen.java
-nb-configuration.xml
-nb-configuration.xml
-nb-configuration.xml
-nb-configuration.xml
-nb-configuration.xml
-nb-configuration.xml
