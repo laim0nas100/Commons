@@ -1,9 +1,15 @@
 package empiric.core;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 import lt.lb.commons.DLog;
+import lt.lb.commons.Ins;
+import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.clone.CloneSupport;
 import lt.lb.commons.clone.Cloner;
+import lt.lb.commons.clone.RefCountingCloner;
 
 /**
  *
@@ -51,27 +57,101 @@ public class CloneTest {
 
     }
 
-    public static class A implements CloneSupport<A> {
+    public static class RefCountingClonerLog extends RefCountingCloner {
+
+        @Override
+        public boolean refCheckPossible(Object obj) {
+            return Ins.ofNullable(obj).instanceOfAny(A.class,B.class);
+        }
+
+        @Override
+        public <T, Y> RefSupply<Y> refStoreIfPossible(T key, Y val) {
+            if (refCheckPossible(key)) {
+                return refMap.compute(key, (k, obj) -> {
+                    if (obj == null) {
+//                        DLog.print("Store inner ref by key: "+key);
+                        return new RefSupply<>(val);
+                    } else {
+                        if (obj.storeRef(val)) {
+//                            DLog.print("Override inner ref by key: "+key);
+                        } else {
+//                            DLog.print("return inner ref by key: "+key);
+                        }
+                        return obj;
+                    }
+                });
+            }
+            return null;
+        }
+
+    }
+
+    public static class B implements CloneSupport<B> {
 
         String value;
 
         A ref;
 
-        public String getValue() {
-            return value;
+        List<A> refList;
+
+        public B() {
         }
 
-        public void setValue(String value) {
-            this.value = value;
+        public B(String v) {
+            this.value = v;
         }
 
-        public A getRef() {
-            return ref;
+        protected B(B old, Cloner cloner) {
+            cloner.refStoreIfPossible(old, this); // must store before any more references can get constructed
+            this.ref = cloner.cloneOrNull(old.ref);
+            this.refList = cloner.cloneCollection(refList, ArrayList::new);
+            this.value = old.value;
         }
 
-        public void setRef(A ref) {
-            this.ref = ref;
+        @Override
+        public B clone() throws CloneNotSupportedException {
+            return clone(new RefCountingClonerLog());
         }
+
+        @Override
+        public B clone(Cloner cloner) throws CloneNotSupportedException {
+            return new B(this, cloner);
+        }
+
+        @Override
+        public String toString() {
+            return System.identityHashCode(this) + "B{" + "value=" + value + '}';
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 23 * hash + Objects.hashCode(this.value);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final B other = (B) obj;
+            return Objects.equals(this.value, other.value);
+        }
+
+    }
+
+    public static class A implements CloneSupport<A> {
+
+        String value;
+
+        B ref;
 
         public A() {
         }
@@ -82,13 +162,13 @@ public class CloneTest {
 
         protected A(A old, Cloner cloner) {
             cloner.refStoreIfPossible(old, this); // must store before any more references can get constructed
-            this.setRef(cloner.cloneOrNull(old.getRef()));
-            this.setValue(old.getValue());
+            this.ref = cloner.cloneOrNull(old.ref);
+            this.value = old.value;
         }
 
         @Override
         public A clone() throws CloneNotSupportedException {
-            return clone(Cloner.refCountingOfTypes(A.class));
+            return clone(new RefCountingClonerLog());
         }
 
         @Override
@@ -101,23 +181,91 @@ public class CloneTest {
             return System.identityHashCode(this) + "A{" + "value=" + value + '}';
         }
 
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final A other = (A) obj;
+            return Objects.equals(this.value, other.value);
+        }
+
+    }
+
+    static final Random r = new Random();
+
+    public static A createObject() {
+
+        A a1 = new A("A1 " + r.nextInt());
+        B b1 = new B("B1" + r.nextInt());
+        A a2 = new A("A2" + r.nextInt());
+         B b2 = new B("B2" + r.nextInt());
+        a1.ref = (b1);
+        b1.ref = (a2);
+        a2.ref = (b2);
+        b2.ref = a1;
+        b1.refList = new ArrayList<>();
+        b1.refList.add(a1);
+        b1.refList.add(a2);
+        b1.refList.add(a1);
+        b1.refList.add(a2);
+        b1.refList.add(a1);
+        b1.refList.add(a2);
+        
+        return a1;
+    }
+
+    public static void bench() {
+        Benchmark b = new Benchmark();
+        com.rits.cloning.Cloner cloner = new com.rits.cloning.Cloner();
+        b.useGChint = false;
+        b.useGVhintAfterFullBench = true;
+        b.warmupTimes = 1000;
+        int times = 1_000_000;
+        b.executeBench(times, "Clone by rits.cloning.Cloner", () -> {
+            cloner.deepClone(createObject());
+        }).print(DLog::print);
+        
+        b.executeBench(times, "Clone by constructor with ref counting", () -> {
+            createObject().clone();
+        }).print(DLog::print);
+
+        
+
     }
 
     public static void main(String[] args) {
 
         DLog.main().async = false;
-        A one = new A("HELLO");
-        A two = new A("BYE");
-        A three = new A("HI");
-        one.setRef(two);
-        two.setRef(three);
-        three.setRef(one);
-        
+        A a1 = new A("A1");
+        B b1 = new B("B1");
+        A a2 = new A("A2");
+        a1.ref = (b1);
+        b1.ref = (a2);
+        a2.ref = (b1);
+        b1.refList = new ArrayList<>();
+        b1.refList.add(a1);
+        b1.refList.add(a2);
 
-        DLog.println(one,two,three);
-        one.uncheckedClone();
-        A cloned = three.uncheckedClone();
+        a1.uncheckedClone();
+        A cloned = a1.uncheckedClone();
         DLog.println(cloned);
+
+        DLog.print(Objects.equals(a1, cloned));
+
+        bench();
 
     }
 }

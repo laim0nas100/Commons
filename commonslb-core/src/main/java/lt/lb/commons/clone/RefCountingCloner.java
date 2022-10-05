@@ -15,7 +15,7 @@ import java.util.function.Supplier;
  */
 public abstract class RefCountingCloner implements Cloner {
 
-    protected final IdentityHashMap<Object, Supplier> refMap = new IdentityHashMap();
+    protected final IdentityHashMap<Object, RefSupply> refMap = new IdentityHashMap();
 
     /**
      * Check if reference is already seen, and returns it, otherwise returns a
@@ -37,25 +37,29 @@ public abstract class RefCountingCloner implements Cloner {
 
     /**
      * Return whether the object CAN be stored in map to even be checked. By
-     * default non-nulls can be stored;
+     * default non-primitive non-nulls can be stored;
      *
      * @param obj
      * @return
      */
     public abstract boolean refCheckPossible(Object obj);
 
-    public static class SimpleSupply<Y> implements Supplier<Y> {
+    public static class RefSupply<Y> implements Supplier<Y> {
 
         private Supplier<Y> valueSupply;
         private boolean done = false;
         private boolean initiated = false;
+        private boolean overriden = false;
         private Y value;
+        private Y overridenValue;
 
-        public SimpleSupply(Supplier<Y> valueSupply) {
+        public RefSupply(Supplier<Y> valueSupply) {
+            Objects.requireNonNull(valueSupply, "Ref value supply must not be null");
             this.valueSupply = valueSupply;
         }
 
-        public SimpleSupply(Y value) {
+        public RefSupply(Y value) {
+            Objects.requireNonNull(value, "Ref value must not be null");
             this.value = value;
             done = true;
         }
@@ -64,21 +68,35 @@ public abstract class RefCountingCloner implements Cloner {
         public Y get() {
             if (done) {
                 return value;
-            } else {
-                if (initiated) {
-                    throw new IllegalStateException("Cyclic clone dependency");
-                }
-                initiated = true;
-                value = valueSupply.get();
-                done = true;
-                initiated = false;
-                return value;
+
             }
+            if (overriden) {
+                return overridenValue;
+            }
+            if (initiated) {
+                throw new IllegalStateException("Cyclic clone dependency, remember to call Cloner.refStoreIfPossible on cyclic reference objects");
+            }
+            initiated = true; // prevent cyclec
+            Y get = valueSupply.get();
+
+            if (overriden && get != overridenValue) {
+                throw new IllegalStateException("Computed value is not the same reference as overriden value");
+            }
+            value = get;
+            done = true;
+            initiated = false;
+            return value;
         }
 
-        @Override
-        public String toString() {
-            return "SimpleSupply{" + System.identityHashCode(this) + "value=" + value + '}';
+        public boolean storeRef(Y val) {
+            Objects.requireNonNull(val, "Ref value must not be null");
+            if (initiated && !done) {// inside clone process
+                overridenValue = val;
+                overriden = true;
+                return true;
+            }
+
+            return false;
         }
 
     }
@@ -93,10 +111,10 @@ public abstract class RefCountingCloner implements Cloner {
      * @param func
      * @return
      */
-    public <T, Y> Supplier<Y> refStoreIfPossibleFunc(T key, Function<T, Y> func) {
+    public <T, Y> RefSupply<Y> refStoreIfPossibleFunc(T key, Function<T, Y> func) {
         Objects.requireNonNull(func, "Clone function is null");
         if (refCheckPossible(key)) {
-            return refMap.computeIfAbsent(key, k -> new SimpleSupply<Y>(() -> func.apply(key)));
+            return refMap.computeIfAbsent(key, k -> new RefSupply<Y>(() -> func.apply(key)));
         }
         return null;
     }
@@ -111,11 +129,31 @@ public abstract class RefCountingCloner implements Cloner {
      * @return
      */
     @Override
-    public <T, Y> Supplier<Y> refStoreIfPossible(T key, Y val) {
+    public <T, Y> RefSupply<Y> refStoreIfPossible(T key, Y val) {
         if (refCheckPossible(key)) {
-            return refMap.computeIfAbsent(key, k -> new SimpleSupply<Y>(val));
+            return refMap.compute(key, (k, obj) -> {
+                if (obj == null) {
+                    return new RefSupply<>(val);
+                } else {
+                    obj.storeRef(val);
+                    return obj;
+                }
+            });
         }
         return null;
+    }
+
+    /**
+     * Clone or return a null
+     *
+     * @param <A> item type
+     * @param <D> type that produces a cloned item
+     * @param obj object to be cloned
+     * @return cloned object or null
+     */
+    @Override
+    public <A, D extends CloneSupport<A>> A cloneOrNullRef(D obj) {
+        return cloneOrNull(obj);
     }
 
     @Override

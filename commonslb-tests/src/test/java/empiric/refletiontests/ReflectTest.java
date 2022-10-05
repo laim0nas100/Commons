@@ -252,10 +252,10 @@ public class ReflectTest {
     }
 
     public static void main(String... strings) throws Exception {
-//        new ReflectTest().bench();
-        ReflectTest rt = new ReflectTest();
-
-        rt.reflectionPrint();
+        new ReflectTest().bench();
+//        ReflectTest rt = new ReflectTest();
+//
+//        rt.reflectionPrint();
 
         DLog.close();
 

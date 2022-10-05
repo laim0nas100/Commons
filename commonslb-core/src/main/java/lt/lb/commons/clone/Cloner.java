@@ -82,10 +82,13 @@ public interface Cloner {
     }
 
     /**
-     * Stores the value in identity map if possible and returns lazy supplier if
-     * it was stored, otherwise return null. Use this as the first line in
-     * object cloned construction with old object as a key that has other
-     * references, so they won't propagate. 
+     * Stores the new reference in identity map using old reference as key if
+     * possible and returns supplier if it was stored successfully, otherwise
+     * return null. Use this as the first line in object cloned construction
+     * with old object as a key that has other references, so they won't
+     * propagate. The reference may be stored in a middle of computation, so the
+     * {@link Cloner} must facilitate value override to avoid cyclic
+     * dependencies.
      *
      * @param <T>
      * @param <Y>
@@ -127,15 +130,15 @@ public interface Cloner {
     }
 
     /**
-     * Get reference or clone using this cloner
+     * Clone or return a null
      *
      * @param <A> item type
      * @param <D> type that produces a cloned item
      * @param obj object to be cloned
      * @return cloned object or null
      */
-    public default <A, D extends CloneSupport<A>> A getOrClone(D obj) {
-        return obj == null ? null : obj.uncheckedClone(this);
+    public default <A, D extends CloneSupport<A>> A cloneOrNullRef(D obj) {
+        return cloneOrNull(obj);
     }
 
     /**
