@@ -16,15 +16,20 @@ public class UnsafeProvider {
 
     private static Unsafe THE_UNSAFE = null;
 
+    private static final Object lock = new Object();
+
     public static Unsafe getUnsafe() {
         if (THE_UNSAFE == null) {
-            Checked.uncheckedRun(() -> {
-
-                Constructor<Unsafe> declaredConstructor = Unsafe.class.getDeclaredConstructor();
-                declaredConstructor.setAccessible(true);
-                THE_UNSAFE = declaredConstructor.newInstance();
-
-            });
+            synchronized (lock) {
+                if(THE_UNSAFE != null){ // could be initialized by now.
+                    return THE_UNSAFE;
+                }
+                Checked.uncheckedRun(() -> { // hide all exceptions
+                    Constructor<Unsafe> declaredConstructor = Unsafe.class.getDeclaredConstructor();
+                    declaredConstructor.setAccessible(true);
+                    THE_UNSAFE = declaredConstructor.newInstance();
+                });
+            }
         }
         return THE_UNSAFE;
 
