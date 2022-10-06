@@ -68,7 +68,6 @@ public abstract class RefCountingCloner implements Cloner {
         public Y get() {
             if (done) {
                 return value;
-
             }
             if (overriden) {
                 return overridenValue;
@@ -76,7 +75,7 @@ public abstract class RefCountingCloner implements Cloner {
             if (initiated) {
                 throw new IllegalStateException("Cyclic clone dependency, remember to call Cloner.refStoreIfPossible on cyclic reference objects");
             }
-            initiated = true; // prevent cyclec
+            initiated = true; // prevent cycles
             Y get = valueSupply.get();
 
             if (overriden && get != overridenValue) {
