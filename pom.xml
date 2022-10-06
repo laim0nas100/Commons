@@ -13,6 +13,7 @@
         <apache.commons.version>3.12.0</apache.commons.version>
         <unchecked.utils.version>2022.04v1</unchecked.utils.version>
         <javafx.compat.version>11</javafx.compat.version>
+        <zk.version>9.6.0.2</zk.version>
     </properties>
     <name>CommonsLB</name>
     <modules>
@@ -225,7 +226,7 @@
                 <artifactId>commons-text</artifactId>
                 <version>1.9</version>
             </dependency>
-
+            
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>

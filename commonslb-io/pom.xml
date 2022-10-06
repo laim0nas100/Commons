@@ -9,6 +9,7 @@
         <groupId>lt.lb.commons</groupId>
         <artifactId>commons-root</artifactId>
         <version>local-jar</version>
+        <relativePath></relativePath>
     </parent>
     <name>CommonsLB IO</name>
     

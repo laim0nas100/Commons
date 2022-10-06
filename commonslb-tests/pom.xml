@@ -5,6 +5,7 @@
         <groupId>lt.lb.commons</groupId>
         <artifactId>commons-root</artifactId>
         <version>local-jar</version>
+        <relativePath></relativePath>
     </parent>
     <artifactId>commonslb-tests</artifactId>
     <packaging>jar</packaging>
