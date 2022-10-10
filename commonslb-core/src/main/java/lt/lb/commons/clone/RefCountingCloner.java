@@ -212,33 +212,19 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <K, KK extends CloneSupport<K>, A, AA extends CloneSupport<A>, C extends Map<K, A>> C cloneMapSupported(Map<KK, AA> map, Supplier<? extends C> collectionSupplier) {
-        Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMapSupported(it, collectionSupplier));
-        if (ref != null) {
-            return ref.get();
-        }
-        return Cloner.super.cloneMapSupported(map, collectionSupplier);
+        return cloneMap(map, collectionSupplier, k -> k.uncheckedClone(this), v -> v.uncheckedClone(this));
     }
 
     @Override
     public <K, A, AA extends CloneSupport<A>, C extends Map<K, A>> C cloneMapImmutableSupported(Map<K, AA> map, Supplier<? extends C> collectionSupplier) {
-        Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMapImmutableSupported(it, collectionSupplier));
-        if (ref != null) {
-            return ref.get();
-        }
-        return Cloner.super.cloneMapImmutableSupported(map, collectionSupplier);
+        return cloneMap(map, collectionSupplier, k -> k, v -> v.uncheckedClone(this));
     }
 
     @Override
     public <K, A, C extends Map<K, A>> C cloneMapImmutableKeys(Map<K, A> map, Supplier<? extends C> collectionSupplier, Function<A, A> cloningFuncion) {
-         Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMapImmutableKeys(it, collectionSupplier, cloningFuncion));
-        if (ref != null) {
-            return ref.get();
-        }
-        return Cloner.super.cloneMapImmutableKeys(map, collectionSupplier, cloningFuncion);
+        return cloneMap(map, collectionSupplier, k -> k, cloningFuncion);
     }
 
-    
-    
     @Override
     public <K, KK, A, AA, C extends Map<K, A>, CC extends Map<KK, AA>> C cloneMap(CC map, Supplier<? extends C> collectionSupplier, Function<KK, K> keyCloningFuncion, Function<AA, A> cloningFuncion) {
         Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMap(it, collectionSupplier, keyCloningFuncion, cloningFuncion));
