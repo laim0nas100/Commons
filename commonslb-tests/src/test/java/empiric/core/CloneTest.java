@@ -1,7 +1,9 @@
 package empiric.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import lt.lb.commons.DLog;
@@ -93,6 +95,8 @@ public class CloneTest {
         A ref;
 
         List<A> refList;
+        
+        Map<String,A> refMap;
 
         public B() {
         }
@@ -105,6 +109,7 @@ public class CloneTest {
             cloner.refStoreIfPossible(old, this); // must store before any more references can get constructed
             this.ref = cloner.cloneOrNull(old.ref);
             this.refList = cloner.cloneCollection(refList, ArrayList::new);
+            this.refMap = cloner.cloneMapImmutableSupported(refMap, HashMap::new);
             this.value = old.value;
         }
 
@@ -223,6 +228,9 @@ public class CloneTest {
         b1.refList.add(a2);
         b1.refList.add(a1);
         b1.refList.add(a2);
+         b1.refMap = new HashMap<>();
+         b1.refMap.put(a1.value, a1);
+        b1.refMap.put(a2.value, a2);
         
         return a1;
     }
@@ -234,11 +242,11 @@ public class CloneTest {
         b.useGVhintAfterFullBench = true;
         b.warmupTimes = 1000;
         int times = 1_000_000;
-        b.executeBench(times, "Clone by rits.cloning.Cloner", () -> {
+        b.executeBench(times, " Clone by rits.cloning.Cloner", () -> {
             cloner.deepClone(createObject());
         }).print(DLog::print);
         
-        b.executeBench(times, "Clone by constructor with ref counting", () -> {
+        b.executeBench(times, " Clone by constructor with ref counting", () -> {
             createObject().clone();
         }).print(DLog::print);
 
@@ -258,6 +266,9 @@ public class CloneTest {
         b1.refList = new ArrayList<>();
         b1.refList.add(a1);
         b1.refList.add(a2);
+        b1.refMap = new HashMap<>();
+        b1.refMap.put(a1.value, a1);
+        b1.refMap.put(a2.value, a2);
 
         a1.uncheckedClone();
         A cloned = a1.uncheckedClone();
