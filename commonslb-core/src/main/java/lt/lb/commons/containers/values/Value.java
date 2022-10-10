@@ -36,14 +36,10 @@ public class Value<T> implements ValueProxy<T> {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
-            return false;
+        if (obj instanceof ValueProxy) {
+            return Objects.equals(value, ((ValueProxy) obj).get());
         }
-        final Value<?> other = (Value<?>) obj;
-        if (!Objects.equals(this.value, other.value)) {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     /**
@@ -73,7 +69,7 @@ public class Value<T> implements ValueProxy<T> {
 
     @Override
     public String toString() {
-        return this.value + "";
+        return String.valueOf(this.value);
     }
 
 }
