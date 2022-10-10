@@ -269,7 +269,7 @@ public interface Cloner {
         if (map == null) {
             return null;
         }
-        return cloneMap(map, collectionSupplier, k -> k, t -> cloneOrNull(t));
+        return cloneMap(map, collectionSupplier, k -> k, v -> v.uncheckedClone(this));
     }
 
     /**
@@ -288,7 +288,7 @@ public interface Cloner {
         if (map == null) {
             return null;
         }
-        return cloneMap(map, collectionSupplier, t -> cloneOrNull(t), t -> cloneOrNull(t));
+        return cloneMap(map, collectionSupplier,  k -> k.uncheckedClone(this),  v -> v.uncheckedClone(this));
     }
 
     /**
