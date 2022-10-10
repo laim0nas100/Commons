@@ -157,7 +157,7 @@ public abstract class RefCountingCloner implements Cloner {
 
     @Override
     public <T, C extends Collection<T>> C cloneShallowCollection(C iter, Supplier<? extends C> collectionSupplier) {
-        Supplier<? extends C> ref = refStoreIfPossibleFunc(iter, c -> collectionSupplier.get());
+        Supplier<? extends C> ref = refStoreIfPossibleFunc(iter, it -> Cloner.super.cloneShallowCollection(it, collectionSupplier));
         if (ref != null) {
             return ref.get();
         }
@@ -210,6 +210,35 @@ public abstract class RefCountingCloner implements Cloner {
         return Cloner.super.cloneCollection(iter, collectionSupplier);
     }
 
+    @Override
+    public <K, KK extends CloneSupport<K>, A, AA extends CloneSupport<A>, C extends Map<K, A>> C cloneMapSupported(Map<KK, AA> map, Supplier<? extends C> collectionSupplier) {
+        Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMapSupported(it, collectionSupplier));
+        if (ref != null) {
+            return ref.get();
+        }
+        return Cloner.super.cloneMapSupported(map, collectionSupplier);
+    }
+
+    @Override
+    public <K, A, AA extends CloneSupport<A>, C extends Map<K, A>> C cloneMapImmutableSupported(Map<K, AA> map, Supplier<? extends C> collectionSupplier) {
+        Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMapImmutableSupported(it, collectionSupplier));
+        if (ref != null) {
+            return ref.get();
+        }
+        return Cloner.super.cloneMapImmutableSupported(map, collectionSupplier);
+    }
+
+    @Override
+    public <K, A, C extends Map<K, A>> C cloneMapImmutableKeys(Map<K, A> map, Supplier<? extends C> collectionSupplier, Function<A, A> cloningFuncion) {
+         Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMapImmutableKeys(it, collectionSupplier, cloningFuncion));
+        if (ref != null) {
+            return ref.get();
+        }
+        return Cloner.super.cloneMapImmutableKeys(map, collectionSupplier, cloningFuncion);
+    }
+
+    
+    
     @Override
     public <K, KK, A, AA, C extends Map<K, A>, CC extends Map<KK, AA>> C cloneMap(CC map, Supplier<? extends C> collectionSupplier, Function<KK, K> keyCloningFuncion, Function<AA, A> cloningFuncion) {
         Supplier<C> ref = refStoreIfPossibleFunc(map, it -> Cloner.super.cloneMap(it, collectionSupplier, keyCloningFuncion, cloningFuncion));
