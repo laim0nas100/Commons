@@ -2,8 +2,8 @@ package lt.lb.commons.containers.collections;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +27,7 @@ public abstract class ImmutableCollections {
             case 1:
                 return Collections.singleton(items[0]);
             default:
-                Set<T> set = new HashSet<>(items.length, 1f);
+                Set<T> set = new LinkedHashSet<>(items.length, 1f);
                 set.addAll(Arrays.asList(items));
                 return Collections.unmodifiableSet(set);
         }
@@ -54,7 +54,7 @@ public abstract class ImmutableCollections {
             K k9, V v9
     ) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(10, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(10, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .put(k2, v2)
@@ -80,7 +80,7 @@ public abstract class ImmutableCollections {
             K k8, V v8
     ) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(9, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(9, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .put(k2, v2)
@@ -104,7 +104,7 @@ public abstract class ImmutableCollections {
             K k7, V v7
     ) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(8, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(8, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .put(k2, v2)
@@ -126,7 +126,7 @@ public abstract class ImmutableCollections {
             K k6, V v6
     ) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(7, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(7, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .put(k2, v2)
@@ -146,7 +146,7 @@ public abstract class ImmutableCollections {
             K k5, V v5
     ) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(6, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(6, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .put(k2, v2)
@@ -164,7 +164,7 @@ public abstract class ImmutableCollections {
             K k4, V v4
     ) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(5, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(5, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .put(k2, v2)
@@ -180,7 +180,7 @@ public abstract class ImmutableCollections {
             K k3, V v3
     ) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(4, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(4, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .put(k2, v2)
@@ -190,7 +190,7 @@ public abstract class ImmutableCollections {
 
     public static <K, V> Map<K, V> mapOf(K k0, V v0, K k1, V v1, K k2, V v2) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(3, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(3, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .put(k2, v2)
@@ -199,7 +199,7 @@ public abstract class ImmutableCollections {
 
     public static <K, V> Map<K, V> mapOf(K k0, V v0, K k1, V v1) {
         return Collections.unmodifiableMap(
-                new MapBuilder<>(new HashMap<K, V>(2, 1f))
+                new MapBuilder<>(new LinkedHashMap<K, V>(2, 1f))
                         .put(k0, v0)
                         .put(k1, v1)
                         .getMap());
