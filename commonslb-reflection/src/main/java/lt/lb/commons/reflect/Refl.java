@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.iteration.streams.SimpleStream;
@@ -125,32 +126,28 @@ public class Refl {
 
         @Override
         public int hashCode() {
-            return selfHashcode(this);
+            return reflectiveHashCode(this, true);
         }
 
         @Override
         public boolean equals(Object obj) {
-            return selfEquals(this, obj);
+            return reflectiveEquals(this, obj, true);
         }
 
         @Override
         public String toString() {
-            return selfToString(this);
+            return reflectiveToString(this, true);
         }
     }
 
-    public static String selfToString(Object ob) {
-        try {
-            return allFieldsToString(ob, true);
-        } catch (IllegalArgumentException | IllegalAccessException ex) {
-            if (ob == null) {
-                return "null";
-            }
-            return ob.getClass().getSimpleName() + System.identityHashCode(ob);
-        }
-    }
-
-    public static String allFieldsToString(Object obj, boolean ignoreExceptions) throws IllegalArgumentException, IllegalAccessException {
+    /**
+     * Gathers all local fields, and creates a {@code String} representation.
+     *
+     * @param obj
+     * @param ignoreExceptions
+     * @return
+     */
+    public static String reflectiveToString(Object obj, boolean ignoreExceptions) {
         if (obj == null) {
             return "null";
         }
@@ -170,13 +167,13 @@ public class Refl {
                 // only append all or nothing
                 sb.append(s);
             } catch (Throwable ex) {
+                if (ex instanceof Error) {
+                    throw (Error) ex;
+                }
+                if (ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                }
                 if (!ignoreExceptions) {
-                    if (ex instanceof IllegalAccessException) {
-                        throw (IllegalAccessException) ex;
-                    }
-                    if (ex instanceof IllegalArgumentException) {
-                        throw (IllegalArgumentException) ex;
-                    }
                     throw NestedException.of(ex);
                 }
 
@@ -190,10 +187,15 @@ public class Refl {
 
     }
 
-    public static boolean selfEquals(Object o1, Object o2) {
-        return reflectiveEquals(o1, o2, true);
-    }
-
+    /**
+     * Gathers all the local fields of both objects and compares each of them to
+     * establish equality.
+     *
+     * @param o1
+     * @param o2
+     * @param ignoreExceptions
+     * @return
+     */
     public static boolean reflectiveEquals(Object o1, Object o2, boolean ignoreExceptions) {
         if (o1 == o2) {
             return true;
@@ -209,27 +211,32 @@ public class Refl {
         SimpleStream<IObjectField> o1Fields = ReflFields.getLocalFields(cl1);
         SimpleStream<IObjectField> o2Fields = ReflFields.getLocalFields(cl2);
 
-        Map<Field, IObjectField> map1 = o1Fields.toMap(m -> m.field(), m -> m);
-        Map<Field, IObjectField> map2 = o2Fields.toMap(m -> m.field(), m -> m);
+        Set<Field> set1 = o1Fields.map(m -> m.field()).toSet();
+        Set<Field> set2 = o2Fields.map(m -> m.field()).toSet();
 
-        if (map1.size() != map2.size()) {
+        if (set1.size() != set2.size()) {
             return false;
         }
 
-        if(!map2.keySet().containsAll(map1.keySet())){
+        if (!set2.containsAll(set1)) {
             return false;
         }
 
-        for (Field f2 : map2.keySet()) {
-            IObjectField field = map1.getOrDefault(f2, null);
-            if (field == null) {
+        for (Field field : set2) {
+            if (!set1.contains(field)) {
                 return false;
             }
             try {
-                if (!Objects.equals(field.get(o1), field.get(o2))) {
+                if (!Objects.equals(Refl.fieldAccessableGet(field, o1), Refl.fieldAccessableGet(field, o2))) {
                     return false;
                 }
-            } catch (IllegalAccessException | IllegalArgumentException ex) {
+            } catch (Throwable ex) {
+                if (ex instanceof Error) {
+                    throw (Error) ex;
+                }
+                if (ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                }
                 if (!ignoreExceptions) {
                     throw NestedException.of(ex);
                 }
@@ -238,11 +245,15 @@ public class Refl {
         return true;
     }
 
-    public static int selfHashcode(Object ob) {
-        return reflectiveHashcode(ob, true);
-    }
-
-    public static int reflectiveHashcode(Object ob, boolean ignoreExceptions) {
+    /**
+     * Gathers all the local fields of both objects computes a hash code based
+     * on them.
+     *
+     * @param ob
+     * @param ignoreExceptions
+     * @return
+     */
+    public static int reflectiveHashCode(Object ob, boolean ignoreExceptions) {
         if (ob == null) {
             return 0;
         }
@@ -252,8 +263,14 @@ public class Refl {
         int hash = 7;
         for (IObjectField f : fields) {
             try {
-                hash = 59 * hash + Objects.hashCode(f.get(ob));
-            } catch (IllegalAccessException | IllegalArgumentException ex) {
+                hash = 59 * hash + Objects.hashCode(Refl.fieldAccessableGet(f.field(), ob));
+            } catch (Throwable ex) {
+                if (ex instanceof Error) {
+                    throw (Error) ex;
+                }
+                if (ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                }
                 if (!ignoreExceptions) {
                     throw NestedException.of(ex);
                 }
