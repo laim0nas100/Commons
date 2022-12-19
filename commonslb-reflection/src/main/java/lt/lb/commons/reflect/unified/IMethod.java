@@ -1,6 +1,7 @@
 package lt.lb.commons.reflect.unified;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -14,6 +15,11 @@ import java.util.Objects;
 public interface IMethod<S, T> extends IMember, IAnnotatedElement, IMethodModifierAware {
 
     public Method method();
+
+    @Override
+    public default AnnotatedElement annotatedElement(){
+        return method();
+    }
 
     @Override
     public default void setAccessible(boolean flag) {
@@ -76,21 +82,6 @@ public interface IMethod<S, T> extends IMember, IAnnotatedElement, IMethodModifi
     @Override
     public default boolean isVarArgs(){
         return method().isVarArgs();
-    }
-
-    @Override
-    public default <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-        return method().getAnnotation(annotationClass);
-    }
-
-    @Override
-    public default Annotation[] getAnnotations() {
-        return method().getAnnotations();
-    }
-
-    @Override
-    public default Annotation[] getDeclaredAnnotations() {
-        return method().getDeclaredAnnotations();
     }
 
     public default TypeVariable<Method>[] getTypeParameters() {

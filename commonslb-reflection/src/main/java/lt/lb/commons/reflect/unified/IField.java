@@ -1,12 +1,10 @@
 package lt.lb.commons.reflect.unified;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
-import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -17,6 +15,11 @@ import lt.lb.uncheckedutils.SafeOpt;
 public interface IField<S, T> extends IMember, IAnnotatedElement, IFieldModifierAware, IAccessible {
 
     public Field field();
+
+    @Override
+    public default AnnotatedElement annotatedElement() {
+        return field();
+    }
 
     @Override
     public default void setAccessible(boolean flag) {
@@ -45,22 +48,6 @@ public interface IField<S, T> extends IMember, IAnnotatedElement, IFieldModifier
 
     public default boolean isEnumConstant() {
         return field().isEnumConstant();
-    }
-
-    @Override
-    public default <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
-        A annotation = field().getAnnotation(annotationClass);
-        return annotation;
-    }
-
-    @Override
-    public default Annotation[] getAnnotations() {
-        return field().getAnnotations();
-    }
-
-    @Override
-    public default Annotation[] getDeclaredAnnotations() {
-        return field().getDeclaredAnnotations();
     }
 
     public default Class<T> getType() {

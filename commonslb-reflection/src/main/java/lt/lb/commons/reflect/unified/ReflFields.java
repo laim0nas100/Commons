@@ -13,36 +13,32 @@ public abstract class ReflFields extends ReflBase {
     public static <S, T> SimpleStream<IField<S, T>> getFields(Class<S> cls) {
         Nulls.requireNonNulls(cls);
         return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
-                .map(field -> {
-                    return (IField<S, T>) () -> field;
-                });
+                .map(ReflBase::makeField);
 
     }
 
     public static <S, T> SimpleStream<IObjectField<S, T>> getLocalFields(Class<S> cls) {
         Nulls.requireNonNulls(cls);
         return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
-                .map(field -> {
-                    return (IObjectField<S, T>) () -> field;
-                })
-                .filter(f -> f.isNotStatic());
+                .map(f -> (IObjectField<S, T>) ReflBase.makeObjectField(f, cls, null))
+                .filter(Nulls::nonNull);
 
     }
 
     public static <S, T> SimpleStream<IObjectField<S, T>> getLocalFields(Class<S> cls, Class<T> type) {
-        Nulls.requireNonNulls(cls, type);
+        Nulls.requireNonNulls(cls);
         return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
-                .map(field -> {
-                    return (IObjectField<S, T>) () -> field;
-                })
-                .filter(f -> f.isNotStatic() && f.isTypeOf(type));
+                .map(f -> makeObjectField(f, cls, type))
+                .filter(Nulls::nonNull)
+                .filter(f -> f.isTypeOf(type));
 
     }
 
     public static <S, T> SimpleStream<IStaticField<S, T>> getStaticFields(Class<S> cls) {
         Nulls.requireNonNulls(cls);
         return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
-                .<IStaticField<S, T>>map(field -> () -> field)
+                .map(f -> (IStaticField<S, T>) ReflBase.makeStaticField(f, cls, null))
+                .filter(Nulls::nonNull)
                 .filter(f -> f.isStatic());
 
     }
@@ -50,20 +46,18 @@ public abstract class ReflFields extends ReflBase {
     public static <S, T> SimpleStream<IStaticField<S, T>> getStaticFields(Class<S> cls, Class<T> type) {
         Nulls.requireNonNulls(cls, type);
         return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
-                .map(field -> {
-                    return (IStaticField<S, T>) () -> field;
-                })
-                .filter(f -> f.isStatic() && f.isTypeOf(type));
+                .map(f -> ReflBase.makeStaticField(f, cls, type))
+                .filter(Nulls::nonNull)
+                .filter(f -> f.isTypeOf(type));
 
     }
 
-    public static <S, T> SimpleStream<IStaticField<S, T>> getConstantFields(Class<S> sourceClass, Class<T> typeClass) {
-        Nulls.requireNonNulls(sourceClass, typeClass);
-        return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredFields()))
-                .map(field -> {
-                    return (IStaticField<S, T>) () -> field;
-                })
-                .filter(f -> f.isStatic() && f.isFinal() && f.isTypeOf(typeClass));
+    public static <S, T> SimpleStream<IStaticField<S, T>> getConstantFields(Class<S> cls, Class<T> type) {
+        Nulls.requireNonNulls(cls, type);
+        return doClassInheritanceStream(cls, n -> Stream.of(n.getDeclaredFields()))
+                .map(f -> ReflBase.makeStaticField(f, cls, type))
+                .filter(Nulls::nonNull)
+                .filter(f -> f.isFinal() && f.isTypeOf(type));
 
     }
 
