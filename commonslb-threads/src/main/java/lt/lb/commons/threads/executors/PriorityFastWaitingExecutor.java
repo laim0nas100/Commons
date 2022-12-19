@@ -4,11 +4,15 @@ import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
+import lt.lb.commons.threads.SimpleThreadPool;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  *
- * {@inheritDoc} Also supports
+ * {@inheritDoc} 
+ * 
+ * Also supports
+ * priority based ordering.
  *
  * @author laim0nas100
  */
@@ -37,36 +41,36 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
 
         int order;
         long time;
-        Runnable ru;
+        Runnable runnable;
 
         public PriorityRunnable(Runnable r, int order) {
             if (r == null) {
                 throw new NullPointerException("Runnable is null");
             }
             this.time = Java.getNanoTime();
-            this.ru = r;
+            this.runnable = r;
             this.order = order;
         }
 
         @Override
         public void run() {
-            this.ru.run();
+            this.runnable.run();
         }
     }
 
     /**
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public PriorityFastWaitingExecutor(int maxThreads) {
         this(maxThreads, WaitTime.ofSeconds(1));
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public PriorityFastWaitingExecutor(int maxThreads, WaitTime time) {
-        super(maxThreads);
+        super(maxThreads, time, new SimpleThreadPool("PriorityFastWaitingExecutor ", new ThreadGroup("PriorityFastWaitingExecutor")));
         this.tasks = new PriorityBlockingQueue<>(1, priorityComparator.reversed());
         this.wt = time;
     }
@@ -92,13 +96,6 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
 
             } while (!deque.isEmpty() || last != null);
         };
-    }
-
-    @Override
-    protected Thread startThread(final int maxT) {
-        Thread t = super.startThread(maxT);
-        t.setName("Priority " + t.getName());
-        return t;
     }
 
     /**

@@ -1,18 +1,16 @@
 package lt.lb.commons.threads.executors;
 
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 import lt.lb.commons.F;
-import lt.lb.commons.Predicates;
+import lt.lb.commons.threads.SimpleThreadPool;
+import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
- * 
- * 
- * Similar to @see FastExecutor, but spawns new Threads sparingly. Simply waiting set
- * time for new tasks become available before exiting. Default wait time is 1
- * second.
+ *
+ * Similar to @see FastExecutor, but spawns new Threads sparingly. Simply
+ * waiting set time for new tasks become available before exiting. Default wait
+ * time is 1 second.
  *
  * @author laim0nas100
  */
@@ -25,7 +23,11 @@ public class FastWaitingExecutor extends FastExecutor {
     }
 
     public FastWaitingExecutor(int maxThreads, WaitTime time) {
-        super(maxThreads);
+        this(maxThreads, time, new SimpleThreadPool("WaitingFastExecutor ", new ThreadGroup("FastWaitingExecutor")));
+    }
+
+    protected FastWaitingExecutor(int maxThreads, WaitTime time, ThreadPool pool) {
+        super(maxThreads, pool);
         this.tasks = new LinkedBlockingDeque<>();
         this.wt = time;
     }
@@ -51,26 +53,13 @@ public class FastWaitingExecutor extends FastExecutor {
         };
     }
 
-    @Override
-    protected Thread startThread(final int maxT) {
-        Thread t = super.startThread(maxT);
-        t.setName("Waiting " + t.getName());
-        return t;
-    }
-
-    
     /**
-     * {@inheritDoc}
-     * Additionally interrupts threads in wait state.
+     * {@inheritDoc} Additionally interrupts threads in wait state.
      */
     @Override
     public void close() {
         super.close();
-        Thread[] threads = new Thread[tg.activeCount()];
-        tg.enumerate(threads, false);
-        Predicate<Thread.State> anySleeping = Predicates.anyEqual(Thread.State.TIMED_WAITING, Thread.State.WAITING);
-        Predicate<Thread> anySleepingThread = Predicates.ofMapping(anySleeping, m -> m.getState());
-        Stream.of(threads).filter(t -> t!= null).filter(anySleepingThread).forEach(Thread::interrupt);
+        pool.interruptWaiting();
     }
 
 }

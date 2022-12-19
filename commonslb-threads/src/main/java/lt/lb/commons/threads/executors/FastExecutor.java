@@ -15,6 +15,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
+import lt.lb.commons.Nulls;
+import lt.lb.commons.threads.SimpleThreadPool;
+import lt.lb.commons.threads.ThreadPool;
 
 /**
  *
@@ -26,7 +29,8 @@ import lt.lb.commons.F;
 public class FastExecutor extends AbstractExecutorService implements CloseableExecutor {
 
     protected Collection<Runnable> tasks = new ConcurrentLinkedDeque<>();
-    protected ThreadGroup tg = new ThreadGroup("FastExecutor");
+
+    protected ThreadPool pool;
 
     protected volatile boolean open = true;
     protected int maxThreads; // 
@@ -45,7 +49,13 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
      *
      */
     public FastExecutor(int maxThreads) {
+        this(maxThreads, new SimpleThreadPool("FastExecutor ", new ThreadGroup("FastExecutor")));
+    }
+
+    protected FastExecutor(int maxThreads, ThreadPool threadPool) {
+        this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
         this.maxThreads = maxThreads;
+        pool.setStarting(true);
     }
 
     public void setMaxThreads(int maxThreads) {
@@ -53,7 +63,22 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     }
 
     public void setErrorChannel(Consumer<Throwable> channel) {
+        Nulls.requireNonNull(channel, "Error channel must not be null");
         errorChannel = channel;
+    }
+
+    public boolean isDeamon() {
+        return pool.isDaemon();
+    }
+
+    /**
+     * Updates all active thread status and every newly spawned thread will be
+     * of newly updated status
+     *
+     * @param deamon
+     */
+    public void setDeamon(boolean deamon) {
+        pool.setDaemon(deamon);
     }
 
     public Consumer<Throwable> getErrorChannel() {
@@ -119,10 +144,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     }
 
     protected Thread startThread(final int maxT) {
-        Thread t = new Thread(tg, getRun(maxT));
-        t.setName("Fast Executor " + t.getName());
-        t.start();
-        return t;
+        return pool.createThread(getRun(maxT));//pool should start the thread
     }
 
     protected void maybeStartThread(final int maxT) {
@@ -160,10 +182,10 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
         shutdown();
         ArrayList<Runnable> unfinished = new ArrayList<>();
         Iterator<Runnable> iterator = tasks.iterator();
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
             Runnable next = iterator.next();
             iterator.remove();
-            if(next != null){
+            if (next != null) {
                 unfinished.add(next);
             }
         }
