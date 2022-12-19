@@ -157,38 +157,4 @@ public class ReflectionPrint {
         }
     }
 
-    public String allFieldsToString(Object obj) throws IllegalArgumentException, IllegalAccessException {
-        if (obj == null) {
-            return "null";
-        }
-        LineStringBuilder sb = new LineStringBuilder();
-
-        Class cls = obj.getClass();
-        SimpleStream<IObjectField> regularFieldsOf = ReflFields.getLocalFields(cls);
-        List<Field> fieldsOf = regularFieldsOf.map(m->m.field()).toList();
-        sb.append(cls.getSimpleName()).append("{");
-        for (Field field : fieldsOf) {
-            try {
-                sb.append(field.getName()).append("=").append(", ");
-                sb.append(Refl.fieldAccessableGet(field, obj));
-            } catch (Throwable ex) {
-                if (ex instanceof IllegalAccessException) {
-                    throw (IllegalAccessException) ex;
-                }
-                if (ex instanceof IllegalArgumentException) {
-                    throw (IllegalArgumentException) ex;
-                }
-                throw NestedException.of(ex);
-
-            }
-        }
-
-        if (!fieldsOf.isEmpty()) {
-            sb.removeFromEnd(2);
-        }
-        return sb.append("}").toString();
-
-    }
-
-
 }
