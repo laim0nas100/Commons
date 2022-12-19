@@ -20,46 +20,21 @@ import lt.lb.commons.containers.values.Value;
  * @param <K> key type
  * @param <V> value type
  */
-public class AtomicMap<K, V> {
-
-    protected Map<K, V> map;
-    protected Function<? super K, ? extends V> defaultSupply = k -> null;
-
-    public AtomicMap(Map<K, V> map) {
-        this.map = Objects.requireNonNull(map);
-    }
-
-    public AtomicMap() {
-        this(new ConcurrentHashMap<>());
-    }
-
-    /**
-     * Sets default value supplier.
-     *
-     * @param defaultSupply
-     */
-    public void setDefaultSupply(Function<? super K, ? extends V> defaultSupply) {
-        Objects.requireNonNull(defaultSupply);
-        this.defaultSupply = defaultSupply;
-    }
+public interface AtomicMap<K, V> {
 
     /**
      * Gets backing map.
      *
      * @return
      */
-    public Map<K, V> getMap() {
-        return map;
-    }
+    public Map<K, V> getMap();
 
     /**
      * Gets default value supplier.
      *
      * @return
      */
-    public Function<? super K, ? extends V> getDefaultSupply() {
-        return defaultSupply;
-    }
+    public Function<? super K, ? extends V> getDefaultSupply();
 
     /**
      * Delegates to {@link Map#compute }. Subclasses can override this to
@@ -70,8 +45,8 @@ public class AtomicMap<K, V> {
      * @param remappingFunction
      * @return
      */
-    public V atomicChange(final K key, final BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return map.compute(key, remappingFunction);
+    public default V atomicChange(final K key, final BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return getMap().compute(key, remappingFunction);
     }
 
     /**
@@ -83,7 +58,7 @@ public class AtomicMap<K, V> {
      * @param remappingFunction
      * @return
      */
-    public V changeSupplyIfAbsent(final K key, final Function<? super K, ? extends V> supl, final Function<? super V, ? extends V> remappingFunction) {
+    public default V changeSupplyIfAbsent(final K key, final Function<? super K, ? extends V> supl, final Function<? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(key);
         Objects.requireNonNull(supl);
         Objects.requireNonNull(remappingFunction);
@@ -104,7 +79,7 @@ public class AtomicMap<K, V> {
      * @param remappingFunction
      * @return
      */
-    public V changeSupplyIfAbsent(final K key, Supplier<? extends V> supl, final Function<? super V, ? extends V> remappingFunction) {
+    public default V changeSupplyIfAbsent(final K key, Supplier<? extends V> supl, final Function<? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(key);
         Objects.requireNonNull(supl);
         Objects.requireNonNull(remappingFunction);
@@ -125,7 +100,7 @@ public class AtomicMap<K, V> {
      * @param remappingFunction
      * @return
      */
-    public V changeSupplyIfAbsent(final K key, final V def, final Function<? super V, ? extends V> remappingFunction) {
+    public default V changeSupplyIfAbsent(final K key, final V def, final Function<? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(key);
         Objects.requireNonNull(remappingFunction);
         return atomicChange(key, (k, v) -> {
@@ -145,8 +120,8 @@ public class AtomicMap<K, V> {
      * @param remappingFunction
      * @return
      */
-    public V changeSupplyIfAbsentDefault(final K key, final Function<? super V, ? extends V> remappingFunction) {
-        return changeSupplyIfAbsent(key, defaultSupply, remappingFunction);
+    public default V changeSupplyIfAbsentDefault(final K key, final Function<? super V, ? extends V> remappingFunction) {
+        return changeSupplyIfAbsent(key, getDefaultSupply(), remappingFunction);
     }
 
     /**
@@ -157,7 +132,7 @@ public class AtomicMap<K, V> {
      * @param remappingFunction
      * @return
      */
-    public V changeIfPresent(final K key, final Function<? super V, ? extends V> remappingFunction) {
+    public default V changeIfPresent(final K key, final Function<? super V, ? extends V> remappingFunction) {
         Objects.requireNonNull(key);
         Objects.requireNonNull(remappingFunction);
         return atomicChange(key, (k, v) -> {
@@ -176,7 +151,7 @@ public class AtomicMap<K, V> {
      * @param supplier
      * @return
      */
-    public V changeIfAbsent(final K key, final Supplier<? extends V> supplier) {
+    public default V changeIfAbsent(final K key, final Supplier<? extends V> supplier) {
         Objects.requireNonNull(key);
         Objects.requireNonNull(supplier);
         return atomicChange(key, (k, v) -> {
@@ -193,7 +168,7 @@ public class AtomicMap<K, V> {
      * @param key
      * @return
      */
-    public V remove(final K key) {
+    public default V remove(final K key) {
         Objects.requireNonNull(key);
         Value<V> val = new Value<>();
         atomicChange(key, (k, v) -> {
@@ -208,8 +183,8 @@ public class AtomicMap<K, V> {
      *
      * @return
      */
-    public List<K> getKeys() {
-        return new ArrayList<>(map.keySet());
+    public default List<K> getKeys() {
+        return new ArrayList<>(getMap().keySet());
     }
 
     /**
@@ -217,15 +192,15 @@ public class AtomicMap<K, V> {
      *
      * @return
      */
-    public List<V> getValues() {
-        return new ArrayList<>(map.values());
+    public default List<V> getValues() {
+        return new ArrayList<>(getMap().values());
     }
 
     /**
      * Clears the map.
      */
-    public void clear() {
-        map.clear();
+    public default void clear() {
+        getMap().clear();
     }
 
 }

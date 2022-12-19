@@ -4,12 +4,14 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import lt.lb.commons.Java;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.threads.sync.AtomicMap;
+import lt.lb.commons.threads.sync.AtomicMapDefault;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.SafeOpt;
@@ -46,10 +48,10 @@ public class ContextualizedSync {
         this(timesToRetry, waitAtComplete, new ConcurrentHashMap<>());
     }
 
-    public ContextualizedSync(int timesToRetry, WaitTime waitAtComplete, ConcurrentHashMap<Object, LockCTX> map) {
+    public ContextualizedSync(int timesToRetry, WaitTime waitAtComplete, ConcurrentMap<Object, LockCTX> map) {
         this.defaultRetries = timesToRetry;
         this.defaultWait = waitAtComplete;
-        this.atomic = new AtomicMap<>(map);
+        this.atomic = new AtomicMapDefault<>(map);
     }
 
     public ContextualizedSync() {

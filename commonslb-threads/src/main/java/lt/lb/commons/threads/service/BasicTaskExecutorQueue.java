@@ -11,6 +11,7 @@ import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.service.BasicTaskExecutorQueue.BasicRunInfo;
 import lt.lb.commons.threads.service.TaskExecutorQueue.RunInfo;
 import lt.lb.commons.threads.sync.AtomicMap;
+import lt.lb.commons.threads.sync.AtomicMapDefault;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
@@ -132,7 +133,7 @@ public abstract class BasicTaskExecutorQueue implements TaskExecutorQueue<String
 
     }
 
-    protected AtomicMap<String, BasicRunStateResult> states = new AtomicMap<>();
+    protected AtomicMap<String, BasicRunStateResult> states = new AtomicMapDefault<>();
 
     protected ThreadLocal<IntegerValue> inside = ThreadLocal.withInitial(() -> new IntegerValue(0));
 
