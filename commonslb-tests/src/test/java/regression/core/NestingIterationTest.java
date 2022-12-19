@@ -4,16 +4,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import lt.lb.commons.F;
 import lt.lb.commons.containers.CastIndexedList;
+import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.iteration.IterProvider;
 import lt.lb.commons.iteration.NestingIteration;
+import lt.lb.commons.iteration.NestingIteration.IterProvider;
 import lt.lb.commons.iteration.ReadOnlyIterator;
+import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import lt.lb.uncheckedutils.Checked;
+import org.apache.commons.lang3.ArrayUtils;
+
 /**
  *
  * @author laim0nas100
@@ -23,33 +26,41 @@ public class NestingIterationTest {
     @Test
     public void test() {
         RandomDistribution rng = RandomDistribution.uniform(new Random());
-        Integer bound = 10;
+        Integer bound = 5;
         Checked.uncheckedRun(() -> {
             int[] sizes = new int[bound];
             ArrayList<IterProvider<Integer>> list = new ArrayList<>();
             for (int i = 0; i < bound; i++) {
-                sizes[i] = rng.nextInt(0, 7);
+                sizes[i] = rng.nextInt(0, 10);
                 list.add(upTo(sizes[i]));
             }
 
             Iterator<CastIndexedList<Integer>> iterator = NestingIteration.iterator(list, false);
+            Integer cumulativeProduct = MakeStream.from(ArrayUtils.toObject(sizes)).filter(m -> m > 0).reduce((a, b) -> a * b).get();
+            IntegerValue times = new IntegerValue(0);
             For.elements().iterate(iterator, (i, c) -> {
                 assertCast(sizes, c);
+                times.incrementAndGet();
             });
-
+            assertThat(cumulativeProduct).isEqualTo(times.get());
         });
 
         Checked.uncheckedRun(() -> {
             ArrayList<Iterator<Integer>> list = new ArrayList<>();
             int[] sizes = new int[bound];
             for (int i = 0; i < bound; i++) {
-                sizes[i] = rng.nextInt(0, 7);
+                sizes[i] = rng.nextInt(0, 10);
                 list.add(upToIter(sizes[i]));
             }
             Iterator<CastIndexedList<Integer>> iterator = NestingIteration.lazyInitIterator(list, false);
+            Integer cumulativeProduct = MakeStream.from(ArrayUtils.toObject(sizes)).filter(m -> m > 0).reduce((a, b) -> a * b).get();
+            IntegerValue times = new IntegerValue(0);
             For.elements().iterate(iterator, (i, c) -> {
                 assertCast(sizes, c);
+                times.incrementAndGet();
             });
+
+            assertThat(cumulativeProduct).isEqualTo(times.get());
         });
     }
 
