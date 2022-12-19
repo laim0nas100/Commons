@@ -135,6 +135,18 @@
             <artifactId>javax.persistence-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>lt.lb.commons</groupId>
+            <artifactId>commonslb-javafx</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>lt.lb</groupId>
+            <artifactId>JavaFXLibs</artifactId>
+            <version>16</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <name>CommonsLB Tests</name>
 </project>
