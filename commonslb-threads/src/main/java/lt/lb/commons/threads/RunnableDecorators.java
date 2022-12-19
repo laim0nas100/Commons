@@ -5,9 +5,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lt.lb.commons.Nulls;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
+
 /**
  *
  * @author laim0nas100
@@ -20,9 +22,11 @@ public class RunnableDecorators {
      *
      * @param time
      * @param run
+     * @param onInterrupt
      * @return
      */
     public static UncheckedRunnable withTimeout(WaitTime time, Runnable run, Runnable onInterrupt) {
+        Nulls.requireNonNulls(time, run, onInterrupt);
         return () -> {
             ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
             Thread toCancel = Thread.currentThread();
@@ -50,7 +54,6 @@ public class RunnableDecorators {
      * Same as {@link withTimeout} with no onInterrupt action
      *
      * @param time
-     * @param repeatTimeIfTimeout
      * @param run
      * @return
      */
@@ -108,7 +111,6 @@ public class RunnableDecorators {
      * Same as {@link withTimeoutRepeatUntilDone} with no onInterrupt action
      *
      * @param time
-     * @param repeatTimeIfTimeout
      * @param run
      * @return
      */

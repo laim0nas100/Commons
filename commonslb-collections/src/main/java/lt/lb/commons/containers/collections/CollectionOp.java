@@ -29,7 +29,6 @@ import lt.lb.commons.containers.tuples.PairLeft;
 import lt.lb.commons.containers.tuples.PairRight;
 import lt.lb.commons.iteration.EmptyImmutableList;
 import lt.lb.commons.iteration.streams.MakeStream;
-import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.uncheckedutils.Checked;
 
 /**
@@ -166,7 +165,7 @@ public class CollectionOp {
      * @param pred predicate to satisfy
      * @return ArrayList of removed items
      */
-    public static <T> ArrayList filterInPlace(Collection<T> col, Predicate<T> pred) {
+    public static <T> ArrayList<T> filterInPlace(Collection<T> col, Predicate<T> pred) {
         ArrayList<T> removed = new ArrayList<>();
         filterInPlace(col, pred, removed::add);
         return removed;
@@ -250,9 +249,7 @@ public class CollectionOp {
                 }
                 i++;
             }
-            col.clear();
-            col.addAll(kept);
-
+            replace(col, kept);
         } else {
             Iterator<T> iterator = col.iterator();
             int i = 0;

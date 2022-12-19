@@ -16,6 +16,7 @@ import lt.lb.commons.threads.executors.PriorityFastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
+
 /**
  *
  * @author laim0nas100
@@ -37,8 +38,8 @@ public class FastExecutorTest {
 
             Checked.uncheckedRun(() -> {
 //                Optional<Throwable> execute = sb.execute(() -> {
-                    Thread.sleep(100);
-                    DLog.print(s);
+                Thread.sleep(100);
+                DLog.print(s, Thread.currentThread().isDaemon());
 //                });
 //                if (execute.isPresent()) {
 //                    execute.get().printStackTrace();
@@ -48,16 +49,15 @@ public class FastExecutorTest {
         };
     }
 
-    public void main() throws Exception{
+    public static void main(String[] args) throws Exception {
         DLog.main().async = false;
         System.err.println("ERORR");
-        
+
         Range<Integer> of = Range.of(0, 2);
         DLog.print(of.inRangeExcInc(0));
-         DLog.print(of.inRangeExcInc(2));
-        
-        FastWaitingExecutor exe = new FastWaitingExecutor(2,WaitTime.ofSeconds(10));
-        
+        DLog.print(of.inRangeExcInc(2));
+        FastWaitingExecutor exe = new FastWaitingExecutor(2, WaitTime.ofSeconds(10));
+
         for (int i = 0; i < 10; i++) {
             exe.execute(makeRun("" + i));
         }
@@ -80,33 +80,32 @@ public class FastExecutorTest {
             Thread.sleep(8000);
             DLog.print("End");
         });
-        
+
         FutureTask<Object> empty = Futures.empty();
         exe.execute(empty);
-        
-        Checked.uncheckedRun(()->{
+
+        Checked.uncheckedRun(() -> {
             empty.get();
             Thread.sleep(1000);
-            
+
         });
         exe.close();
 //        DLog.await(1, TimeUnit.HOURS);
 //        DLog.close();
     }
-    
+
 //    @Test
-    public void testPriority() throws Exception{
+    public void testPriority() throws Exception {
         DLog.print("OK");
         PriorityFastWaitingExecutor exe = new PriorityFastWaitingExecutor(5);
-        for(int i = 0; i < 100; i++){
+        for (int i = 0; i < 100; i++) {
             int ii = i;
-            exe.execute(()->{
+            exe.execute(() -> {
                 DLog.print(ii);
             });
         }
         DLog.await(1, TimeUnit.HOURS);
-        
-        
+
     }
-    
+
 }

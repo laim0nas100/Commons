@@ -69,7 +69,7 @@ public class ThreadBottleneckTest {
         };
     }
 
-    public void bench() {
+    public static void main(String[] args) {
 
         Benchmark bench = new Benchmark();
 

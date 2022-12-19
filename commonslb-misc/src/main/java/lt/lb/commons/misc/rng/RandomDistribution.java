@@ -387,6 +387,7 @@ public interface RandomDistribution {
     public default <T> LinkedList<T> pickRandomDistributed(int amount, Tuple<Double, T>... tuples) {
         return pickRandomDistributed(amount, Arrays.asList(tuples));
     }
+
     /**
      *
      * @param <T>
@@ -403,10 +404,9 @@ public interface RandomDistribution {
         ArrayList<T> pickRandom = rrr.pickRandom(amount, () -> this.nextDouble(rrr.getLimit()));
         return new LinkedList<>(pickRandom);
     }
-    
-    
-    public static Random asRandom(RandomDistribution rng){
-        return new Random(){
+
+    public static Random asRandom(RandomDistribution rng) {
+        return new Random() {
             @Override
             protected int next(int bits) {
                 return rng.nextInt();
@@ -414,22 +414,22 @@ public interface RandomDistribution {
 
             @Override
             public double nextDouble() {
-                return rng.nextDouble(); 
+                return rng.nextDouble();
             }
 
             @Override
             public boolean nextBoolean() {
-                return rng.nextBoolean(); 
+                return rng.nextBoolean();
             }
 
             @Override
             public long nextLong() {
-                return rng.nextLong(); 
+                return rng.nextLong();
             }
 
             @Override
             public int nextInt() {
-                return rng.nextInt(); 
+                return rng.nextInt();
             }
 
             @Override
@@ -446,8 +446,6 @@ public interface RandomDistribution {
             public int nextInt(int bound) {
                 return rng.nextInt(bound);
             }
-            
-            
         };
     }
 

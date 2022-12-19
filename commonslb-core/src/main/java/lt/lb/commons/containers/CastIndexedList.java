@@ -3,7 +3,7 @@ package lt.lb.commons.containers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import lt.lb.commons.ArrayOp;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * CastList, but also contains int[] information about where those values were
@@ -27,9 +27,7 @@ public class CastIndexedList<T> extends CastList<T> {
     }
     
     public List<Integer> asIndexList(){
-        return new ArrayList<>(Arrays.asList(ArrayOp.mapInt(indexes)));
+        return new ArrayList<>(Arrays.asList(ArrayUtils.toObject(indexes)));
     }
-    
-    
 
 }

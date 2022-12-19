@@ -1,7 +1,6 @@
 package lt.lb.commons.threads.executors.layers;
 
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import lt.lb.commons.threads.executors.ForwardingExecutorService;

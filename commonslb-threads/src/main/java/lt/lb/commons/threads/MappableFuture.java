@@ -21,7 +21,7 @@ import lt.lb.uncheckedutils.func.UncheckedSupplier;
  * Mappable future. Easier and less cluttered version of CompletableFuture.
  * Disregards failure paths, because usually they are irrelevant. If failure
  * happens, just handle exception and disregard left-over execution path.
- * Mapping is lazy by default (if get is never called, why bother doing the work
+ * Mapping is lazy by default (if {@link Future#get()} is never called, why bother doing the work
  * of mapping the data?).
  *
  * Eager mapping behavior is achieved by feeding the {@link Future#get() }

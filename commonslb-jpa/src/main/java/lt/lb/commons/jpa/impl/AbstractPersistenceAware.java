@@ -1,6 +1,7 @@
 package lt.lb.commons.jpa.impl;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
@@ -90,12 +91,12 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
         EntityManager em = getEntityManager();
         Object id = getIds().getId(entity);
 
-        if(getter.generated()){ // easy case, id only appears after commit.
+        if (getter.generated()) { // easy case, id only appears after commit.
             return id == null;
-        }else{ // id is set manually
-            if(id == null){
+        } else { // id is set manually
+            if (id == null) {
                 return !em.contains(entity);
-            }else{
+            } else {
                 return find(cls, id).isEmpty();
             }
         }
@@ -133,8 +134,9 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
     }
 
     @Override
-    public default <T> SafeOpt<T> find(Class<T> clz, Object primaryKey) {
-        return SafeOpt.ofNullable(primaryKey).map(id -> getEntityManager().find(clz, id));
+    public default <T> SafeOpt<T> find(Class<T> cls, Object primaryKey) {
+        Objects.requireNonNull(cls, "Class type is null");
+        return SafeOpt.ofNullable(primaryKey).map(id -> getEntityManager().find(cls, id));
     }
 
     @Override
