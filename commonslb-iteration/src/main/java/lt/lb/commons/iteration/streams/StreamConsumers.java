@@ -16,6 +16,7 @@ public interface StreamConsumers<X, M extends DecoratableStream<X, M>> extends S
      * Iterate through all pairs using provided {@link BiConsumer}. Same as
      * using
      * {@link java.util.stream.Stream#reduce(java.util.function.BinaryOperator)};
+     * returning the right argument.
      *
      * @param action
      */

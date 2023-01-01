@@ -2,6 +2,8 @@ package lt.lb.commons.iteration.streams;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -91,6 +93,24 @@ public interface StreamCollectors<X, M extends DecoratableStream<X, M>> extends 
     }
 
     /**
+     * Quick-hand for {@link Collectors#toCollection(LinkedHashSet::new) }
+     * Allows null values.
+     */
+    public default Set<X> toLinkedSet() {
+        return toCollection(LinkedHashSet::new);
+    }
+
+    /**
+     * Quick-hand for {@link Collectors#toCollection(LinkedHashSet::new) }
+     * wrapped in {@link Collections#unmodifiableList(java.util.Set)}
+     *
+     * Allows null values.
+     */
+    public default Set<X> toUnmodifiableLinkedSet() {
+        return Collections.unmodifiableSet(toLinkedSet());
+    }
+
+    /**
      * Quick-hand for
      * {@link Collectors#toMap(java.util.function.Function, java.util.function.Function)}
      */
@@ -115,6 +135,30 @@ public interface StreamCollectors<X, M extends DecoratableStream<X, M>> extends 
 
     /**
      * Quick-hand for
+     * {@link Collectors#toMap(java.util.function.Function, java.util.function.Function)}
+     * using first argument as merge function.
+     */
+    public default <K, V> Map<K, V> toLinkedMap(Function<? super X, ? extends K> keyMapper,
+            Function<? super X, ? extends V> valueMapper
+    ) {
+        return toLinkedMap(keyMapper, valueMapper, (a, b) -> a);
+    }
+
+    /**
+     * Quick-hand for
+     * {@link toLinkedMap(java.util.function.Function, java.util.function.Function)}
+     * wrapped in {@link Collections#unmodifiableMap(java.util.Map) }
+     *
+     * Allows null values or keys.
+     */
+    public default <K, V> Map<K, V> toUnmodifiableLinkedMap(Function<? super X, ? extends K> keyMapper,
+            Function<? super X, ? extends V> valueMapper
+    ) {
+        return Collections.unmodifiableMap(toLinkedMap(keyMapper, valueMapper));
+    }
+
+    /**
+     * Quick-hand for
      * {@link Collectors#toMap(java.util.function.Function, java.util.function.Function, java.util.function.BinaryOperator) }
      */
     public default <K, V> Map<K, V> toMap(Function<? super X, ? extends K> keyMapper,
@@ -134,6 +178,30 @@ public interface StreamCollectors<X, M extends DecoratableStream<X, M>> extends 
             Function<? super X, ? extends V> valueMapper,
             BinaryOperator<V> mergeFunction) {
         return Collections.unmodifiableMap(toMap(keyMapper, valueMapper, mergeFunction));
+    }
+
+    /**
+     * Quick-hand for
+     * {@link Collectors#toMap(java.util.function.Function, java.util.function.Function, java.util.function.BinaryOperator, java.util.function.Supplier) }
+     * using LinkedHashMap::new as supplier
+     */
+    public default <K, V> Map<K, V> toLinkedMap(Function<? super X, ? extends K> keyMapper,
+            Function<? super X, ? extends V> valueMapper,
+            BinaryOperator<V> mergeFunction) {
+        return me().collect(Collectors.toMap(keyMapper, valueMapper, mergeFunction, LinkedHashMap::new));
+    }
+
+    /**
+     * Quick-hand for
+     * {@link toLinkedMap(java.util.function.Function, java.util.function.Function, java.util.function.BinaryOperator)}
+     * wrapped in {@link Collections#unmodifiableMap(java.util.Map) }
+     *
+     * Allows null values or keys.
+     */
+    public default <K, V> Map<K, V> toUnmodifiableLinkedMap(Function<? super X, ? extends K> keyMapper,
+            Function<? super X, ? extends V> valueMapper,
+            BinaryOperator<V> mergeFunction) {
+        return Collections.unmodifiableMap(toLinkedMap(keyMapper, valueMapper, mergeFunction));
     }
 
     /**
