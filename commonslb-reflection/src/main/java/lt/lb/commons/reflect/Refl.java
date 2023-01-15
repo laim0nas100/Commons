@@ -1,18 +1,21 @@
 package lt.lb.commons.reflect;
 
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.reflect.unified.IObjectField;
 import lt.lb.commons.reflect.unified.ReflFields;
 import lt.lb.uncheckedutils.NestedException;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
 
 /**
@@ -130,6 +133,7 @@ public class Refl {
         }
 
         @Override
+        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         public boolean equals(Object obj) {
             return reflectiveEquals(this, obj, true);
         }
@@ -281,4 +285,170 @@ public class Refl {
 
     }
 
+    public static SimpleStream<PropertyDescriptor> getPropertyDescriptors(Class sourceClass) {
+        Nulls.requireNonNull(sourceClass);
+
+        return MakeStream.fromValues(sourceClass)
+                .mapSafeOpt(cls -> SafeOpt.ofGet(() -> Introspector.getBeanInfo(cls)))
+                .flatMap(m -> MakeStream.from(m.getPropertyDescriptors()))
+                .filter(Nulls::nonNull)
+                .filter(p->!p.getName().equals("class"));
+    }
+
+    /**
+     * Simple base class to abstract
+     * {@link Object#hashCode()}, {@link Object#equals(java.lang.Object)}, {@link Object#toString()}
+     * methods, for classes that are only relevant for their properties, uses
+     * bean {@link Introspector} to obtain all the information from properties.
+     */
+    public static abstract class SelfIDBean {
+
+        @Override
+        public int hashCode() {
+            return beanHashCode(this, true);
+        }
+
+        @Override
+        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+        public boolean equals(Object obj) {
+            return beanEquals(this, obj, true);
+        }
+
+        @Override
+        public String toString() {
+            return beanToString(this, true);
+        }
+    }
+
+    /**
+     * Gathers all bean properties, and creates a {@code String} representation.
+     *
+     * @param obj
+     * @param ignoreExceptions
+     * @return
+     */
+    public static String beanToString(Object obj, boolean ignoreExceptions) {
+        if (obj == null) {
+            return "null";
+        }
+        LineStringBuilder sb = new LineStringBuilder();
+
+        Class cls = obj.getClass();
+        List<PropertyDescriptor> propertyDescriptors = getPropertyDescriptors(cls).toList();
+        sb.append(cls.getSimpleName()).append("{");
+        for (PropertyDescriptor p : propertyDescriptors) {
+            try {
+
+                Object value = Refl.invokeMethod(p.getReadMethod(), obj);
+                StringBuilder s = new StringBuilder();
+                s.append(p.getDisplayName()).append("=").append(value).append(", ");
+
+                // only append all or nothing
+                sb.append(s);
+            } catch (Throwable ex) {
+                if (ex instanceof Error) {
+                    throw (Error) ex;
+                }
+                if (ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                }
+                if (!ignoreExceptions) {
+                    throw NestedException.of(ex);
+                }
+
+            }
+        }
+
+        if (!propertyDescriptors.isEmpty()) {
+            sb.removeFromEnd(2);
+        }
+        return sb.append("}").toString();
+
+    }
+
+    /**
+     * Gathers all the bean properties of both objects and compares each of them
+     * to establish equality.
+     *
+     * @param o1
+     * @param o2
+     * @param ignoreExceptions
+     * @return
+     */
+    public static boolean beanEquals(Object o1, Object o2, boolean ignoreExceptions) {
+        if (o1 == o2) {
+            return true;
+        }
+        if (o2 == null) {
+            return false;
+        }
+
+        Set<Method> set1 = getPropertyDescriptors(o1.getClass()).map(m -> m.getReadMethod()).toSet();
+        Set<Method> set2 = getPropertyDescriptors(o2.getClass()).map(m -> m.getReadMethod()).toSet();
+        if (set1.size() != set2.size()) {
+            return false;
+        }
+
+        if (!set2.containsAll(set1)) {
+            return false;
+        }
+
+        for (Method method : set2) {
+            if (!set1.contains(method)) {
+                return false;
+            }
+            try {
+                if (!Objects.equals(Refl.invokeMethod(method, o1), Refl.invokeMethod(method, o2))) {
+                    return false;
+                }
+            } catch (Throwable ex) {
+                if (ex instanceof Error) {
+                    throw (Error) ex;
+                }
+                if (ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                }
+                if (!ignoreExceptions) {
+                    throw NestedException.of(ex);
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Gathers all the bean properties of both objects computes a hash code
+     * based on them.
+     *
+     * @param ob
+     * @param ignoreExceptions
+     * @return
+     */
+    public static int beanHashCode(Object ob, boolean ignoreExceptions) {
+        if (ob == null) {
+            return 0;
+        }
+        Class cls = ob.getClass();
+        List<PropertyDescriptor> props = getPropertyDescriptors(cls).toList();
+
+        int hash = 7;
+        for (PropertyDescriptor f : props) {
+            try {
+                hash = 59 * hash + Objects.hashCode(Refl.invokeMethod(f.getReadMethod(), ob));
+            } catch (Throwable ex) {
+                if (ex instanceof Error) {
+                    throw (Error) ex;
+                }
+                if (ex instanceof RuntimeException) {
+                    throw (RuntimeException) ex;
+                }
+                if (!ignoreExceptions) {
+                    throw NestedException.of(ex);
+                }
+            }
+        }
+
+        return hash;
+
+    }
 }
