@@ -1,4 +1,4 @@
-package lt.lb.commons.io;
+package lt.lb.commons.io.text;
 
 import java.io.Reader;
 
@@ -6,7 +6,7 @@ import java.io.Reader;
  *
  * @author laim0nas100
  */
-public class ReusableStringReader extends Reader {
+public class ReusableStringReader extends Reader implements ConvenientReader {
 
     private int pos = 0, size = 0;
     private String s = null;
@@ -53,5 +53,10 @@ public class ReusableStringReader extends Reader {
     public void close() {
         pos = size; // this prevents NPE when reading after close!
         s = null;
+    }
+
+    @Override
+    public Reader real() {
+        return this;
     }
 }
