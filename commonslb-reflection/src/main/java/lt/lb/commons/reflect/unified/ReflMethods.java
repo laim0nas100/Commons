@@ -1,6 +1,7 @@
 package lt.lb.commons.reflect.unified;
 
 import java.beans.IntrospectionException;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.iteration.streams.SimpleStream;
@@ -59,6 +60,10 @@ public abstract class ReflMethods extends ReflBase {
 
     }
 
+    public static final Pattern GET_PATTERN = Pattern.compile("^get[A-Z].*");
+    public static final Pattern IS_PATTERN = Pattern.compile("^is[A-Z].*");
+    public static final Pattern SET_PATTERN = Pattern.compile("^set[A-Z].*");
+
     public static <S, T> SimpleStream<IObjectMethod<S, T>> getGetterMethods(Class<S> sourceClass) {
         Nulls.requireNonNull(sourceClass);
         return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
@@ -70,9 +75,9 @@ public abstract class ReflMethods extends ReflBase {
                         return false;
                     }
                     if (m.isReturnTypeOf(Boolean.TYPE)) {
-                        return m.nameStartsWith("is");
+                        return m.nameMatches(IS_PATTERN);
                     }
-                    return m.nameStartsWith("get");
+                    return m.nameMatches(GET_PATTERN);
                 });
 
     }
@@ -90,9 +95,7 @@ public abstract class ReflMethods extends ReflBase {
                 .map(m -> ReflBase.makeObjectMethod(m, sourceClass, Void.class))
                 .filter(Nulls::nonNull)
                 .filter(method -> method.isVoid() && method.isPublic() && method.getParameterCount() == 1)
-                .filter(method -> {
-                    return method.nameStartsWith("set");
-                });
+                .filter(method -> method.nameMatches(SET_PATTERN));
 
     }
 
