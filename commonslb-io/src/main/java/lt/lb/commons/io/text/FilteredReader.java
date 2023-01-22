@@ -9,7 +9,7 @@ import java.util.function.IntPredicate;
  *
  * @author laim0nas100
  */
-public class FilteredReader extends Reader implements ConvenientReader {
+public class FilteredReader extends ConvBufferedReader {
 
     protected Reader in;
 
@@ -53,31 +53,6 @@ public class FilteredReader extends Reader implements ConvenientReader {
         sb.getChars(0, sb.length(), cbuf, off);
         
         return read;
-    }
-
-    @Override
-    public long skip(long n) throws IOException {
-        return in.skip(n);
-    }
-
-    @Override
-    public boolean markSupported() {
-        return in.markSupported();
-    }
-
-    @Override
-    public void mark(int readAheadLimit) throws IOException {
-        in.mark(readAheadLimit);
-    }
-
-    @Override
-    public void reset() throws IOException {
-        in.reset();
-    }
-
-    @Override
-    public void close() throws IOException {
-        in.close();
     }
 
     @Override

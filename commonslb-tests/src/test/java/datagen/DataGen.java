@@ -394,7 +394,7 @@ public class DataGen {
             });
         }
 
-        lt.lb.commons.io.TextFileIO.writeToFile(fileName, list);
+        lt.lb.commons.io.text.TextFileIO.writeToFile(fileName, list);
     }
 
     public static interface DataProv {

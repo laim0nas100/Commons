@@ -19,7 +19,7 @@ import java.util.zip.ZipFile;
 import lt.lb.commons.F;
 import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.io.TextFileIO;
+import lt.lb.commons.io.text.TextFileIO;
 import lt.lb.commons.io.blobify.Blobbys;
 import lt.lb.commons.io.blobify.bytes.Bytes;
 import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;

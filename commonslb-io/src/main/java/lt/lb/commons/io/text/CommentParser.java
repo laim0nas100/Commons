@@ -1,4 +1,4 @@
-package lt.lb.commons.io;
+package lt.lb.commons.io.text;
 
 import java.util.ArrayList;
 import java.util.Collection;

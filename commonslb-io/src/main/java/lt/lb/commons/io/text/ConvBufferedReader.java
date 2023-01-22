@@ -1,7 +1,10 @@
 package lt.lb.commons.io.text;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
+import java.util.Objects;
 
 /**
  *
@@ -20,5 +23,9 @@ public class ConvBufferedReader extends BufferedReader implements ConvenientRead
     @Override
     public Reader real() {
         return this;
+    }
+
+    public long transferTo(Writer out) throws IOException {
+        return ConvenientReader.super.transferTo(out);
     }
 }

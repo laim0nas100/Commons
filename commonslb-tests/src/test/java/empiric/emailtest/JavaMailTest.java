@@ -36,7 +36,7 @@ import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.email.props.IMAPEmailProps;
-import lt.lb.commons.io.TextFileIO;
+import lt.lb.commons.io.text.TextFileIO;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.threads.executors.FastExecutor;

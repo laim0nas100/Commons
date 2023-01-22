@@ -84,21 +84,26 @@ public interface ConvenientReader {
     }
 
     public default long withFullRead(FullRead fullRead) throws IOException {
+        return withFullRead(-1, fullRead);
+    }
+
+    public default long withFullRead(final int staticBuffer, FullRead fullRead) throws IOException {
         Objects.requireNonNull(fullRead);
         long total = 0;
         int buffer_size = STARTING_BUFFER;
+        if (staticBuffer > 0) {
+            buffer_size = staticBuffer;
+        }
         while (true) {
-
             char[] cbuf = new char[buffer_size];
             int read = real().read(cbuf);
             if (read < 0) {
-                if (total == 0) {
-                    return read;
-                }
-                return total;
+                return total == 0L ? read : total;
             }
             total += read;
-            buffer_size = Math.min(buffer_size + buffer_size, MAX_BUFFER);
+            if (staticBuffer <= 0) {
+                buffer_size = Math.min(buffer_size + buffer_size, MAX_BUFFER);
+            }
             boolean found = fullRead.cbufSink(cbuf, read);
             if (found) {
                 return total;
