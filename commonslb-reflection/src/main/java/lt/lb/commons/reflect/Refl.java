@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.containers.values.ThreadLocalValue;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.reflect.unified.IObjectField;
@@ -127,7 +128,7 @@ public class Refl {
      */
     public static abstract class SelfID {
 
-        protected ThreadLocal<Boolean> inside_hash = ThreadLocal.withInitial(() -> false);
+        protected ThreadLocalValue<Boolean> inside_hash = new ThreadLocalValue<>(false);
 
         @Override
         public int hashCode() {
@@ -142,7 +143,7 @@ public class Refl {
             }
         }
 
-        protected ThreadLocal<Boolean> inside_equals = ThreadLocal.withInitial(() -> false);
+        protected ThreadLocalValue<Boolean> inside_equals = new ThreadLocalValue<>(false);
 
         @Override
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
@@ -158,7 +159,7 @@ public class Refl {
             }
         }
 
-        protected ThreadLocal<Boolean> inside_string = ThreadLocal.withInitial(() -> false);
+        protected ThreadLocalValue<Boolean> inside_string = new ThreadLocalValue<>(false);
 
         @Override
         public String toString() {
@@ -333,7 +334,7 @@ public class Refl {
      */
     public static abstract class SelfIDBean {
 
-        protected ThreadLocal<Boolean> inside_hash = ThreadLocal.withInitial(() -> false);
+        protected ThreadLocalValue<Boolean> inside_hash = new ThreadLocalValue<>(false);
 
         @Override
         public int hashCode() {
@@ -348,7 +349,7 @@ public class Refl {
             }
         }
 
-        protected ThreadLocal<Boolean> inside_equals = ThreadLocal.withInitial(() -> false);
+        protected ThreadLocalValue<Boolean> inside_equals = new ThreadLocalValue<>(false);
 
         @Override
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
@@ -364,7 +365,7 @@ public class Refl {
             }
         }
 
-        protected ThreadLocal<Boolean> inside_string = ThreadLocal.withInitial(() -> false);
+        protected ThreadLocalValue<Boolean> inside_string = new ThreadLocalValue<>(false);
 
         @Override
         public String toString() {
