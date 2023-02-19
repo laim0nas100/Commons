@@ -24,11 +24,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import lt.lb.commons.Equator;
+import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.PairLeft;
 import lt.lb.commons.containers.tuples.PairRight;
 import lt.lb.commons.iteration.EmptyImmutableList;
 import lt.lb.commons.iteration.streams.MakeStream;
+import lt.lb.commons.misc.Range;
 import lt.lb.uncheckedutils.Checked;
 
 /**
@@ -740,5 +742,104 @@ public class CollectionOp {
         if (i % batch != 0) { // some items left
             cons.accept(bag);
         }
+    }
+
+    /**
+     * Each iteration tests the middle element (high - low) / 2. If its found,
+     * return the index, otherwise fire 2 recursive shots dividing the search
+     * bounds in half like so [mid + 1, high] and [low, mid - 1].
+     *
+     * @param <T>
+     * @param iter maximum amount of recursive iterations left
+     * @param maxDiff maximum difference (high - low) allowed, basically
+     * subdivision granuality.
+     * @param list the list in question
+     * @param suitable predicate
+     * @param low lower bound
+     * @param high higher bound
+     * @return
+     */
+    public static <T> int recursiveBinarySearchShot(int iter, int maxDiff, List<T> list, Predicate<T> suitable, int low, int high) {
+        if (iter > 0 && low < high && maxDiff <= high - low) {
+            iter--;
+            int mid = (low + high) >> 1;
+            boolean test = suitable.test(list.get(mid));
+            if (test) {
+                return mid;
+            } else {
+                // shoot 2 directions
+
+                //prefer searching the end of the list
+                int foundHigh = recursiveBinarySearchShot(iter, maxDiff, list, suitable, mid + 1, high);
+                if (foundHigh >= 0) {
+                    return foundHigh;
+                }
+
+                return recursiveBinarySearchShot(iter, maxDiff, list, suitable, low, mid - 1);
+
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Not suitable for searching individual elements. For that use the function
+     * {@link CollectionOp#recursiveBinarySearchShot(int, int, java.util.List, java.util.function.Predicate, int, int)}
+     *
+     * Provide a list where there are a continuous run of elements that satisfy
+     * some condition.This algorithm tries to return the last/first element of
+     * the continuous run by first detecting the run using broad binary search
+     * and the using binary search to find the end of the found run.
+     *
+     * @param <T>
+     * @param iter how many recursive iterations to do
+     * @param last to find first or last element of the continuous run
+     * @param list
+     * @param suitable predicate that defines the continuous run
+     * @return
+     */
+    public static <T> int binarySearchContinuousRunSuitable(int iter, boolean last, List<T> list, Predicate<T> suitable) {
+        //binary search to find last suitable
+        Nulls.requireNonNulls(list, suitable);
+
+        if (list.isEmpty()) {
+            return -1;
+        }
+        if (list.size() == 1) {
+            return suitable.test(list.get(0)) ? 0 : -1;
+        }
+
+        int low = 0;
+        int high = list.size() - 1;
+
+        int maxDiff = Range.of(1, 32).clamp(list.size() / 10);// roughly 10% of the list
+        int firstFound = recursiveBinarySearchShot(iter, maxDiff, list, suitable, low, high);
+
+        int lastSuitable = firstFound;
+
+        int mid = firstFound >= 0 ? firstFound : (low + high) / 2;
+        while (iter > 0 && low <= high) {
+            iter--;
+            boolean test = suitable.test(list.get(mid));
+
+            if (test) {
+                lastSuitable = mid;
+                if (last) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            } else {
+                if (last) {
+                    high = mid - 1;
+                } else {
+                    low = mid + 1;
+                }
+            }
+
+            mid = (low + high) >> 1;
+        }
+
+        return lastSuitable;
     }
 }
