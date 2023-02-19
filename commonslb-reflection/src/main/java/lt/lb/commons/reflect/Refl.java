@@ -13,6 +13,7 @@ import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.values.ThreadLocalValue;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
+import lt.lb.commons.misc.NestedCallDetection;
 import lt.lb.commons.reflect.unified.IObjectField;
 import lt.lb.commons.reflect.unified.ReflFields;
 import lt.lb.uncheckedutils.NestedException;
@@ -128,50 +129,24 @@ public class Refl {
      */
     public static abstract class SelfID {
 
-        protected ThreadLocalValue<Boolean> inside_hash = new ThreadLocalValue<>(false);
+        protected final NestedCallDetection inside_hash = NestedCallDetection.threadLocal();
+        protected final NestedCallDetection inside_equals = NestedCallDetection.threadLocal();
+        protected final NestedCallDetection inside_string = NestedCallDetection.threadLocal();
 
         @Override
         public int hashCode() {
-            if (inside_hash.get()) {
-                return 7;
-            }
-            inside_hash.set(true);
-            try {
-                return reflectiveHashCode(this, true);
-            } finally {
-                inside_hash.set(false);
-            }
+            return inside_hash.fullCall(() -> System.identityHashCode(this), () -> reflectiveHashCode(this, true));
         }
-
-        protected ThreadLocalValue<Boolean> inside_equals = new ThreadLocalValue<>(false);
 
         @Override
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         public boolean equals(Object obj) {
-            if (inside_equals.get()) {
-                return this == obj;
-            }
-            inside_equals.set(true);
-            try {
-                return reflectiveEquals(this, obj, true);
-            } finally {
-                inside_equals.set(false);
-            }
+            return inside_equals.call(this == obj, () -> reflectiveEquals(this, obj, true));
         }
-
-        protected ThreadLocalValue<Boolean> inside_string = new ThreadLocalValue<>(false);
 
         @Override
         public String toString() {
-            if (inside_string.get()) {
-                return "looped";
-            }
-            inside_string.set(true);
-            try {
-                return reflectiveToString(this, true);
-            } finally {
-                inside_string.set(false);
-            }
+            return inside_string.call("looped", () -> reflectiveToString(this, true));
         }
     }
 
@@ -334,51 +309,26 @@ public class Refl {
      */
     public static abstract class SelfIDBean {
 
-        protected ThreadLocalValue<Boolean> inside_hash = new ThreadLocalValue<>(false);
+        protected final NestedCallDetection inside_hash = NestedCallDetection.threadLocal();
+        protected final NestedCallDetection inside_equals = NestedCallDetection.threadLocal();
+        protected final NestedCallDetection inside_string = NestedCallDetection.threadLocal();
 
         @Override
         public int hashCode() {
-            if (inside_hash.get()) {
-                return 7;
-            }
-            inside_hash.set(true);
-            try {
-                return beanHashCode(this, true);
-            } finally {
-                inside_hash.set(false);
-            }
+            return inside_hash.fullCall(() -> System.identityHashCode(this), () -> beanHashCode(this, true));
         }
-
-        protected ThreadLocalValue<Boolean> inside_equals = new ThreadLocalValue<>(false);
 
         @Override
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         public boolean equals(Object obj) {
-            if (inside_equals.get()) {
-                return this == obj;
-            }
-            inside_equals.set(true);
-            try {
-                return beanEquals(this, obj, true);
-            } finally {
-                inside_equals.set(false);
-            }
+            return inside_equals.call(this == obj, () -> beanEquals(this, obj, true));
         }
-
-        protected ThreadLocalValue<Boolean> inside_string = new ThreadLocalValue<>(false);
 
         @Override
         public String toString() {
-            if (inside_string.get()) {
-                return "looped";
-            }
-            inside_string.set(true);
-            try {
-                return beanToString(this, true);
-            } finally {
-                inside_string.set(false);
-            }
+            return inside_string.call("looped", () -> beanToString(this, true));
         }
+
     }
 
     /**
