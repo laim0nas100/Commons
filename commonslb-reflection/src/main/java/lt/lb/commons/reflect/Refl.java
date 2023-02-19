@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.containers.values.ThreadLocalValue;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.reflect.unified.IObjectField;
@@ -127,20 +128,50 @@ public class Refl {
      */
     public static abstract class SelfID {
 
+        protected ThreadLocalValue<Boolean> inside_hash = new ThreadLocalValue<>(false);
+
         @Override
         public int hashCode() {
-            return reflectiveHashCode(this, true);
+            if (inside_hash.get()) {
+                return 7;
+            }
+            inside_hash.set(true);
+            try {
+                return reflectiveHashCode(this, true);
+            } finally {
+                inside_hash.set(false);
+            }
         }
+
+        protected ThreadLocalValue<Boolean> inside_equals = new ThreadLocalValue<>(false);
 
         @Override
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         public boolean equals(Object obj) {
-            return reflectiveEquals(this, obj, true);
+            if (inside_equals.get()) {
+                return this == obj;
+            }
+            inside_equals.set(true);
+            try {
+                return reflectiveEquals(this, obj, true);
+            } finally {
+                inside_equals.set(false);
+            }
         }
+
+        protected ThreadLocalValue<Boolean> inside_string = new ThreadLocalValue<>(false);
 
         @Override
         public String toString() {
-            return reflectiveToString(this, true);
+            if (inside_string.get()) {
+                return "looped";
+            }
+            inside_string.set(true);
+            try {
+                return reflectiveToString(this, true);
+            } finally {
+                inside_string.set(false);
+            }
         }
     }
 
@@ -292,7 +323,7 @@ public class Refl {
                 .mapSafeOpt(cls -> SafeOpt.ofGet(() -> Introspector.getBeanInfo(cls)))
                 .flatMap(m -> MakeStream.from(m.getPropertyDescriptors()))
                 .filter(Nulls::nonNull)
-                .filter(p->!p.getName().equals("class"));
+                .filter(p -> !p.getName().equals("class"));
     }
 
     /**
@@ -303,20 +334,50 @@ public class Refl {
      */
     public static abstract class SelfIDBean {
 
+        protected ThreadLocalValue<Boolean> inside_hash = new ThreadLocalValue<>(false);
+
         @Override
         public int hashCode() {
-            return beanHashCode(this, true);
+            if (inside_hash.get()) {
+                return 7;
+            }
+            inside_hash.set(true);
+            try {
+                return beanHashCode(this, true);
+            } finally {
+                inside_hash.set(false);
+            }
         }
+
+        protected ThreadLocalValue<Boolean> inside_equals = new ThreadLocalValue<>(false);
 
         @Override
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         public boolean equals(Object obj) {
-            return beanEquals(this, obj, true);
+            if (inside_equals.get()) {
+                return this == obj;
+            }
+            inside_equals.set(true);
+            try {
+                return beanEquals(this, obj, true);
+            } finally {
+                inside_equals.set(false);
+            }
         }
+
+        protected ThreadLocalValue<Boolean> inside_string = new ThreadLocalValue<>(false);
 
         @Override
         public String toString() {
-            return beanToString(this, true);
+            if (inside_string.get()) {
+                return "looped";
+            }
+            inside_string.set(true);
+            try {
+                return beanToString(this, true);
+            } finally {
+                inside_string.set(false);
+            }
         }
     }
 
