@@ -1,6 +1,7 @@
 package lt.lb.commons;
 
 import java.io.File;
+import lt.lb.commons.parsing.numbers.FastParse;
 
 /**
  *
@@ -11,34 +12,61 @@ import java.io.File;
 public class Java {
 
     /**
-     * Returns the system-dependent line separator string.  It always
-     * returns the same value - the initial value of the {@linkplain
+     * Gets the major version number of Java. Returns 1 for java 8 and before.
+     *
+     * @return Major version number of Java or -1 if unknown
+     */
+    public static int getJavaVersionMajor() {
+        String version = getJavaVersion();
+        if (version != null) {
+            int index = version.indexOf('.');
+            if (index > 0) {
+                version = version.substring(0, index);
+            }
+            return Nulls.requireNonNullElse(FastParse.parseInt(version), -1);
+        }
+        return -1;
+    }
+
+    /**
+     *
+     * System.getProperty("java.version")
+     *
+     * @return full java version
+     */
+    public static String getJavaVersion() {
+        return System.getProperty("java.version");
+    }
+
+    /**
+     * Returns the system-dependent line separator string. It always returns the
+     * same value - the initial value of the {@linkplain
      * #getProperty(String) system property} {@code line.separator}.
      *
-     * <p>On UNIX systems, it returns {@code "\n"}; on Microsoft
-     * Windows systems it returns {@code "\r\n"}.
+     * <p>
+     * On UNIX systems, it returns {@code "\n"}; on Microsoft Windows systems it
+     * returns {@code "\r\n"}.
      *
      * @return the system-dependent line separator string
      * @since 1.7
      */
-    public static final String getLineSeparator(){
+    public static final String getLineSeparator() {
         return System.lineSeparator();
     }
 
     /**
      * new File("").getAbsolutePath()
-     * 
+     *
      * @return Current work directory (where the program was started from)
-     * 
+     *
      */
     public static final String getWorkDirectory() {
         return new File("").getAbsolutePath();
     }
-    
 
     /**
      * System.getProperty("java.class.path")
-     * 
+     *
      * @return Class path
      */
     public static final String getClassPath() {
@@ -47,11 +75,11 @@ public class Java {
 
     /**
      * System.getProperty("sun.arch.data.model")
-     * 
-     * @return System architecture (32/64)
+     *
+     * @return System architecture (32/64) or -1 if can't be resolved
      */
-    public static final String getArchitecture() {
-        return System.getProperty("sun.arch.data.model");
+    public static final int getArchitecture() {
+        return Nulls.requireNonNullElse(FastParse.parseInt(System.getProperty("sun.arch.data.model")), -1);
     }
 
     /**
@@ -64,7 +92,7 @@ public class Java {
 
     /**
      * System.getProperty("os.version")
-     * 
+     *
      * @return version of the operating system
      */
     public static final String getOSversion() {
@@ -74,17 +102,17 @@ public class Java {
     /**
      *
      * System.getProperty("user.name")
-     * 
+     *
      * @return Currently active OS user name
      */
     public static final String getUserName() {
         return System.getProperty("user.name");
     }
-    
+
     /**
      *
      * System.getProperty("user.home")
-     * 
+     *
      * @return Currently active OS user home directory
      */
     public static final String getUserHome() {
@@ -93,7 +121,7 @@ public class Java {
 
     /**
      * System.getProperty("java.io.tmpdir")
-     * 
+     *
      * @return System path of a temporary directory
      */
     public static final String getTempDirectory() {
@@ -102,27 +130,26 @@ public class Java {
 
     /**
      * Runtime.getRuntime().availableProcessors()
-     * 
+     *
      * @return amount of available processors to the JVM
      */
     public static final Integer getAvailableProcessors() {
-
         return Runtime.getRuntime().availableProcessors();
     }
 
     /**
      * File.separator
-     * 
+     *
      * @return OS-specific file separator for forming absolute paths
      */
     public static final String getFileSeparator() {
         return File.separator;
     }
-    
+
     /**
      * File.pathSeparator
-     * 
-     * @return OS-specific path separator 
+     *
+     * @return OS-specific path separator
      */
     public static final String getPathSeparator() {
         return File.pathSeparator;
@@ -149,7 +176,7 @@ public class Java {
     }
 
     /**
-     * 
+     *
      * @return System.currentTimeMillis()
      */
     public static final long getCurrentTimeMillis() {
