@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.Set;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Nulls;
-import lt.lb.commons.containers.values.ThreadLocalValue;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.misc.NestedCallDetection;

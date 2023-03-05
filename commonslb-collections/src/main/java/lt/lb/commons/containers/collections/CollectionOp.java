@@ -745,21 +745,22 @@ public class CollectionOp {
     }
 
     /**
-     * Each iteration tests the middle element (high - low) / 2. If its found,
+     * Each iteration tests the middle element (high - low) / 2.If its found,
      * return the index, otherwise fire 2 recursive shots dividing the search
      * bounds in half like so [mid + 1, high] and [low, mid - 1].
      *
      * @param <T>
      * @param iter maximum amount of recursive iterations left
      * @param maxDiff maximum difference (high - low) allowed, basically
-     * subdivision granuality.
+     * subdivision granularity.
+     * @param preferLast whether to search in the end of the list first
      * @param list the list in question
      * @param suitable predicate
      * @param low lower bound
      * @param high higher bound
      * @return
      */
-    public static <T> int recursiveBinarySearchShot(int iter, int maxDiff, List<T> list, Predicate<T> suitable, int low, int high) {
+    public static <T> int recursiveBinarySearchShot(int iter, int maxDiff, boolean preferLast, List<T> list, Predicate<T> suitable, int low, int high) {
         if (iter > 0 && low < high && maxDiff <= high - low) {
             iter--;
             int mid = (low + high) >> 1;
@@ -769,13 +770,13 @@ public class CollectionOp {
             } else {
                 // shoot 2 directions
 
-                //prefer searching the end of the list
-                int foundHigh = recursiveBinarySearchShot(iter, maxDiff, list, suitable, mid + 1, high);
-                if (foundHigh >= 0) {
-                    return foundHigh;
+                if (preferLast) {
+                    int foundHigh = recursiveBinarySearchShot(iter, maxDiff, preferLast, list, suitable, mid + 1, high);
+                    return foundHigh >= 0 ? foundHigh : recursiveBinarySearchShot(iter, maxDiff, preferLast, list, suitable, low, mid - 1);
+                } else {
+                    int foundLow = recursiveBinarySearchShot(iter, maxDiff, preferLast, list, suitable, low, mid - 1);
+                    return foundLow >= 0 ? foundLow : recursiveBinarySearchShot(iter, maxDiff, preferLast, list, suitable, mid + 1, high);
                 }
-
-                return recursiveBinarySearchShot(iter, maxDiff, list, suitable, low, mid - 1);
 
             }
         }
@@ -813,7 +814,7 @@ public class CollectionOp {
         int high = list.size() - 1;
 
         int maxDiff = Range.of(1, 32).clamp(list.size() / 10);// roughly 10% of the list
-        int firstFound = recursiveBinarySearchShot(iter, maxDiff, list, suitable, low, high);
+        int firstFound = recursiveBinarySearchShot(iter, maxDiff, last, list, suitable, low, high);
 
         int lastSuitable = firstFound;
 
