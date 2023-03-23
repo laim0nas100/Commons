@@ -23,7 +23,7 @@ public class FastWaitingExecutor extends FastExecutor {
     }
 
     public FastWaitingExecutor(int maxThreads, WaitTime time) {
-        this(maxThreads, time, new SimpleThreadPool("WaitingFastExecutor ", new ThreadGroup("FastWaitingExecutor")));
+        this(maxThreads, time, new SimpleThreadPool(FastWaitingExecutor.class));
     }
 
     protected FastWaitingExecutor(int maxThreads, WaitTime time, ThreadPool pool) {

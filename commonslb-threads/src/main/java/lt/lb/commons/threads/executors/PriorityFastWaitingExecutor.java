@@ -70,7 +70,7 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
      * {@inheritDoc}
      */
     public PriorityFastWaitingExecutor(int maxThreads, WaitTime time) {
-        super(maxThreads, time, new SimpleThreadPool("PriorityFastWaitingExecutor ", new ThreadGroup("PriorityFastWaitingExecutor")));
+        super(maxThreads, time, new SimpleThreadPool(PriorityFastWaitingExecutor.class));
         this.tasks = new PriorityBlockingQueue<>(1, priorityComparator.reversed());
         this.wt = time;
     }

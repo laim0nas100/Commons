@@ -28,9 +28,14 @@ public class SimpleThreadPool implements ThreadPool {
     protected boolean starting = true;
     protected String threadPrefix = "";
     protected String threadSuffix = "";
-    protected AtomicLong threadNum = new AtomicLong(0L);
+    protected AtomicLong threadNum = new AtomicLong(1L);
+    protected ClassLoader loader;
 
     protected final ThreadGroup group;
+
+    public SimpleThreadPool(Class cls) {
+        this(cls.getSimpleName() + " ", new ThreadGroup(cls.getSimpleName()));
+    }
 
     public SimpleThreadPool(String prefix, ThreadGroup group) {
         this.threadPrefix = Nulls.requireNonNull(prefix, "Thread prefix is null");
@@ -95,11 +100,11 @@ public class SimpleThreadPool implements ThreadPool {
     }
 
     public void setThreadSuffix(String threadSuffix) {
-        this.threadSuffix = Nulls.requireNonNull(threadSuffix, "threadSuffix must not null");;
+        this.threadSuffix = Nulls.requireNonNull(threadSuffix, "threadSuffix must not null");
     }
 
     protected void decorateAliveThreads(Consumer<Thread> consumer) {
-        enumerate(true).filter(t -> t.isAlive()).forEach(consumer);
+        enumerate(false).filter(t -> t.isAlive()).forEach(consumer);
     }
 
     @Override
@@ -111,15 +116,16 @@ public class SimpleThreadPool implements ThreadPool {
         return Stream.of(threads).filter(t -> (t != null && t instanceof SimpleThread));
     }
 
-    protected String threadName() {
-        return threadPrefix + "thread-" + threadNum.incrementAndGet() + threadSuffix;
+    protected String nextThreadName() {
+        return threadPrefix + "thread-" + threadNum.getAndIncrement() + threadSuffix;
     }
 
     @Override
-    public Thread createThread(Runnable run) {
-        Thread thread = new SimpleThread(getThreadGroup(), Nulls.requireNonNull(run), threadName());
+    public Thread newThread(Runnable run) {
+        Thread thread = new SimpleThread(getThreadGroup(), Nulls.requireNonNull(run), nextThreadName());
         thread.setDaemon(isDaemon());
         thread.setPriority(getPriority());
+        thread.setContextClassLoader(getContextClassLoader());
         if (isStarting()) {
             thread.start();
         }
@@ -130,4 +136,21 @@ public class SimpleThreadPool implements ThreadPool {
     public ThreadGroup getThreadGroup() {
         return group;
     }
+
+    @Override
+    public ClassLoader getContextClassLoader() {
+        return loader;
+    }
+
+    @Override
+    public void setContextClassLoader(ClassLoader loader) {
+        boolean change = this.loader != loader;
+        this.loader = loader;
+        if (change) {
+            decorateAliveThreads(thread -> {
+                thread.setContextClassLoader(getContextClassLoader());
+            });
+        }
+    }
+
 }

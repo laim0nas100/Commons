@@ -24,6 +24,9 @@ import lt.lb.commons.threads.ThreadPool;
  * Spawns new threads on demand. If all tasks are exhausted, thread terminates
  * immediately.
  *
+ * Max threads parameter: negative = unlimited threads 0 - no threads, execution
+ * in the same thread positive - bounded threads
+ *
  * @author laim0nas100
  */
 public class FastExecutor extends AbstractExecutorService implements CloseableExecutor {
@@ -33,7 +36,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     protected ThreadPool pool;
 
     protected volatile boolean open = true;
-    protected int maxThreads; // 
+    protected int maxThreads;
     protected AtomicInteger startingThreads = new AtomicInteger(0);
     protected AtomicInteger runningThreads = new AtomicInteger(0);
     protected AtomicInteger finishingThreads = new AtomicInteger(0);
@@ -49,7 +52,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
      *
      */
     public FastExecutor(int maxThreads) {
-        this(maxThreads, new SimpleThreadPool("FastExecutor ", new ThreadGroup("FastExecutor")));
+        this(maxThreads, new SimpleThreadPool(FastExecutor.class));
     }
 
     protected FastExecutor(int maxThreads, ThreadPool threadPool) {
@@ -111,23 +114,27 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
 
     protected final Runnable getRun(final int bakedMax) {
         return () -> {
-            runningThreads.incrementAndGet();
-            startingThreads.decrementAndGet(); //thread started
-
+            if (bakedMax != 0) {
+                runningThreads.incrementAndGet();
+                startingThreads.decrementAndGet(); //thread started
+            }
             try {
                 getMainBody().run();
             } catch (Throwable th) {
                 try {
                     getErrorChannel().accept(th);
-                } catch (Throwable err) {// we really screwed now
+                } catch (Throwable err) {// we are really screwed now
                     err.printStackTrace();
                 }
             } finally {
-                finishingThreads.incrementAndGet(); // thread is finishing
-                runningThreads.decrementAndGet(); //thread no longer running (not really)
-
+                if (bakedMax != 0) {
+                    finishingThreads.incrementAndGet(); // thread is finishing
+                    runningThreads.decrementAndGet(); //thread no longer running (not really)
+                }
                 update(bakedMax);
-                finishingThreads.decrementAndGet(); // thread end finishing
+                if (bakedMax != 0) {
+                    finishingThreads.decrementAndGet(); // thread end finishing
+                }
                 if (!open && runningThreads.get() + startingThreads.get() + finishingThreads.get() == 0) {
                     awaitTermination.complete(0);
                 }
@@ -144,13 +151,12 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     }
 
     protected Thread startThread(final int maxT) {
-        return pool.createThread(getRun(maxT));//pool should start the thread
+        return pool.newThread(getRun(maxT));//pool should start the thread
     }
 
     protected void maybeStartThread(final int maxT) {
 
         if (maxT == 0) {
-            startingThreads.incrementAndGet();//because run decrements
             getRun(maxT).run();
         } else if (maxT < 0) {//unlimited threads
             startingThreads.incrementAndGet();//because run decrements
