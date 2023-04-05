@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
 import lt.lb.commons.misc.IntRange;
 import lt.lb.fastid.FastID;
+import lt.lb.uncheckedutils.func.UncheckedConsumer;
 
 /**
  *
@@ -42,6 +43,16 @@ public class CellFormatBuilder<Format, T> {
             base.prev = prevSelector;
 
         }
+    }
+
+    /**
+     * Define unchecked formatting action for currently selected cells
+     *
+     * @param cons
+     * @return
+     */
+    public CellFormatBuilder<Format, T> addFormat(UncheckedConsumer<Format> cons) {
+        return addFormat((Consumer) cons);
     }
 
     /**
