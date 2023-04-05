@@ -1,6 +1,7 @@
 package lt.lb.commons.benchmarking;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  *
@@ -15,15 +16,19 @@ public class BenchmarkResult {
     public Long minTime = null;
     public String name = "Benchmark";
 
+    private static final double MILL = 1000000;
     @Override
     public String toString() {
-        double mil = 1000000;
-        return String.format(" Times(ms) Avg: %.5f Min: %.5f Max: %.5f Total(s): %.5f", averageTime / mil, minTime / mil, maxTime / mil, totalTime / (mil * 1000))+"\t"+name;
+        return String.format(" Times(ms) Avg: %.5f Min: %.5f Max: %.5f Total(s): %.5f", averageTime / MILL, minTime / MILL, maxTime / MILL, totalTime / (MILL * 1000))+"\t"+name;
     }
 
     public BenchmarkResult print(Consumer<String> printer) {
         printer.accept(this.toString());
         return this;
+    }
+    
+    public <U> U chain(Function<BenchmarkResult, ? extends U> consumer){
+        return consumer.apply(this);
     }
 
     public BenchmarkResult merge(BenchmarkResult other) {
