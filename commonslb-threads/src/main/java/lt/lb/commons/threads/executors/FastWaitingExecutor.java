@@ -33,24 +33,15 @@ public class FastWaitingExecutor extends FastExecutor {
     }
 
     @Override
-    protected Runnable getMainBody() {
-        return () -> {
-            LinkedBlockingDeque<Runnable> deque = F.cast(tasks);
-            Runnable last = null;
-            do {
-                if (deque.isEmpty() && !open) {
-                    break;
-                }
-                try {
-                    last = deque.pollLast(wt.time, wt.unit);
-                } catch (InterruptedException ex) {
-                }
-                if (last != null) {
-                    last.run();
-                }
-
-            } while (!deque.isEmpty() || last != null);
-        };
+    protected void polling() {
+        LinkedBlockingDeque<Runnable> deque = F.cast(tasks);
+        while(open && !deque.isEmpty()){
+            try {
+                Runnable last = deque.pollFirst(wt.time, wt.unit);
+                executeSingle(last);
+            } catch (InterruptedException ex) {
+            }
+        }
     }
 
     /**

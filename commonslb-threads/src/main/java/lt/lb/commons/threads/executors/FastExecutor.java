@@ -24,14 +24,27 @@ import lt.lb.commons.threads.ThreadPool;
  * Spawns new threads on demand. If all tasks are exhausted, thread terminates
  * immediately.
  *
- * Max threads parameter: negative = unlimited threads 0 - no threads, execution
- * in the same thread positive - bounded threads
+ * Max threads parameter:<br> negative = unlimited threads;<br> 0 - no threads,
+ * execution in the same thread;<br> positive - bounded threads
  *
  * @author laim0nas100
  */
 public class FastExecutor extends AbstractExecutorService implements CloseableExecutor {
 
+    protected static class Running {
+
+        public final Thread thread;
+        public final Runnable runnable;
+
+        public Running(Thread thread, Runnable runnable) {
+            this.thread = thread;
+            this.runnable = runnable;
+        }
+    }
+
     protected Collection<Runnable> tasks = new ConcurrentLinkedDeque<>();
+
+    protected ConcurrentLinkedDeque<Running> runningTasks = new ConcurrentLinkedDeque<>();
 
     protected ThreadPool pool;
 
@@ -94,47 +107,54 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
             throw new IllegalStateException("Not open");
         }
         Objects.requireNonNull(command, "null runnable recieved");
-        Deque<Runnable> cast = F.cast(tasks);
-        cast.addFirst(command);
-        update(this.maxThreads);
+        if (maxThreads == 0) {
+            executeSingle(command);
+        } else {
+            tasks.add(command);
+            update(this.maxThreads);
+        }
+
     }
 
-    protected Runnable getMainBody() {
-        return () -> {
-            Deque<Runnable> cast = F.cast(tasks);
-            while (!cast.isEmpty()) {
-                Runnable last = cast.pollLast();
-                if (last != null) {
-                    last.run();
-                }
-
-            }
-        };
+    protected void polling() {
+        Deque<Runnable> deque = F.cast(tasks);
+        while (open && !deque.isEmpty()) {
+            executeSingle(deque.pollFirst());
+        }
     }
 
-    protected final Runnable getRun(final int bakedMax) {
-        return () -> {
-            if (bakedMax != 0) {
-                runningThreads.incrementAndGet();
-                startingThreads.decrementAndGet(); //thread started
-            }
+    protected final void executeSingle(Runnable run) {
+        if (run == null) {
+            return;
+        }
+        Running running = new Running(Thread.currentThread(), run);
+        try {
+
+            runningTasks.add(running);
+            run.run();
+
+        } catch (Throwable th) {
             try {
-                getMainBody().run();
-            } catch (Throwable th) {
-                try {
-                    getErrorChannel().accept(th);
-                } catch (Throwable err) {// we are really screwed now
-                    err.printStackTrace();
-                }
+                getErrorChannel().accept(th);
+            } catch (Throwable err) {// we are really screwed now
+                err.printStackTrace();
+            }
+        } finally {
+            runningTasks.remove(running);
+        }
+    }
+
+    protected final Runnable threadBody(final int bakedMax) {
+        return () -> {
+            runningThreads.incrementAndGet();
+            startingThreads.decrementAndGet(); //thread started
+            try {
+                polling();
             } finally {
-                if (bakedMax != 0) {
-                    finishingThreads.incrementAndGet(); // thread is finishing
-                    runningThreads.decrementAndGet(); //thread no longer running (not really)
-                }
+                finishingThreads.incrementAndGet(); // thread is finishing
+                runningThreads.decrementAndGet(); //thread no longer running (not really)
                 update(bakedMax);
-                if (bakedMax != 0) {
-                    finishingThreads.decrementAndGet(); // thread end finishing
-                }
+                finishingThreads.decrementAndGet(); // thread end finishing
                 if (!open && runningThreads.get() + startingThreads.get() + finishingThreads.get() == 0) {
                     awaitTermination.complete(0);
                 }
@@ -151,13 +171,13 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     }
 
     protected Thread startThread(final int maxT) {
-        return pool.newThread(getRun(maxT));//pool should start the thread
+        return pool.newThread(threadBody(maxT));//pool should start the thread
     }
 
     protected void maybeStartThread(final int maxT) {
 
         if (maxT == 0) {
-            getRun(maxT).run();
+            throw new IllegalArgumentException("Max threads is 0");
         } else if (maxT < 0) {//unlimited threads
             startingThreads.incrementAndGet();//because run decrements
             startThread(maxT);
@@ -175,7 +195,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
 
     /**
      * Threads close automatically when all tasks are exhausted. This method
-     * ensures no more runnables gets submitted. Does not actually wait for
+     * ensures no more runnable's gets submitted. Does not actually wait for
      * threads to close.
      */
     @Override
@@ -186,6 +206,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     @Override
     public List<Runnable> shutdownNow() {
         shutdown();
+
         ArrayList<Runnable> unfinished = new ArrayList<>();
         Iterator<Runnable> iterator = tasks.iterator();
         while (iterator.hasNext()) {
@@ -193,6 +214,13 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
             iterator.remove();
             if (next != null) {
                 unfinished.add(next);
+            }
+        }
+        Iterator<Running> runningIterator = runningTasks.iterator();
+        while (runningIterator.hasNext()) {
+            Running next = runningIterator.next();
+            if (next != null) {
+                next.thread.interrupt();
             }
         }
         return unfinished;
