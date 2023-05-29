@@ -8,7 +8,7 @@ import java.util.IdentityHashMap;
  */
 public interface IFieldResolver {
 
-    public void cloneField(Object source, Object parentObject, IdentityHashMap refCoounter) throws Exception;
+    public void cloneField(Object source, Object parentObject, IdentityHashMap refCounter) throws Exception;
 
     public default IFieldResolver nest(IFieldResolver fr) {
         IFieldResolver me = this;

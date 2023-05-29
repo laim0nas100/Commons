@@ -8,7 +8,7 @@ import java.lang.reflect.AnnotatedElement;
  * @author laim0nas100
  */
 public interface IAnnotatedElement extends AnnotatedElement {
-    
+
     public AnnotatedElement annotatedElement();
 
     @Override
@@ -18,11 +18,15 @@ public interface IAnnotatedElement extends AnnotatedElement {
 
     @Override
     public default Annotation[] getAnnotations() {
-         return annotatedElement().getAnnotations();
+        return annotatedElement().getAnnotations();
     }
 
     @Override
     public default Annotation[] getDeclaredAnnotations() {
         return annotatedElement().getDeclaredAnnotations();
+    }
+
+    public default boolean hasAnnotations() {
+        return getAnnotations().length > 0;
     }
 }
