@@ -6,8 +6,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import lt.lb.commons.DLog;
 import lt.lb.commons.javafx.FXDefs;
 import lt.lb.commons.javafx.fxrows.FXDrows;
+import lt.lb.commons.javafx.scenemanagement.Frame;
 import lt.lb.commons.javafx.scenemanagement.MultiStageManager;
 import lt.lb.commons.javafx.scenemanagement.StageFrame;
+import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorate;
+import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorator;
+import lt.lb.commons.javafx.scenemanagement.frames.FrameState;
 import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.service.ServiceRequestCommiter;
@@ -32,6 +36,16 @@ public class RequestServiceCommiterTest {
         
         
         MultiStageManager manager = new MultiStageManager(RequestServiceCommiterTest.class.getClassLoader());
+        FrameDecorate onClose = new FrameDecorate();
+        onClose.addFrameDecorator(FrameState.FrameStateClose.instance, new FrameDecorator() {
+            @Override
+            public void acceptUnchecked(Frame t) throws Throwable {
+                pool.shutdown();
+                executor.shutdown();
+            }
+        });
+        
+        manager.addDecorate(onClose);
         
         
         FXDrows rows = FXDefs.fxrows();
