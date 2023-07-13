@@ -60,17 +60,16 @@ public abstract class ListIterators {
             }
         };
     }
-    
+
     public static final class RandomAcessListIterator<T> implements ListIterator<T> {
+
         protected Integer lastReturned = null;
         protected int cursor = -1;
-        protected boolean directionForward;
         protected List<T> list;
-
 
         public RandomAcessListIterator(int i, List<T> list) {
             this.list = list;
-            this.cursor = i-1;
+            this.cursor = i - 1;
         }
 
         @Override
@@ -80,7 +79,6 @@ public abstract class ListIterators {
 
         @Override
         public T next() {
-            this.directionForward = true;
             cursor = this.find(1, cursor + 1);
             lastReturned = cursor;
             return checkedGet(cursor);
@@ -98,7 +96,6 @@ public abstract class ListIterators {
         @Override
         public T previous() {
             T get = checkedGet(find(-1, cursor));
-            this.directionForward = false;
             cursor = this.find(-1, cursor - 1);
             lastReturned = cursor;
             return get;
@@ -111,9 +108,9 @@ public abstract class ListIterators {
                 return 0;
             } else if (inc == 0) {
                 throw new IllegalArgumentException();
-            }else if(i < list.size() && i >= 0){
+            } else if (i < list.size() && i >= 0) {
                 return i;
-            }else{
+            } else {
                 return -1;
             }
 
@@ -145,28 +142,27 @@ public abstract class ListIterators {
 
         @Override
         public void remove() {
-            if(lastReturned == null){
+            if (lastReturned == null) {
                 throw new IllegalStateException();
             }
-            list.remove((int)lastReturned);
+            list.remove((int) lastReturned);
             lastReturned = null;
 
         }
 
         @Override
         public void set(T e) {
-            if(lastReturned == null){
+            if (lastReturned == null) {
                 throw new IllegalStateException();
             }
             list.set(lastReturned, e);
             lastReturned = null;
-            
 
         }
 
         @Override
         public void add(T e) {
-            if(lastReturned == null){
+            if (lastReturned == null) {
                 throw new IllegalStateException();
             }
             list.add(lastReturned, e);
@@ -178,14 +174,16 @@ public abstract class ListIterators {
 
         protected Integer lastReturned = null;
         protected int cursor = -1;
-        protected boolean directionForward;
         protected Predicate<T> notNull;
         protected List<T> list;
+
+        protected Integer nextFound = null;
+        protected Integer prevFound = null;
 
         public SkippingListIterator(int i, Predicate<T> nullCheck, List<T> list) {
             this.list = list;
             this.notNull = nullCheck.negate();
-            this.cursor = i-1;
+            this.cursor = i - 1;
         }
 
         public SkippingListIterator(int i, List<T> list) {
@@ -199,10 +197,14 @@ public abstract class ListIterators {
 
         @Override
         public T next() {
-            this.directionForward = true;
-            cursor = this.find(1, cursor + 1);
+
+            int index = nextFound != null ? nextFound : find(1, cursor + 1);
+            T get = checkedGet(index);
+            cursor = index;
             lastReturned = cursor;
-            return checkedGet(cursor);
+            prevFound = null;
+            nextFound = null;
+            return get;
 
         }
 
@@ -216,10 +218,13 @@ public abstract class ListIterators {
 
         @Override
         public T previous() {
-            T get = checkedGet(find(-1, cursor));
-            this.directionForward = false;
+
+            int index = prevFound != null ? prevFound : find(-1, cursor);
+            T get = checkedGet(index);
             cursor = this.find(-1, cursor - 1);
             lastReturned = cursor;
+            prevFound = null;
+            nextFound = null;
             return get;
         }
 
@@ -253,8 +258,12 @@ public abstract class ListIterators {
 
         @Override
         public int nextIndex() {
+            if (nextFound != null) {
+                return nextFound;
+            }
             int find = this.find(1, cursor + 1);
             if (inRange(find)) {
+                nextFound = find;
                 return find;
             } else {
                 return list.size();
@@ -263,33 +272,41 @@ public abstract class ListIterators {
 
         @Override
         public int previousIndex() {
-            return this.find(-1, cursor);
+            if (prevFound != null) {
+                return prevFound;
+            }
+            int find = this.find(-1, cursor);
+            if (inRange(find)) {
+                prevFound = find;
+                return find;
+            } else {
+                return -1;
+            }
         }
 
         @Override
         public void remove() {
-            if(lastReturned == null){
+            if (lastReturned == null) {
                 throw new IllegalStateException();
             }
-            list.remove((int)lastReturned);
+            list.remove((int) lastReturned);
             lastReturned = null;
 
         }
 
         @Override
         public void set(T e) {
-            if(lastReturned == null){
+            if (lastReturned == null) {
                 throw new IllegalStateException();
             }
             list.set(lastReturned, e);
             lastReturned = null;
-            
 
         }
 
         @Override
         public void add(T e) {
-            if(lastReturned == null){
+            if (lastReturned == null) {
                 throw new IllegalStateException();
             }
             list.add(lastReturned, e);
