@@ -9,7 +9,8 @@ import java.util.function.Supplier;
 public abstract class Nulls {
 
     /**
-     * ad hoc empty object to be used instead of null where null values are not supported.
+     * ad hoc empty object to be used instead of null where null values are not
+     * supported.
      */
     public static final Object EMPTY_OBJECT = new Object() {
         @Override
@@ -163,6 +164,7 @@ public abstract class Nulls {
      * Checks if all of the objects are null.
      *
      * @param objects
+     * @return
      */
     public static <T> boolean allNull(T... objects) {
         if (objects.length == 0) {
@@ -222,7 +224,86 @@ public abstract class Nulls {
             return null;
         }
         return (T) ob;
+    }
 
+    /**
+     * Returns primitive or default if given value was null
+     *
+     * @param value
+     * @return
+     */
+    public static char primitive(Character value) {
+        return value == null ? '\u0000' : value;
+    }
+
+    /**
+     * Returns primitive or default if given value was null
+     *
+     * @param value
+     * @return
+     */
+    public static boolean primitive(Boolean value) {
+        return value == null ? false : value;
+    }
+
+    /**
+     * Returns primitive or default if given value was null
+     *
+     * @param value
+     * @return
+     */
+    public static byte primitive(Byte value) {
+        return value == null ? 0 : value;
+    }
+
+    /**
+     * Returns primitive or default if given value was null
+     *
+     * @param value
+     * @return
+     */
+    public static short primitive(Short value) {
+        return value == null ? 0 : value;
+    }
+
+    /**
+     * Returns primitive or default if given value was null
+     *
+     * @param value
+     * @return
+     */
+    public static int primitive(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    /**
+     * Returns primitive or default if given value was null
+     *
+     * @param value
+     * @return
+     */
+    public static long primitive(Long value) {
+        return value == null ? 0L : value;
+    }
+
+    /**
+     * Returns primitive or default if given value was null
+     *
+     * @param value
+     * @return
+     */
+    public static float primitive(Float value) {
+        return value == null ? 0F : value;
+    }
+
+    /**
+     * Returns primitive or default if given value was null
+     *
+     * @param value
+     * @return
+     */
+    public static double primitive(Double value) {
+        return value == null ? 0D : value;
     }
 
 }
