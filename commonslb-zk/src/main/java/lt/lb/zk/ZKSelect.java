@@ -1,11 +1,13 @@
 package lt.lb.zk;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import lt.lb.commons.F;
+import lt.lb.commons.Ins;
+import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.uncheckedutils.SafeOpt;
 import org.zkoss.zk.ui.Component;
@@ -28,7 +30,7 @@ public class ZKSelect {
 
             @Override
             public Iterable<Component> getChildren(Component item) {
-                return SafeOpt.ofNullable(item).map(m -> m.getChildren()).orElse(Arrays.asList());
+                return SafeOpt.ofNullable(item).map(m -> m.getChildren()).orElse(ImmutableCollections.listOf());
             }
         };
     }
@@ -39,7 +41,6 @@ public class ZKSelect {
             return false;
         });
     }
-
 
     public static void iterateChildren(Predicate<Component> filter, Component root, Consumer<Component> f) {
         componentVisitor(filter, f).BFS(root);
@@ -69,5 +70,18 @@ public class ZKSelect {
                 return Optional.empty();
             }
         }
+    }
+
+    public static <R> Optional<R> getComposer(Class<R> cls, Component comp) {
+        Object attribute = comp.getAttribute("$composer");
+
+        if (Ins.instanceOf(attribute, cls)) {
+            return F.cast(attribute);
+        }
+
+        return comp.getAttributes().values().stream()
+                .filter(v -> Ins.instanceOf(v, cls))
+                .map(m -> (R)m).findFirst();
+
     }
 }
