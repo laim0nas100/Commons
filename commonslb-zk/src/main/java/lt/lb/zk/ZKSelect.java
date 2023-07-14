@@ -76,12 +76,12 @@ public class ZKSelect {
         Object attribute = comp.getAttribute("$composer");
 
         if (Ins.instanceOf(attribute, cls)) {
-            return F.cast(attribute);
+            return Optional.of((R) attribute);
         }
 
         return comp.getAttributes().values().stream()
                 .filter(v -> Ins.instanceOf(v, cls))
-                .map(m -> (R)m).findFirst();
+                .map(m -> (R) m).findFirst();
 
     }
 }
