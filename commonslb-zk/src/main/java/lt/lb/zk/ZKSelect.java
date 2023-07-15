@@ -11,6 +11,7 @@ import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.uncheckedutils.SafeOpt;
 import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.util.Composer;
 
 /**
  *
@@ -72,7 +73,7 @@ public class ZKSelect {
         }
     }
 
-    public static <R> Optional<R> getComposer(Class<R> cls, Component comp) {
+    public static <R extends Composer> Optional<R> getComposer(Class<R> cls, Component comp) {
         Object attribute = comp.getAttribute("$composer");
 
         if (Ins.instanceOf(attribute, cls)) {
