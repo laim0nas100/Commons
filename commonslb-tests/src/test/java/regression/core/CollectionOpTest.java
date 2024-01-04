@@ -3,6 +3,7 @@ package regression.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -134,6 +135,9 @@ public class CollectionOpTest {
     public static void main(String[] args) {
         List<Integer> list1 = Lists.newArrayList(1, 3, 5, 7, 8, 9);
         List<Integer> list2 = Lists.newArrayList(1, 2, 5, 6, 9, 7, 8, 10);
+        
+        Collections.shuffle(list1);
+        Collections.shuffle(list2);
 
         Equator<Integer> mod3 = (a, b) -> a % 3 == b % 3;
 
@@ -173,8 +177,8 @@ public class CollectionOpTest {
 
         ArrayList<Pair<Integer>> intersectionPairs1 = CollectionOp.intersectionPairs(list1, list2, Equator.simpleHashEquator());
 
-        assertThat(Lists.newArrayList(1, 5, 7, 8, 9)).containsExactlyElementsOf(mapPair(true, intersectionPairs1));
-        assertThat(Lists.newArrayList(1, 5, 9, 7, 8)).containsExactlyElementsOf(mapPair(false, intersectionPairs1));
+        assertThat(Lists.newArrayList(1, 5, 7, 8, 9)).containsExactlyInAnyOrderElementsOf(mapPair(true, intersectionPairs1));
+        assertThat(Lists.newArrayList(1, 5, 9, 7, 8)).containsExactlyInAnyOrderElementsOf(mapPair(false, intersectionPairs1));
 
         ArrayList<Pair<Integer>> disjointPairs2 = CollectionOp.disjointPairs(list1, list2, mod3);
 
@@ -182,8 +186,8 @@ public class CollectionOpTest {
 
         ArrayList<Pair<Integer>> intersectionPairs2 = CollectionOp.intersectionPairs(list1, list2, mod3);
 
-        assertThat(Lists.newArrayList(1, 3, 5)).containsExactlyElementsOf(mapPair(true, intersectionPairs2));
-        assertThat(Lists.newArrayList(1, 2, 6)).containsExactlyElementsOf(mapPair(false, intersectionPairs2));
+        assertThat(Lists.newArrayList(1, 3, 5)).containsExactlyInAnyOrderElementsOf(mapPair(true, intersectionPairs2));
+        assertThat(Lists.newArrayList(1, 2, 6)).containsExactlyInAnyOrderElementsOf(mapPair(false, intersectionPairs2));
 
     }
 

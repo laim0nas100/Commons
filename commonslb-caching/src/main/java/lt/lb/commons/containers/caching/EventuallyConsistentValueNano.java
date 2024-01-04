@@ -6,13 +6,13 @@ import lt.lb.commons.Java;
  *
  * @author laim0nas100
  */
-public class EventuallyConsistenValueNano<T> extends EventuallyConsistentValue<T, Long> {
+public class EventuallyConsistentValueNano<T> extends EventuallyConsistentValue<T, Long> {
 
-    public EventuallyConsistenValueNano() {
+    public EventuallyConsistentValueNano() {
         super(Java::getNanoTime);
     }
 
-    public EventuallyConsistenValueNano(T val) {
+    public EventuallyConsistentValueNano(T val) {
         super(val, Java::getNanoTime);
     }
     

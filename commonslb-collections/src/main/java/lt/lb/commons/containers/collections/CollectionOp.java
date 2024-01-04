@@ -325,27 +325,22 @@ public class CollectionOp {
      */
     public static <T> ArrayList<Pair<T>> intersectionPairs(Collection<T> c1, Collection<T> c2, Equator<T> eq) {
 
-        LinkedHashSet<Equator.EqualityProxy<T>> m1 = new LinkedHashSet<>();
-        LinkedHashSet<Equator.EqualityProxy<T>> m2 = new LinkedHashSet<>();
+        LinkedHashMap<Equator.EqualityProxy<T>, T> m1 = new LinkedHashMap<>();
+        LinkedHashMap<Equator.EqualityProxy<T>, T> m2 = new LinkedHashMap<>();
 
         for (T obj1 : c1) {
-            m1.add(new Equator.EqualityProxy<>(obj1, eq));
+            m1.putIfAbsent(new Equator.EqualityProxy<>(obj1, eq), obj1);
         }
-        for (T obj1 : c2) {
-            m2.add(new Equator.EqualityProxy<>(obj1, eq));
+        for (T obj2 : c2) {
+            m2.putIfAbsent(new Equator.EqualityProxy<>(obj2, eq), obj2);
         }
-        m1.retainAll(m2);
-        m2.retainAll(m1);//should be the same (based on equator) element set, but in optionally different order
+        m1.keySet().retainAll(m2.keySet());
+        m2.keySet().retainAll(m1.keySet());
+        //should be the same (based on equator) element set, but in optionally different order
         ArrayList<Pair<T>> common = new ArrayList<>(m1.size());
-        for (Equator.EqualityProxy<T> pro : m1) {
-            common.add(new Pair<>(pro.getValue(), null));
+        for (Equator.EqualityProxy<T> key : m1.keySet()) {
+            common.add(new Pair<>(m1.get(key), m2.get(key)));
         }
-        int i = 0;
-        for (Equator.EqualityProxy<T> pro : m2) {
-            common.get(i).setG2(pro.getValue());
-            i++;
-        }
-
         return common;
     }
 
