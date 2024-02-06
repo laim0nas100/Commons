@@ -3,7 +3,6 @@ package lt.lb.commons.containers.caching.lazy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-import lt.lb.commons.Java;
 import lt.lb.commons.containers.caching.Condition;
 import lt.lb.commons.containers.caching.Dependency;
 import lt.lb.commons.containers.values.LongValue;
@@ -36,7 +35,7 @@ public class LazyValue<T> implements LazyProxy<T> {
     public LazyValue(Dependency<? extends T> supply, boolean sync) {
         this.supply = supply;
         this.conditions = new ArrayList<>(1);
-        conditions.add(now -> now > loaded.get());
+        conditions.add(now -> now >= loaded.get());
         this.sync = sync;
     }
 
@@ -80,7 +79,7 @@ public class LazyValue<T> implements LazyProxy<T> {
      */
     @Override
     public boolean isLoaded() {
-        return isLoadedBefore(Java.getNanoTime());
+        return isLoadedBefore(getTimestamp());
     }
 
     /**
@@ -141,7 +140,7 @@ public class LazyValue<T> implements LazyProxy<T> {
     public T unsyncGet(long now) {
         if (!isLoadedBefore(now)) {
             syncDependencies(now);
-            set(supply.request(now));
+            unsyncSet(supply.request(now), now);
         }
 
         return fastGet();
