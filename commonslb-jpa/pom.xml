@@ -40,6 +40,10 @@
             <groupId>com.github.laim0nas100</groupId>
             <artifactId>UncheckedUtils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
     </dependencies>
     
 </project>
