@@ -35,10 +35,10 @@ public class FastWaitingExecutor extends FastExecutor {
     @Override
     protected void polling() {
         LinkedBlockingDeque<Runnable> deque = F.cast(tasks);
-        while(open && !deque.isEmpty()){
+        while (open && !deque.isEmpty()) {
             try {
                 Runnable last = deque.pollFirst(wt.time, wt.unit);
-                executeSingle(last);
+                executeSingle(last, true);
             } catch (InterruptedException ex) {
             }
         }

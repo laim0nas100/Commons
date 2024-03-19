@@ -108,7 +108,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
         }
         Objects.requireNonNull(command, "null runnable recieved");
         if (maxThreads == 0) {
-            executeSingle(command);
+            executeSingle(command, false);
         } else {
             tasks.add(command);
             update(this.maxThreads);
@@ -119,18 +119,20 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     protected void polling() {
         Deque<Runnable> deque = F.cast(tasks);
         while (open && !deque.isEmpty()) {
-            executeSingle(deque.pollFirst());
+            executeSingle(deque.pollFirst(), true);
         }
     }
 
-    protected final void executeSingle(Runnable run) {
+    protected final void executeSingle(Runnable run, boolean useList) {
         if (run == null) {
             return;
         }
-        Running running = new Running(Thread.currentThread(), run);
+        Running running = null;
         try {
-
-            runningTasks.add(running);
+            if (useList) {
+                running = new Running(Thread.currentThread(), run);
+                runningTasks.add(running);
+            }
             run.run();
 
         } catch (Throwable th) {
@@ -140,7 +142,9 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
                 err.printStackTrace();
             }
         } finally {
-            runningTasks.remove(running);
+            if (useList && running != null) {
+                runningTasks.remove(running);
+            }
         }
     }
 

@@ -16,7 +16,7 @@ import lt.lb.commons.threads.sync.WaitTime;
  * @author laim0nas100
  */
 public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
-    
+
     private static final Comparator<Runnable> priorityComparator = (Runnable r1, Runnable r2) -> {
         if (r1 instanceof PriorityRunnable) {
             PriorityRunnable p1 = F.cast(r1);
@@ -35,13 +35,13 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
         }
         return 0;
     };
-    
+
     private class PriorityRunnable implements Runnable {
-        
+
         int order;
         long time;
         Runnable runnable;
-        
+
         public PriorityRunnable(Runnable r, int order) {
             if (r == null) {
                 throw new NullPointerException("Runnable is null");
@@ -50,7 +50,7 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
             this.runnable = r;
             this.order = order;
         }
-        
+
         @Override
         public void run() {
             this.runnable.run();
@@ -73,14 +73,14 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
         this.tasks = new PriorityBlockingQueue<>(1, priorityComparator.reversed());
         this.wt = time;
     }
-    
+
     @Override
     protected void polling() {
         PriorityBlockingQueue<Runnable> deque = F.cast(tasks);
         while (open && !deque.isEmpty()) {
             try {
                 Runnable last = deque.poll(wt.time, wt.unit);
-                executeSingle(last);
+                executeSingle(last, true);
             } catch (InterruptedException ex) {
             }
         }
@@ -96,14 +96,14 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
     public void execute(int priority, Runnable run) {
         this.add(new PriorityRunnable(run, priority));
     }
-    
+
     @Override
     public void execute(Runnable command) {
         this.execute(0, command);
     }
-    
+
     private void add(Runnable run) {
         super.execute(run);
     }
-    
+
 }
