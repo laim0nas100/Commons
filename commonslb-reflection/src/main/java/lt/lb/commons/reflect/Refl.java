@@ -8,8 +8,10 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.misc.NestedCallDetection;
@@ -128,24 +130,32 @@ public class Refl {
      */
     public static abstract class SelfID {
 
+        private static final Set<String> inside_names = ImmutableCollections.setOf("inside_hash", "inside_equals", "inside_string");
+
+        
+        private static boolean notNestedCall(Field field) {
+            return !inside_names.contains(field.getName())
+                    || !field.getType().isAssignableFrom(NestedCallDetection.class);
+        }
+
         protected final NestedCallDetection inside_hash = NestedCallDetection.threadLocal();
         protected final NestedCallDetection inside_equals = NestedCallDetection.threadLocal();
         protected final NestedCallDetection inside_string = NestedCallDetection.threadLocal();
 
         @Override
         public int hashCode() {
-            return inside_hash.fullCall(() -> System.identityHashCode(this), () -> reflectiveHashCode(this, true));
+            return inside_hash.fullCall(() -> System.identityHashCode(this), () -> reflectiveHashCode(this, true, SelfID::notNestedCall));
         }
 
         @Override
         @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         public boolean equals(Object obj) {
-            return inside_equals.call(this == obj, () -> reflectiveEquals(this, obj, true));
+            return inside_equals.call(this == obj, () -> reflectiveEquals(this, obj, true, SelfID::notNestedCall));
         }
 
         @Override
         public String toString() {
-            return inside_string.call("looped", () -> reflectiveToString(this, true));
+            return inside_string.call("looped", () -> reflectiveToString(this, true, SelfID::notNestedCall));
         }
     }
 
@@ -157,6 +167,17 @@ public class Refl {
      * @return
      */
     public static String reflectiveToString(Object obj, boolean ignoreExceptions) {
+        return reflectiveToString(obj, ignoreExceptions, f -> true);
+    }
+
+    /**
+     * Gathers all local fields, and creates a {@code String} representation.
+     *
+     * @param obj
+     * @param ignoreExceptions
+     * @return
+     */
+    public static String reflectiveToString(Object obj, boolean ignoreExceptions, Predicate<Field> includedFields) {
         if (obj == null) {
             return "null";
         }
@@ -167,6 +188,9 @@ public class Refl {
         List<Field> fieldsOf = regularFieldsOf.map(m -> m.field()).toList();
         sb.append(cls.getSimpleName()).append("{");
         for (Field field : fieldsOf) {
+            if (!includedFields.test(field)) {
+                continue;
+            }
             try {
                 StringBuilder s = new StringBuilder();
 
@@ -206,6 +230,19 @@ public class Refl {
      * @return
      */
     public static boolean reflectiveEquals(Object o1, Object o2, boolean ignoreExceptions) {
+        return reflectiveEquals(o1, o2, ignoreExceptions, f -> true);
+    }
+
+    /**
+     * Gathers all the local fields of both objects and compares each of them to
+     * establish equality.
+     *
+     * @param o1
+     * @param o2
+     * @param ignoreExceptions
+     * @return
+     */
+    public static boolean reflectiveEquals(Object o1, Object o2, boolean ignoreExceptions, Predicate<Field> includedFields) {
         if (o1 == o2) {
             return true;
         }
@@ -220,8 +257,8 @@ public class Refl {
         SimpleStream<IObjectField> o1Fields = ReflFields.getLocalFields(cl1);
         SimpleStream<IObjectField> o2Fields = ReflFields.getLocalFields(cl2);
 
-        Set<Field> set1 = o1Fields.map(m -> m.field()).toSet();
-        Set<Field> set2 = o2Fields.map(m -> m.field()).toSet();
+        Set<Field> set1 = o1Fields.map(m -> m.field()).filter(includedFields).toSet();
+        Set<Field> set2 = o2Fields.map(m -> m.field()).filter(includedFields).toSet();
 
         if (set1.size() != set2.size()) {
             return false;
@@ -263,6 +300,18 @@ public class Refl {
      * @return
      */
     public static int reflectiveHashCode(Object ob, boolean ignoreExceptions) {
+        return reflectiveHashCode(ob, ignoreExceptions, f -> true);
+    }
+
+    /**
+     * Gathers all the local fields of both objects computes a hash code based
+     * on them.
+     *
+     * @param ob
+     * @param ignoreExceptions
+     * @return
+     */
+    public static int reflectiveHashCode(Object ob, boolean ignoreExceptions, Predicate<Field> includedFields) {
         if (ob == null) {
             return 0;
         }
@@ -272,6 +321,9 @@ public class Refl {
         int hash = 7;
         for (IObjectField f : fields) {
             try {
+                if (!includedFields.test(f.field())) {
+                    continue;
+                }
                 hash = 59 * hash + Objects.hashCode(Refl.fieldAccessableGet(f.field(), ob));
             } catch (Throwable ex) {
                 if (ex instanceof Error) {
