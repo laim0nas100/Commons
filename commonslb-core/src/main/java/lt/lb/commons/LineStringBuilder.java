@@ -153,6 +153,22 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
     }
 
     /**
+     * Delete characters in the interval [from,to) if possible
+     *
+     * @param from index inclusive
+     * @param to index exclusive
+     * @return
+     */
+    public LineStringBuilder deleteIfPossible(int from, int to) {
+        int len = this.length();
+        if (from <= len && to <= len && from < to && from >= 0) {
+            sb.delete(from, to);
+        }
+
+        return this;
+    }
+
+    /**
      * Deletes a single {@code char} at a given index
      *
      * @param at index to delete char from
@@ -372,6 +388,19 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
     }
 
     /**
+     * Delete given amount of characters from the start if possible
+     *
+     * @param length
+     * @return
+     */
+    public LineStringBuilder removeFromStartIfPossible(int length) {
+        if (length <= this.length()) {
+            return removeFromStart(length);
+        }
+        return this;
+    }
+
+    /**
      * Delete given amount of characters from the end
      *
      * @param length
@@ -381,6 +410,19 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
         int lastChar = this.length();
         int firstChar = lastChar - length;
         return delete(firstChar, lastChar);
+    }
+
+    /**
+     * Delete given amount of characters from the end if possible
+     *
+     * @param length
+     * @return
+     */
+    public LineStringBuilder removeFromEndIfPossible(int length) {
+        if (length <= this.length()) {
+            return removeFromEnd(length);
+        }
+        return this;
     }
 
     /**
