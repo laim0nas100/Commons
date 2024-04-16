@@ -1,21 +1,19 @@
 package empiric.core;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import lt.lb.commons.DLog;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.collections.ImmutableCollections;
-import lt.lb.commons.containers.tuples.Tuple;
-import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.iteration.streams.MakeStream;
-import lt.lb.readablecompare.CompareOperator;
-import lt.lb.readablecompare.SimpleCompare;
 
 /**
  *
@@ -78,8 +76,7 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
 
         public int count;
         public T anchor;
-        public List<Tuple<T, Comparable>> values;
-        public Set<T> vals = new HashSet<>();
+        public List<DV<T, ?>> values;
 
         public BTFindNear(int count, T anchor) {
             this.anchor = anchor;
@@ -87,37 +84,54 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
             values = new ArrayList<>(count + 1);
         }
 
-        public void conditionalAdd(T value, Comparable dist) {
+        public boolean conditionalAdd(T value, Comparable dist) {
             if (values.isEmpty()) {
-                values.add(Tuples.create(value, dist));
-                return;
-            }
-            if (vals.contains(value)) {
-                return;
+                values.add(new DV(value, dist));
+                return true;
             }
 
             boolean added = false;
             for (int i = 0; i < values.size(); i++) {
-                Tuple<T, Comparable> t = values.get(i);
-                if (SimpleCompare.SIMPLE_COMPARE_NULL_EQUAL.compare(dist, CompareOperator.LESS, t.g2)) {//found nearer
-                    values.add(i, Tuples.create(value, dist));
-                    vals.add(value);
+                DV<T, ?> t = values.get(i);
+                int compareTo = dist.compareTo(t.dist);
+                if (compareTo <= 0) {//found nearer
+                    if (Objects.equals(t.val, value)) {// no dublicates
+                        return false;
+                    }
+                    values.add(i, new DV(value, dist));
                     added = true;
                     break;
                 }
             }
-            if (!added) {
-                if (values.size() < count) {// still add, becouse count not reached
-                    values.add(Tuples.create(value, dist));
-                    vals.add(value);
-                }
-            } else {// added, maybe too full, truncate last
-                if (values.size() > count) {
-                    int last = values.size() - 1;
-                    vals.remove(values.remove(last).g1);
-                }
+            if (added && values.size() > count) {// maybe too full, truncate last
+                int last = values.size() - 1;
+                values.remove(last);
             }
+            if (!added && values.size() < count) {// still add to the end, becouse count not reached
+                values.add(new DV(value, dist));
+                return true;
+            }
+            return added;
 
+        }
+
+    }
+
+    public static class DV<T, D extends Comparable<D>> implements Comparable<DV<T, D>> {
+
+        public final T val;
+        public final D dist;
+
+        public DV(T val, D dist) {
+            this.val = Nulls.requireNonNull(val);
+            this.dist = Nulls.requireNonNull(dist);
+        }
+
+        public final static Comparator<DV> cmp = (DV o1, DV o2) -> o1.dist.compareTo(o2.dist);
+
+        @Override
+        public int compareTo(DV<T, D> o) {
+            return cmp.compare(this, o);
         }
 
     }
@@ -126,7 +140,19 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
 
     protected Integer nodeCount = null;
 
-    protected int layerLimit = 4;
+    public BunchingTree(int div, int layerLimit) {
+        if (div <= 1) {
+            throw new IllegalArgumentException("Div must be at least 2");
+        }
+        if (layerLimit <= 1) {
+            throw new IllegalArgumentException("layerLimit must be at least 2");
+        }
+        this.div = div;
+        this.layerLimit = layerLimit;
+    }
+
+    protected final int div;
+    protected final int layerLimit;
 
     public int nodeCount() {
         if (nodeCount != null) {
@@ -144,7 +170,45 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
 
     public void add(T value) {
         nodeCount = null;
-        recursiveAdd(0, root, value);
+
+        int childCount = root.getChildren().size();
+        if (childCount == 0) {//first insert
+            addedChilds++;
+            root.addChild(value);
+            return;
+        }
+        if (childCount >= div) {// do normal
+            recursiveAdd(0, root, value);
+            return;
+        }
+        //has some children
+        //try forced insert
+        List<DV<BTNode<T>, D>> selectedNodes = new ArrayList<>();
+        for (BTNode<T> n : root.getChildren()) {
+            D distance = distance(n.anchor, value);
+            if (include(1, n.anchor, distance, false)) {
+                selectedNodes.add(new DV(n, distance));
+            }
+        }
+        if (selectedNodes.isEmpty()) {
+            root.addChild(value);// forced root node insert
+            addedChilds++;
+            return;
+        }
+        MakeStream.from(selectedNodes)
+                .sorted()
+                .decorating(stream -> {
+                    int overlapMax = overlapMax(1, value, false);
+                    if (overlapMax > 0) {
+                        return stream.limit(overlapMax);
+                    }
+                    return stream;
+
+                })
+                .forEach(n -> {//go down
+                    recursiveAdd(1, n.val, value);
+                });
+
     }
 
     public void addRootNode(T value) {
@@ -152,15 +216,11 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
         root.addChild(value);
     }
 
-    protected long addedEmptyChilds;
+    protected long addedChilds;
     protected long addedLeafValues;
 
-    public void printDebug() {
-        DLog.print("addedEmptyChilds:", addedEmptyChilds);
-        DLog.print("addedLeafValues", addedLeafValues);
-    }
-
     protected void recursiveAdd(int depth, BTNode<T> node, T value) {
+
         if (depth > layerLimit) {
             boolean added = node.addValue(value);
             if (added) {
@@ -170,37 +230,34 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
         }
         if (node.getChildren().isEmpty()) {
             node.addChild(value);
-            addedEmptyChilds++;
+            addedChilds++;
             return;
         }
         int childDepth = depth + 1;
-        List<Tuple<BTNode<T>, D>> selectedNodes = new ArrayList<>();
+        List<DV<BTNode<T>, D>> selectedNodes = new ArrayList<>();
         for (BTNode<T> n : node.getChildren()) {
             D distance = distance(n.anchor, value);
             if (include(childDepth, n.anchor, distance, false)) {
-                selectedNodes.add(Tuples.create(n, distance));
+                selectedNodes.add(new DV(n, distance));
             }
         }
 
         if (selectedNodes.isEmpty()) {// include anyway, because this is empty
-            addedEmptyChilds++;
+            addedChilds++;
             node.addChild(value);
         } else {
             MakeStream.from(selectedNodes)
-                    .sorted((a, b) -> {
-                        return SimpleCompare.SIMPLE_COMPARE_NULL_EQUAL.compare(a.g2, b.g2);
-                    })
+                    .sorted()
                     .decorating(stream -> {
                         int overlapMax = overlapMax(childDepth, value, false);
-                        if (overlapMax > 0) {
+                        if (overlapMax >= 0) {
                             return stream.limit(overlapMax);
                         }
                         return stream;
 
                     })
-                    .map(m -> m.g1)
                     .forEach(n -> {//go down
-                        recursiveAdd(childDepth, n, value);
+                        recursiveAdd(childDepth, n.val, value);
                     });
 
         }
@@ -208,13 +265,13 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
 
     public List<T> findNearest(int count, T value) {
         BTFindNear<T> bt = new BTFindNear<>(count, value);
-        recursiveFind(0, bt, root);
+        recursiveFind(0, root, bt);
 
-        return MakeStream.from(bt.values).map(m -> m.g1).toList();
+        return MakeStream.from(bt.values).map(m -> m.val).toList();
 
     }
 
-    protected void recursiveFind(int depth, BTFindNear<T> fn, BTNode<T> node) {
+    protected void recursiveFind(int depth, BTNode<T> node, BTFindNear<T> fn) {
 
         if (depth > layerLimit) {
             for (T val : node.getValues()) {
@@ -223,31 +280,30 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
             }
             return;
         }
+        final int childDepth = depth + 1;
 
-        List<Tuple<BTNode<T>, D>> selectedNodes = new ArrayList<>();
+        List<DV<BTNode<T>, D>> selectedNodes = new ArrayList<>();
         for (BTNode<T> n : node.getChildren()) {
 
             D distance = distance(n.anchor, fn.anchor);
             fn.conditionalAdd(n.anchor, distance);
-            if (include(depth+1, n.anchor, distance, true)) {
-                selectedNodes.add(Tuples.create(n, distance));
+            if (include(childDepth, n.anchor, distance, true)) {
+                selectedNodes.add(new DV(n, distance));
             }
 
         }
         MakeStream.from(selectedNodes)
-                .sorted((a, b) -> {
-                    return SimpleCompare.SIMPLE_COMPARE_NULL_EQUAL.compare(a.g2, b.g2);
-                })
+                .sorted()
                 .decorating(stream -> {
-                    int overlapMax = overlapMax(depth+1, fn.anchor, true);
-                    if (overlapMax > 0) {
+                    int overlapMax = overlapMax(childDepth, fn.anchor, true);
+                    if (overlapMax >= 0) {
                         return stream.limit(overlapMax);
                     }
                     return stream;
 
                 })
                 .forEach(n -> {
-                    recursiveFind(depth + 1, fn, n.g1);
+                    recursiveFind(childDepth, n.val, fn);
                 });
     }
 
@@ -269,55 +325,70 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
         };
     }
 
-    public abstract D distance(T one, T two);
+    protected abstract D distance(T one, T two);
 
-    public abstract boolean include(int depth, T value, D distance, boolean searching);
+    protected abstract boolean include(int depth, T value, D distance, boolean searching);
 
-    public abstract int overlapMax(int depth, T value, boolean searching);
+    protected abstract int overlapMax(int depth, T value, boolean searching);
 
     public static class BunchingEuclideanTree<T> extends BunchingTree<T, Double> {
 
-        public BunchingEuclideanTree(double maxPossibleDistance, BiFunction<T, T, Double> distanceFunc) {
-            this.maxPossibleDistance = maxPossibleDistance;
-            this.distanceFunc = Nulls.requireNonNull(distanceFunc);
-            layerLimit = 4;
+        public static final int DEFAULT_DIV = 4;
+        public static final int DEFAULT_LAYERS = 4;
+        public static final double DEFAULT_SEARCH_RATIO = 0.15;
+
+        
+        /**
+         * 
+         * @param div average slice count in a layer [2-N]
+         * @param layers layer count [2-N]
+         * @param searchRatio how to modify distance calculation during search (will add to 1 and multiply)
+         * @param maxPossibleDistance estimation of the distance between 2 opposite points
+         * @param distanceFunc distance calculation function
+         */
+        public BunchingEuclideanTree(int div, int layers, double searchRatio, double maxPossibleDistance, BiFunction<T, T, Double> distanceFunc) {
+            super(div, layers);
+            this.searchRatioMult = 1 + searchRatio;
+            this.distanceSlice = maxPossibleDistance / div;
+            this.distanceFunc = distanceFunc;
+            this.overlapMult = div * 0.5;
+
         }
 
-        protected final double maxPossibleDistance;
+        /**
+         *
+         * @param maxPossibleDistance estimation of the distance between 2 opposite points
+         * @param distanceFunc distance calculation function
+         */
+        public BunchingEuclideanTree(double maxPossibleDistance, BiFunction<T, T, Double> distanceFunc) {
+            this(DEFAULT_DIV, DEFAULT_LAYERS, DEFAULT_SEARCH_RATIO, maxPossibleDistance, distanceFunc);
+        }
 
-        protected final double searchRatio = 1.4;// extra 40%
-        protected final double searchRationMult = 0.6;
+        protected final double distanceSlice;
+
+        protected final double searchRatioMult;
+
+        protected final double overlapMult;
 
         protected final BiFunction<T, T, Double> distanceFunc;
 
-        @Override
-        public boolean include(int depth, T value, Double distance, boolean searching) {
-            if (depth <= 0) {
-                return true;
-            }
-            if (searching) {
-                return distance < maxPossibleDistance / (searchRationMult * (depth));
-            }
-            return distance < maxPossibleDistance / (depth);
-//            return distance < maxPossibleDistance / (depth+ (searching ? 0 : 0.5));
+        protected double searchMult(boolean searching) {
+            return searching ? searchRatioMult : 1;
         }
 
         @Override
-        public int overlapMax(int depth, T value, boolean searching) {
-            if (depth <= 0) {
-                return searching ? -1 : 2;
-            }
+        protected boolean include(int depth, T value, Double distance, boolean searching) {
+            return distance < (distanceSlice * searchMult(searching)) / (depth);
+        }
 
-            double val = depth * 2;
-            if (searching) {
-                val *= searchRatio;
-            }
-            return (int) val;
+        @Override
+        protected int overlapMax(int depth, T value, boolean searching) {
+            return (int) (depth * overlapMult * searchMult(searching));
 
         }
 
         @Override
-        public Double distance(T one, T two) {
+        protected Double distance(T one, T two) {
             return distanceFunc.apply(one, two);
         }
 

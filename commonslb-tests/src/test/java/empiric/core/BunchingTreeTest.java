@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.tuples.Tuples;
@@ -88,43 +89,16 @@ public class BunchingTreeTest {
 
     }
 
-    public static class XYTree extends BunchingTree<XY, Double> {
+    public static class XYTree extends BunchingTree.BunchingEuclideanTree<XY> {
+
+        public XYTree(double maxPossibleDistance, BiFunction<XY, XY, Double> distanceFunc) {
+            super(maxPossibleDistance, distanceFunc);
+        }
+
 
         @Override
         public Double distance(XY one, XY two) {
             return XY.distance(one, two);
-        }
-
-        @Override
-        public boolean include(int depth, XY value, Double distance, boolean searching) {
-            if (depth == 0) {
-                return true;
-            }
-            if (depth > 3) {
-                return false;
-            }
-            double div = Math.pow(2, depth);
-            return distance < 141.42 / div;
-//            switch (depth) {
-//                case 0:
-//                    return true;
-//                case 1:
-//                    return distance < 150;
-//                case 2:
-//                    return distance < 70;
-//                case 3:
-//                    return distance < 30;
-//                default:
-//                    return false;
-//            }
-        }
-
-        @Override
-        public int overlapMax(int depth, XY value, boolean searching) {
-            return (int) Math.max(depth * 1.5d, 1);
-//             double div = Math.pow(2, depth);
-//            return (int) Math.max(8/div,1);
-
         }
 
     }
@@ -134,7 +108,7 @@ public class BunchingTreeTest {
         Random rng = new Random(2);
         double range = 1000_000;
 
-        int size = 1_00_000;
+        int size = 100_000;
         List<XY> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             list.add(new XY(rng.nextInt((int) range), rng.nextInt((int) range)));
@@ -142,18 +116,18 @@ public class BunchingTreeTest {
         double maxDistance = XY.distance(new XY(0, 0), new XY(range, range));
         DLog.print("maxDistance", maxDistance);
 
-//        XYTree tree = new XYTree();
-        BunchingTree.BunchingEuclideanTree<XY> tree = new BunchingTree.BunchingEuclideanTree<>(maxDistance, XY::distance);
+        XYTree tree = new XYTree(maxDistance, XY::distance);
         
         XY test = new XY(rng.nextInt((int) range), rng.nextInt((int) range));
         Set<XY> skip = new HashSet<>();
-        int slices = 8;
+        int slices = 3;
         
         double slice = range / (slices+1);
         for(int i = 1; i < slices+1; i++){
             for(int j=1; j < slices+1; j++){
                 XY findNearest = findNearest(list, new XY(slice*i,slice*j));
-                tree.addRootNode(findNearest);
+                tree.add(findNearest);
+//                tree.addRootNode(findNearest);
                 skip.add(findNearest);
 //                test = findNearest;
             }
@@ -174,18 +148,18 @@ public class BunchingTreeTest {
             }
         }
         DLog.print("Tree building", XY.counter.getAndSet(0));
-        tree.printDebug();
         test= new XY(range/2, range/2);
         
         
 
-        final int count = 5;
+        final int count = 10;
 
         List<XY> top10 = findNearest(list, test, count);
+        Collections.sort(top10);
         DLog.print("Full list sorting", XY.counter.getAndSet(0));
 
         List<XY> findNearest = tree.findNearest(count, test);
-//        Collections.sort(findNearest);
+        Collections.sort(findNearest);
 
         DLog.print("tree.findNearest", XY.counter.getAndSet(0));
 
@@ -260,6 +234,10 @@ public class BunchingTreeTest {
     }
 
     public static class LocationTree extends BunchingTree<double[], Double> {
+
+        public LocationTree(int div, int layerLimit) {
+            super(div, layerLimit);
+        }
 
         @Override
         public Double distance(double[] one, double[] two) {
