@@ -1,4 +1,4 @@
-package empiric.core;
+package lt.lb.commons.containers.collections;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import lt.lb.commons.DLog;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.containers.values.IntegerValue;
@@ -17,7 +16,7 @@ import lt.lb.commons.iteration.streams.MakeStream;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public abstract class BunchingTree<T, D extends Comparable<D>> {
 

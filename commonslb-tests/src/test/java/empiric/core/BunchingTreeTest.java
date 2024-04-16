@@ -4,6 +4,7 @@
  */
 package empiric.core;
 
+import lt.lb.commons.containers.collections.BunchingTree;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
