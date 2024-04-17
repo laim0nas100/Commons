@@ -255,7 +255,7 @@ public class BunchingTreeTest {
         }
 
         @Override
-        public int overlapMax(int depth, double[] value, boolean searching) {
+        public long overlapMax(int depth, double[] value, boolean searching) {
             return 1;
         }
 
