@@ -18,6 +18,8 @@ import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.threads.SimpleThreadPool;
 import lt.lb.commons.threads.ThreadPool;
+import lt.lb.commons.threads.sync.ConcurrentIndexedAbstract;
+import lt.lb.commons.threads.sync.ConcurrentIndexedBag;
 
 /**
  *
@@ -44,7 +46,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
 
     protected Collection<Runnable> tasks = new ConcurrentLinkedDeque<>();
 
-    protected ConcurrentLinkedDeque<Running> runningTasks = new ConcurrentLinkedDeque<>();
+    protected ConcurrentIndexedAbstract<Running, ?> runningTasks;
 
     protected ThreadPool pool;
 
@@ -71,6 +73,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     protected FastExecutor(int maxThreads, ThreadPool threadPool) {
         this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
         this.maxThreads = maxThreads;
+        this.runningTasks = new ConcurrentIndexedBag<>(Math.max(1, maxThreads) * 2);
         pool.setStarting(true);
     }
 
@@ -127,11 +130,10 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
         if (run == null) {
             return;
         }
-        Running running = null;
+        int index = -1;
         try {
             if (useList) {
-                running = new Running(Thread.currentThread(), run);
-                runningTasks.add(running);
+                index = runningTasks.insert(new Running(Thread.currentThread(), run));
             }
             run.run();
 
@@ -142,8 +144,8 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
                 err.printStackTrace();
             }
         } finally {
-            if (useList && running != null) {
-                runningTasks.remove(running);
+            if (useList && index >= 0) {
+                runningTasks.remove(index);
             }
         }
     }
@@ -211,6 +213,13 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     public List<Runnable> shutdownNow() {
         shutdown();
 
+        Iterator<Running> running = runningTasks.iterator();
+        while (running.hasNext()) {
+            Running r = running.next();
+            if (r != null) {
+                r.thread.interrupt();
+            }
+        }
         ArrayList<Runnable> unfinished = new ArrayList<>();
         Iterator<Runnable> iterator = tasks.iterator();
         while (iterator.hasNext()) {
@@ -220,14 +229,12 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
                 unfinished.add(next);
             }
         }
-        Iterator<Running> runningIterator = runningTasks.iterator();
-        while (runningIterator.hasNext()) {
-            Running next = runningIterator.next();
-            if (next != null) {
-                next.thread.interrupt();
-            }
-        }
+
         return unfinished;
+    }
+
+    protected Iterator<Running> getRunningTasks() {
+        return runningTasks.iterator();
     }
 
     @Override

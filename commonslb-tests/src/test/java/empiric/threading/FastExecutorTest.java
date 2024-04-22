@@ -5,16 +5,15 @@
  */
 package empiric.threading;
 
-import java.util.concurrent.FutureTask;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.DLog;
-import lt.lb.commons.F;
 import lt.lb.commons.misc.Range;
-import lt.lb.commons.threads.executors.FastWaitingExecutor;
-import lt.lb.commons.threads.Futures;
+import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.PriorityFastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
-import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
 
 /**
@@ -33,17 +32,23 @@ public class FastExecutorTest {
     // public void hello() {}
     static ThreadBottleneck sb = new ThreadBottleneck(3);
 
+    public static Random rng = new Random(0);
+
     public static Runnable makeRun(String s) {
         return () -> {
 
             Checked.uncheckedRun(() -> {
 //                Optional<Throwable> execute = sb.execute(() -> {
-                Thread.sleep(100);
-                DLog.print(s, Thread.currentThread().isDaemon());
+                try {
+                    Thread.sleep(10 + rng.nextInt(10));
+                    DLog.print(s, Thread.currentThread().isDaemon());
 //                });
 //                if (execute.isPresent()) {
 //                    execute.get().printStackTrace();
 //                }
+                } catch (InterruptedException interr) {
+                DLog.print(s, "Interrupted");
+                }
             });
 
         };
@@ -56,20 +61,11 @@ public class FastExecutorTest {
         Range<Integer> of = Range.of(0, 2);
         DLog.print(of.inRangeExcInc(0));
         DLog.print(of.inRangeExcInc(2));
-        FastWaitingExecutor exe = new FastWaitingExecutor(2, WaitTime.ofSeconds(10));
+        int threads = 4;
+        ExecutorService exe = new FastExecutor(threads); //98678
+//        ExecutorService exe = new FastExecutorOld(threads); //98674
 
-        for (int i = 0; i < 10; i++) {
-            exe.execute(makeRun("" + i));
-        }
-        Checked.uncheckedRun(() -> {
-            DLog.print("Sleep");
-            Thread.sleep(2000);
-            DLog.print("End");
-        });
-        for (int i = 0; i < 100; i++) {
-            exe.execute(makeRun("" + i));
-        }
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 100000; i++) {
             exe.execute(makeRun("" + i));
         }
         DLog.changeStream(DLog.LogStream.STD_ERR);
@@ -77,19 +73,14 @@ public class FastExecutorTest {
 
         Checked.uncheckedRun(() -> {
             DLog.print("Sleep");
-            Thread.sleep(8000);
+            Thread.sleep(5000);
             DLog.print("End");
+            List<Runnable> shutdownNow = exe.shutdownNow();
+            DLog.print("After shutdown left unexecuted:" + shutdownNow.size());
         });
 
-        FutureTask<Object> empty = Futures.empty();
-        exe.execute(empty);
+        DLog.close();
 
-        Checked.uncheckedRun(() -> {
-            empty.get();
-            Thread.sleep(1000);
-
-        });
-        exe.close();
 //        DLog.await(1, TimeUnit.HOURS);
 //        DLog.close();
     }
