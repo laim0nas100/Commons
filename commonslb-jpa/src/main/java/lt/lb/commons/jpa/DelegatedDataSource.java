@@ -19,28 +19,28 @@ import org.slf4j.LoggerFactory;
  *
  * @author laim0nas100
  */
-public class DelegatedDataSource implements DataSource {
+public class DelegatedDataSource<DS extends DataSource> implements DataSource {
 
     private static final Logger log = LoggerFactory.getLogger(DelegatedDataSource.class);
 
     protected long sleepTimeMills = 3000;
 
-    protected final UncheckedSupplier<DataSource> realSource;
+    protected final UncheckedSupplier<DS> realSource;
 
     protected final UncheckedSupplier<Boolean> closing;
 
-    protected final AtomicReference<DataSource> ref = new AtomicReference<>();
+    protected final AtomicReference<DS> ref = new AtomicReference<>();
 
     protected final AtomicBoolean inInit = new AtomicBoolean(false);
 
-    public DelegatedDataSource(UncheckedSupplier<DataSource> realSource, UncheckedSupplier<Boolean> closing) {
+    public DelegatedDataSource(UncheckedSupplier<DS> realSource, UncheckedSupplier<Boolean> closing) {
         this.realSource = Objects.requireNonNull(realSource);
         this.closing = closing;
     }
 
-    protected DataSource init(boolean wait) throws SQLException {
+    protected DS init(boolean wait) throws SQLException {
         if (inInit.compareAndSet(false, true)) { // try init
-            SafeOpt<DataSource> safe = realSource.getSafe();
+            SafeOpt<DS> safe = realSource.getSafe();
             safe.ifPresent(dataSource -> {
                 ref.set(dataSource);
             });
@@ -75,17 +75,22 @@ public class DelegatedDataSource implements DataSource {
         return Objects.requireNonNull(ref.get(), "Failed to initialize delayed DataSource");
     }
 
-    protected DataSource tryGet() throws SQLException {
-        DataSource ds = ref.get();
+    protected DS tryGet() throws SQLException {
+        return tryGet(true);
+    }
+    
+    protected DS tryGet(boolean wait) throws SQLException {
+        DS ds = ref.get();
         if (ds != null) {
             return ds;
         }
-        return init(true);
+        return init(wait);
     }
+    
 
     public SafeOpt<Boolean> isConnected() {
 
-        return SafeOpt.ofGet(() -> init(false))
+        return SafeOpt.ofGet(() -> tryGet(false))
                 .map(m -> m.getConnection())
                 .map(con -> {
                     con.close();

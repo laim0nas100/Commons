@@ -10,13 +10,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
 import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
 import lt.lb.uncheckedutils.func.UncheckedSupplier;
 
 /**
  *
  * @author laim0nas100
  */
+@Deprecated
 public class DelayedDelegatedDataSource implements DataSource {
 
     protected long sleepTimeMills = 500;
