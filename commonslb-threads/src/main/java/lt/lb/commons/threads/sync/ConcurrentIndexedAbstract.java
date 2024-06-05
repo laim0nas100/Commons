@@ -1,8 +1,11 @@
 package lt.lb.commons.threads.sync;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import lt.lb.commons.threads.sync.ConcurrentIndexedAbstract.Cell;
 
 /**
@@ -90,6 +93,7 @@ public abstract class ConcurrentIndexedAbstract<T, C extends Cell<T>> implements
      */
     public boolean remove(int idx) {
         C cell = array[idx];
+        int count = 0;
         while (true) {
             CAS op = removeIndexLogic(cell);
             if (op == CAS.OK) {
@@ -98,6 +102,11 @@ public abstract class ConcurrentIndexedAbstract<T, C extends Cell<T>> implements
             if (op == CAS.FAILED) {
                 return false;
             }
+            count++;
+            if (count > size) {
+                return false;
+            }
+
         }
     }
 
@@ -133,8 +142,21 @@ public abstract class ConcurrentIndexedAbstract<T, C extends Cell<T>> implements
 
     protected abstract CAS removeValueLogic(C cell, T value);
 
+    protected void doForEach(BiConsumer<Integer, C> cons) {
+        for (int i = 0; i < size; i++) {
+            C cell = array[i];
+            cons.accept(i, cell);
+        }
+
+    }
+
+    public void clear() {
+        doForEach((i, c) -> remove(i));
+    }
+
     @Override
     public Iterator<T> iterator() {
+        ConcurrentIndexedAbstract<T, C> me = this;
         return new Iterator<T>() {
             int index = -1;
 
@@ -145,6 +167,9 @@ public abstract class ConcurrentIndexedAbstract<T, C extends Cell<T>> implements
 
             @Override
             public T next() {
+                if (index + 1 > size) {
+                    throw new NoSuchElementException("No more elements");
+                }
                 index++;
                 Cell<T> cell = array[index];
                 if (cell.isOccupied()) {
@@ -152,6 +177,14 @@ public abstract class ConcurrentIndexedAbstract<T, C extends Cell<T>> implements
                 }
                 return null;
             }
+
+            @Override
+            public void remove() {
+                if (index >= 0) {
+                    me.remove(index);
+                }
+            }
+
         };
     }
 
