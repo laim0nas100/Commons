@@ -1,5 +1,6 @@
 package lt.lb.commons.containers.traits;
 
+import java.util.function.Supplier;
 import lt.lb.commons.containers.values.ValueProxy;
 
 /**
@@ -23,8 +24,24 @@ public interface Trait<T> extends ValueProxy<T> {
         return TraitStorageGlobal.INSTANCE.resolve(caller, signature);
     }
 
+    public static <A> Trait<A> globalInitial(Object caller, Object signature, Supplier<A> initialValue) {
+        return TraitStorageGlobal.INSTANCE.resolveInitial(caller, signature, initialValue);
+    }
+
+    public static <A> Trait<A> globalThreadSafe(Object caller, Object signature) {
+        return TraitStorageGlobalSafe.INSTANCE.resolve(caller, signature);
+    }
+
+    public static <A> Trait<A> globalThreadSafeInitial(Object caller, Object signature, Supplier<A> initialValue) {
+        return TraitStorageGlobalSafe.INSTANCE.resolveInitial(caller, signature, initialValue);
+    }
+
     public static <A> Trait<A> local(Object caller, Object signature) {
         return TraitStorageThreadLocal.INSTANCE.resolve(caller, signature);
+    }
+
+    public static <A> Trait<A> localInitial(Object caller, Object signature, Supplier<A> initialValue) {
+        return TraitStorageThreadLocal.INSTANCE.resolveInitial(caller, signature, initialValue);
     }
 
 }
