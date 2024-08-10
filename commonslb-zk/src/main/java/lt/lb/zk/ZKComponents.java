@@ -32,6 +32,12 @@ import org.zkoss.zul.Window;
  */
 public class ZKComponents {
 
+    static FastIDGen gen = new FastIDGen();
+
+    public static String idGen(String prefix) {
+        return prefix + "-" + gen.getAndIncrement().toString();
+    }
+
     public static Textbox textboxMultiline(String text, int rows, boolean resize) {
         Textbox tb = new Textbox(text);
 
@@ -54,11 +60,9 @@ public class ZKComponents {
 
     public static class DialogBuilder extends EagerBuilder<DWindow> {
 
-        static FastIDGen gen = new FastIDGen();
-
         public DialogBuilder(DWindow initial) {
             super(initial);
-            initial.setId("DWindow_" + gen.getAndIncrement().toString());
+            initial.setId(idGen("DialogWindow"));
         }
 
         public DialogBuilder() {
@@ -141,7 +145,7 @@ public class ZKComponents {
 
     public static DWindow getFlexibleDialogWindow(String title, Component parent) {
         DWindow window = new DWindow();
-        window.setId(UUIDgenerator.nextUUID("DialogWindow"));
+        window.setId(idGen("DialogWindow"));
         window.setParent(parent);
         window.setTitle(title);
         window.setContentStyle("overflow:auto;");
@@ -150,7 +154,7 @@ public class ZKComponents {
 
     public static DWindow getFlexibleDialogWindowAdjustedNotClosable(String title, Component parent) {
         DWindow window = new DWindow();
-        window.setId(UUIDgenerator.nextUUID("DialogWindow"));
+        window.setId(idGen("DialogWindow"));
         window.setParent(parent);
         window.setTitle(title);
         window.setContentStyle("overflow:auto;");
