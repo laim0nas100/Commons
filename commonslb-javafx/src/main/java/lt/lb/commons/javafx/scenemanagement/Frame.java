@@ -2,6 +2,7 @@ package lt.lb.commons.javafx.scenemanagement;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import lt.lb.commons.javafx.FX;
 
 /**
@@ -20,6 +21,10 @@ public interface Frame {
 
     public default Scene getScene() {
         return getStage().getScene();
+    }
+    
+    public default Window getWindow(){
+        return getScene().getWindow();
     }
 
     public default String getTitle() {

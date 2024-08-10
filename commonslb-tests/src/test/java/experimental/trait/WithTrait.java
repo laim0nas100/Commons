@@ -2,6 +2,7 @@ package experimental.trait;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.DLog;
 import lt.lb.commons.containers.traits.Trait;
 import lt.lb.commons.containers.traits.TraitStorageGlobal;
@@ -24,6 +25,11 @@ public interface WithTrait {
         default Trait<Boolean> locked() {
             return Trait.globalInitial(this, "locked", () -> true);
         }
+    }
+    static AtomicLong counter = new AtomicLong();
+    public static boolean getBoolean(){
+        counter.incrementAndGet();
+        return true;
     }
 
     public static class SomeClass implements HasHealth, Locked {
@@ -49,6 +55,7 @@ public interface WithTrait {
             DLog.print(cl.health(), cl.locked());
             cl.locked().set(!cl.locked().get());
         }
+        DLog.print(counter.get());
 
         list.clear();
 //        list = null;
