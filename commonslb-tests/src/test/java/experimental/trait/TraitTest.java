@@ -11,7 +11,7 @@ import lt.lb.commons.containers.traits.TraitStorageGlobal;
  *
  * @author laim0nas100
  */
-public interface WithTrait {
+public class TraitTest {
 
     public interface HasHealth {
 
