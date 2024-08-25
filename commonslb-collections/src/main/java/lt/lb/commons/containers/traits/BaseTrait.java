@@ -1,7 +1,6 @@
 package lt.lb.commons.containers.traits;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import lt.lb.commons.Nulls;
@@ -66,9 +65,6 @@ public abstract class BaseTrait<A> implements Trait<A> {
         return Objects.equals(this.value, other.value);
     }
     
-    
-    
-    
 
     @Override
     public Fetcher<Object,Map> resolveTraits() {
@@ -79,4 +75,13 @@ public abstract class BaseTrait<A> implements Trait<A> {
     protected Fetcher<Object, Fetcher> getTraits() {
         return storage.getStorage();
     }
+    
+    public static class SimpleTrait<A> extends BaseTrait<A> {
+
+        public SimpleTrait(TraitStorage storage, Object caller, Object signature, A value) {
+            super(storage, caller, signature);
+            this.value = value;
+        }
+    }
+    
 }

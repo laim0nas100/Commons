@@ -12,7 +12,7 @@ public interface TraitStorage {
     Fetcher<Object, Fetcher> getStorage();
 
     default <A> Trait<A> resolve(Object caller, Object signature) {
-        return resolveInitial(caller, signature, () -> null);
+        return resolveInitial(caller, signature, ()-> null);
     }
 
     default <A> Trait<A> resolveInitial(Object caller, Object signature, Supplier<A> initial) {

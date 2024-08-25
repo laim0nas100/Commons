@@ -3,7 +3,7 @@ package lt.lb.commons.containers.traits;
 import java.util.Map;
 import java.util.function.Supplier;
 import lt.lb.commons.Nulls;
-import lt.lb.commons.containers.traits.Fetcher.MapFetcher;
+import lt.lb.commons.containers.traits.Fetcher.SimpleMapFetcher;
 import lt.lb.commons.containers.collections.WeakConcurrentHashMap;
 
 /**
@@ -14,7 +14,7 @@ public class TraitStorageThreadLocal implements TraitStorage {
 
     public static final TraitStorageThreadLocal INSTANCE = new TraitStorageThreadLocal();
 
-    private final ThreadLocal<Fetcher<Object, Fetcher>> storage = ThreadLocal.withInitial(() -> new MapFetcher<>(new WeakConcurrentHashMap(true)));
+    private final ThreadLocal<Fetcher<Object, Fetcher>> storage = ThreadLocal.withInitial(() -> new SimpleMapFetcher<>(new WeakConcurrentHashMap(true)));
 
     @Override
     public Fetcher<Object, Fetcher> getStorage() {

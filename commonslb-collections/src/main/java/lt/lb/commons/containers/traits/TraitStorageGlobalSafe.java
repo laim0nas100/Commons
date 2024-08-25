@@ -3,9 +3,8 @@ package lt.lb.commons.containers.traits;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
-import lt.lb.commons.containers.traits.Fetcher.MapFetcher;
+import lt.lb.commons.containers.traits.Fetcher.SimpleMapFetcher;
 import lt.lb.commons.containers.collections.WeakConcurrentHashMap;
-import lt.lb.commons.containers.traits.TraitStorageGlobal.GloballySavedTrait;
 
 /**
  *
@@ -17,7 +16,7 @@ public class TraitStorageGlobalSafe implements TraitStorage {
 
     public static final TraitStorageGlobalSafe INSTANCE = new TraitStorageGlobalSafe();
 
-    private final Fetcher<Object, Fetcher> globalTraits = new MapFetcher<>(new WeakConcurrentHashMap(true));
+    private final Fetcher<Object, Fetcher> globalTraits = new SimpleMapFetcher<>(new WeakConcurrentHashMap(true));
 
     private final WeakConcurrentHashMap lockingMap = new WeakConcurrentHashMap<>();
 
@@ -42,7 +41,7 @@ public class TraitStorageGlobalSafe implements TraitStorage {
     @Override
     public <T> Trait<T> produceTrait(Object caller, Object signature, Supplier<T> initialValue) {
         Nulls.requireNonNulls(caller, signature, initialValue);
-        return new GloballySavedTrait<>(this, caller, signature, initialValue.get());
+        return new BaseTrait.SimpleTrait<>(this, caller, signature, initialValue.get());
     }
 
 }
