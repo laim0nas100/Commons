@@ -3,6 +3,7 @@ package lt.lb.commons.containers.values;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lt.lb.uncheckedutils.SafeOpt;
@@ -143,6 +144,16 @@ public interface ValueProxy<T> extends Supplier<T>, Consumer<T> {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Calls the function and then sets the result
+     *
+     * @param func
+     */
+    public default void compute(Function<T, T> func) {
+        Objects.requireNonNull(func);
+        set(func.apply(get()));
     }
 
     /**
