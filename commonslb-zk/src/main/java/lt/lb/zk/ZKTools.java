@@ -1,9 +1,14 @@
 package lt.lb.zk;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.HtmlBasedComponent;
 import org.zkoss.zk.ui.event.EventListener;
+import org.zkoss.zk.ui.event.Events;
 
 /**
  *
@@ -34,6 +39,44 @@ public class ZKTools {
             }
         }
 
+        public static <T extends Component, E extends org.zkoss.zk.ui.event.Event> T onClick(T component, EventListener<E> el) {
+            return onEvent(Events.ON_CLICK, component, el);
+        }
+
+        public static <T extends Component, E extends org.zkoss.zk.ui.event.Event> T onCheck(T component, EventListener<E> el) {
+            return onEvent(Events.ON_CHECK, component, el);
+        }
+
+        public static <T extends Component, E extends org.zkoss.zk.ui.event.Event> T onEvent(String eventName, T component, EventListener<E> el) {
+            return onEvent(Arrays.asList(Objects.requireNonNull(eventName)), component, el);
+        }
+
+        public static <T extends Component, E extends org.zkoss.zk.ui.event.Event> T onEvent(List<String> eventNames, T component, EventListener<E> el) {
+
+            Objects.requireNonNull(component);
+            Objects.requireNonNull(el);
+            AtomicBoolean inside = new AtomicBoolean();
+            for (String eventName : eventNames) {
+                component.addEventListener(eventName, (E event) -> {
+                    if (inside.compareAndSet(false, true)) {
+                        try {
+
+                            el.onEvent(event);
+
+                        } finally {
+                            inside.set(false);
+                        }
+                    }
+                });
+            }
+
+            return component;
+        }
+
+        public static <T extends Component, E extends org.zkoss.zk.ui.event.Event> T onChangeOrOK(T component, EventListener<E> el) {
+            return onEvent(Arrays.asList(Events.ON_OK, Events.ON_CHANGE), component, el);
+        }
+
     }
 
     public static String styleAppend(HtmlBasedComponent htmlComp, String style) {
@@ -42,7 +85,7 @@ public class ZKTools {
         htmlComp.setStyle(StringUtils.join(oldStyle, style));
         return oldStyle;
     }
-    
+
     public static String styleReplace(HtmlBasedComponent htmlComp, String style) {
         String oldStyle = htmlComp.getStyle();
         htmlComp.setStyle(style);
