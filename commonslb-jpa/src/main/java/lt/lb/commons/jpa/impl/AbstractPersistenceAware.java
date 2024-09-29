@@ -59,11 +59,9 @@ public interface AbstractPersistenceAware extends JPACommands, EntityManagerAwar
     public default <T> boolean delete(T item) {
 
         if (item != null) {
-            if (!getEntityManager().contains(item)) {
-                item = update(item);
+            if(!isDetached(item)){
+                getEntityManager().remove(item);
             }
-
-            getEntityManager().remove(item);
             return true;
         }
         return false;
