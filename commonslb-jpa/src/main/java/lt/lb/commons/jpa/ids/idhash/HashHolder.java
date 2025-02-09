@@ -38,8 +38,12 @@ public class HashHolder {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final HashHolder other = (HashHolder) obj;
-        return Objects.equals(this.val, other.val);
+        if (obj instanceof HashHolder) {
+            final HashHolder other = (HashHolder) obj;
+            return Objects.equals(this.val, other.val);
+        }
+        return false;
+
     }
 
 }

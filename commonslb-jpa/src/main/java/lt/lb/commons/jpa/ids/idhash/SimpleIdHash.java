@@ -12,26 +12,42 @@ public abstract class SimpleIdHash implements IdHash {
     protected transient Object __localHashId;
 
     @Override
-    public boolean __idLocalHashCalled() {
+    public boolean idLocalHashCalled() {
         return __localHashId != null;
     }
 
     @Override
-    public Object __idLocalHash() {
+    public Object idLocalHash() {
         if (__localHashId == null) {
-            __localHashId = IdHash.super.__idLocalHash();
+            __localHashId = IdHash.super.idLocalHash();
         }
         return __localHashId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.__idHash());
+        return Objects.hashCode(idHash());
     }
 
     @Override
     public boolean equals(Object obj) {
         return idHashEquals(obj);
+    
     }
+
+    /**
+     * The table id mapping
+     * @return 
+     */
+    @Override
+    public abstract Object entityId();
+
+    /**
+     * Table id and local id mapper
+     * @return 
+     */
+    @Override
+    public abstract IdHashStore idHashStore();
+    
 
 }

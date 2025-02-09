@@ -22,10 +22,10 @@ public interface IdHash {
         if (entityId == null) {
             return false;
         }
-        if (__idLocalHashCalled()) {
-            IdHashStore idHashStore = __idHashStore();
+        if (idLocalHashCalled()) {
+            IdHashStore idHashStore = idHashStore();
             if (idHashStore != null) {
-                Object idLocal = __idLocalHash();
+                Object idLocal = idLocalHash();
                 return idLocal == idHashStore.register(entityId, idLocal);
             }
         }
@@ -41,11 +41,8 @@ public interface IdHash {
         return entityId;
     }
 
-    public boolean __idLocalHashCalled();
+    public boolean idLocalHashCalled();
 
-    public default int idHashCode() {
-        return Objects.hashCode(__idHash());
-    }
 
     public default boolean idHashEquals(Object b) {
         if (b == null) {
@@ -54,14 +51,9 @@ public interface IdHash {
         if (this == b) {
             return true;
         }
-        Class ca = this.getClass();
-        Class cb = b.getClass();
-        if (!ca.isAssignableFrom(cb) && !cb.isAssignableFrom(ca)) { // bad types
-            return false;
-        }
         if (b instanceof IdHash) {
             IdHash bHash = (IdHash) b;
-            return Objects.equals(bHash.__idHash(), this.__idHash());
+            return Objects.equals(bHash.idHash(), this.idHash());
         }
 
         return false;
@@ -73,17 +65,17 @@ public interface IdHash {
      *
      * @return
      */
-    public default Object __idLocalHash() {
+    public default Object idLocalHash() {
         return HashHolder.of(System.identityHashCode(this));
     }
 
-    public default Object __idHash() {
+    public default Object idHash() {
 
         Object entityId = entityIdMaybeRegister();
         if (entityId == null) {
-            return __idLocalHash();
+            return idLocalHash();
         }
-        IdHashStore hasStore = __idHashStore();
+        IdHashStore hasStore = idHashStore();
         if (hasStore == null) {
             return entityId;
         }
@@ -94,5 +86,5 @@ public interface IdHash {
         return mapping;
     }
 
-    public IdHashStore __idHashStore();
+    public IdHashStore idHashStore();
 }

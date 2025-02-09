@@ -7,10 +7,10 @@ import java.io.OutputStream;
  *
  * @author laim0nas100
  */
-public abstract class ForwardingOutputStream extends OutputStream{
+public abstract class ForwardingOutputStream extends OutputStream {
 
     public abstract OutputStream delegate();
-    
+
     @Override
     public void write(int b) throws IOException {
         delegate().write(b);
@@ -35,6 +35,5 @@ public abstract class ForwardingOutputStream extends OutputStream{
     public void close() throws IOException {
         delegate().close();
     }
-    
-    
+
 }
