@@ -311,6 +311,19 @@ public abstract class Drow<C extends CellInfo<N>, N, L, U extends Updates<U>, Co
     public C getCell(int index) {
         return cells.get(index);
     }
+    
+     /**
+     * Returns the working cell at last index, throw IndexOutOfBoundsException if cell list is empty.
+     *
+     * @param index
+     * @return
+     */
+    public C getLastCell(){
+        if(cells.isEmpty()){
+            throw new IndexOutOfBoundsException("Cell list is empty");
+        }
+        return cells.get(cells.size()-1);
+    }
 
     /**
      * System method, usually don't use this. Decide whether row needs update
