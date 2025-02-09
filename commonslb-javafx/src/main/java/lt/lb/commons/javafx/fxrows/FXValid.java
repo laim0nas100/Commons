@@ -14,6 +14,7 @@ import javafx.scene.control.Tooltip;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.datasync.base.NodeValid;
 import lt.lb.commons.Equator;
+import lt.lb.commons.iteration.streams.MakeStream;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -72,17 +73,17 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
         return valid;
     }
 
-    public static <N extends Node> FXValid<String, N> valSimplePath() {
+    public static <N extends Node> FXValid<String, N> valSimplePath(boolean multiple) {
         FXValid<String, N> valid = new FXValid<>();
         valid.errorSupl = t -> "Must be a simple path";
-        valid.isValid = validatorSimplePath();
+        valid.isValid = validatorSimplePath(multiple);
         return valid;
     }
 
-    public static <N extends Node> FXValid<String, N> valDirPath() {
+    public static <N extends Node> FXValid<String, N> valDirPath(boolean multiple) {
         FXValid<String, N> valid = new FXValid<>();
         valid.errorSupl = t -> "Must be a directory path";
-        valid.isValid = validatorDirPath();
+        valid.isValid = validatorDirPath(multiple);
         return valid;
     }
 
@@ -93,13 +94,35 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
         return valid;
     }
 
-    public static Predicate<String> validatorSimplePath() {
-        return p -> SafeOpt.ofNullable(p).filter(StringUtils::isAlphanumeric).map(Paths::get).filter(Files::notExists).isPresent();
+    public static Predicate<String> validatorSimplePath(boolean multiple) {
+       return validatorPath(multiple, false);
     }
 
-    public static Predicate<String> validatorDirPath() {
-        return p -> SafeOpt.ofNullable(p).map(Paths::get).filter(Files::isDirectory).isPresent();
+    public static Predicate<String> validatorDirPath(boolean multiple) {
+        return validatorPath(multiple, true);
     }
+    
+    public static Predicate<String> validatorPath(boolean multiple, boolean dir) {
+        return p -> SafeOpt.ofNullable(p)
+                .map(path ->{
+                    
+                    if(multiple && StringUtils.contains(path,"\n")){
+                        String[] split = StringUtils.split(path, "\n");
+                        return MakeStream.from(split);
+                    }
+                    return MakeStream.fromValues(path);
+                })
+                .map(stream -> stream.map(String::trim).map(Paths::get))
+                .map(stream ->{
+                    if(dir){
+                        return stream.allMatch(Files::isDirectory);
+                    }else{
+                        return stream.allMatch(Files::exists);
+                    }
+                })
+                .orElse(false);
+    }
+    
     
     public static <T> List<T> newList(Collection<T> col, T... removed){
         ArrayList<T> list = new ArrayList<>(col);

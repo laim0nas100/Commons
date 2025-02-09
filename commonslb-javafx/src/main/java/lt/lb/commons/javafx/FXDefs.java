@@ -20,14 +20,18 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.containers.values.StringValue;
@@ -109,25 +113,31 @@ public abstract class FXDefs {
         }
     }
 
-    public static void applyOnTextChangeOrEnter(TextField tf, Consumer<TextField> consumer) {
+    public static void applyOnTextChangeOrEnter(TextInputControl tf, Consumer<TextInputControl> consumer) {
         StringValue value = new StringValue();
         tf.textProperty().addListener((FXDefs.SimpleChangeListener<String>) s -> {
             value.set(tf.getText());
             consumer.accept(tf);
         });
-        tf.setOnAction(eh -> {
-            consumer.accept(tf);
+
+        tf.setOnKeyPressed(kh -> {
+            if (kh.getCode() == KeyCode.ENTER) {
+                consumer.accept(tf);
+            }
         });
     }
 
-    public static void applyOnFocusChange(TextField tf, Consumer<TextField> consumer) {
+    public static <T extends TextInputControl> void applyOnFocusChange(T tf, Consumer<T> consumer) {
         BooleanValue hasChanges = BooleanValue.FALSE();
         tf.textProperty().addListener((FXDefs.SimpleChangeListener<String>) s -> {
             hasChanges.setTrue();
         });
-        tf.setOnAction(eh -> {
-            hasChanges.setFalse();
-            consumer.accept(tf);
+
+        tf.setOnKeyPressed(kh -> {
+            if (kh.getCode() == KeyCode.ENTER) {
+                hasChanges.setFalse();
+                consumer.accept(tf);
+            }
         });
         tf.focusedProperty().addListener((FXDefs.SimpleChangeListener<Boolean>) focus -> {
             if (focus) {

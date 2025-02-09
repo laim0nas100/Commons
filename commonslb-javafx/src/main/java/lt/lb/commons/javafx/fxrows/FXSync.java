@@ -18,8 +18,10 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
 import javafx.util.StringConverter;
 import lt.lb.commons.Nulls;
@@ -59,15 +61,15 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         return new FXValid<>(this.nodes);
     }
 
-    public static class TextFieldSync<T> extends FXSync<T, String, TextField> {
+    public static class TextFieldSync<T> extends FXSync<T, String, TextInputControl> {
 
-        public TextFieldSync(TextField node) {
+        public TextFieldSync(TextInputControl node) {
             super(node);
         }
 
     }
 
-    public static <T> TextFieldSync<T> ofTextFieldFormatted(ValueProxy<T> persistProxy, TextField tf, BiConverter<String, T> conv) {
+    public static <T> TextFieldSync<T> ofTextFieldFormatted(ValueProxy<T> persistProxy, TextInputControl tf, BiConverter<String, T> conv) {
         TextFieldSync<T> fxSync = new TextFieldSync<>(tf);
 
         fxSync.withIdentityPersist();
@@ -84,7 +86,7 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         return fxSync;
     }
 
-    public static <T> TextFieldSync<T> ofTextFieldFormattedEnforced(ValueProxy<T> persistProxy, TextField tf, TextFormatter<T> formatter) {
+    public static <T> TextFieldSync<T> ofTextFieldFormattedEnforced(ValueProxy<T> persistProxy, TextInputControl tf, TextFormatter<T> formatter) {
         TextFieldSync<T> fxSync = new TextFieldSync<>(tf);
 
         tf.setTextFormatter(formatter);
@@ -101,7 +103,7 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
         return fxSync;
     }
 
-    public static TextFieldSync<String> ofTextField(ValueProxy<String> persistProxy, TextField tf) {
+    public static TextFieldSync<String> ofTextField(ValueProxy<String> persistProxy, TextInputControl tf) {
         return ofTextFieldFormattedEnforced(persistProxy, tf, new TextFormatter<>(TextFormatter.IDENTITY_STRING_CONVERTER));
     }
 

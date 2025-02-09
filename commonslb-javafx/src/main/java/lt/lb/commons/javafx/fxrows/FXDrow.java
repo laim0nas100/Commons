@@ -47,7 +47,7 @@ public class FXDrow extends SyncDrow<FXCell, Node, FXLine, FXUpdates, FXDrowConf
         addSyncValidation(sync);
         return add(sync.getNode());
     }
-
+    
     @Override
     public FXDrow display() {
         return display(false);
