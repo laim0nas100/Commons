@@ -1,6 +1,7 @@
 package lt.lb.commons.reflect.unified;
 
 import java.util.Objects;
+import lt.lb.commons.reflect.Refl;
 import lt.lb.uncheckedutils.SafeOpt;
 
 /**
@@ -14,6 +15,11 @@ public interface IObjectField<S, T> extends IField<S, T> {
         return (T) field().get(source);
     }
 
+    public default SafeOpt<T> safeAccessableGet(S source) {
+        Objects.requireNonNull(source, "Source field access object is null");
+        return SafeOpt.ofGet(() -> (T) Refl.fieldAccessableGet(field(), source));
+    }
+
     public default SafeOpt<T> safeGet(S source) {
         Objects.requireNonNull(source, "Source field access object is null");
         return SafeOpt.ofGet(() -> get(source));
@@ -24,7 +30,15 @@ public interface IObjectField<S, T> extends IField<S, T> {
         field().set(source, value);
     }
 
-    public default SafeOpt<T> safeSet(S source, T value) {
+    public default SafeOpt<Void> safeAccessableSet(S source, T value) {
+        Objects.requireNonNull(source, "Source field access object is null");
+        return SafeOpt.ofGet(() -> {
+            Refl.fieldAccessableSet(field(), source, value);
+            return null;
+        });
+    }
+
+    public default SafeOpt<Void> safeSet(S source, T value) {
         Objects.requireNonNull(source, "Source field access object is null");
         return SafeOpt.ofGet(() -> {
             set(source, value);
