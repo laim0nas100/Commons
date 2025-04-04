@@ -106,10 +106,10 @@ public class DLog {
     
     public Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier = DefaultDLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    public CloseableExecutor exe = createDefaultExecutor();
+    public CloseableExecutor exe = defaultExecutor();
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
     
-    public CloseableExecutor createDefaultExecutor(){
+    public CloseableExecutor defaultExecutor(){
         return new FastWaitingExecutor(1, WaitTime.ofSeconds(1));
     }
     
@@ -155,7 +155,7 @@ public class DLog {
     public static void assignStream(DLog log, PrintStream stream, boolean closeable) {
         close(log);
         log.closed = false;
-        log.exe = log.createDefaultExecutor();
+        log.exe = log.defaultExecutor();
         log.closeable = closeable;
         log.printStream = stream;
     }

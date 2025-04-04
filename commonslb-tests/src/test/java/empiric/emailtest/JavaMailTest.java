@@ -1,20 +1,14 @@
 package empiric.emailtest;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+import jakarta.mail.Folder;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -23,14 +17,9 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import javax.mail.Folder;
-import lt.lb.commons.ArrayOp;
 import lt.lb.commons.DLog;
 import lt.lb.commons.email.EmailChannels;
 import lt.lb.commons.email.EmailChecker;
-import lt.lb.commons.email.props.POP3EmailProps;
-import lt.lb.commons.F;
-import lt.lb.commons.Predicates;
 import lt.lb.commons.containers.values.DoubleValue;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.containers.values.NumberValue;
@@ -38,7 +27,6 @@ import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.email.props.IMAPEmailProps;
 import lt.lb.commons.io.text.TextFileIO;
 import lt.lb.commons.iteration.For;
-import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.executors.TaskBatcher;
@@ -49,7 +37,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import lt.lb.uncheckedutils.Checked;
 /**
  *
