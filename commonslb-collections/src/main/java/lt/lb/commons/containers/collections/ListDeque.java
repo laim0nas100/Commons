@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.RandomAccess;
 import java.util.function.Consumer;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.iteration.For;
@@ -19,300 +18,247 @@ import lt.lb.commons.iteration.For;
  *
  * @author laim0nas100
  */
-public interface ListDeque<T> extends List<T>, Deque<T> {
+public abstract class ListDeque {
 
-    public interface CollectionBased<T> extends ListDeque<T> {
+    public static abstract class CollectionBased<T> implements Collection<T> {
 
-        public Collection<T> getCollection();
+        public abstract Collection<T> getCollection();
 
         @Override
-        public default int size() {
+        public int size() {
             return getCollection().size();
         }
 
         @Override
-        public default boolean isEmpty() {
+        public boolean isEmpty() {
             return getCollection().isEmpty();
         }
 
         @Override
-        public default boolean contains(Object o) {
+        public boolean contains(Object o) {
             return getCollection().contains(o);
         }
 
         @Override
-        public default Iterator<T> iterator() {
+        public Iterator<T> iterator() {
             return getCollection().iterator();
         }
 
         @Override
-        public default Object[] toArray() {
+        public Object[] toArray() {
             return getCollection().toArray();
         }
 
         @Override
-        public default <T> T[] toArray(T[] a) {
+        public <T> T[] toArray(T[] a) {
             return getCollection().toArray(a);
         }
 
         @Override
-        public default boolean add(T e) {
+        public boolean add(T e) {
             return getCollection().add(e);
         }
 
         @Override
-        public default boolean remove(Object o) {
+        public boolean remove(Object o) {
             return getCollection().remove(o);
         }
 
         @Override
-        public default boolean containsAll(Collection<?> c) {
+        public boolean containsAll(Collection<?> c) {
             return getCollection().containsAll(c);
         }
 
         @Override
-        public default boolean addAll(Collection<? extends T> c) {
+        public boolean addAll(Collection<? extends T> c) {
             return getCollection().addAll(c);
         }
 
         @Override
-        public default boolean removeAll(Collection<?> c) {
+        public boolean removeAll(Collection<?> c) {
             return getCollection().removeAll(c);
         }
 
         @Override
-        public default boolean retainAll(Collection<?> c) {
+        public boolean retainAll(Collection<?> c) {
             return getCollection().retainAll(c);
         }
 
         @Override
-        public default void clear() {
+        public void clear() {
             getCollection().clear();
         }
     }
 
-    public interface ListBased<T> extends CollectionBased<T> {
-
-        public List<T> getList();
-
+    public static abstract class ListBasedImpl<T> extends CollectionBased<T> implements Deque<T> {
+        
+        public abstract List<T> getList();
+        
         @Override
-        public default Collection<T> getCollection() {
+        public Collection<T> getCollection(){
             return getList();
         }
-
+        
+        
         @Override
-        public default boolean addAll(int index, Collection<? extends T> c) {
-            return getList().addAll(index, c);
+        public void addFirst(T e) {
+            getList().add(0, e);
         }
 
         @Override
-        public default T get(int index) {
-            return getList().get(index);
-        }
-
-        @Override
-        public default T set(int index, T element) {
-            return getList().set(index, element);
-        }
-
-        @Override
-        public default void add(int index, T element) {
-            getList().add(index, element);
-        }
-
-        @Override
-        public default T remove(int index) {
-            return getList().remove(index);
-        }
-
-        @Override
-        public default int indexOf(Object o) {
-            return getList().indexOf(o);
-        }
-
-        @Override
-        public default int lastIndexOf(Object o) {
-            return getList().lastIndexOf(o);
-        }
-
-        @Override
-        public default ListIterator<T> listIterator() {
-            return getList().listIterator();
-        }
-
-        @Override
-        public default ListIterator<T> listIterator(int index) {
-            return getList().listIterator(index);
-        }
-
-        @Override
-        public default List<T> subList(int fromIndex, int toIndex) {
-            return getList().subList(fromIndex, toIndex);
-        }
-
-    }
-
-    public interface ListBasedImpl<T> extends ListBased<T>, RandomAccess {
-
-        @Override
-        public default void addFirst(T e) {
-            add(0, e);
-        }
-
-        @Override
-        public default void addLast(T e) {
+        public void addLast(T e) {
             add(e);
         }
 
         @Override
-        public default boolean offerFirst(T e) {
+        public boolean offerFirst(T e) {
             addFirst(e);
             return true;
         }
 
         @Override
-        public default boolean offerLast(T e) {
+        public boolean offerLast(T e) {
             addLast(e);
             return true;
         }
 
         @Override
-        public default T removeFirst() {
+        public T removeFirst() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Is empty");
             }
-            return remove(0);
+            return getList().remove(0);
         }
 
         @Override
-        public default T removeLast() {
+        public T removeLast() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Is empty");
             }
-            return remove(size() - 1);
+            return getList().remove(size() - 1);
         }
 
         @Override
-        public default T pollFirst() {
+        public T pollFirst() {
             if (isEmpty()) {
                 return null;
             }
-            return remove(0);
+            return getList().remove(0);
         }
 
         @Override
-        public default T pollLast() {
+        public T pollLast() {
             if (isEmpty()) {
                 return null;
             }
-            return remove(size() - 1);
+            return getList().remove(size() - 1);
         }
 
         @Override
-        public default T getFirst() {
+        public T getFirst() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Is empty");
             }
-            return get(0);
+            return getList().get(0);
         }
 
         @Override
-        public default T getLast() {
+        public T getLast() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Is empty");
             }
-            return get(size() - 1);
+            return getList().get(size() - 1);
         }
 
         @Override
-        public default T peekFirst() {
+        public T peekFirst() {
             if (isEmpty()) {
                 return null;
             }
-            return get(0);
+            return getList().get(0);
         }
 
         @Override
-        public default T peekLast() {
+        public T peekLast() {
             if (isEmpty()) {
                 return null;
             }
-            return get(size() - 1);
+            return getList().get(size() - 1);
         }
 
         @Override
-        public default boolean removeFirstOccurrence(Object o) {
-            int indexOf = indexOf(o);
+        public boolean removeFirstOccurrence(Object o) {
+            int indexOf = getList().indexOf(o);
             if (indexOf >= 0) {
-                remove(indexOf);
+                getList().remove(indexOf);
                 return true;
             }
             return false;
         }
 
         @Override
-        public default boolean removeLastOccurrence(Object o) {
-            int indexOf = lastIndexOf(o);
+        public boolean removeLastOccurrence(Object o) {
+            int indexOf = getList().lastIndexOf(o);
             if (indexOf >= 0) {
-                remove(indexOf);
+                getList().remove(indexOf);
                 return true;
             }
             return false;
         }
 
         @Override
-        public default boolean offer(T e) {
+        public boolean offer(T e) {
             return add(e);
         }
 
         @Override
-        public default T remove() {
+        public T remove() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Is empty");
             }
-            return remove(0);
+            return getList().remove(0);
         }
 
         @Override
-        public default T poll() {
+        public T poll() {
             if (isEmpty()) {
                 return null;
             }
-            return remove(0);
+            return getList().remove(0);
         }
 
         @Override
-        public default T element() {
+        public T element() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Is empty");
             }
-            return get(0);
+            return getList().get(0);
         }
 
         @Override
-        public default T peek() {
+        public T peek() {
             if (isEmpty()) {
                 return null;
             }
-            return get(0);
+            return getList().get(0);
         }
 
         @Override
-        public default void push(T e) {
-            add(0, e);
+        public  void push(T e) {
+            getList().add(0, e);
         }
 
         @Override
-        public default T pop() {
+        public T pop() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Is empty");
             }
-            return remove(0);
+            return getList().remove(0);
         }
 
         @Override
-        public default Iterator<T> descendingIterator() {
-            ListIterator<T> listIterator = listIterator(size());
+        public Iterator<T> descendingIterator() {
+            ListIterator<T> listIterator = getList().listIterator(size());
             return new Iterator<T>() {
                 @Override
                 public boolean hasNext() {
@@ -327,140 +273,27 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         }
     }
 
-    public interface DequeBased<T> extends CollectionBased<T> {
+    public static abstract class DequeBasedImpl<T> extends CollectionBased<T> implements List<T> {
 
-        public Deque<T> getDeque();
-
+        public abstract Deque<T> getDeque();
+        
         @Override
-        public default Collection<T> getCollection() {
+        public Collection<T> getCollection(){
             return getDeque();
         }
-
-        @Override
-        public default void addFirst(T e) {
-            getDeque().addFirst(e);
-        }
-
-        @Override
-        public default void addLast(T e) {
-            getDeque().addLast(e);
-        }
-
-        @Override
-        public default boolean offerFirst(T e) {
-            return getDeque().offerFirst(e);
-        }
-
-        @Override
-        public default boolean offerLast(T e) {
-            return getDeque().offerLast(e);
-        }
-
-        @Override
-        public default T removeFirst() {
-            return getDeque().removeFirst();
-        }
-
-        @Override
-        public default T removeLast() {
-            return getDeque().removeLast();
-        }
-
-        @Override
-        public default T pollFirst() {
-            return getDeque().pollFirst();
-        }
-
-        @Override
-        public default T pollLast() {
-            return getDeque().pollLast();
-        }
-
-        @Override
-        public default T getFirst() {
-            return getDeque().getFirst();
-        }
-
-        @Override
-        public default T getLast() {
-            return getDeque().getLast();
-        }
-
-        @Override
-        public default T peekFirst() {
-            return getDeque().peekFirst();
-        }
-
-        @Override
-        public default T peekLast() {
-            return getDeque().peekLast();
-        }
-
-        @Override
-        public default boolean removeFirstOccurrence(Object o) {
-            return getDeque().removeFirstOccurrence(o);
-        }
-
-        @Override
-        public default boolean removeLastOccurrence(Object o) {
-            return getDeque().removeLastOccurrence(o);
-        }
-
-        @Override
-        public default boolean offer(T e) {
-            return getDeque().offer(e);
-        }
-
-        @Override
-        public default T remove() {
-            return getDeque().remove();
-        }
-
-        @Override
-        public default T poll() {
-            return getDeque().poll();
-        }
-
-        @Override
-        public default T element() {
-            return getDeque().element();
-        }
-
-        @Override
-        public default T peek() {
-            return getDeque().peek();
-        }
-
-        @Override
-        public default void push(T e) {
-            getDeque().push(e);
-        }
-
-        @Override
-        public default T pop() {
-            return getDeque().pop();
-        }
-
-        @Override
-        public default Iterator<T> descendingIterator() {
-            return getDeque().descendingIterator();
-        }
-    }
-
-    public interface DequeBasedImpl<T> extends DequeBased<T> {
-
-        public default void rangeCheckGet(int index) {
+        
+        protected void rangeCheckGet(int index) {
             if (index >= size() || index < 0) {
                 throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
             }
         }
 
-        public default String outOfBoundsMsg(int index) {
+        protected String outOfBoundsMsg(int index) {
             return "Index: " + index + ", Size: " + size();
         }
 
         @Override
-        public default T get(int index) {
+        public T get(int index) {
             rangeCheckGet(index);
             Value<T> toReturn = new Value<>();
             doNoBuffer(index, info -> {
@@ -469,7 +302,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
             return toReturn.get();
         }
 
-        public default void doNoBuffer(int index, Consumer<Info<T>> action) {
+        protected void doNoBuffer(int index, Consumer<Info<T>> action) {
             int size = size();
             if (index == 0) {
                 Iterator<T> iterator = getDeque().iterator();
@@ -513,7 +346,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
          * @param index index of element that gets left in the deque
          * @param action
          */
-        public default void doBuffer(int index, Consumer<Boolean> action) {
+        protected void doBuffer(int index, Consumer<Boolean> action) {
             int size = size();
             if (index < size / 2) { // add from front
                 int i = 0;
@@ -543,7 +376,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         }
 
         @Override
-        public default T set(int index, T element) {
+        public T set(int index, T element) {
 
             Value<T> toReturn = new Value<>();
 
@@ -571,7 +404,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         }
 
         @Override
-        public default void add(int index, T element) {
+        public void add(int index, T element) {
             if (index == size()) {
                 getDeque().addLast(element);
                 return;
@@ -594,7 +427,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         }
 
         @Override
-        public default boolean addAll(int index, Collection<? extends T> c) {
+        public boolean addAll(int index, Collection<? extends T> c) {
             if (index == size()) {
                 getDeque().addAll(c);
                 return true;
@@ -630,7 +463,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         }
 
         @Override
-        public default T remove(int index) {
+        public T remove(int index) {
             rangeCheckGet(index);
             Value<T> toReturn = new Value<>();
             doNoBuffer(index, info -> {
@@ -641,21 +474,21 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         }
 
         @Override
-        public default int indexOf(Object o) {
+        public int indexOf(Object o) {
             return For.elements().find(getDeque(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.index).orElse(-1);
         }
 
         @Override
-        public default int lastIndexOf(Object o) {
+        public int lastIndexOf(Object o) {
             return For.elements().findBackwards(getDeque(), (i, ob) -> Objects.equals(ob, o)).map(m -> m.index).orElse(-1);
         }
 
         @Override
-        public default ListIterator<T> listIterator() {
+        public ListIterator<T> listIterator() {
             return listIterator(0);
         }
 
-        public default Iterator<T> resolve(boolean forw, int index) {
+        public Iterator<T> resolve(boolean forw, int index) {
             if (forw) {
                 Iterator<T> iterator = getDeque().iterator();
                 for (int i = 0; i < index; i++) {
@@ -672,7 +505,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         }
 
         @Override
-        public default ListIterator<T> listIterator(int index) {
+        public ListIterator<T> listIterator(int index) {
             DequeBasedImpl<T> me = this;
             return new ListIterator<T>() {
 
@@ -771,86 +604,14 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
         }
 
         @Override
-        public default List<T> subList(int fromIndex, int toIndex) {
+        public List<T> subList(int fromIndex, int toIndex) {
             throw new UnsupportedOperationException("Base was deque, no way to support this");
         }
 
     }
 
-    public interface ListDequeBased<T> extends ListBased<T>, DequeBased<T> {
 
-        @Override
-        public default Collection<T> getCollection() {
-            return getList();
-        }
-
-        @Override
-        public default int size() {
-            return getCollection().size();
-        }
-
-        @Override
-        public default boolean isEmpty() {
-            return getCollection().isEmpty();
-        }
-
-        @Override
-        public default boolean contains(Object o) {
-            return getCollection().contains(o);
-        }
-
-        @Override
-        public default Iterator<T> iterator() {
-            return getCollection().iterator();
-        }
-
-        @Override
-        public default Object[] toArray() {
-            return getCollection().toArray();
-        }
-
-        @Override
-        public default <T> T[] toArray(T[] a) {
-            return getCollection().toArray(a);
-        }
-
-        @Override
-        public default boolean add(T e) {
-            return getCollection().add(e);
-        }
-
-        @Override
-        public default boolean remove(Object o) {
-            return getCollection().remove(o);
-        }
-
-        @Override
-        public default boolean containsAll(Collection<?> c) {
-            return getCollection().containsAll(c);
-        }
-
-        @Override
-        public default boolean addAll(Collection<? extends T> c) {
-            return getCollection().addAll(c);
-        }
-
-        @Override
-        public default boolean removeAll(Collection<?> c) {
-            return getCollection().removeAll(c);
-        }
-
-        @Override
-        public default boolean retainAll(Collection<?> c) {
-            return getCollection().retainAll(c);
-        }
-
-        @Override
-        public default void clear() {
-            getCollection().clear();
-        }
-    }
-
-    static class Info<T> {
+    public static class Info<T> {
 
         public final boolean front;
         public final Iterator iter;
@@ -864,21 +625,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
 
     }
 
-    public static <T> ListDeque<T> ofList(List<T> list) {
-        if (list instanceof List && list instanceof Deque) {
-            Deque<T> deque = (Deque<T>) list;
-            return new ListDequeBased<T>() {
-                @Override
-                public List<T> getList() {
-                    return list;
-                }
-
-                @Override
-                public Deque<T> getDeque() {
-                    return deque;
-                }
-            };
-        }
+    public static <T> Deque<T> toDeque(List<T> list) {
 
         return new ListBasedImpl<T>() {
             @Override
@@ -900,22 +647,7 @@ public interface ListDeque<T> extends List<T>, Deque<T> {
      * @param deque
      * @return
      */
-    public static <T> ListDeque<T> ofDeque(Deque<T> deque) {
-
-        if (deque instanceof List && deque instanceof Deque) {
-            List<T> list = (List<T>) deque;
-            return new ListDequeBased<T>() {
-                @Override
-                public List<T> getList() {
-                    return list;
-                }
-
-                @Override
-                public Deque<T> getDeque() {
-                    return deque;
-                }
-            };
-        }
+    public static <T> List<T> toList(Deque<T> deque) {
 
         return new DequeBasedImpl<T>() {
             @Override
