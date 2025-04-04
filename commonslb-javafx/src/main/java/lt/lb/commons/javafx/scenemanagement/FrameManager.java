@@ -37,7 +37,7 @@ public interface FrameManager {
         return true;
 
     }
-    
+
     public default boolean hideFrame(String ID) {
         Frame frame = getFrameMap().get(ID);
 
@@ -52,7 +52,7 @@ public interface FrameManager {
         return true;
 
     }
-    
+
     public default boolean showFrame(String ID) {
         Frame frame = getFrameMap().get(ID);
 

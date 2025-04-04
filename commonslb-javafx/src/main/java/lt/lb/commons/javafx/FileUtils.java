@@ -3,16 +3,15 @@ package lt.lb.commons.javafx;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import lt.lb.commons.io.CopyOptions;
 import lt.lb.commons.io.stream.PausableProgressInputStream;
 import lt.lb.commons.javafx.FXDefs.SimpleChangeListener;
 import org.slf4j.Logger;
@@ -26,6 +25,7 @@ public class FileUtils {
 
     public static Logger logger = LoggerFactory.getLogger(FileUtils.class);
     public static final int MB_IN_BYTES = 1024 * 1024;
+    public static final int BUFFER_SIZE = 16 * MB_IN_BYTES;
 
     public static final String BASIC_CREATION_TIME = "basic:creationTime";
     public static final String BASIC_LAST_MODIFIED_TIME = "basic:lastModifiedTime";
@@ -59,36 +59,29 @@ public class FileUtils {
         }
     }
 
-    public static void copyBasicAttributes(Path src, Path dst) throws IOException {
+    public static void copyBasicAttributesOld(Path src, Path dst) throws IOException {
         HashMap<String, Object> map = getBasicAttributeMap(src);
         Files.setAttribute(dst, BASIC_CREATION_TIME, map.get(BASIC_CREATION_TIME));
         Files.setAttribute(dst, BASIC_LAST_MODIFIED_TIME, map.get(BASIC_LAST_MODIFIED_TIME));
         Files.setAttribute(dst, BASIC_LAST_ACCESS_TIME, map.get(BASIC_LAST_ACCESS_TIME));
     }
 
-    public static ExtTask copy(Path src, Path dst, boolean useStream, CopyOption... options) {
+    public static void copyBasicAttributes(Path src, Path dst) throws IOException {
+        BasicFileAttributes att = Files.getFileAttributeView(src, BasicFileAttributeView.class).readAttributes();
+        BasicFileAttributeView viewDst = Files.getFileAttributeView(src, BasicFileAttributeView.class);
+        viewDst.setTimes(att.lastModifiedTime(), att.lastAccessTime(), att.lastModifiedTime());
+    }
+
+    public static ExtTask copy(Path src, Path dst, CopyOptions options) {
         Objects.requireNonNull(src, "src is null");
         Objects.requireNonNull(dst, "dst is null");
         ExtTask task = new ExtTask() {
             @Override
             protected Object call() throws Exception {
-                boolean copyAttributes = false;
-                ArrayList<CopyOption> optionList = new ArrayList<>();
                 progress.set(0);
-                for (CopyOption op : options) {
-                    if (op == StandardCopyOption.ATOMIC_MOVE) {
-                        Files.copy(src, dst, options);
-                        progress.set(1);
-                        return null;
-                    } else if (op == StandardCopyOption.COPY_ATTRIBUTES) {
-                        copyAttributes = true;
-                    } else {
-                        optionList.add(op);
-                    }
-                }
-                if (useStream && !Files.isDirectory(src)) {
+                if (options.useStreams() && !Files.isDirectory(src)) {
                     final long totalSize = Files.size(src);
-                    final InputStream delegate = new BufferedInputStream(Files.newInputStream(src), 4 * MB_IN_BYTES);
+                    final InputStream delegate = new BufferedInputStream(Files.newInputStream(src), BUFFER_SIZE);
                     PausableProgressInputStream stream = new PausableProgressInputStream() {
 
                         @Override
@@ -121,16 +114,9 @@ public class FileUtils {
                         }
                     }));
 
-                    if (optionList.size() > 0) {
-                        Files.copy(stream, dst, optionList.toArray(new CopyOption[optionList.size()]));
-                    } else {
-                        Files.copy(stream, dst);
-                    }
-                    if (copyAttributes) {
-                        FileUtils.copyBasicAttributes(src, dst);
-                    }
+                    Files.copy(stream, dst, options.toArray());
                 } else {
-                    Files.copy(src, dst, options);
+                    Files.copy(src, dst, options.toArray());
                 }
                 progress.set(1);
                 return null;
@@ -139,7 +125,7 @@ public class FileUtils {
         return task;
     }
 
-    public static ExtTask move(Path src, Path dst, boolean useStream, CopyOption... options) {
+    public static ExtTask move(Path src, Path dst, CopyOptions options) {
         Objects.requireNonNull(src, "src is null");
         Objects.requireNonNull(dst, "dst is null");
         ExtTask task = new ExtTask() {
@@ -148,11 +134,11 @@ public class FileUtils {
                 progress.set(0);
                 FileSystemProvider providerSrc = src.getFileSystem().provider();
                 FileSystemProvider providerDest = dst.getFileSystem().provider();
-                if (!useStream || (Files.isDirectory(src) || (providerSrc == providerDest))) {
-                    providerSrc.move(src, dst, options);
+                if (!options.useStreams() || Files.isDirectory(src) || (providerSrc == providerDest)) {
+                    providerSrc.move(src, dst, options.toArray());
                     progress.set(1);
                 } else {
-                    ExtTask subtask = FileUtils.copy(src, dst, useStream, options);
+                    ExtTask subtask = FileUtils.copy(src, dst, options);
                     subtask.paused.bind(this.paused);
                     progress.bind(subtask.progress);
                     subtask.setOnSucceeded(handle -> {

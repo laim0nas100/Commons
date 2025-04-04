@@ -57,9 +57,6 @@ public abstract class FXTask extends Task {
             protected Void call() throws Exception {
                 return null;
             }
-        ;
+        };
     }
-;
-}
-
 }

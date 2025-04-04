@@ -2,6 +2,7 @@ package lt.lb.commons.javafx;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -9,6 +10,7 @@ import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.control.Alert;
 import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.threads.Futures;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import org.slf4j.Logger;
@@ -50,18 +52,26 @@ public class FX {
         }
     };
 
+    public static Optional<Throwable> runAndWait(UncheckedRunnable run) {
+        return runAndWait((Runnable) run);
+    }
+
+    public static Optional<Throwable> runAndWait(Runnable run) {
+        if (isFXthread()) {
+            return Checked.checkedRun(run);
+        }
+        return Futures.runAndAwait(platformExecutor, run).getError().asOptional();
+    }
+
     public static CompletableFuture<Void> submit(Runnable run) {
-        logger.debug("submit {}", run);
         return CompletableFuture.runAsync(run, platformExecutor);
     }
 
     public static CompletableFuture<Void> submit(UncheckedRunnable run) {
-        logger.debug("submit {}", run);
         return CompletableFuture.runAsync(run, platformExecutor);
     }
 
     public static CompletableFuture<Void> submit(UncheckedRunnable run, Consumer<Throwable> handler) {
-        logger.debug("submit {}", run);
         return CompletableFuture.runAsync(() -> Checked.uncheckedRunWithHandler(handler, run), platformExecutor);
     }
 
@@ -70,7 +80,6 @@ public class FX {
     }
 
     private static <T> CompletableFuture<T> submitAsync(Callable<T> call, Consumer<Throwable> handler, Executor exe) {
-        logger.debug("submitAsync {}", call);
         return CompletableFuture.supplyAsync(() -> {
             Value<T> val = new Value<>();
             Checked.uncheckedRunWithHandler(
@@ -84,12 +93,10 @@ public class FX {
     }
 
     public static CompletableFuture<Void> submitAsync(Runnable run, Executor exe) {
-        logger.debug("submitAsync {}", run);
         return CompletableFuture.runAsync(run, exe);
     }
 
     public static CompletableFuture<Void> submitAsync(UncheckedRunnable run, Executor exe) {
-        logger.debug("submitAsync {}", run);
         return CompletableFuture.runAsync(run, exe);
     }
 

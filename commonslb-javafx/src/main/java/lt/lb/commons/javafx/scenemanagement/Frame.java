@@ -22,8 +22,8 @@ public interface Frame {
     public default Scene getScene() {
         return getStage().getScene();
     }
-    
-    public default Window getWindow(){
+
+    public default Window getWindow() {
         return getScene().getWindow();
     }
 
@@ -32,20 +32,23 @@ public interface Frame {
     }
 
     public default void close() {
-        FX.submit(() -> {
+        FX.runAndWait(()->{
             getManager().closeFrame(getID());
         });
+        
     }
 
     public default void show() {
-        FX.submit(() -> {
+        FX.runAndWait(()->{
             getManager().showFrame(getID());
         });
+        
     }
 
     public default void hide() {
-        FX.submit(() -> {
+        FX.runAndWait(()->{
             getManager().hideFrame(getID());
         });
+        
     }
 }
