@@ -1,15 +1,15 @@
 package lt.lb.commons.threads.executors;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,7 +32,8 @@ import lt.lb.commons.threads.sync.ThreadLocalParkSpace;
  *
  * @author laim0nas100
  */
-public class FastExecutor extends AbstractExecutorService implements CloseableExecutor {
+@Deprecated
+public class FastExecutorOld extends AbstractExecutorService implements CloseableExecutor {
 
     protected static class Running {
 
@@ -45,17 +46,18 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
         }
     }
 
-    protected Queue<Runnable> tasks;
+    protected Collection<Runnable> tasks = new ConcurrentLinkedDeque<>();
 
 //    protected ConcurrentIndexedAbstract<Running, ?> runningTasks;
-    protected ThreadLocalParkSpace<Running> runningTasks;
+     protected ThreadLocalParkSpace<Running> runningTasks;
 
     protected ThreadPool pool;
 
-    protected AtomicInteger adds = new AtomicInteger(0);
     protected volatile boolean open = true;
     protected int maxThreads;
+    protected AtomicInteger startingThreads = new AtomicInteger(0);
     protected AtomicInteger runningThreads = new AtomicInteger(0);
+    protected AtomicInteger finishingThreads = new AtomicInteger(0);
     protected CompletableFuture awaitTermination = new CompletableFuture();
 
     protected Consumer<Throwable> errorChannel = (err) -> {
@@ -67,28 +69,17 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
      * zero no threads, execute during update
      *
      */
-    public FastExecutor(int maxThreads) {
-        this(maxThreads, new SimpleThreadPool(FastExecutor.class));
+    public FastExecutorOld(int maxThreads) {
+        this(maxThreads, new SimpleThreadPool(FastExecutorOld.class));
     }
 
-    protected FastExecutor(int maxThreads, ThreadPool threadPool) {
+    protected FastExecutorOld(int maxThreads, ThreadPool threadPool) {
         this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
         this.maxThreads = maxThreads;
-        this.runningTasks = new ThreadLocalParkSpace<>(Math.max(8, (int) (maxThreads * 2.72)));
+        this.runningTasks = new ThreadLocalParkSpace<>(Math.max(8, maxThreads));
 //        this.runningTasks = new ConcurrentIndexedBag<>(Math.max(8, (int) (maxThreads * 2.72)));// e approximation
 
         pool.setStarting(true);
-        tasks = makeQueue();
-    }
-
-    protected Queue<Runnable> makeQueue() {
-        if (maxThreads == 0) {
-            return null;
-        }
-        if (maxThreads > 0 && maxThreads <= 2) {
-            return new ConcurrentLinkedQueue<>();
-        }
-        return new LinkedBlockingQueue<>();
     }
 
     public void setMaxThreads(int maxThreads) {
@@ -127,52 +118,32 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
         if (maxThreads == 0) {
             executeSingle(command, false);
         } else {
-
-            if (tasks.add(command)) {
-                adds.incrementAndGet();
-            } else {
-                throw new IllegalStateException("Failed to submit runnable, queue overflow");
-            }
-            maybeStartThread(maxThreads);
+            tasks.add(command);
+            update(this.maxThreads);
         }
 
     }
 
     protected void polling() {
-        Queue<Runnable> queue = F.cast(tasks);
-
-        int index = -1;
-        while (true) {
-            Runnable run = queue.poll();
-            if (run == null) {
+        Deque<Runnable> deque = F.cast(tasks);
+        while (!deque.isEmpty()) {
+            Runnable run = deque.pollFirst();
+            if(run == null){
                 return;
-            } else {
-                adds.decrementAndGet();
             }
-            index = executeSingle(index, run, true);
+            executeSingle(run, true);
         }
     }
 
-    protected final int executeSingle(Runnable run, boolean useList) {
-        return executeSingle(-1, run, useList);
-    }
-
-    protected final int executeSingle(int index, Runnable run, boolean useList) {
+    protected final void executeSingle(Runnable run, boolean useList) {
         if (run == null) {
-            return -1;
+            return;
         }
+        int index = -1;
         try {
             if (useList) {
 //                index = runningTasks.insert(new Running(Thread.currentThread(), run));
-                boolean parked = false;
-                if (index >= 0) {
-                    parked = runningTasks.park(index, new Running(Thread.currentThread(), run));
-
-                }
-                if (!parked) {
-                    index = runningTasks.park(new Running(Thread.currentThread(), run));
-                }
-
+                index = runningTasks.park(new Running(Thread.currentThread(), run));
             }
             run.run();
 
@@ -188,27 +159,36 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
 //                runningTasks.remove(index);
             }
         }
-        return index;
     }
 
     protected final Runnable threadBody(final int bakedMax) {
         return () -> {
+            runningThreads.incrementAndGet();
+            startingThreads.decrementAndGet(); //thread started
             try {
                 polling();
             } finally {
-                int leftRunning = runningThreads.decrementAndGet(); //thread no longer running (not really)
-                if (!open && adds.get() == 0) {
-                    maybeTerminate(leftRunning);
-                }
-
+                finishingThreads.incrementAndGet(); // thread is finishing
+                runningThreads.decrementAndGet(); //thread no longer running (not really)
+                update(bakedMax);
+                finishingThreads.decrementAndGet(); // thread end finishing
+                maybeTerminate();
             }
         };
     }
 
-    protected void maybeTerminate(int leftRunning) {
-        if (!open && leftRunning == 0) {
+    protected void maybeTerminate() {
+        if (!open && runningThreads.get() == 0 && startingThreads.get() == 0 && finishingThreads.get() == 0) {
             awaitTermination.complete(0);
         }
+    }
+
+    protected void update(int maxT) {
+        if (tasks.isEmpty()) {
+            return;
+        }
+        this.maybeStartThread(maxT);
+
     }
 
     protected Thread startThread(final int maxT) {
@@ -220,29 +200,42 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
         if (maxT == 0) {
             throw new IllegalArgumentException("Max threads is 0");
         } else if (maxT < 0) {//unlimited threads
-            runningThreads.incrementAndGet();
+            startingThreads.incrementAndGet();//because run decrements
             startThread(maxT);
         } else { // limitedThreads
-            if (runningThreads.incrementAndGet() > maxT) {
-                runningThreads.decrementAndGet();
-            } else {
+            final int starting = startingThreads.incrementAndGet();
+            if (starting > maxT) { // we dispatch threads too often
+                this.startingThreads.decrementAndGet();
+            } else if (starting + runningThreads.get() <= maxT) { // we are within limit
                 startThread(maxT);
+            } else { // don't start new thread, just update value
+                this.startingThreads.decrementAndGet();
             }
         }
     }
 
     /**
      * Threads close automatically when all tasks are exhausted. This method
-     * ensures no more runnable`s gets submitted. Does not actually wait for
+     * ensures no more runnable's gets submitted. Does not actually wait for
      * threads to close.
      */
     @Override
     public void close() {
         this.open = false;
-        maybeTerminate(runningThreads.get());
+        maybeTerminate();
     }
 
-    public List<Runnable> cancelAll(boolean interrupting) {
+    @Override
+    public List<Runnable> shutdownNow() {
+        shutdown();
+
+        Iterator<Running> running = runningTasks.iterator();
+        while (running.hasNext()) {
+            Running r = running.next();
+            if (r != null) {
+                r.thread.interrupt();
+            }
+        }
         ArrayList<Runnable> unfinished = new ArrayList<>();
         Iterator<Runnable> iterator = tasks.iterator();
         while (iterator.hasNext()) {
@@ -253,26 +246,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
             }
         }
 
-        if (interrupting) {
-            Iterator<Running> running = runningTasks.iterator();
-            while (running.hasNext()) {
-                Running r = running.next();
-                if (r != null) {
-                    if (r.thread.isAlive()) {
-                        r.thread.interrupt();
-                    }
-                }
-            }
-        }
-
-        return unfinished;
-    }
-
-    @Override
-    public List<Runnable> shutdownNow() {
-        shutdown();
-        List<Runnable> unfinished = cancelAll(true);
-        maybeTerminate(runningThreads.get());
+        maybeTerminate();
 
         return unfinished;
     }

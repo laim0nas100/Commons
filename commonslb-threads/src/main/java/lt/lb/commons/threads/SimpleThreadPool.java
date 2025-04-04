@@ -21,6 +21,15 @@ public class SimpleThreadPool implements ThreadPool {
             super(group, target, name);
         }
 
+        public SimpleThread(ThreadGroup group, Runnable target, String name, boolean deamon, int priority, ClassLoader clLoader) {
+            super(group, target, name);
+            setDaemon(deamon);
+            setPriority(priority);
+            if (clLoader != null) {
+                setContextClassLoader(clLoader);
+            }
+        }
+
     }
 
     protected boolean deamon = false;
@@ -54,7 +63,7 @@ public class SimpleThreadPool implements ThreadPool {
     @Override
     public void setPriority(int priority) {
         if (priority < Thread.MIN_PRIORITY || priority > Thread.MAX_PRIORITY) {
-            return;
+            throw new IllegalArgumentException("Priority range is [1;10], your argument is:" + priority);
         }
         boolean change = this.priority != priority;
         this.priority = priority;
@@ -122,10 +131,14 @@ public class SimpleThreadPool implements ThreadPool {
 
     @Override
     public Thread newThread(Runnable run) {
-        Thread thread = new SimpleThread(getThreadGroup(), Nulls.requireNonNull(run), nextThreadName());
-        thread.setDaemon(isDaemon());
-        thread.setPriority(getPriority());
-        thread.setContextClassLoader(getContextClassLoader());
+        Nulls.requireNonNull(run, "Provided Runnable is null");
+        Thread thread = new SimpleThread(getThreadGroup(),
+                run,
+                nextThreadName(),
+                isDaemon(),
+                getPriority(),
+                getContextClassLoader()
+        );
         if (isStarting()) {
             thread.start();
         }

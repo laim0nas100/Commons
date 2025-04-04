@@ -57,8 +57,5 @@ public class ConditionalWait {
 
     public void requestWait() {
         keepWaiting = true;
-        synchronized (lock) {
-            lock.notifyAll();
-        }
     }
 }

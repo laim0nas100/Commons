@@ -6,11 +6,15 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import lt.lb.commons.Nulls;
+import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
@@ -18,6 +22,8 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
  * @author laim0nas100
  */
 public class Futures {
+
+    private static Executor awaitPool = Checked.createDefaultExecutorService();
 
     public static class DoneFuture<T> implements Future<T> {
 
@@ -119,7 +125,7 @@ public class Futures {
     }
 
     public static void executeAsync(Runnable run) {
-        executeAsync(run, ForkJoinPool.commonPool());
+        executeAsync(run, awaitPool);
     }
 
     public static void awaitAsync(Future future, Executor exe) {
@@ -127,7 +133,45 @@ public class Futures {
     }
 
     public static void awaitAsync(Future future) {
-        awaitAsync(future, ForkJoinPool.commonPool());
+        awaitAsync(future, awaitPool);
+    }
+
+    public static SafeOpt runAndAwait(Executor exe, Runnable run) {
+        return runAndAwait(exe, run, false);
+    }
+
+    public static SafeOpt runAndAwait(Executor exe, Runnable run, boolean interruptable) {
+        Nulls.requireNonNulls(exe, run);
+        Future fut;
+        if (run instanceof Future) {
+            fut = (Future) run;
+            exe.execute(run);
+        } else {
+            FutureTask futureTask = new FutureTask(Executors.callable(run));
+            fut = futureTask;
+            exe.execute(futureTask);
+        }
+
+        return await(fut, interruptable);
+    }
+
+    public static <T> SafeOpt<T> await(Future<T> future, boolean interruptable) {
+        Objects.requireNonNull(future);
+        while (true) {
+            try {
+                return SafeOpt.ofNullable(future.get());
+            } catch (InterruptedException ex) {
+                if (interruptable) {
+                    return SafeOpt.error(ex);
+                }
+            } catch (ExecutionException ex) {
+                if (ex.getCause() != null) {
+                    return SafeOpt.error(ex.getCause());
+                } else {
+                    return SafeOpt.error(ex);
+                }
+            }
+        }
     }
 
     public static <V> MappableFuture<V> mappable(Future<V> future) {

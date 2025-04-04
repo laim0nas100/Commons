@@ -23,24 +23,30 @@ public class DTELoopingLimitedScheduledFuture<T> extends DTELoopingScheduledFutu
 
     @Override
     public void run() {
-        FutureTask<T> task = taskRef.get();
-        task.run();
 
-        if (!task.isDone()) {
-            return; // repeated run
+        FutureTask<T> currentTask = ref.getRef();
+        if (ref.isCancelled()) {
+            loopCondition.loopCanceled(currentTask);
+            return;
         }
-        if (task.isCancelled()) {
-            loopCondition.loopCanceled(task);
+        currentTask.run();
+        if (!currentTask.isDone()) {
+            return; // repeated run, is still running so early exit
+        }
+
+        if (ref.isCancelled()) {
+            loopCondition.loopCanceled(currentTask);
             return;
         }
         // not canceled, try schedule again
         FutureTask<T> futureTask = new FutureTask<>(call);
-        if (loopCondition.checkIfShouldLoop(task, futureTask)) {
-            if (taskRef.compareAndSet(task, futureTask)) {
+        if (loopCondition.checkIfShouldLoop(currentTask, futureTask)) {
+            if (ref.compareAndSet(currentTask, futureTask)) {
                 exe.schedule(this);
-                loopCondition.newScheduleCommitedAfterCheck(task, futureTask);
+                loopCondition.newScheduleCommitedAfterCheck(currentTask, futureTask);
             } else {
-                loopCondition.newScheduleFailedAfterCheck(task, futureTask);
+                System.out.println("CAS failed");
+                loopCondition.newScheduleFailedAfterCheck(currentTask, futureTask);
             }
         }
     }

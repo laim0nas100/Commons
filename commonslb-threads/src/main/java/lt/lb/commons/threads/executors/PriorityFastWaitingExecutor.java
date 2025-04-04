@@ -1,6 +1,7 @@
 package lt.lb.commons.threads.executors;
 
 import java.util.Comparator;
+import java.util.Queue;
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
@@ -70,17 +71,25 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
      */
     public PriorityFastWaitingExecutor(int maxThreads, WaitTime time) {
         super(maxThreads, time, new SimpleThreadPool(PriorityFastWaitingExecutor.class));
-        this.tasks = new PriorityBlockingQueue<>(1, priorityComparator.reversed());
         this.wt = time;
     }
 
     @Override
+    protected Queue<Runnable> makeQueue() {
+        if (maxThreads == 0) {
+            return null;
+        }
+        return new PriorityBlockingQueue<>(1, priorityComparator.reversed());
+    }
+
+    @Override
     protected void polling() {
-        PriorityBlockingQueue<Runnable> deque = F.cast(tasks);
-        while (open && !deque.isEmpty()) {
+        PriorityBlockingQueue<Runnable> queue = F.cast(tasks);
+        int index = -1;
+        while (!queue.isEmpty()) {
             try {
-                Runnable last = deque.poll(wt.time, wt.unit);
-                executeSingle(last, true);
+                Runnable last = queue.poll(wt.time, wt.unit);
+                index = executeSingle(index, last, true);
             } catch (InterruptedException ex) {
             }
         }

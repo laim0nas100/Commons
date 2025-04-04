@@ -12,7 +12,7 @@ public interface ThreadPool extends ThreadFactory {
     public Stream<Thread> enumerate(boolean recurse);
 
     /**
-     * True only if thread sate is TIMED_WAITING,WAITING or BLOCKED.
+     * True only if thread sate is TIMED_WAITING, WAITING or BLOCKED.
      *
      * @param thread
      * @return
@@ -79,9 +79,9 @@ public interface ThreadPool extends ThreadFactory {
     public boolean isStarting();
 
     public void setStarting(boolean start);
-    
+
     public ClassLoader getContextClassLoader();
-    
+
     public void setContextClassLoader(ClassLoader loader);
 
 }

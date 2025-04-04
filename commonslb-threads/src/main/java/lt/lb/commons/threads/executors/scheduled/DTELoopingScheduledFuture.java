@@ -27,16 +27,19 @@ public class DTELoopingScheduledFuture<T> extends DTEScheduledFuture<T> {
 
     @Override
     public void run() {
-        FutureTask<T> task = taskRef.get();
-        task.run();
-        if (!task.isDone()) {
-            return; // repeated run
+        if(ref.isCancelled()){
+            return;
         }
-        if (task.isCancelled()) {
+        FutureTask<T> currentTask = ref.getRef();
+        currentTask.run();
+        if (!currentTask.isDone()) {
+            return; // repeated run, is still running so early exit
+        }
+        if (ref.isCancelled()) {//the task or scheduling future was cancelled
             return;
         }
         FutureTask<T> futureTask = new FutureTask<>(call);
-        if (taskRef.compareAndSet(task, futureTask)) {
+        if (ref.compareAndSet(currentTask, futureTask)) {
             exe.schedule(this);
         }
     }

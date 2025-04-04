@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author laim0nas100
  */
-public class WaitTime {
+public class WaitTime implements Comparable<WaitTime> {
 
     public final long time;
     public final TimeUnit unit;
@@ -210,6 +210,20 @@ public class WaitTime {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    @Override
+    public int compareTo(WaitTime b) {
+        WaitTime a = this;
+        int aOrder = unitOrder(a.unit);
+        int bOrder = unitOrder(b.unit);
+        if (aOrder == bOrder) {
+            return Long.compare(a.time, b.time);
+        } else if (aOrder > bOrder) {
+            return Long.compare(b.unit.convert(a.time, a.unit), b.time);
+        } else {
+            return Long.compare(a.unit.convert(b.time, b.unit), b.time);
         }
     }
 

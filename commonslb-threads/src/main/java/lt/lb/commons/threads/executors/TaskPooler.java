@@ -143,7 +143,7 @@ public class TaskPooler extends AbstractExecutorService implements Runnable {
 
     @Override
     public boolean isShutdown() {
-        return shutdownCalled;
+        return !shutdownCalled;
     }
 
     @Override

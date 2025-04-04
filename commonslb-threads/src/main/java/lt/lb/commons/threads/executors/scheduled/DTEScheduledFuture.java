@@ -3,16 +3,15 @@ package lt.lb.commons.threads.executors.scheduled;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
-import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
-import lt.lb.commons.threads.ForwardingFuture;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -23,30 +22,25 @@ import lt.lb.commons.threads.sync.WaitTime;
  * @author laim0nas100
  * @param <T>
  */
-public class DTEScheduledFuture<T> implements ScheduledFuture<T>, ForwardingFuture<T>, RunnableFuture<T> {
+public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture<T> {
 
-    public final AtomicLong nanoScheduled = new AtomicLong();
-    protected final AtomicReference<FutureTask<T>> taskRef;
+    public final AtomicLong nanoScheduled = new AtomicLong(Long.MIN_VALUE);
     public final Callable<T> call;
     public final WaitTime wait;
     public final long waitDurNanos;
-    protected DelayedTaskExecutor exe;
+    protected final DelayedTaskExecutor exe;
+    protected final PersistentCancel<T, FutureTask<T>> ref;
 
     public DTEScheduledFuture(DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
         this.exe = Objects.requireNonNull(exe);
         this.call = Objects.requireNonNull(call);
-        this.taskRef = new AtomicReference<>(new FutureTask<>(call));
+        this.ref = new PersistentCancel<>(new FutureTask<>(call));
         this.wait = Objects.requireNonNull(wait);
-        waitDurNanos = wait.toDuration().toNanos();
-    }
-    
-    public boolean isOneShot(){
-        return true;
+        waitDurNanos = wait.convert(TimeUnit.NANOSECONDS).time;
     }
 
-    @Override
-    public Future<T> delegate() {
-        return taskRef.get();
+    public boolean isOneShot() {
+        return true;
     }
 
     @Override
@@ -62,14 +56,43 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, ForwardingFutu
 
     @Override
     public int compareTo(Delayed o) {
-        DTEScheduledFuture other = F.cast(o);
-        long now = Java.getNanoTime();
-        return Long.compare(getDelay(TimeUnit.NANOSECONDS, now), other.getDelay(TimeUnit.NANOSECONDS, now));
+        if (o instanceof DTEScheduledFuture) {
+            DTEScheduledFuture other = F.cast(o);
+            return Long.compare(nanoScheduled.get(), other.nanoScheduled.get());
+        } else {
+            return Long.compare(this.getDelay(TimeUnit.NANOSECONDS), o.getDelay(TimeUnit.NANOSECONDS));
+        }
+
+    }
+
+    @Override
+    public boolean isDone() {
+        return ref.isDone();
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return ref.isCancelled();
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        return ref.cancel(mayInterruptIfRunning);
     }
 
     @Override
     public void run() {
-        taskRef.get().run();
+        ref.getRef().run();
+    }
+
+    @Override
+    public T get() throws InterruptedException, ExecutionException {
+        return ref.get();
+    }
+
+    @Override
+    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return ref.get(timeout, unit);
     }
 
 }

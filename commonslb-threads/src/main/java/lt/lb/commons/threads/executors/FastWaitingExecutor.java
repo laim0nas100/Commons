@@ -1,6 +1,10 @@
 package lt.lb.commons.threads.executors;
 
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 import lt.lb.commons.F;
 import lt.lb.commons.threads.SimpleThreadPool;
 import lt.lb.commons.threads.ThreadPool;
@@ -29,18 +33,34 @@ public class FastWaitingExecutor extends FastExecutor {
     protected FastWaitingExecutor(int maxThreads, WaitTime time, ThreadPool pool) {
         super(maxThreads, pool);
         this.tasks = new LinkedBlockingDeque<>();
-        this.wt = time;
+        this.wt = Objects.requireNonNull(time);
     }
 
     @Override
+    protected Queue<Runnable> makeQueue() {
+        if(maxThreads == 0){
+            return null;
+        }
+        return new LinkedBlockingQueue<>();
+    }
+    
+    
+
+    @Override
     protected void polling() {
-        LinkedBlockingDeque<Runnable> deque = F.cast(tasks);
-        while (open && !deque.isEmpty()) {
-            try {
-                Runnable last = deque.pollFirst(wt.time, wt.unit);
-                executeSingle(last, true);
-            } catch (InterruptedException ex) {
+        BlockingQueue<Runnable> queue = F.cast(tasks);
+        try {
+            int index = -1;
+            while (!queue.isEmpty()) {
+
+                Runnable first = queue.poll(wt.time, wt.unit);
+                if (first == null) {
+                    return;
+                }
+                index = executeSingle(index,first, true);
+
             }
+        } catch (InterruptedException ex) {
         }
     }
 

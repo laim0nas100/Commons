@@ -10,7 +10,7 @@ import lt.lb.uncheckedutils.Checked;
  * If you divide task into blocks, sometimes it happens that a block calls
  * another block, so instead of executing asynchronously, we just extend the
  * same call.
- * 
+ *
  * @author laim0nas100
  */
 public class NestedTaskSubmitionExecutorLayer implements ForwardingExecutorService {
@@ -33,6 +33,10 @@ public class NestedTaskSubmitionExecutorLayer implements ForwardingExecutorServi
                 inside.set(false);
             });
         }
+    }
+
+    public boolean inside() {
+        return inside.get();
     }
 
     @Override

@@ -1,7 +1,5 @@
 package lt.lb.commons.threads.executors.scheduled;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -19,11 +17,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import lt.lb.commons.Java;
-import lt.lb.commons.threads.ForwardingScheduledFuture;
+import lt.lb.commons.containers.values.IntegerValue;
+import lt.lb.commons.containers.values.LongValue;
 import lt.lb.commons.threads.executors.CloseableExecutor;
-import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.Awaiter;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 
 /**
@@ -36,29 +35,36 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
     protected DelayQueue<DTEScheduledFuture> dq = new DelayQueue<>();
     protected ConcurrentLinkedDeque<Future> executed = new ConcurrentLinkedDeque<>();
     protected ExecutorService realExe;
-    protected volatile boolean shutdown;
+    protected volatile boolean open = true;
     protected final int maxSchedulingThreads;
-    protected final AtomicInteger threadCount = new AtomicInteger(0);
+    protected final AtomicInteger schedulingThreadCount = new AtomicInteger(0);
     protected AtomicReference<CompletableFuture> oneShotCompletion = new AtomicReference<>();
     protected AtomicReference<CompletableFuture> fullCompletion = new AtomicReference<>();
 
-    protected int cleanUpExecutedSize = 50;
     protected int maxPollTimeSeconds = 60;
 
     public DelayedTaskExecutor() {
-        this(new FastWaitingExecutor(Java.getAvailableProcessors(), WaitTime.ofSeconds(10)));
+        this(Checked.createDefaultExecutorService());
+    }
+
+    public DelayedTaskExecutor(int maxSchedulingThreads) {
+        this(assertScheduling(maxSchedulingThreads), Checked.createDefaultExecutorService());
     }
 
     public DelayedTaskExecutor(ExecutorService reaExecutor) {
-        this(reaExecutor, 1);
+        this(1, reaExecutor);
     }
 
-    public DelayedTaskExecutor(ExecutorService realExe, int maxSchedulingThreads) {
-        this.realExe = Objects.requireNonNull(realExe);
-        if (maxSchedulingThreads < 0) {
+    private static int assertScheduling(int threads) {
+        if (threads <= 0) {
             throw new IllegalArgumentException("Max scheduling threads should be at least 1");
         }
-        this.maxSchedulingThreads = maxSchedulingThreads;
+        return threads;
+    }
+
+    public DelayedTaskExecutor(int maxSchedulingThreads, ExecutorService realExe) {
+        this.realExe = Objects.requireNonNull(realExe);
+        this.maxSchedulingThreads = assertScheduling(maxSchedulingThreads);
     }
 
     boolean cleanUpOneShots() {
@@ -81,30 +87,33 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
     boolean cleanUp() {
 
         Iterator<Future> iterator = executed.iterator();
+        int size = executed.size();
         boolean complete = true;
-        while (iterator.hasNext()) {
+        while (--size >= 0) {
             Future fut = iterator.next();
             if (fut == null) {
                 continue;
             }
             if (fut.isDone()) {
                 iterator.remove();
+                iterator = executed.iterator();
             } else {
                 complete = false;
             }
 
         }
+        if (!complete) {
+            return false;
+        }
 
-        if (complete) {
-            for (DTEScheduledFuture future : dq) {
-                if (future != null) {
-                    return false;
-                }
+        for (DTEScheduledFuture future : dq) {
+            if (future != null) {
+                return false;
             }
         }
 
         CompletableFuture full = fullCompletion.get();
-        if (complete && full != null) {
+        if (full != null) {
             full.complete(null);
             fullCompletion.compareAndSet(full, null);
             return true;
@@ -117,30 +126,17 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
     public void execute(Runnable command) {
         assertShutdown();
         Objects.requireNonNull(command);
+        realExe.submit(command);
+    }
+
+    public void executeSched(Runnable command) {
+        assertShutdown();
+        Objects.requireNonNull(command);
         executed.add(realExe.submit(command));
-        if (executed.size() > cleanUpExecutedSize) {
-            cleanUp();
-        }
-    }
-
-    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, UncheckedRunnable command) {
-        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
-    }
-
-    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, Runnable command) {
-        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
-    }
-
-    public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, Runnable command) {
-        return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
-    }
-
-    public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, UncheckedRunnable command) {
-        return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
     }
 
     protected void assertShutdown() {
-        if (shutdown) {
+        if (!open) {
             throw new IllegalArgumentException("Shutdown has been called, can't schedule more");
         }
     }
@@ -151,8 +147,8 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
         future.nanoScheduled.set(Java.getNanoTime());
         dq.add(future);
 
-        if (threadCount.incrementAndGet() > maxSchedulingThreads) {
-            threadCount.decrementAndGet();
+        if (schedulingThreadCount.incrementAndGet() > maxSchedulingThreads) {
+            schedulingThreadCount.decrementAndGet();
         } else {
             startSchedulingThread();
         }
@@ -167,50 +163,33 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
             try {
                 while (!dq.isEmpty() || !executed.isEmpty()) {
 
-                    if (shutdown) {
+                    if (!open) {
                         dq.clear();
                     } else if (!dq.isEmpty()) {
                         DTEScheduledFuture take = dq.poll(maxPollTimeSeconds, TimeUnit.SECONDS);
-                        if (take != null) {
-                            execute(take);
+                        if (open && take != null && !take.isCancelled()) {
+                            executeSched(take);
                         }
                     }
-                    if (!executed.isEmpty()) {
-                        cleanUp();
-                    }
-
+                    cleanUp();
                     cleanUpOneShots();
 
                 }
 
-            } catch (Throwable th) {
-                // not our problem
-            } finally {
+            } catch (Throwable th) {//could be interrupted
 
-                if ((shutdown && !executed.isEmpty()) || (!shutdown && !dq.isEmpty())) {
-                    startSchedulingThread();
-                } else {
-                    threadCount.decrementAndGet();
+            } finally {
+                schedulingThreadCount.decrementAndGet();
+                if (!open) {//only clean up mode
                     cleanUpOneShots();
                     cleanUp();
+                } else if (!dq.isEmpty() || !executed.isEmpty()) {
+                    startSchedulingThread();
                 }
-
             }
         };
         new Thread(tg, handle).start();
 
-    }
-
-    public DTEScheduledFuture schedule(WaitTime time, Runnable command) {
-        return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
-    }
-
-    public DTEScheduledFuture schedule(WaitTime time, UncheckedRunnable command) {
-        return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
-    }
-
-    public <V> DTEScheduledFuture<V> schedule(WaitTime time, Callable<V> callable) {
-        return schedule(new DTEScheduledFuture<>(this, time, callable));
     }
 
     public Awaiter awaitOneShotCompletion() {
@@ -227,7 +206,12 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
 
     @Override
     public void close() {
-        shutdown = true;
+        if (!open) {
+            return;
+        }
+        open = false;
+
+        dq.clear();
         tg.interrupt();
         realExe.shutdown();
         cleanUp();
@@ -246,11 +230,6 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
     }
 
     @Override
-    public boolean isShutdown() {
-        return shutdown;
-    }
-
-    @Override
     public boolean isTerminated() {
         return realExe.isTerminated();
     }
@@ -260,65 +239,129 @@ public class DelayedTaskExecutor extends AbstractExecutorService implements Clos
         return realExe.awaitTermination(timeout, unit);
     }
 
+    public DTEScheduledFuture schedule(WaitTime time, Runnable command) {
+        assertShutdown();
+        return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
+    }
+
+    public DTEScheduledFuture schedule(WaitTime time, UncheckedRunnable command) {
+        assertShutdown();
+        return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
+    }
+
+    public <V> DTEScheduledFuture<V> schedule(WaitTime time, Callable<V> callable) {
+        assertShutdown();
+        return schedule(new DTEScheduledFuture<>(this, time, callable));
+    }
+
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+        assertShutdown();
         return schedule(WaitTime.of(delay, unit), command);
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
+        assertShutdown();
         return schedule(WaitTime.of(delay, unit), callable);
+    }
+
+    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, UncheckedRunnable command) {
+        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
+    }
+
+    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, Runnable command) {
+        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
+    }
+
+    public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, Runnable command) {
+        return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
+    }
+
+    public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, UncheckedRunnable command) {
+        return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
+    }
+
+    protected void scheduleAtFixedRateContinue(
+            PersistentForwardingScheduledFuture persFuture,
+            final LongValue begunAtNanos,
+            final LongValue times,
+            boolean keepExpectedPace,
+            Runnable command,
+            long initialDelay,
+            long period,
+            long resetTimes
+    ) {
+        long p = period;
+        long diff = 0;
+        long now = 0;
+        if (times.get() == 0L) {//first
+            p = initialDelay;
+        } else if (keepExpectedPace) {
+            long expectedPace = begunAtNanos.get() + initialDelay + (times.get() * period);
+            now = Java.getNanoTime();
+            diff = expectedPace - now;
+            p = Math.max(0, diff);
+        }
+
+        if (times.incrementAndGet() >= resetTimes) {//reset
+            times.set(1L);
+            if (keepExpectedPace) {// do some dept calculations
+                begunAtNanos.set(now - initialDelay + diff);
+            }
+        }
+        persFuture.set(schedule(WaitTime.ofNanos(p), () -> {
+            if (persFuture.isCancelled()) {
+                return;
+            }
+            Checked.checkedRun(command);// continued run
+            if (persFuture.isCancelled()) {
+                return;
+            }
+
+            scheduleAtFixedRateContinue(persFuture, begunAtNanos, times, keepExpectedPace, command, initialDelay, period, resetTimes);
+
+        }));
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        WaitTime time = WaitTime.of(period, unit);
-        AtomicReference<ScheduledFuture> ref = new AtomicReference<>();
-        Deque<Future> futures = new ArrayDeque<>();
-        DTEScheduledFuture schedule = schedule(WaitTime.of(initialDelay, unit), () -> {
-            command.run(); // first run
-            DTELoopingScheduledFuture scheduledFuture = scheduleWithFixedDelay(time, () -> { // periodically create one-shot task.
-                futures.add(schedule(time, command));
-                Iterator<Future> iterator = futures.iterator();
-                while (iterator.hasNext()) {
-                    Future fut = iterator.next();
-                    if (fut.isDone()) {
-                        iterator.remove();
-                    }
-                }
-            });
-            ref.set(scheduledFuture);
-        });
-        ref.set(schedule);
-        futures.add(schedule);
-        return (ForwardingScheduledFuture<Object>) new ForwardingScheduledFuture<Object>() {
-            @Override
-            public ScheduledFuture<Object> delegate() {
-                return ref.get();
-            }
+        assertShutdown();
+        if (initialDelay < 0) {
+            throw new IllegalArgumentException("Negative initial delay");
+        }
+        if (period < 0) {
+            throw new IllegalArgumentException("Negative period");
+        }
 
-            @Override
-            public boolean cancel(boolean mayInterruptIfRunning) {
-                boolean foundOk = false;
-                for (Future future : futures) {
-                    if (future.cancel(mayInterruptIfRunning)) {
-                        foundOk = true;
-                    }
-                }
-                return delegate().cancel(mayInterruptIfRunning) || foundOk;
-            }
+        long delayNano = TimeUnit.NANOSECONDS.convert(initialDelay, unit);
+        long periodNano = TimeUnit.NANOSECONDS.convert(period, unit);
 
-        };
+        //reset at least once in a while, if been running for that long
+        long resetAt = (WaitTime.ofDays(400).convert(TimeUnit.NANOSECONDS).time - delayNano) / periodNano;
+        PersistentForwardingScheduledFuture persFuture = new PersistentForwardingScheduledFuture();
+        scheduleAtFixedRateContinue(persFuture, new LongValue(Java.getNanoTime()), new LongValue(0), true, command, delayNano, periodNano, resetAt);
+        return persFuture;
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        WaitTime time = WaitTime.of(delay, unit);
-        AtomicReference<ScheduledFuture> ref = new AtomicReference<>();
-        ref.set(schedule(WaitTime.of(initialDelay, unit), () -> {
-            command.run(); // first run
-            ref.set(scheduleWithFixedDelay(time, command));
-        }));
-        return (ForwardingScheduledFuture<Object>) () -> ref.get();
+        assertShutdown();
+        if (initialDelay < 0) {
+            throw new IllegalArgumentException("Negative initial delay");
+        }
+        if (delay < 0) {
+            throw new IllegalArgumentException("Negative delay");
+        }
+        long delayNano = TimeUnit.NANOSECONDS.convert(initialDelay, unit);
+        long periodNano = TimeUnit.NANOSECONDS.convert(delay, unit);
+        PersistentForwardingScheduledFuture persFuture = new PersistentForwardingScheduledFuture();
+        scheduleAtFixedRateContinue(persFuture, new LongValue(Long.MIN_VALUE), new LongValue(0), false, command, delayNano, periodNano, Long.MAX_VALUE);
+        return persFuture;
+    }
+
+    @Override
+    public boolean isShutdown() {
+        return !open;
     }
 }

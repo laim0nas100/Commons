@@ -21,7 +21,7 @@ public class ServiceExecutorAggregatorLazy extends ServiceExecutorAggregatorBase
 
     @Override
     protected ScheduledExecutorService createScheduledExecutor(int threads) {
-        return new DelayedTaskExecutor(createExecutor(threads), threads);
+        return new DelayedTaskExecutor(1,createExecutor(threads));
     }
 
     @Override
