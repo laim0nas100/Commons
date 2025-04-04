@@ -11,7 +11,7 @@ public abstract class PausableProgressInputStream extends ForwardingInputStream 
 
     protected final ConditionalWait wait = new ConditionalWait();
     protected long bytesRead = 0L;
-    
+
     protected boolean closed = false;
     protected boolean inRead = false;
 
@@ -22,8 +22,8 @@ public abstract class PausableProgressInputStream extends ForwardingInputStream 
     public void pause() {
         wait.requestWait();
     }
-    
-    public void unpause(){
+
+    public void unpause() {
         wait.wakeUp();
     }
 
@@ -31,62 +31,77 @@ public abstract class PausableProgressInputStream extends ForwardingInputStream 
 
     @Override
     public int read() throws IOException {
-        if(inRead){
+        if (inRead) {
             return super.read();
         }
-        if(closed){
+        if (closed) {
             return -1;
         }
         inRead = true;
-        wait.conditionalWait();
-        final int read = super.read();
-        if (read == -1) {
-            return read;
+        int read = -1;
+        try {
+            wait.conditionalWait();
+            read = super.read();
+            if (read == -1) {
+                return read;
+            }
+            bytesRead += 1;
+            updateProgress(bytesRead);
+        } finally {
+            inRead = false;
         }
-        bytesRead += 1;
-        updateProgress(bytesRead);
-        inRead = false;
+
         return read;
     }
 
     @Override
     public int read(byte[] b) throws IOException {
-        if(inRead){
+        if (inRead) {
             return super.read(b);
         }
-        if(closed){
+        if (closed) {
             return -1;
         }
         inRead = true;
-        wait.conditionalWait();
-        final int read = super.read(b);
-        if (read == -1) {
-            return read;
+        int read = -1;
+        try {
+            wait.conditionalWait();
+            read = super.read(b);
+            if (read == -1) {
+                return read;
+            }
+
+            bytesRead += read;
+            updateProgress(bytesRead);
+        } finally {
+            inRead = false;
         }
 
-        bytesRead += read;
-        updateProgress(bytesRead);
-        inRead = false;
         return read;
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        if(inRead){
+        if (inRead) {
             return super.read(b, off, len);
         }
-        if(closed){
+        if (closed) {
             return -1;
         }
         inRead = true;
-        wait.conditionalWait();
-        final int read = super.read(b, off, len);
-        if (read == -1) {
-            return read;
+        int read = -1;
+        try {
+            wait.conditionalWait();
+            read = super.read(b, off, len);
+            if (read == -1) {
+                return read;
+            }
+            bytesRead += read;
+            updateProgress(bytesRead);
+        } finally {
+            inRead = false;
         }
-        bytesRead += read;
-        updateProgress(bytesRead);
-        inRead = false;
+
         return read;
     }
 
@@ -95,7 +110,5 @@ public abstract class PausableProgressInputStream extends ForwardingInputStream 
         closed = true;
         super.close();
     }
-    
-    
 
 }
