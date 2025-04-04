@@ -203,9 +203,9 @@ public class ListTest {
         List<Long> safe = new ArrayList<>();
 
         List<Long>[] toTest = ArrayOp.asArray(
-                ListDeque.ofDeque(new ArrayDeque<>()),
-                ListDeque.ofList(new ArrayList<>()),
-                ListDeque.ofList(new LinkedList<>()),
+                ListDeque.toList(new ArrayDeque<>()),
+                new ArrayList<>(),
+                new LinkedList<>(),
                 new PagedHashList<>(),
                 new PagedList<>()
         );

@@ -19,7 +19,7 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
  */
 public class SyncTest {
 
-    static SimpleTaskExecutorQueue q = new SimpleTaskExecutorQueue(new DelayedTaskExecutor(ForkJoinPool.commonPool(),2), new FastWaitingExecutor(2)) {
+    static SimpleTaskExecutorQueue q = new SimpleTaskExecutorQueue(new DelayedTaskExecutor(2), new FastWaitingExecutor(2)) {
         @Override
         public void afterRun(BasicRunInfo info, Optional<Throwable> error) {
             DLog.print("AFTER RUN:" + info.key + "-" + info.name);
