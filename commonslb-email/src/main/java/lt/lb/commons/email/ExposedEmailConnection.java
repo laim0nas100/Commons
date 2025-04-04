@@ -1,10 +1,9 @@
 package lt.lb.commons.email;
 
+import jakarta.mail.Folder;
+import jakarta.mail.Session;
+import jakarta.mail.Store;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.FutureTask;
-import javax.mail.Folder;
-import javax.mail.Session;
-import javax.mail.Store;
 
 /**
  *

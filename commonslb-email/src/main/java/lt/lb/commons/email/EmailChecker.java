@@ -1,10 +1,10 @@
 package lt.lb.commons.email;
 
+import jakarta.mail.*;
+import jakarta.mail.internet.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import javax.mail.*;
-import javax.mail.internet.MimeMessage;
 import lt.lb.commons.F;
 import lt.lb.commons.email.props.IMAPOrPOP3Props;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;

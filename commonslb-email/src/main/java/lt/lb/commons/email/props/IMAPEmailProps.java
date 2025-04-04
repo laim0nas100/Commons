@@ -1,11 +1,10 @@
 package lt.lb.commons.email.props;
 
+import jakarta.mail.Flags;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.Message;
-import lt.lb.commons.F;
 import lt.lb.uncheckedutils.Checked;
 
 /**

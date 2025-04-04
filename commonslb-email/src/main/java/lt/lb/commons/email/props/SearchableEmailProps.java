@@ -1,8 +1,9 @@
 package lt.lb.commons.email.props;
 
-import javax.mail.Flags;
-import javax.mail.search.FlagTerm;
-import javax.mail.search.SearchTerm;
+import jakarta.mail.Flags;
+import jakarta.mail.search.FlagTerm;
+import jakarta.mail.search.SearchTerm;
+
 
 /**
  *

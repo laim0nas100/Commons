@@ -1,7 +1,7 @@
 package lt.lb.commons.email;
 
+import jakarta.mail.internet.MimeMessage;
 import java.util.function.Consumer;
-import javax.mail.internet.MimeMessage;
 
 /**
  *
