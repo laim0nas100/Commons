@@ -91,15 +91,14 @@ public abstract class ListDeque {
     }
 
     public static abstract class ListBasedImpl<T> extends CollectionBased<T> implements Deque<T> {
-        
+
         public abstract List<T> getList();
-        
+
         @Override
-        public Collection<T> getCollection(){
+        public Collection<T> getCollection() {
             return getList();
         }
-        
-        
+
         @Override
         public void addFirst(T e) {
             getList().add(0, e);
@@ -244,7 +243,7 @@ public abstract class ListDeque {
         }
 
         @Override
-        public  void push(T e) {
+        public void push(T e) {
             getList().add(0, e);
         }
 
@@ -275,13 +274,27 @@ public abstract class ListDeque {
 
     public static abstract class DequeBasedImpl<T> extends CollectionBased<T> implements List<T> {
 
+        public static class Info<T> {
+
+            public final boolean front;
+            public final Iterator iter;
+            public final T value;
+
+            public Info(boolean front, Iterator iter, T value) {
+                this.front = front;
+                this.iter = iter;
+                this.value = value;
+            }
+
+        }
+
         public abstract Deque<T> getDeque();
-        
+
         @Override
-        public Collection<T> getCollection(){
+        public Collection<T> getCollection() {
             return getDeque();
         }
-        
+
         protected void rangeCheckGet(int index) {
             if (index >= size() || index < 0) {
                 throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
@@ -606,21 +619,6 @@ public abstract class ListDeque {
         @Override
         public List<T> subList(int fromIndex, int toIndex) {
             throw new UnsupportedOperationException("Base was deque, no way to support this");
-        }
-
-    }
-
-
-    public static class Info<T> {
-
-        public final boolean front;
-        public final Iterator iter;
-        public final T value;
-
-        Info(boolean front, Iterator iter, T value) {
-            this.front = front;
-            this.iter = iter;
-            this.value = value;
         }
 
     }
