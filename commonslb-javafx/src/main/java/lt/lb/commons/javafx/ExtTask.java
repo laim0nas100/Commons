@@ -85,12 +85,7 @@ public abstract class ExtTask<T> implements RunnableFuture {
             currentThread = Thread.currentThread();
             setProperty(running, true);
             try {
-                T res = call();
-                if (res != null) {
-                    resultDeque.addFirst(res);
-                } else {
-                    resultDeque.addLast(Nulls.EMPTY_OBJECT);
-                }
+                resultDeque.add(Nulls.requireNonNullElse(call(), Nulls.EMPTY_OBJECT));
 
             } catch (InterruptedException ex) {
                 setProperty(interrupted, true);

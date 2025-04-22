@@ -17,6 +17,17 @@ public abstract class FXTask extends Task {
     public SimpleBooleanProperty paused = new SimpleBooleanProperty(false);
     public Task childTask;
 
+    public boolean conditionalWaitOrExit() throws InterruptedException {
+        while (isPaused()) {
+            if (isCancelled()) {
+                return true;
+            }
+            Thread.sleep(this.getRefreshDuration());
+
+        }
+        return isCancelled();
+    }
+
     public String getDescription() {
         return taskDescription;
     }

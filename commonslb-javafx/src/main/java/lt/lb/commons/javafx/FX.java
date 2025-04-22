@@ -117,7 +117,7 @@ public class FX {
     public static void withAlert(UncheckedRunnable run) {
         Checked.checkedRun(run).ifPresent(ex -> {
             logger.error("Error in withAlert", ex);
-            FX.submit(() -> {
+            FX.runAndWait(() -> {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText(ex.getMessage());
                 alert.showAndWait();
