@@ -3,6 +3,7 @@ package lt.lb.commons.io.autopath;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Optional;
 import lt.lb.commons.Nulls;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,7 +84,12 @@ public class AutoPathDefault implements AutoPath {
 
     @Override
     public AutoPathDefault concat(String... parts) {
-        return new AutoPathDefault(pathConfig, stringPath, new AutoPathDefault(pathConfig, parts).getStringPath());
+        String[] p = new String[parts.length + 1];
+        p[0] = stringPath;
+        for (int i = 1; i < p.length; i++) {
+            p[i] = parts[i - 1];
+        }
+        return new AutoPathDefault(pathConfig, p);
     }
 
     @Override
@@ -119,8 +125,11 @@ public class AutoPathDefault implements AutoPath {
     }
 
     @Override
-    public AutoPathDefault toParent() {
-        return new AutoPathDefault(pathConfig, getParent());
+    public Optional<AutoPath> toParent() {
+        if (StringUtils.isEmpty(getParent())) {
+            return Optional.empty();
+        }
+        return Optional.of(new AutoPathDefault(pathConfig, getParent()));
     }
 
     @Override
@@ -140,4 +149,27 @@ public class AutoPathDefault implements AutoPath {
     public String toString() {
         return stringPath;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode(this.stringPath);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AutoPathDefault other = (AutoPathDefault) obj;
+        return Objects.equals(this.stringPath, other.stringPath);
+    }
+
 }

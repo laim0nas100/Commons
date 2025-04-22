@@ -1,6 +1,7 @@
 package lt.lb.commons.io.autopath;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  *
@@ -68,7 +69,7 @@ public interface AutoPath {
      *
      * @return
      */
-    public AutoPath toParent();
+    public Optional<AutoPath> toParent();
 
     /**
      * Get the defining raw String of this {@link AutoPath}

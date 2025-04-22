@@ -5,11 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import lt.lb.commons.Java;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -60,6 +62,11 @@ public class Dir extends Fil {
         }
 
         files = new ArrayList<>(map.values());
+    }
+    
+    @Override
+    public String toString() {
+        return StringUtils.appendIfMissing(super.toString(), Java.getFileSeparator());
     }
 
 }

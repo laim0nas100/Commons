@@ -88,5 +88,25 @@ public interface PathConfig {
             return "/";
         }
 
+        @Override
+        public String parent(String fullPath) {
+            int protocolSep = StringUtils.lastIndexOf(fullPath, "//");
+            int lastIndexOf = StringUtils.lastIndexOf(fullPath, currentSep());
+            if (protocolSep < 0) {
+                if (lastIndexOf >= 0) {
+                    return StringUtils.substring(fullPath, 0, lastIndexOf);
+                }
+            } else {
+                if (lastIndexOf >= 0) {
+                    if (protocolSep + 1 > lastIndexOf) { // do not return part of the port scheme
+                        return StringUtils.substring(fullPath, 0, lastIndexOf);
+                    }
+
+                }
+            }
+
+            return "";
+        }
+
     }
 }
