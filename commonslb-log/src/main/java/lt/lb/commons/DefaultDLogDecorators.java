@@ -1,20 +1,17 @@
 package lt.lb.commons;
 
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.function.Supplier;
-import lt.lb.commons.containers.caching.lazy.LazyValue;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.NestedException;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *
  * @author laim0nas100
  */
 public class DefaultDLogDecorators {
+    
+    public static final int MAX_STACK_TRACE_SIZE = 1000;
 
     public static Lambda.L5R<DLog, String, String, Long, String, String> finalPrintDecorator() {
         return (DLog log, String trace, String name, Long millis, String string) -> {
@@ -100,30 +97,15 @@ public class DefaultDLogDecorators {
         };
     }
 
-    public static Lambda.L1R<Throwable, Supplier<String>> stackTraceUncheckedSupplier() {
-        LazyValue<Method> thMethod = new LazyValue<>(() -> {
-            try {
-                Method declaredMethod = Throwable.class.getDeclaredMethod("getStackTraceElement", Integer.TYPE);
-                declaredMethod.setAccessible(true);
-                return declaredMethod;
-            } catch (Exception e) {
-                throw NestedException.of(e);
-            }
-        });
-
-        return (th) -> () -> Checked.uncheckedCall(() -> StringUtils.remove(thMethod.get().invoke(th, 3).toString(), ".java"));
-
-    }
-
-    public static Lambda.L1R<Throwable, Supplier<String>> stackTraceSupplier() {
-        return (th) -> () -> th.getStackTrace()[3].toString().replace(".java", "");
+    public static Lambda.L2R<Throwable, Integer, Supplier<String>> stackTraceSupplier() {
+        return (th, i) -> () -> th.getStackTrace()[i].toString().replace(".java", "");
     }
 
     public static Lambda.L3R<Throwable, Integer, Integer, Supplier<String>> stackTraceFullSupplier() {
 
         return (th, depth, reduceBy) -> {
             StackTraceElement[] stack = th.getStackTrace();
-            int preFinal = depth < 0 ? 1000 : depth;
+            int preFinal = depth < 0 ? MAX_STACK_TRACE_SIZE : depth;
 
             final int maxDepth = Math.min(preFinal, stack.length);
 
