@@ -32,19 +32,17 @@ public class FastWaitingExecutor extends FastExecutor {
 
     protected FastWaitingExecutor(int maxThreads, WaitTime time, ThreadPool pool) {
         super(maxThreads, pool);
-        this.tasks = new LinkedBlockingDeque<>();
+        this.tasks = makeQueue();
         this.wt = Objects.requireNonNull(time);
     }
 
     @Override
     protected Queue<Runnable> makeQueue() {
-        if(maxThreads == 0){
+        if (maxThreads == 0) {
             return null;
         }
         return new LinkedBlockingQueue<>();
     }
-    
-    
 
     @Override
     protected void polling() {
@@ -56,8 +54,10 @@ public class FastWaitingExecutor extends FastExecutor {
                 Runnable first = queue.poll(wt.time, wt.unit);
                 if (first == null) {
                     return;
+                } else {
+                    adds.decrementAndGet();
                 }
-                index = executeSingle(index,first, true);
+                index = executeSingle(index, first, true);
 
             }
         } catch (InterruptedException ex) {

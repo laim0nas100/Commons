@@ -58,7 +58,7 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
     public int compareTo(Delayed o) {
         if (o instanceof DTEScheduledFuture) {
             DTEScheduledFuture other = F.cast(o);
-            return Long.compare(nanoScheduled.get(), other.nanoScheduled.get());
+            return Long.compare(waitDurNanos, other.waitDurNanos);
         } else {
             return Long.compare(this.getDelay(TimeUnit.NANOSECONDS), o.getDelay(TimeUnit.NANOSECONDS));
         }

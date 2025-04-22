@@ -2,10 +2,12 @@ package lt.lb.commons.threads.sync;
 
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -24,7 +26,7 @@ public interface Awaiter {
 
         @Override
         public default void await() throws InterruptedException {
-            awaitBool(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            awaitBool(Long.MAX_VALUE - 1, TimeUnit.NANOSECONDS);
         }
 
         @Override
@@ -73,7 +75,7 @@ public interface Awaiter {
      * @param fut
      * @return
      */
-    public static Awaiter formFuture(Future fut) {
+    public static Awaiter fromFuture(Future fut) {
         return new Awaiter() {
             @Override
             public void await() throws InterruptedException, ExecutionException {
@@ -102,26 +104,34 @@ public interface Awaiter {
      * @return
      */
     public static <T extends Future> Awaiter fromFutureAtomicReference(AtomicReference<T> atomicRef, Supplier<T> factory) {
+        return fromFuture(atomicFutureResolve(atomicRef, factory));
+    }
+
+    public static <T extends Future> T atomicFutureResolve(AtomicReference<T> atomicRef, Supplier<T> factory) {
         T localFuture = atomicRef.get();
         if (localFuture != null) {
             if (localFuture.isDone()) {
                 T newFuture = factory.get();
                 if (atomicRef.compareAndSet(localFuture, newFuture)) {
-                    return formFuture(newFuture);
+                    return newFuture;
                 } else {
-                    return formFuture(atomicRef.get());
+                    return atomicRef.get();
                 }
             }
-            return formFuture(localFuture);
+            return localFuture;
         } else {
             T newFuture = factory.get();
             if (atomicRef.compareAndSet(null, newFuture)) {
-                return formFuture(newFuture);
+                return newFuture;
             } else {
-                return formFuture(atomicRef.get());
+                return atomicRef.get();
             }
 
         }
+    }
+
+    public static <T extends CompletableFuture> Awaiter fromCompletableFuture(AtomicReference<CompletableFuture> atomicRef) {
+        return fromFutureAtomicReference(atomicRef, CompletableFuture::new);
     }
 
     /**

@@ -26,11 +26,12 @@ public class ExclusiveFutureTaskExecutor<T> {
         if (running.get()) {
             return reference.get();
         }
-        if (reference.get() == null || auto) {
+        if (auto || reference.get() == null) {
             FutureTask<V> newTask = new FutureTask<>(realCallable(reference, running, task));
             reference.set(newTask);
             executor.execute(newTask);
             return newTask;
+
         }
         return reference.get();
     }
@@ -42,10 +43,10 @@ public class ExclusiveFutureTaskExecutor<T> {
     public Future<T> execute(boolean auto, Callable<T> call) {
         return execute(auto, running, reference, call, executor);
     }
-    
+
     public Future<T> execute(Callable<T> call) {
         return execute(true, running, reference, call, executor);
-    } 
+    }
 
     private static <V> Callable<V> realCallable(AtomicReference<Future<V>> reference, AtomicBoolean running, Callable<V> task) {
         return () -> {

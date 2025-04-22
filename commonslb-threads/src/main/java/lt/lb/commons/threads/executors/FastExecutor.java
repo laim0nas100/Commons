@@ -18,8 +18,6 @@ import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.threads.SimpleThreadPool;
 import lt.lb.commons.threads.ThreadPool;
-import lt.lb.commons.threads.sync.ConcurrentIndexedAbstract;
-import lt.lb.commons.threads.sync.ConcurrentIndexedBag;
 import lt.lb.commons.threads.sync.ThreadLocalParkSpace;
 
 /**
@@ -47,7 +45,6 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
 
     protected Queue<Runnable> tasks;
 
-//    protected ConcurrentIndexedAbstract<Running, ?> runningTasks;
     protected ThreadLocalParkSpace<Running> runningTasks;
 
     protected ThreadPool pool;
@@ -55,7 +52,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     protected AtomicInteger adds = new AtomicInteger(0);
     protected volatile boolean open = true;
     protected int maxThreads;
-    protected AtomicInteger runningThreads = new AtomicInteger(0);
+    protected AtomicInteger occupiedThreads = new AtomicInteger(0);
     protected CompletableFuture awaitTermination = new CompletableFuture();
 
     protected Consumer<Throwable> errorChannel = (err) -> {
@@ -127,11 +124,11 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
         if (maxThreads == 0) {
             executeSingle(command, false);
         } else {
-
-            if (tasks.add(command)) {
-                adds.incrementAndGet();
-            } else {
+            adds.incrementAndGet();
+            if (!tasks.add(command)) {
+                adds.decrementAndGet();
                 throw new IllegalStateException("Failed to submit runnable, queue overflow");
+
             }
             maybeStartThread(maxThreads);
         }
@@ -193,12 +190,18 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
 
     protected final Runnable threadBody(final int bakedMax) {
         return () -> {
+
+//            runningThreads.incrementAndGet();
             try {
                 polling();
             } finally {
-                int leftRunning = runningThreads.decrementAndGet(); //thread no longer running (not really)
-                if (!open && adds.get() == 0) {
+//                occupiedThreads.decrementAndGet();
+                int leftRunning = occupiedThreads.decrementAndGet(); //thread no longer running (not really)
+                int get = adds.get();
+                if (!open && get == 0) {
                     maybeTerminate(leftRunning);
+                } else if (get > 0) {
+                    maybeStartThread(bakedMax);
                 }
 
             }
@@ -216,19 +219,21 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     }
 
     protected void maybeStartThread(final int maxT) {
-
-        if (maxT == 0) {
-            throw new IllegalArgumentException("Max threads is 0");
-        } else if (maxT < 0) {//unlimited threads
-            runningThreads.incrementAndGet();
-            startThread(maxT);
-        } else { // limitedThreads
-            if (runningThreads.incrementAndGet() > maxT) {
-                runningThreads.decrementAndGet();
+        if (maxT > 0) {// limitedThreads
+            if (occupiedThreads.get() >= maxT) {//fast exit
+                return;
+            }
+            if (occupiedThreads.incrementAndGet() > maxT) {
+                occupiedThreads.decrementAndGet();
             } else {
                 startThread(maxT);
             }
-        }
+        } else if (maxT == 0) {
+            throw new IllegalArgumentException("Max threads is 0");
+        } else {//unlimited threads
+            occupiedThreads.incrementAndGet();
+            startThread(maxT);
+        } 
     }
 
     /**
@@ -239,7 +244,7 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     @Override
     public void close() {
         this.open = false;
-        maybeTerminate(runningThreads.get());
+        maybeTerminate(occupiedThreads.get());
     }
 
     public List<Runnable> cancelAll(boolean interrupting) {
@@ -272,13 +277,17 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     public List<Runnable> shutdownNow() {
         shutdown();
         List<Runnable> unfinished = cancelAll(true);
-        maybeTerminate(runningThreads.get());
+        maybeTerminate(occupiedThreads.get());
 
         return unfinished;
     }
 
     protected Iterator<Running> getRunningTasks() {
         return runningTasks.iterator();
+    }
+
+    public boolean isBusy() {
+        return occupiedThreads.get() > 0;
     }
 
     @Override
@@ -294,6 +303,10 @@ public class FastExecutor extends AbstractExecutorService implements CloseableEx
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         try {
+            if (isTerminated()) {
+                return true;
+            }
+            maybeTerminate(occupiedThreads.get());
             this.awaitTermination.get(timeout, unit);
             return true;
         } catch (ExecutionException exe) {

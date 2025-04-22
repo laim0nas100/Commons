@@ -88,8 +88,13 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
         int index = -1;
         while (!queue.isEmpty()) {
             try {
-                Runnable last = queue.poll(wt.time, wt.unit);
-                index = executeSingle(index, last, true);
+                Runnable first = queue.poll(wt.time, wt.unit);
+                if (first == null) {
+                    return;
+                } else {
+                    adds.decrementAndGet();
+                }
+                index = executeSingle(index, first, true);
             } catch (InterruptedException ex) {
             }
         }
