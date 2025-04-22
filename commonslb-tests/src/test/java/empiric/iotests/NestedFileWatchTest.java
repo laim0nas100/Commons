@@ -7,6 +7,7 @@ package empiric.iotests;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 import lt.lb.commons.DLog;
 import lt.lb.commons.io.filewatch.NestedFileWatch;
 
@@ -16,7 +17,7 @@ import lt.lb.commons.io.filewatch.NestedFileWatch;
  */
 public class NestedFileWatchTest {
 
-    public static void main(String... args) throws IOException, InterruptedException {
+    public static void main(String... args) throws Exception{
         NestedFileWatch nestedFileWatch = new NestedFileWatch(Paths.get("D:\\test"));
         nestedFileWatch.tryInit();
         
@@ -27,7 +28,7 @@ public class NestedFileWatchTest {
         Thread.sleep(10000);
         nestedFileWatch.terminate();
         DLog.print("Closing");
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
 }

@@ -432,7 +432,7 @@ public class JavaMailTest {
         TextFileIO.writeToFile("spamFile3.arff", new WekaParser(EmailAttributes.class,
                 "spam").wekaReadyLines("EmailRelation", deque));
 
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 }

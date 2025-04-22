@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import lt.lb.commons.DLog;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
@@ -25,7 +26,7 @@ public class ContextualizedSyncTest {
             DLog.print(id+" EXIT");
         };
     }
-    public static void main(String...args) throws InterruptedException, ExecutionException{
+    public static void main(String...args) throws InterruptedException, ExecutionException, TimeoutException{
         ContextualizedSync sync = new ContextualizedSync(2, WaitTime.ofMillis(1000));
         ExecutorService service = new FastWaitingExecutor(10);
         
@@ -50,7 +51,7 @@ public class ContextualizedSyncTest {
         }
         service.shutdown();
         service.awaitTermination(1, TimeUnit.DAYS);
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
         
         
         

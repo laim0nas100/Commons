@@ -67,7 +67,7 @@ public class StackTraceTest {
         for (int i = 0; i < 30; i++) {
             DLog.print(rng.nextBoolean());
         }
-        Checked.checkedRun(() -> DLog.await(1, TimeUnit.HOURS));
+        Checked.checkedRun(() -> DLog.close());
     }
 
 //    @Test
@@ -94,7 +94,7 @@ public class StackTraceTest {
         DLog.print(of.apply(rng.pickRandom(list, 2)));
         
         
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 

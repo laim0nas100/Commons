@@ -87,7 +87,7 @@ public class RelationTest {
 
         DLog.print(Integer.TYPE.getSuperclass());
         DLog.print(Void.class.getSuperclass());
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 

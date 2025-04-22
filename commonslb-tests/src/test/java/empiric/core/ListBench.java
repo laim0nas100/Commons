@@ -133,7 +133,7 @@ public class ListBench {
 //        list.add(3, 35L);
 //
 //        DLog.print(list.toString());
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 

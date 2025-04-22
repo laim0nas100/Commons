@@ -101,7 +101,7 @@ public class CommonsTest {
 
         DLog.print("Filtered distinct", filterDistinct);
         Checked.checkedRun(() -> {
-            DLog.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.MINUTES);
         });
 
     }
@@ -140,7 +140,7 @@ public class CommonsTest {
             String url = desktop + "myFile2.txt";
             ArrayList<String> readFromFile = TextFileIO.readFromFile(url, "#", "**", "**");
 //            DLog.printLines(readFromFile);
-            DLog.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.MINUTES);
         });
 
     }
@@ -157,7 +157,7 @@ public class CommonsTest {
         }
         DLog.print("########");
         DLog.printLines(parsed);
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
 //    @Test
@@ -298,7 +298,7 @@ public class CommonsTest {
         Collections.sort(vals, of);
         DLog.printLines(vals);
         Checked.uncheckedRun(() -> {
-            DLog.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.MINUTES);
         });
 
     }

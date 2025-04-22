@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -382,7 +383,7 @@ public class DataGen {
         FastID idCopy= new FastID(id.toString());
         DLog.print(idCopy);
         
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 

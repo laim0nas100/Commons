@@ -257,7 +257,7 @@ public class ReflectTest {
 //
 //        rt.reflectionPrint();
 
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 
@@ -382,7 +382,7 @@ public class ReflectTest {
 //        rp.keepPrinting(factory.newReflectNode(clone));
 
         DLog.print("Time spent", time);
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
 }

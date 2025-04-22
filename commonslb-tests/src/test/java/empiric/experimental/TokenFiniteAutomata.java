@@ -8,6 +8,7 @@ package empiric.experimental;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lt.lb.commons.DLog;
 import lt.lb.commons.parsing.Lexer;
 import lt.lb.commons.parsing.token.Token;
@@ -57,7 +58,7 @@ public class TokenFiniteAutomata {
         
         producer.forEachRemaining(DLog::print);
 
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
 }

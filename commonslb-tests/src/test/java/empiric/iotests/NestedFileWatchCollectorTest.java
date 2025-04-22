@@ -8,6 +8,7 @@ package empiric.iotests;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
+import java.util.concurrent.TimeUnit;
 import lt.lb.commons.DLog;
 import lt.lb.commons.io.filewatch.NestedFileWatchCollector;
 
@@ -17,7 +18,7 @@ import lt.lb.commons.io.filewatch.NestedFileWatchCollector;
  */
 public class NestedFileWatchCollectorTest {
 
-    public static void main(String... args) throws IOException, InterruptedException {
+    public static void main(String... args) throws Exception {
         NestedFileWatchCollector nfw = new NestedFileWatchCollector(Paths.get("D:\\test"));
         nfw.tryInit();
         
@@ -35,7 +36,7 @@ public class NestedFileWatchCollectorTest {
         Thread.sleep(20000);
         nfw.terminate();
         DLog.print("Closing");
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
 }

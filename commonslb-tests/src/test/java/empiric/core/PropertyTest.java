@@ -6,6 +6,7 @@
 package empiric.core;
 
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 import lt.lb.commons.containers.values.BindingValue;
 import lt.lb.commons.DLog;
 import lt.lb.commons.parsing.NumberParsing;
@@ -18,7 +19,7 @@ import org.junit.Test;
 public class PropertyTest {
 
 //    @Test
-    public void testProp() {
+    public void testProp() throws Exception {
         DLog.main().async = false;
         LinkedList<BindingValue> list = new LinkedList<>();
         BindingValue<Integer> v1 = new BindingValue<>(1);
@@ -39,7 +40,7 @@ public class PropertyTest {
         s1.set("new");
         DLog.print(list);
 
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
     public static void nest(int left, Runnable action) {
@@ -50,7 +51,7 @@ public class PropertyTest {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Exception exception = new Exception();
 //        DLog.main().stackTrace = false;
 //        DLog.main().threadName = false;
@@ -62,6 +63,6 @@ public class PropertyTest {
         nest(5, () -> DLog.print(new Exception().getStackTrace()));
         nest(5, () -> DLog.printStackTrace(DLog.main()));
 
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 }

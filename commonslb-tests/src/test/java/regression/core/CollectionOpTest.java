@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
@@ -132,7 +133,7 @@ public class CollectionOpTest {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         List<Integer> list1 = Lists.newArrayList(1, 3, 5, 7, 8, 9);
         List<Integer> list2 = Lists.newArrayList(1, 2, 5, 6, 9, 7, 8, 10);
         
@@ -154,7 +155,7 @@ public class CollectionOpTest {
         ArrayList<Pair<Integer>> intersectionPairs = CollectionOp.intersectionPairs(list1, list2, mod3);
         DLog.printLines(intersectionPairs);
 
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
     private static <T> List<T> mapPair(boolean left, Collection<? extends Pair<T>> pairs) {

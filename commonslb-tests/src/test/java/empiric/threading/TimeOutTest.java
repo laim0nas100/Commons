@@ -16,6 +16,7 @@ import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.RunnableDecorators;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import org.junit.Test;
 
 /**
  *
@@ -23,7 +24,6 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
  */
 public class TimeOutTest {
 
-    
     public void timeoutTest1() throws Exception {
 
         ExecutorService exe = Executors.newScheduledThreadPool(1);
@@ -42,9 +42,8 @@ public class TimeOutTest {
         DLog.print("End");
         exe.shutdown();
         exe.awaitTermination(1, TimeUnit.DAYS);
-        DLog.await(1, TimeUnit.DAYS);
+         DLog.await(1, TimeUnit.MINUTES);
     }
-//    @Test
     public void timeoutTest2() throws Exception {
         ExecutorService exe = Executors.newScheduledThreadPool(1);
         
@@ -70,6 +69,6 @@ public class TimeOutTest {
         DLog.print("End");
         exe.shutdown();
         exe.awaitTermination(1, TimeUnit.DAYS);
-        DLog.await(1, TimeUnit.DAYS);
+        DLog.await(1, TimeUnit.MINUTES);
     }
 }

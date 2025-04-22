@@ -79,10 +79,10 @@ public class FastExecutorTest {
             DLog.print("After shutdown left unexecuted:" + shutdownNow.size());
         });
 
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
 
-//        DLog.await(1, TimeUnit.HOURS);
-//        DLog.close();
+//        DLog.await(1, TimeUnit.MINUTES);
+//        DLog.await(1, TimeUnit.MINUTES);
     }
 
 //    @Test
@@ -95,7 +95,8 @@ public class FastExecutorTest {
                 DLog.print(ii);
             });
         }
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 

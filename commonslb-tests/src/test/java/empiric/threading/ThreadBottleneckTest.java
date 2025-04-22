@@ -5,6 +5,7 @@
  */
 package empiric.threading;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
@@ -69,7 +70,7 @@ public class ThreadBottleneckTest {
         };
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args)throws Exception {
 
         Benchmark bench = new Benchmark();
 
@@ -82,7 +83,7 @@ public class ThreadBottleneckTest {
         }
 
 //        DLog.println("",inc1.increment(),inc2.increment(),inc3.increment());
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
 }

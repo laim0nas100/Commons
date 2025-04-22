@@ -27,6 +27,6 @@ public class HashMapTest {
             return null;
         });
         DLog.print(map.entrySet());
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
     }
 }

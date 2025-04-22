@@ -1,16 +1,10 @@
 package empiric.threading;
 
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
 import lt.lb.commons.DLog;
-import lt.lb.commons.containers.values.IntegerValue;
-import lt.lb.commons.containers.values.LongValue;
 import lt.lb.commons.threads.executors.scheduled.DelayedTaskExecutor;
-import lt.lb.commons.threads.executors.scheduled.ScheduleLoopCondition;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -21,7 +15,7 @@ public class DelayedTaskExecutorTest {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException {
 
-        if (true) {
+        if (false) {
             Long time = WaitTime.ofDays(400).convert(TimeUnit.NANOSECONDS).time;
             Long minutes = WaitTime.ofMinutes(1).convert(TimeUnit.NANOSECONDS).time;
             DLog.print(time, minutes, time / minutes);
@@ -66,11 +60,17 @@ public class DelayedTaskExecutorTest {
                     return;
                 }
 //                DLog.print("after HI");
-            }, 2, 1, TimeUnit.SECONDS);
+            }, 1, 1, TimeUnit.SECONDS);
+            
+            exe.schedule(WaitTime.ofSeconds(10), ()->{
+                DLog.print("Cancel from one shot");
+                scheduleWithFixedDelay.cancel(true);
+            });
+            
+            exe.awaitOneShotCompletion().await();
 
-            Thread.sleep(30000);
 //            scheduleWithFixedDelay.cancel(true);
-            scheduleWithFixedDelay.cancel(true);
+            
             DLog.print("After cancel");
             exe.awaitFullCompletion().await();
             DLog.print("END");

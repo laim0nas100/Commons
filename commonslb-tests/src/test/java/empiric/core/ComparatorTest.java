@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lt.lb.commons.DLog;
 import lt.lb.commons.iteration.ReadOnlyIterator;
@@ -84,7 +85,7 @@ public class ComparatorTest {
     }
     
     
-    public static void main(String...args){
+    public static void main(String...args) throws Exception{
         
         List<Item> list = new ArrayList<>();
         DLog.main().async = false;
@@ -107,7 +108,7 @@ public class ComparatorTest {
         
         
         
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
     
 }

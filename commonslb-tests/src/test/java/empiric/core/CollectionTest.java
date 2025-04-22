@@ -75,7 +75,7 @@ public class CollectionTest {
 
         listIterator.set(20L);
         DLog.print(list.toString());
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 
@@ -138,7 +138,7 @@ public class CollectionTest {
         DLog.println(b.executeBench(5000, "PrefillMap", makeRun(map2, new FastRandom(1337), 10000)));
         DLog.println(b.executeBench(5000, "HashMap", makeRun(map1, new FastRandom(1337), 10000)));
         Checked.checkedRun(() -> {
-            DLog.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.MINUTES);
         });
     }
     

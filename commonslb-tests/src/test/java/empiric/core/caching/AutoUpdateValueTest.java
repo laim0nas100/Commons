@@ -29,7 +29,7 @@ public class AutoUpdateValueTest {
         DLog.print(val.get(true));
         String get = val.get();
         DLog.print(get);
-        DLog.await(1, TimeUnit.DAYS);
+        DLog.await(1, TimeUnit.MINUTES);
         
         
     }

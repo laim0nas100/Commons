@@ -30,7 +30,7 @@ public class IteratorTest {
         testBench();
         DLog.main().disable = false;
         testBench();
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
 //    @Test
@@ -61,7 +61,7 @@ public class IteratorTest {
         Iter.iterate(ReadOnlyIterator.of(arr), it);
 
 //        DLog.print(() -> ReflectionUtils.reflectionString(DLog.main(), 2));
-        DLog.await(1, TimeUnit.HOURS);
+        DLog.await(1, TimeUnit.MINUTES);
     }
 
 //    @Test

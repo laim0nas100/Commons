@@ -22,6 +22,10 @@ import lt.lb.uncheckedutils.func.UncheckedBiFunction;
  * @author laim0nas100
  */
 public class ArrayTest {
+    
+    public static void main(String... args) throws Exception{
+        new ArrayTest().arrayTest();
+    }
 
 //    @Test
     public void arrayTest() throws InterruptedException, TimeoutException {
@@ -68,7 +72,10 @@ public class ArrayTest {
         DLog.print(mapCombine);
 
         DLog.print("Šakės".equalsIgnoreCase("šakĖs"));
-
-        DLog.await(1, TimeUnit.HOURS);
+        
+        DLog.print("END");
+        DLog.print(DLog.main(), "Stack check");
+        DLog.close();
+//        DLog.await(1, TimeUnit.MINUTES);
     }
 }

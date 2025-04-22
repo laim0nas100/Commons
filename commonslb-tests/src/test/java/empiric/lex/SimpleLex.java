@@ -56,7 +56,7 @@ public class SimpleLex {
 
         lex.resetLines(readFrom);
         DLog.printLines(lex.getRemainingTokens());
-        DLog.await(10, TimeUnit.DAYS);
+        DLog.await(1, TimeUnit.MINUTES);
 
     }
 }

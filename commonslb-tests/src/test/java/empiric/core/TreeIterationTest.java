@@ -8,6 +8,7 @@ package empiric.core;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.DLog;
@@ -43,7 +44,7 @@ public class TreeIterationTest {
         DLog.print("ok");
         DLog.print("Stack depth:", ReflectionUtils.getMaximumStackDepth());
 
-        Checked.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
+        Checked.uncheckedRun(() -> DLog.close());
 
     }
 
@@ -123,7 +124,7 @@ public class TreeIterationTest {
 //        DLog.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),false).resolve());
 //        DLog.print("DFS order 3");
 //        DLog.print("Found  ?:",TreeVisitorImpl.DFSCaller(it, node, Optional.empty(),true).resolve());
-        Checked.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
+        Checked.uncheckedRun(() -> DLog.close());
 
     }
 
@@ -203,9 +204,9 @@ public class TreeIterationTest {
 
     }
 
-    public static void main(String... args) {
+    public static void main(String... args) throws InterruptedException, TimeoutException {
 
         benchMe(30, 10000, 5000);
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
 }

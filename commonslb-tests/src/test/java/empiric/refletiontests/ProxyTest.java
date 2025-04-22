@@ -64,7 +64,7 @@ public class ProxyTest {
 
         DLog.print(proxyMap.get("key1"));
         
-        Checked.uncheckedRun(() -> DLog.await(1, TimeUnit.HOURS));
+        Checked.uncheckedRun(() -> DLog.close());
 
     }
 

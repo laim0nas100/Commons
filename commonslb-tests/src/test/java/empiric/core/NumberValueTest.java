@@ -58,7 +58,7 @@ public class NumberValueTest {
         
         
         Checked.uncheckedRun(()->{
-            DLog.await(1, TimeUnit.HOURS);
+            DLog.await(1, TimeUnit.MINUTES);
         });
         
     }

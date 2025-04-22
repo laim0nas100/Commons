@@ -2,6 +2,7 @@ package empiric.core;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lt.lb.commons.DLog;
 import lt.lb.commons.containers.caching.lazy.LazyProxy;
 import lt.lb.commons.containers.caching.lazy.LazyValue;
@@ -14,7 +15,7 @@ import org.junit.Test;
 public class LazyValueTest {
     
 //    @Test
-    public void test() {
+    public void test() throws Exception{
         HashMap<String, String> str = new HashMap<>();
         str.put("1", "one");
         str.put("2", "two");
@@ -39,7 +40,7 @@ public class LazyValueTest {
         DLog.print("After invalidate");
         DLog.print( map2.get());
         
-        DLog.close();
+        DLog.await(1, TimeUnit.MINUTES);
     }
     
 }
