@@ -16,12 +16,15 @@ import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorator;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameState;
 import lt.lb.commons.javafx.scenemanagement.frames.Util;
 import lt.lb.fastid.FastID;
+import lt.lb.fastid.FastIDGen;
 
 /**
  *
  * @author laim0nas100
  */
 public interface FrameManager {
+
+    public static final FastIDGen FRAME_ID_GEN = FastID.getNewGenerator();
 
     public default boolean closeFrame(String ID) {
         Frame frame = getFrameMap().remove(ID);
@@ -73,13 +76,7 @@ public interface FrameManager {
     }
 
     public default String getAvailableId() {
-
-        while (true) {
-            String id = "Frame-" + FastID.getAndIncrementGlobal();
-            if (!getFrameMap().containsKey(id)) {
-                return id;
-            }
-        }
+        return "F-" + FRAME_ID_GEN.getAndIncrement().toString();
     }
 
     public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor) {

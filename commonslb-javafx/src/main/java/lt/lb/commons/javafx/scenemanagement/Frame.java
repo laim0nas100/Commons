@@ -32,23 +32,23 @@ public interface Frame {
     }
 
     public default void close() {
-        FX.runAndWait(()->{
+        FX.runAndWait(() -> {
             getManager().closeFrame(getID());
         });
-        
+
     }
 
     public default void show() {
-        FX.runAndWait(()->{
+        FX.runAndWait(() -> {
             getManager().showFrame(getID());
         });
-        
+
     }
 
     public default void hide() {
-        FX.runAndWait(()->{
+        FX.runAndWait(() -> {
             getManager().hideFrame(getID());
         });
-        
+
     }
 }

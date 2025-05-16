@@ -76,40 +76,7 @@ public class FX {
     }
 
     public static <T> CompletableFuture<T> submit(Callable<T> call, Consumer<Throwable> handler) {
-        return submitAsync(call, handler, platformExecutor);
-    }
-
-    private static <T> CompletableFuture<T> submitAsync(Callable<T> call, Consumer<Throwable> handler, Executor exe) {
-        return CompletableFuture.supplyAsync(() -> {
-            Value<T> val = new Value<>();
-            Checked.uncheckedRunWithHandler(
-                    handler,
-                    () -> {
-                        val.set(call.call());
-                    }
-            );
-            return val.get();
-        }, exe);
-    }
-
-    public static CompletableFuture<Void> submitAsync(Runnable run, Executor exe) {
-        return CompletableFuture.runAsync(run, exe);
-    }
-
-    public static CompletableFuture<Void> submitAsync(UncheckedRunnable run, Executor exe) {
-        return CompletableFuture.runAsync(run, exe);
-    }
-
-    public static void join(Future... futures) {
-        join(Arrays.asList(futures));
-    }
-
-    public static void join(Collection<Future> futures) {
-        futures.forEach(f -> {
-            Checked.uncheckedRun(() -> {
-                f.get();
-            });
-        });
+        return Futures.submitAsync(call, handler, platformExecutor);
     }
 
     private static Logger logger = LoggerFactory.getLogger(FX.class);

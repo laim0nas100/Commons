@@ -33,7 +33,7 @@ public abstract class ExtTask<T> implements RunnableFuture {
     public HashMap<String, Object> valueMap = new HashMap<>();
     public ExtTask childTask;
     protected LinkedBlockingDeque resultDeque = new LinkedBlockingDeque();
-    protected Object result;
+    protected T result;
     protected Thread currentThread;
     protected InvokeChildTask onInterrupted, onDone, onFailed, onCanceled, onSucceded;
     protected int timesToRun = 1;
@@ -47,6 +47,28 @@ public abstract class ExtTask<T> implements RunnableFuture {
 
     public ExtTask(int timesToRun) {
         this.timesToRun = timesToRun;
+        paused.addListener(l -> {
+            synchronized (paused) {
+                paused.notifyAll();
+            }
+        });
+        canceled.addListener(l -> {
+            synchronized (paused) {
+                paused.notifyAll();
+            }
+        });
+    }
+
+    public boolean conditionalWaitOrExit() throws InterruptedException {
+        while (paused.get()) {
+            if (isCancelled()) {
+                return true;
+            }
+            synchronized (paused) {
+                paused.wait(1000);
+            }
+        }
+        return isCancelled();
     }
 
     public ExtTask() {
@@ -143,22 +165,23 @@ public abstract class ExtTask<T> implements RunnableFuture {
 
     @Override
     public T get() throws InterruptedException {
-        if (done.get()) {
-            return Nulls.castOrNullIfEmptyObject(result);
-        } else {
-            result = resultDeque.takeLast();
-            return Nulls.castOrNullIfEmptyObject(result);
-        }
+        return get(7, TimeUnit.DAYS);
     }
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException {
-        if (done.get()) {
-            return Nulls.castOrNullIfEmptyObject(result);
-        } else {
-            result = resultDeque.pollLast(timeout, unit);
-            return Nulls.castOrNullIfEmptyObject(result);
+        if (result != null) {
+            return result;
         }
+        Object res = resultDeque.pollLast(timeout, unit);
+        if (res == null) {// failed to await
+            if (result != null) {//could be set by another waiter
+                return result;
+            }
+            return null;
+        }
+        result = Nulls.castOrNullIfEmptyObject(res);
+        return result;
     }
 
     protected abstract T call() throws Exception;
