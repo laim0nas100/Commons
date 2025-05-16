@@ -23,11 +23,10 @@ public class DTELoopingScheduledFuture<T> extends DTEScheduledFuture<T> {
     public boolean isOneShot() {
         return false;
     }
-    
 
     @Override
-    public void run() {
-        if(ref.isCancelled()){
+    protected void logic() {
+        if (ref.isCancelled()) {
             return;
         }
         FutureTask<T> currentTask = ref.getRef();

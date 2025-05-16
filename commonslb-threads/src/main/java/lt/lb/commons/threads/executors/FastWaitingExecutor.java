@@ -1,13 +1,10 @@
 package lt.lb.commons.threads.executors;
 
 import java.util.Objects;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
-import lt.lb.commons.F;
 import lt.lb.commons.threads.SimpleThreadPool;
 import lt.lb.commons.threads.ThreadPool;
+import lt.lb.commons.threads.sync.ConcurrentArena;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -37,33 +34,18 @@ public class FastWaitingExecutor extends FastExecutor {
     }
 
     @Override
-    protected Queue<Runnable> makeQueue() {
+    protected ConcurrentArena<Runnable> makeQueue() {
         if (maxThreads == 0) {
             return null;
         }
-        return new LinkedBlockingQueue<>();
+        return ConcurrentArena.fromBlocking(new LinkedBlockingQueue<>());
     }
 
     @Override
-    protected void polling() {
-        BlockingQueue<Runnable> queue = F.cast(tasks);
-        try {
-            int index = -1;
-            while (!queue.isEmpty()) {
-
-                Runnable first = queue.poll(wt.time, wt.unit);
-                if (first == null) {
-                    return;
-                } else {
-                    adds.decrementAndGet();
-                }
-                index = executeSingle(index, first, true);
-
-            }
-        } catch (InterruptedException ex) {
-        }
+    protected Runnable getNext() throws InterruptedException{
+        return tasks.poll(wt.time, wt.unit);
     }
-
+    
     /**
      * {@inheritDoc} Additionally interrupts threads in wait state.
      */

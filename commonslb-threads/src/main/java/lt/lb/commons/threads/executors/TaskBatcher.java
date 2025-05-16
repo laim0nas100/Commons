@@ -5,28 +5,32 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lt.lb.commons.F;
+import lt.lb.commons.Java;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
+
 /**
  *
  * @author laim0nas100
  */
 public class TaskBatcher implements Executor {
 
-    private LinkedBlockingDeque<Future> deque = new LinkedBlockingDeque<>();
-    private Executor exe;
+    private ArrayDeque<Future> deque = new ArrayDeque<>();
+    private BurstExecutor exe;
     private volatile FutureTask<BatchRunSummary> waitingTask = new FutureTask<>(() -> BatchRunSummary.empty());
     private AtomicBoolean inTask = new AtomicBoolean(false);
 
-    public TaskBatcher(Executor exe) {
-        this.exe = exe;
+    public TaskBatcher() {
+        this(Java.getAvailableProcessors());
+    }
+
+    public TaskBatcher(int paralelism) {
+        this.exe = new BurstExecutor(paralelism);
+        waitingTask.run();
     }
 
     public <T> Future<T> execute(Callable<T> call) {
@@ -37,14 +41,7 @@ public class TaskBatcher implements Executor {
 
     @Override
     public void execute(Runnable command) {
-        FutureTask task;
-        if (!(command instanceof FutureTask)) {
-            task = new FutureTask(Executors.callable(command, null));
-        } else {
-            task = F.cast(command);
-        }
-        exe.execute(task);
-        deque.addFirst(task);
+        deque.addFirst(exe.submit(command));
     }
 
     public static class BatchRunSummary {
@@ -62,8 +59,8 @@ public class TaskBatcher implements Executor {
             this.interrupted = interrupted;
             this.failures = th;
         }
-        
-        public static BatchRunSummary empty(){
+
+        public static BatchRunSummary empty() {
             return new BatchRunSummary(0, 0, 0, 0, Arrays.asList());
         }
     }
@@ -75,7 +72,7 @@ public class TaskBatcher implements Executor {
      */
     public BatchRunSummary awaitFailOnFirst() {
         return Checked.checkedCallNoExceptions(() -> {
-            return await(true, WaitTime.ofDays(0), WaitTime.ofDays(0));// should not throw InterruptedException
+            return await(true, WaitTime.ofDays(0));// should not throw InterruptedException
         });
     }
 
@@ -86,7 +83,7 @@ public class TaskBatcher implements Executor {
      */
     public BatchRunSummary awaitTolerateFails() {
         return Checked.checkedCallNoExceptions(() -> {
-            return await(false, WaitTime.ofDays(0), WaitTime.ofDays(0));// should not throw InterruptedException
+            return await(false, WaitTime.ofDays(0));// should not throw InterruptedException
         });
     }
 
@@ -100,21 +97,21 @@ public class TaskBatcher implements Executor {
      * to 0 to disable.
      * @return
      */
-    public BatchRunSummary await(boolean failFast, WaitTime pollWait, WaitTime executionWait) {
+    public BatchRunSummary await(boolean failFast, WaitTime executionWait) {
         if (this.inTask.compareAndSet(false, true)) {
-
+            ArrayDeque<Future> localDeque = deque;
+            deque = new ArrayDeque<>();
+            exe.burst();
             Callable<BatchRunSummary> call = () -> {
+
                 int total = 0;
                 int ok = 0;
                 int interrupted = 0;
                 int timeout = 0;
                 ArrayDeque<Throwable> failures = new ArrayDeque<>();
-                boolean waitPoll = pollWait.time > 0;
                 boolean waitGet = executionWait.time > 0;
-                while (!deque.isEmpty()) {
-                    Future last = Checked.checkedCallNoExceptions(() -> {
-                        return waitPoll ? deque.pollLast(pollWait.time, pollWait.unit) : deque.pollLast();
-                    });
+                while (!localDeque.isEmpty()) {
+                    Future last = localDeque.pollLast();
 
                     Throwable err = null;
                     if (last != null) {
@@ -136,12 +133,12 @@ public class TaskBatcher implements Executor {
                             err = th;
                         }
                     }
-                    
+
                     if (err != null) {
-                        if(failures.size() < 10000){ // something went terribly wrong, don't collect everything.
+                        if (failures.size() < 10000) { // something went terribly wrong, don't collect everything.
                             failures.add(err);
                         }
-                        
+
                         if (failFast) {
                             break;
                         }
@@ -149,7 +146,7 @@ public class TaskBatcher implements Executor {
 
                 }
                 if (!inTask.compareAndSet(true, false)) {
-                    throw new IllegalStateException("IMPOSSIBLE!!!");
+                    throw new IllegalStateException("Should not happen");
                 }
                 return new BatchRunSummary(total, ok, timeout, interrupted, failures);
             };

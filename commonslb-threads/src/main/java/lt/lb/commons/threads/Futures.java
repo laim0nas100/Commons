@@ -1,9 +1,11 @@
 package lt.lb.commons.threads;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -11,8 +13,10 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.containers.values.Value;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
@@ -162,6 +166,7 @@ public class Futures {
                 return SafeOpt.ofNullable(future.get());
             } catch (InterruptedException ex) {
                 if (interruptable) {
+                    Thread.currentThread().interrupt();
                     return SafeOpt.error(ex);
                 }
             } catch (ExecutionException ex) {
@@ -179,7 +184,7 @@ public class Futures {
     }
 
     public static <V> MappableFuture<Iterable<V>> mappableForAll(Iterable<Future<V>> futures) {
-        return mappableForAll(futures, ForkJoinPool.commonPool());
+        return mappableForAll(futures, awaitPool);
     }
 
     public static <V> MappableFuture<Iterable<V>> mappableForAll(Iterable<Future<V>> futures, Executor exe) {
@@ -199,9 +204,15 @@ public class Futures {
         return ofCallable(() -> null);
     }
 
-    public static <V> FutureTask<V> chainForward(Future<V> base, Collection<Future> next) {
+     public static <V> FutureTask<V> chainForward(Callable<V> base, Future... next) {
+        return chainForward(base, Arrays.asList(next));
+    }
+
+    
+    public static <V> FutureTask<V> chainForward(Callable<V> base, Collection<Future> next) {
+        Objects.requireNonNull(base);
         return ofCallable(() -> {
-            V get = base.get();
+            V get = base.call();
             for (Future f : next) {
                 f.get();
             }
@@ -209,12 +220,50 @@ public class Futures {
         });
     }
 
-    public static <V> FutureTask<V> chainBackward(Future<V> base, Collection<Future> before) {
+    public static <V> FutureTask<V> chainBackward(Callable<V> base, Future... before) {
+        return chainBackward(base, Arrays.asList(before));
+    }
+
+    public static <V> FutureTask<V> chainBackward(Callable<V> base, Collection<Future> before) {
+        Objects.requireNonNull(base);
         return ofCallable(() -> {
             for (Future f : before) {
                 f.get();
             }
-            return base.get();
+            return base.call();
+        });
+    }
+
+    public static <T> CompletableFuture<T> submitAsync(Callable<T> call, Consumer<Throwable> handler, Executor exe) {
+        return CompletableFuture.supplyAsync(() -> {
+            Value<T> val = new Value<>();
+            Checked.uncheckedRunWithHandler(
+                    handler,
+                    () -> {
+                        val.set(call.call());
+                    }
+            );
+            return val.get();
+        }, exe);
+    }
+
+    public static CompletableFuture<Void> submitAsync(Runnable run, Executor exe) {
+        return CompletableFuture.runAsync(run, exe);
+    }
+
+    public static CompletableFuture<Void> submitAsync(UncheckedRunnable run, Executor exe) {
+        return CompletableFuture.runAsync(run, exe);
+    }
+
+    public static void join(Future... futures) {
+        join(Arrays.asList(futures));
+    }
+
+    public static void join(Collection<Future> futures) {
+        futures.forEach(f -> {
+            Checked.uncheckedRun(() -> {
+                f.get();
+            });
         });
     }
 }

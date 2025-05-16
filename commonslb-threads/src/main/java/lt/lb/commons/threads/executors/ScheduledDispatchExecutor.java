@@ -1,7 +1,8 @@
 package lt.lb.commons.threads.executors;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,7 +16,7 @@ import lt.lb.commons.containers.values.BooleanValue;
 public class ScheduledDispatchExecutor {
 
     protected ScheduledExecutorService dispatcher;
-    protected HashMap<String, BooleanValue> enabledMap = new HashMap<>();
+    protected Map<String, BooleanValue> enabledMap = new ConcurrentHashMap<>();
 
     public ScheduledDispatchExecutor() {
     }

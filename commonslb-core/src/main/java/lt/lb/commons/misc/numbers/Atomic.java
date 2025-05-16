@@ -1,12 +1,14 @@
 package lt.lb.commons.misc.numbers;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
+import java.util.function.IntBinaryOperator;
 
 /**
  *
  * @author laim0nas100
  */
-public class Atomic {
+public abstract class Atomic {
 
     /**
      * Using both signs to determine if increment was successful. Will return
@@ -20,7 +22,7 @@ public class Atomic {
      * @return
      */
     public static int signedAccumulate(AtomicInteger atomic, final int toAdd, final int limit, final int sumOffset) {
-        return atomic.accumulateAndGet(toAdd, (current, add) -> {
+        return accumulateAndGet(atomic, toAdd, (current, add) -> {
             int abs = Math.abs(current);
             int sum = abs + add;
             return (sumOffset + sum) <= limit ? sum : -abs;
@@ -36,10 +38,69 @@ public class Atomic {
      * @return
      */
     public static int signedIncrement(AtomicInteger atomic, final int limit) {
-        return atomic.accumulateAndGet(1, (current, add) -> {
+        return accumulateAndGet(atomic, 1, (current, add) -> {
             int abs = Math.abs(current);
             int sum = abs + add;
             return sum <= limit ? sum : -abs;
         });
+    }
+
+    public static int getAndIncrement(AtomicInteger atomic, int inc) {
+        for (;;) {
+            int get = atomic.get();
+            if (atomic.compareAndSet(get, get + inc)) {
+                return get;
+            }
+            LockSupport.parkNanos(1);
+        }
+    }
+
+    public static int getAndIncrement(AtomicInteger atomic) {
+        return getAndIncrement(atomic, 1);
+    }
+
+    public static int getAndDecrement(AtomicInteger atomic) {
+        return getAndIncrement(atomic, -1);
+    }
+
+    public static int incrementAndGet(AtomicInteger atomic, int inc) {
+        for (;;) {
+            int get = atomic.get();
+            int ret = get + inc;
+            if (atomic.compareAndSet(get, ret)) {
+                return ret;
+            }
+            LockSupport.parkNanos(1);
+        }
+    }
+
+    public static int incrementAndGet(AtomicInteger atomic) {
+        return incrementAndGet(atomic, 1);
+    }
+
+    public static int decrementAndGet(AtomicInteger atomic) {
+        return incrementAndGet(atomic, -1);
+    }
+
+    public static int accumulateAndGet(AtomicInteger atomic, int x, IntBinaryOperator accumulatorFunction) {
+        return accumulate(true, atomic, x, accumulatorFunction);
+    }
+
+    public static int getAndAccumulate(AtomicInteger atomic, int x, IntBinaryOperator accumulatorFunction) {
+        return accumulate(false, atomic, x, accumulatorFunction);
+    }
+
+    public static int accumulate(final boolean returnNext, AtomicInteger atomic, int x, IntBinaryOperator accumulatorFunction) {
+        int prev = atomic.get(), next = 0;
+        for (boolean haveNext = false;;) {
+            if (!haveNext) {
+                next = accumulatorFunction.applyAsInt(prev, x);
+            }
+            if (atomic.compareAndSet(prev, next)) {
+                return returnNext ? next : prev;
+            }
+            LockSupport.parkNanos(1);
+            haveNext = (prev == (prev = atomic.get()));
+        }
     }
 }

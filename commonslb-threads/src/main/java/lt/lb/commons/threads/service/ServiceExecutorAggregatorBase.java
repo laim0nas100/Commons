@@ -67,24 +67,28 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
         return servMap.containsKey(name);
     }
 
+    protected ExecutorService getOrCreate(String name, Supplier<? extends ExecutorService> supplier) {
+        return servMap.compute(name, (k, current) -> {
+            if(current == null){
+                if(isShutdown()){
+                    throw new IllegalStateException("Shutdown has been called, cannot create new service by name:"+name);
+                }
+                return serviceSupplier.getOrDefault(k, supplier).get();
+            }
+            return current;
+        });
+    }
+
     public ExecutorService service(String servName) {
-        if (shutdown) {
-            throw new IllegalStateException("Shutdown has been called");
-        }
-        return servMap.computeIfAbsent(servName, k -> serviceSupplier.getOrDefault(k, defaultSupplier).get());
+        return getOrCreate(servName, defaultSupplier);
     }
 
     public ScheduledExecutorService scheduledService(String servName) {
-        return (ScheduledExecutorService) servMap.compute(servName, (k, old) -> {
-            if (old == null) {
-                return serviceSupplier.getOrDefault(servName, defaultSchedulerSupplier).get();
-            } else {
-                if (old instanceof ScheduledExecutorService) {
-                    return old;
-                }
-                throw new IllegalArgumentException("Requested service is allready registered, and it's not of type:" + ScheduledExecutorService.class + ", it's" + old);
-            }
-        });
+        ExecutorService service = getOrCreate(servName, defaultSchedulerSupplier);
+        if (service instanceof ScheduledExecutorService) {
+            return (ScheduledExecutorService) service;
+        }
+        throw new IllegalArgumentException("Requested service is allready registered, and it's not of type:" + ScheduledExecutorService.class + ", it's" + service);
     }
 
     @Override

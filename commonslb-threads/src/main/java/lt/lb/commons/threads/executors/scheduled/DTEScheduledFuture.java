@@ -12,6 +12,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
+import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -56,6 +57,9 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
 
     @Override
     public int compareTo(Delayed o) {
+        if(o == null){
+            return 1;
+        }
         if (o instanceof DTEScheduledFuture) {
             DTEScheduledFuture other = F.cast(o);
             return Long.compare(waitDurNanos, other.waitDurNanos);
@@ -80,9 +84,17 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
         return ref.cancel(mayInterruptIfRunning);
     }
 
-    @Override
-    public void run() {
+    protected void logic() {
         ref.getRef().run();
+    }
+
+    @Override
+    public final void run() {
+        try {
+            logic();
+        } finally {
+            Atomic.incrementAndGet(exe.executing, -1);
+        }
     }
 
     @Override

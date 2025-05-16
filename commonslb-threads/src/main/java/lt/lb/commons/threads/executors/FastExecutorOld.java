@@ -20,7 +20,7 @@ import lt.lb.commons.threads.SimpleThreadPool;
 import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentIndexedAbstract;
 import lt.lb.commons.threads.sync.ConcurrentIndexedBag;
-import lt.lb.commons.threads.sync.ThreadLocalParkSpace;
+import lt.lb.uncheckedutils.concurrent.ThreadLocalParkSpace;
 
 /**
  *

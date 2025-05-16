@@ -21,9 +21,7 @@ public class DTELoopingLimitedScheduledFuture<T> extends DTELoopingScheduledFutu
         this.loopCondition = Objects.requireNonNull(loopCondition);
     }
 
-    @Override
-    public void run() {
-
+    protected void logic() {
         FutureTask<T> currentTask = ref.getRef();
         if (ref.isCancelled()) {
             loopCondition.loopCanceled(currentTask);
@@ -45,7 +43,6 @@ public class DTELoopingLimitedScheduledFuture<T> extends DTELoopingScheduledFutu
                 exe.schedule(this);
                 loopCondition.newScheduleCommitedAfterCheck(currentTask, futureTask);
             } else {
-                System.out.println("CAS failed");
                 loopCondition.newScheduleFailedAfterCheck(currentTask, futureTask);
             }
         }

@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.sync.ConcurrentIndexedAbstract.Cell;
 
 /**
@@ -66,7 +66,7 @@ public abstract class ConcurrentIndexedAbstract<T, C extends Cell<T>> implements
         int count = 0;
         while (true) {
 
-            int i = insertIndex.getAndUpdate(x -> (x + 1) % size);
+            int i = Atomic.getAndIncrement(insertIndex, 1) % size;
             C cell = array[i];
             if (insertLogic(cell, value)) {
                 return i;

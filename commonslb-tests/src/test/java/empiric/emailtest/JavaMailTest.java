@@ -410,7 +410,7 @@ public class JavaMailTest {
         DirectoryStream<Path> spamStream = Files.newDirectoryStream(Paths.get("E:\\University\\MIF_Master_Informatics_Semester1\\Data Analysis\\cp\\pratybos\\03\\enron1\\spam"));
         ConcurrentLinkedDeque<EmailAttributes> deque = new ConcurrentLinkedDeque<>();
 
-        TaskBatcher batcher = new TaskBatcher(new FastWaitingExecutor(8, WaitTime.ofSeconds(2)));
+        TaskBatcher batcher = new TaskBatcher(8);
 
         spamStream.forEach(es -> {
             batcher.execute(() -> {

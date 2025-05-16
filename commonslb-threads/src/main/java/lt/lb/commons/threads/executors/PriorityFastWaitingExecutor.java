@@ -1,11 +1,11 @@
 package lt.lb.commons.threads.executors;
 
 import java.util.Comparator;
-import java.util.Queue;
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
 import lt.lb.commons.threads.SimpleThreadPool;
+import lt.lb.commons.threads.sync.ConcurrentArena;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -75,29 +75,11 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
     }
 
     @Override
-    protected Queue<Runnable> makeQueue() {
+    protected ConcurrentArena<Runnable> makeQueue() {
         if (maxThreads == 0) {
             return null;
         }
-        return new PriorityBlockingQueue<>(1, priorityComparator.reversed());
-    }
-
-    @Override
-    protected void polling() {
-        PriorityBlockingQueue<Runnable> queue = F.cast(tasks);
-        int index = -1;
-        while (!queue.isEmpty()) {
-            try {
-                Runnable first = queue.poll(wt.time, wt.unit);
-                if (first == null) {
-                    return;
-                } else {
-                    adds.decrementAndGet();
-                }
-                index = executeSingle(index, first, true);
-            } catch (InterruptedException ex) {
-            }
-        }
+        return ConcurrentArena.fromBlocking(new PriorityBlockingQueue<>(16, priorityComparator.reversed()));
     }
 
     /**

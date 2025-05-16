@@ -1,10 +1,12 @@
 package lt.lb.commons.threads.executors;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
+import lt.lb.commons.threads.executors.scheduled.DelayedTaskExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -18,7 +20,7 @@ public class DelayedWaveExecutor implements Executor {
     protected WaitTime wt;
 
     protected ConcurrentLinkedDeque<Runnable> deque = new ConcurrentLinkedDeque<>();
-    protected AtomicLong pending = new AtomicLong(0);
+    protected AtomicInteger pending = new AtomicInteger(0);
     protected AtomicBoolean inScheduled = new AtomicBoolean(false);
 
     protected boolean inPlace = false;
@@ -30,7 +32,7 @@ public class DelayedWaveExecutor implements Executor {
                 for (int i = 0; i < andSet; i++) {
                     executor.execute(deque.pollFirst());
                 }
-                if (pending.get() > 0) {
+                if (andSet > 0) {
                     if (!inPlace) {
                         schedule();
                         return;
@@ -45,17 +47,16 @@ public class DelayedWaveExecutor implements Executor {
     };
 
     public DelayedWaveExecutor(Executor executor, ScheduledExecutorService service, WaitTime wt) {
-        this.executor = executor;
-        this.service = service;
+        this.executor = Objects.requireNonNull(executor);
+        this.service = Objects.requireNonNull(service);
         this.wt = wt;
         this.inPlace = false;
     }
 
     public DelayedWaveExecutor(Executor executor) {
-        this(executor, null, WaitTime.ofMillis(1));
+        this(executor, new DelayedTaskExecutor(1, new InPlaceExecutor()), WaitTime.ofMillis(1));
         inPlace = true;
     }
-
 
     protected void schedule() {
         service.schedule(r, wt.time, wt.unit);
@@ -69,7 +70,7 @@ public class DelayedWaveExecutor implements Executor {
             if (inPlace) {
                 r.run();
             } else {
-                service.schedule(r, wt.time, wt.unit);
+                schedule();
             }
         }
     }

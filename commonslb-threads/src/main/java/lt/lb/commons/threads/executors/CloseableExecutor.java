@@ -8,10 +8,4 @@ import java.util.concurrent.Executor;
  */
 public interface CloseableExecutor extends Executor, AutoCloseable {
 
-    public default void shutdown() {
-        close();
-    }
-    
-    @Override
-    public void close();
 }
