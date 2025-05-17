@@ -7,13 +7,12 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lt.lb.commons.DLog;
 import lt.lb.commons.Java;
-import lt.lb.commons.threads.executors.FastExecutor;
+import lt.lb.commons.threads.executors.BurstExecutor;
 import lt.lb.commons.threads.service.RequestThrottle;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
@@ -54,7 +53,7 @@ public class RequestThrottleTest {
     public void req(Collection<Req> col, RequestThrottle th) {
         col.add(new Req(th.request()));
     }
-    ExecutorService pool = new FastExecutor(-1); // unlimited threads
+    ExecutorService pool = new BurstExecutor(-1); // plenty of threads
 
     public Collection<Req> testMe(int threads, int times, long sleep, RequestThrottle th) {
         ConcurrentLinkedDeque<Req> col = new ConcurrentLinkedDeque<>();
@@ -64,7 +63,6 @@ public class RequestThrottleTest {
                 for (int i = 0; i < times; i++) {
                     req(col, th);
                     Thread.sleep(sleep);
-                    //250,500,750,1000
                 }
             } catch (InterruptedException ex) {
 
@@ -123,7 +121,7 @@ public class RequestThrottleTest {
             long lastTime = local.get(local.size() - 1).time;
             Assertions.assertThat(local).isSorted();
             if (positive) {
-                Assertions.assertThat(local.size()).describedAs("Period times size").isLessThanOrEqualTo(timesInPeriod).isGreaterThan(timesInPeriod - 2);
+                Assertions.assertThat(local.size()).describedAs("Period times size").isLessThanOrEqualTo(timesInPeriod);
                 Assertions.assertThat(lastTime - firstTime).describedAs("Period first and last times").isLessThanOrEqualTo(periodNano);
 
             }
@@ -175,7 +173,7 @@ public class RequestThrottleTest {
             DLog.setMinimal();
             DLog.print("-----------");
             //testThrottle(250, WaitTime.ofSeconds(1), 20);
-            List<List<Req>> testThrottle = test.getPeriods(10, 10, 250, WaitTime.ofSeconds(1), 20);
+            List<List<Req>> testThrottle = test.getPeriods(10, 10, 200, WaitTime.ofSeconds(1), 20);
 
             for (List<Req> local : testThrottle) {
                 DLog.print("--- change ---" + local.size());

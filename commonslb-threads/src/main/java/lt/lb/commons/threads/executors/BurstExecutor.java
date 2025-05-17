@@ -88,13 +88,8 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
 
     protected BurstExecutor(int maxThreads, ThreadPool threadPool) {
         this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
-        if (maxThreads < 0) {
-            throw new IllegalArgumentException("Unbounded amount of threads is not supported");
-        }
         this.maxThreads = maxThreads;
         this.runningTasks = new ThreadLocalParkSpace<>(Math.max(8, (int) (maxThreads * 2.72)));
-//        this.runningTasks = new ConcurrentIndexedBag<>(Math.max(8, (int) (maxThreads * 2.72)));// e approximation
-
         pool.setStarting(true);
     }
 
@@ -170,8 +165,10 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
                     polling(poll, false);
                 }
             }
+            return;
         }
-        int howMany = Math.min(maxThreads, burst.unfinished());
+        int unfinished = burst.unfinished();
+        int howMany = maxThreads < 0 ? unfinished : Math.min(maxThreads, unfinished);
         for (int i = 0; i < howMany; i++) {
             boolean ok = maybeStartThread(burst);
             if (!ok) {
@@ -180,7 +177,7 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
         }
     }
 
-    protected void polling(BurstBatch burst, final boolean parking) {
+    protected boolean polling(BurstBatch burst, final boolean parking) {
 
         final Running running = parking ? new Running(Thread.currentThread(), null) : Running.EMPTY;
         int index = parking ? runningTasks.park(running) : -1;
@@ -188,11 +185,11 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
             for (;;) {
                 Runnable run = burst.consume();
                 if (run == null) {
-                    return;
+                    return running.canceled;
                 } else {
                     if (parking) {
                         if (running.canceled) {
-                            return;
+                            return true;
                         }
                         running.runnable = run;
                     }
@@ -223,12 +220,13 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
     protected final Runnable threadBody(BurstBatch burst) {
         return () -> {
 
+            boolean cancel = false;
             try {
-                polling(burst, true);
+                cancel = polling(burst, true);
             } finally {
                 int leftRunning = occupiedThreads.decrementAndGet(); //thread no longer running (not really)
 
-                if (leftRunning == 0) {
+                if (leftRunning == 0 && !cancel) {// if cancel, do not begin new burst
                     BurstBatch burstFound = null;
                     if (!bursts.isEmpty()) { //last thread, look for new burst
 
@@ -280,12 +278,28 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
             startThread(burst);
             return true;
 
-        } //unsuported amount of threads
-        throw new IllegalStateException("Unlimited or zero threads is not supported to start a new thread");
+        }
+        if (maxThreads == 0) {
+            throw new IllegalArgumentException("Unsuported amount of threads 0");
+        }
+        occupiedThreads.incrementAndGet();
+        startThread(burst);
+        return true;
 
     }
 
     public List<Runnable> cancelAll(boolean interrupting) {
+        if (interrupting) {
+            for (Running r : runningTasks) {
+                if (r != null) {
+                    r.canceled = true;
+                    if (r.thread.isAlive()) {
+                        r.thread.interrupt();
+                    }
+                }
+            }
+        }
+
         ArrayList<Runnable> unfinished = new ArrayList<>();
 
         BurstBatch burst = currentBurst;
@@ -299,16 +313,6 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
             iterator.remove();
             if (next != null) {
                 unfinished.addAll(next.consumeAll());
-            }
-        }
-
-        if (interrupting) {
-            for (Running r : runningTasks) {
-                if (r != null) {
-                    if (r.thread.isAlive()) {
-                        r.thread.interrupt();
-                    }
-                }
             }
         }
 

@@ -108,7 +108,7 @@ public abstract class BaseExecutor extends AbstractExecutorService implements Cl
 
         public final Thread thread;
         public volatile Runnable runnable;
-        public boolean canceled;
+        public boolean canceled = false;
 
         public Running(Thread thread, Runnable runnable) {
             this.thread = thread;

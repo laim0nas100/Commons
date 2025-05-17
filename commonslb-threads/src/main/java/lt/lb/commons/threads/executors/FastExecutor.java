@@ -161,9 +161,8 @@ public class FastExecutor extends BaseExecutor {
             }
         } else {
             tasks.addAll(all);
-            
-            
-            int howMany = maxThreads <0 ? all.size() : Math.min(maxThreads, all.size());
+
+            int howMany = maxThreads < 0 ? all.size() : Math.min(maxThreads, all.size());
             for (int i = occupiedThreads.get(); i < howMany; i++) {
                 maybeStartThread(maxThreads);
             }
@@ -183,7 +182,7 @@ public class FastExecutor extends BaseExecutor {
         return null;
     }
 
-    protected void polling(final boolean parked) {
+    protected boolean polling(final boolean parked) {
 
         final Running running = parked ? new Running(Thread.currentThread(), null) : Running.EMPTY;
         int index = parked ? runningTasks.park(running) : -1;
@@ -191,11 +190,11 @@ public class FastExecutor extends BaseExecutor {
             for (;;) {
                 Runnable run = getNext();
                 if (run == null) {
-                    return;
+                    return running.canceled;
                 } else {
                     if (parked) {
                         if (running.canceled) {
-                            return;
+                            return true;
                         }
                         running.runnable = run;
                     }
@@ -204,11 +203,13 @@ public class FastExecutor extends BaseExecutor {
                 }
             }
         } catch (InterruptedException ex) {
+            return running.canceled;
         } finally {
             if (index >= 0) {
                 runningTasks.unpark(index);
             }
         }
+
     }
 
     protected final void executeSingle(Runnable run) {
@@ -230,8 +231,9 @@ public class FastExecutor extends BaseExecutor {
     protected final Runnable threadBody(final int bakedMax) {
         return () -> {
 
+            boolean cancel = false;
             try {
-                polling(true);
+                cancel = polling(true);
             } finally {
                 int leftRunning = Atomic.decrementAndGet(occupiedThreads); //thread no longer running (not really)
                 int get = tasks.size();
