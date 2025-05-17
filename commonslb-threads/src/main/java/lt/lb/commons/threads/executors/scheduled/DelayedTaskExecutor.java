@@ -49,7 +49,7 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         @Override
         public void run() {
             super.run();
-            executing.decrementAndGet();
+            Atomic.decrementAndGet(executing);
         }
     }
 
@@ -151,12 +151,12 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         boolean failed = true;
         try {
             realExe.submit(newTaskFor(command, null));
-            Atomic.incrementAndGet(executing, 1);
+            Atomic.incrementAndGet(executing);
             failed = false;
             
         } finally {
             if (failed) {
-                Atomic.incrementAndGet(executing, -1);
+                Atomic.decrementAndGet(executing);
             }
         }
 
@@ -165,7 +165,7 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
     public void executeSched(DTEScheduledFuture command) {
         assertShutdown();
         Objects.requireNonNull(command);
-        Atomic.incrementAndGet(executing, 1);
+        Atomic.incrementAndGet(executing);
         realExe.submit(command);
     }
 
@@ -251,7 +251,7 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         if (!open) {
             return;
         }
@@ -262,11 +262,6 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         realExe.shutdown();
         cleanUp();
         cleanUpOneShots();
-    }
-
-    @Override
-    public void shutdown() {
-        close();
     }
 
     @Override

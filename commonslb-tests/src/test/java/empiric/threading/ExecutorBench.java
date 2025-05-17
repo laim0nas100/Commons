@@ -6,18 +6,15 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
+import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.executors.FastExecutor;
-import lt.lb.commons.threads.executors.FastExecutorOld;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.executors.InPlaceExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -35,6 +32,7 @@ public class ExecutorBench {
     public static void bench() throws Exception {
         Benchmark bench = new Benchmark();
         bench.threads = 0;
+        bench.warmupTimes = 5;
 
         int times = 50_000;
         int t = 8;
@@ -54,7 +52,7 @@ public class ExecutorBench {
         }).print(System.out::println);
         
         bench.executeBench(b, "FastWaiting rework", () -> {
-            submitEmptyTasks(new FastWaitingExecutor(t, WaitTime.ofMillis(1)), times);
+            submitEmptyTasks(new FastWaitingExecutor(t, WaitTime.ofMicros(10)), times);
         }).print(System.out::println);
         bench.executeBench(b, "Fast rework ArraySinchronizedArena", () -> {
             submitEmptyTasks(new FastExecutor(t,0), times);
@@ -92,7 +90,7 @@ public class ExecutorBench {
             List<Callable<Integer>> calls = new ArrayList<>(times);
             for (int i = 0; i < times; i++) {
                 Callable<Integer> futureTask = () -> {
-                    int inc = ran.incrementAndGet();
+                    int inc = Atomic.incrementAndGet(ran);
 
                     if (debug) {
 //                    System.out.println(inc);
