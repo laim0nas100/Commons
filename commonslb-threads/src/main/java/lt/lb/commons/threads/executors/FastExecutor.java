@@ -12,9 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
-import lt.lb.commons.Java;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.SimpleThreadPool;
@@ -46,11 +44,10 @@ public class FastExecutor extends BaseExecutor {
 
     protected ThreadPool pool;
 
-//    protected AtomicInteger adds = new AtomicInteger(0);
     protected int maxThreads;
     protected AtomicInteger occupiedThreads = new AtomicInteger(0);
     protected CompletableFuture awaitTermination = new CompletableFuture();
-    protected int spec = 0;
+    protected int spec = -1;
 
     protected Consumer<Throwable> errorChannel = (err) -> {
     };
@@ -64,7 +61,7 @@ public class FastExecutor extends BaseExecutor {
     private FastExecutor(int maxThreads, int spec) {
         this(maxThreads, new SimpleThreadPool(FastExecutor.class));
         this.spec = spec;
-        tasks = makeQueue();
+        tasks = makeQueue(spec);
     }
 
     public static FastExecutor _spec(int maxThreads, int spec) {
@@ -92,12 +89,12 @@ public class FastExecutor extends BaseExecutor {
         tasks = makeQueue();
     }
 
-    protected ConcurrentArena<Runnable> makeQueue() {
+    protected ConcurrentArena<Runnable> makeQueue(int spec) {
         if (maxThreads == 0) {
             return null;
         }
-        if (maxThreads > 0 && maxThreads <= 2 && spec == 0) {
-            return ConcurrentArena.fromQueue(new ConcurrentLinkedQueue<>());
+        if (spec == 0 || maxThreads < 0 || maxThreads > 2) {
+            return ConcurrentArena.fromBlocking(new LinkedBlockingQueue<>());
         }
         if (spec == 1) {
             return new ConcurrentArena.ArraySinchronizedArena<>();
@@ -105,11 +102,11 @@ public class FastExecutor extends BaseExecutor {
         if (spec == 2) {
             return new ConcurrentArena.ArrayLockedArena<>();
         }
-        if (spec == 0 && Java.getJavaVersionMajor() >= 2) {//spec is not set, locks is faster now
-            return new ConcurrentArena.ArrayLockedArena<>();
-        }
+        return ConcurrentArena.fromConcurrent(new ConcurrentLinkedQueue<>());
+    }
 
-        return ConcurrentArena.fromBlocking(new LinkedBlockingQueue<>());
+    protected ConcurrentArena<Runnable> makeQueue() {
+        return makeQueue(spec);
     }
 
     public void setMaxThreads(int maxThreads) {

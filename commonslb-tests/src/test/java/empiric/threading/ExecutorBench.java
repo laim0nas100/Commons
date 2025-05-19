@@ -16,6 +16,7 @@ import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.executors.InPlaceExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.uncheckedutils.Checked;
 
 /**
  *
@@ -38,80 +39,92 @@ public class ExecutorBench {
         bench.useGChint = true;
 
         int times = 50_000;
-        int t = 2;
-        int b = 20;
+        int t = 6;
+        int b = 25;
 
         bench.executeBench(b, "IN_PLACE", () -> {
-            submitEmptyTasks(new InPlaceExecutor(), times);
-        }).print(System.out::println);
-//        bench.executeBench(b, "Checked", () -> {
-//            submitEmptyTasks(Checked.createDefaultExecutorService(), times);
-//        }).print(System.out::println);
-        bench.executeBench(b, "Fast rework single", () -> {
-            submitEmptyTasks(new FastExecutor(1), times);
-        }).print(System.out::println);
-        bench.executeBench(b, "Fast rework single ArrayLockedArena", () -> {
-            submitEmptyTasks(FastExecutor._spec(2, 1), times);
-        }).print(System.out::println);
-        bench.executeBench(b, "Fast rework", () -> {
-            submitEmptyTasks(FastExecutor._spec(t, 0), times);
-        }).print(System.out::println);
-
-        bench.executeBench(b, "FastWaiting rework", () -> {
-            submitEmptyTasks(new FastWaitingExecutor(t, WaitTime.ofMicros(10)), times);
-        }).print(System.out::println);
-        bench.executeBench(b, "Fast rework ArraySinchronizedArena", () -> {
-            submitEmptyTasks(FastExecutor._spec(t, 1), times);
-        }).print(System.out::println);
-        bench.executeBench(b, "Fast rework ArrayLockedArena", () -> {
-            submitEmptyTasks(FastExecutor._spec(t, 2), times);
-        }).print(System.out::println);
-        bench.executeBench(b, "Burst", () -> {
-            submitEmptyTasks(new BurstExecutor(t), times);
+            submitEmptyTasks(new InPlaceExecutor(), times, false);
         }).print(System.out::println);
         bench.executeBench(b, "Regular single", () -> {
-            submitEmptyTasks(Executors.newSingleThreadExecutor(), times);
+            submitEmptyTasks(Executors.newSingleThreadExecutor(), times, false);
         }).print(System.out::println);
         bench.executeBench(b, "Regular", () -> {
-            submitEmptyTasks(Executors.newFixedThreadPool(t), times);
+            submitEmptyTasks(Executors.newFixedThreadPool(t), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "Checked", () -> {
+            submitEmptyTasks(Checked.createDefaultExecutorService(), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "Fast rework single", () -> {
+            submitEmptyTasks(new FastExecutor(1), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "Fast rework single ArrayLockedArena", () -> {
+            submitEmptyTasks(FastExecutor._spec(2, 1), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "Fast rework ConcurrentLinkedQueue", () -> {
+            submitEmptyTasks(FastExecutor._spec(t, -1), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "Fast rework LinkedBlockingQueue", () -> {
+            submitEmptyTasks(FastExecutor._spec(t, 0), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "FastWaiting rework", () -> {
+            submitEmptyTasks(new FastWaitingExecutor(t, WaitTime.ofMicros(10)), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "Fast rework ArraySinchronizedArena", () -> {
+            submitEmptyTasks(FastExecutor._spec(t, 1), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "Fast rework ArrayLockedArena", () -> {
+            submitEmptyTasks(FastExecutor._spec(t, 2), times, false);
+        }).print(System.out::println);
+        bench.executeBench(b, "Burst", () -> {
+            submitEmptyTasks(new BurstExecutor(t), times, true);
         }).print(System.out::println);
 
     }
 
-    public static void submitEmptyTasks(ExecutorService pool, int times) throws Exception {
-        submitEmptyTasks(pool, times, false);
+    public static void submitEmptyTasks(ExecutorService pool, int times, boolean bunch) throws Exception {
+        submitEmptyTasks(pool, times, false, bunch);
     }
 
-    public static void submitEmptyTasks(ExecutorService pool, int times, boolean debug) throws Exception {
+    public static int fib(int a) {
+        return a <= 1 ? a : fib(a - 1) + fib(a - 2);
+    }
+
+    public static void submitEmptyTasks(ExecutorService pool, int times, boolean debug, boolean bunch) throws Exception {
 
         AtomicInteger ran = new AtomicInteger(0);
         int repeat = 5;
         for (int r = 0; r < repeat; r++) {
-            List<Callable<Integer>> calls = new ArrayList<>(times);
+            List<Callable<Long>> calls = new ArrayList<>(times);
             for (int i = 0; i < times; i++) {
-                Callable<Integer> futureTask = () -> {
-                    int inc = Atomic.incrementAndGet(ran);
-
+                final int f = i;
+                Callable<Long> futureTask = () -> {
+//                    Atomic.incrementAndGet(ran);
                     if (debug) {
 //                    System.out.println(inc);
                         DLog.print(1);
                     }
-                    return 1;
+                    return System.nanoTime() + System.currentTimeMillis() + fib(10);
                 };
                 calls.add(futureTask);
 
             }
-            pool.invokeAll(calls);
+            if (bunch) {
+                pool.invokeAll(calls);
+            } else {
+                for (Callable<Long> call : calls) {
+                    pool.submit(call);
+                }
+            }
             if (debug) {
                 DLog.print("Submitted");
             }
         }
 
-        int expected = repeat * times;
-        if (expected != ran.get()) {
-            System.out.print("Times missmatch:" + expected + " " + ran.get());
-        }
-        assert times == ran.get();
+//        int expected = repeat * times;
+//        if (expected != ran.get()) {
+//            System.out.print("Times missmatch:" + expected + " " + ran.get());
+//        }
+//        assert times == ran.get();
         pool.shutdown();
         pool.awaitTermination(1, TimeUnit.MINUTES);
     }

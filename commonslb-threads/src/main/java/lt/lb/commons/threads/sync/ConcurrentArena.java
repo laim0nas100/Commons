@@ -3,8 +3,8 @@ package lt.lb.commons.threads.sync;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,7 +31,7 @@ public interface ConcurrentArena<T> extends Iterable<T> {
         return new ConcurrentArena<T>() {
             @Override
             public T poll() {
-                int tries = 2;
+                int tries = 3;
                 while (tries > 0) {
                     T poll = queue.poll();
                     if (poll != null) {
@@ -75,11 +75,11 @@ public interface ConcurrentArena<T> extends Iterable<T> {
         };
     }
 
-    public static <T> ConcurrentArena<T> fromQueue(ConcurrentLinkedQueue<T> queue) {
+    public static <T> ConcurrentArena<T> fromConcurrent(Queue<T> queue) {
         return new ConcurrentArena<T>() {
             @Override
             public T poll() {
-                int tries = 2;
+                int tries = 3;
                 while (tries > 0) {
                     T poll = queue.poll();
                     if (poll != null) {
