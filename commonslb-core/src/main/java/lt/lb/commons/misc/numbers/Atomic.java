@@ -3,6 +3,7 @@ package lt.lb.commons.misc.numbers;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.IntBinaryOperator;
+import java.util.function.IntUnaryOperator;
 
 /**
  *
@@ -95,6 +96,29 @@ public abstract class Atomic {
         for (boolean haveNext = false;;) {
             if (!haveNext) {
                 next = accumulatorFunction.applyAsInt(prev, x);
+            }
+            if (atomic.compareAndSet(prev, next)) {
+                return returnNext ? next : prev;
+            }
+            LockSupport.parkNanos(1);
+            haveNext = (prev == (prev = atomic.get()));
+        }
+    }
+
+    public static int updateAndGet(AtomicInteger atomic, IntUnaryOperator updateFunction) {
+        return update(true, atomic, updateFunction);
+    }
+
+    public static int getAndUpdate(AtomicInteger atomic, IntUnaryOperator updateFunction) {
+        return update(false, atomic, updateFunction);
+    }
+
+    public static int update(final boolean returnNext, AtomicInteger atomic, IntUnaryOperator updateFunction) {
+
+        int prev = atomic.get(), next = 0;
+        for (boolean haveNext = false;;) {
+            if (!haveNext) {
+                next = updateFunction.applyAsInt(prev);
             }
             if (atomic.compareAndSet(prev, next)) {
                 return returnNext ? next : prev;
