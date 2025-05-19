@@ -12,18 +12,18 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.SimpleThreadPool;
 import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentConsume;
-import lt.lb.uncheckedutils.concurrent.ThreadLocalParkSpace;
 
 /**
  *
@@ -49,13 +49,21 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
             super(size);
         }
 
+        public List<Runnable> consumeAllAtOnce() {
+            int size = array.size();
+            int starting = Atomic.getAndUpdate(consume, s -> size);
+            if (size == 0 || starting > size) {
+                return new ArrayList<>();
+            }
+            return new ArrayList<>(array.subList(starting, size));
+        }
+
         public List<Runnable> consumeAll() {
             List<Runnable> consumed = new ArrayList<>();
             Runnable c = consume();
             while (c != null) {
                 consumed.add(c);
                 c = consume();
-
             }
             return consumed;
         }
@@ -64,8 +72,6 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
 
     protected ConcurrentLinkedQueue<BurstBatch> bursts = new ConcurrentLinkedQueue<>();
     protected BurstBatch currentBurst = new BurstBatch();
-
-    protected ThreadLocalParkSpace<Running> runningTasks;
 
     protected ThreadPool pool;
 
@@ -89,7 +95,6 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
     protected BurstExecutor(int maxThreads, ThreadPool threadPool) {
         this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
         this.maxThreads = maxThreads;
-        this.runningTasks = new ThreadLocalParkSpace<>(Math.max(8, (int) (maxThreads * 2.72)));
         pool.setStarting(true);
     }
 
@@ -162,7 +167,7 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
                     }
 
                 } else {
-                    polling(poll, false);
+                    polling(poll);
                 }
             }
             return;
@@ -177,29 +182,14 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
         }
     }
 
-    protected boolean polling(BurstBatch burst, final boolean parking) {
+    protected boolean polling(BurstBatch burst) {
 
-        final Running running = parking ? new Running(Thread.currentThread(), null) : Running.EMPTY;
-        int index = parking ? runningTasks.park(running) : -1;
-        try {
-            for (;;) {
-                Runnable run = burst.consume();
-                if (run == null) {
-                    return running.canceled;
-                } else {
-                    if (parking) {
-                        if (running.canceled) {
-                            return true;
-                        }
-                        running.runnable = run;
-                    }
-
-                    executeSingle(run);
-                }
-            }
-        } finally {
-            if (index >= 0) {
-                runningTasks.unpark(index);
+        for (;;) {
+            Runnable run = burst.consume();
+            if (run == null) {
+                return Thread.interrupted();
+            } else {
+                executeSingle(run);
             }
         }
     }
@@ -207,7 +197,6 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
     protected final void executeSingle(Runnable run) {
         try {
             run.run();
-
         } catch (Throwable th) {
             try {
                 getErrorChannel().accept(th);
@@ -222,7 +211,7 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
 
             boolean cancel = false;
             try {
-                cancel = polling(burst, true);
+                cancel = polling(burst);
             } finally {
                 int leftRunning = occupiedThreads.decrementAndGet(); //thread no longer running (not really)
 
@@ -290,14 +279,7 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
 
     public List<Runnable> cancelAll(boolean interrupting) {
         if (interrupting) {
-            for (Running r : runningTasks) {
-                if (r != null) {
-                    r.canceled = true;
-                    if (r.thread.isAlive()) {
-                        r.thread.interrupt();
-                    }
-                }
-            }
+            pool.interruptAlive();
         }
 
         ArrayList<Runnable> unfinished = new ArrayList<>();
@@ -305,14 +287,14 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
         BurstBatch burst = currentBurst;
         currentBurst = new BurstBatch();
         burst.readOnly();
-        unfinished.addAll(burst.consumeAll());
+        unfinished.addAll(burst.consumeAllAtOnce());
 
         Iterator<BurstBatch> iterator = bursts.iterator();
         while (iterator.hasNext()) {
             BurstBatch next = iterator.next();
             iterator.remove();
             if (next != null) {
-                unfinished.addAll(next.consumeAll());
+                unfinished.addAll(next.consumeAllAtOnce());
             }
         }
 
@@ -326,10 +308,6 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
         maybeTerminate(occupiedThreads.get());
 
         return unfinished;
-    }
-
-    protected Iterator<Running> getRunningTasks() {
-        return runningTasks.iterator();
     }
 
     public boolean isBusy() {
@@ -411,7 +389,7 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
                         break;
                     } else if (timed) {
                         burst(null);
-                        f = ecs.poll(nanos, NANOSECONDS);
+                        f = ecs.poll(nanos, TimeUnit.NANOSECONDS);
                         if (f == null) {
                             throw new TimeoutException();
                         }
@@ -546,7 +524,7 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
                 Future<T> f = futures.get(j);
                 if (!f.isDone()) {
                     try {
-                        f.get(deadline - System.nanoTime(), NANOSECONDS);
+                        f.get(deadline - System.nanoTime(), TimeUnit.NANOSECONDS);
                     } catch (CancellationException | ExecutionException ignore) {
                     } catch (TimeoutException timedOut) {
                         break timedOut;

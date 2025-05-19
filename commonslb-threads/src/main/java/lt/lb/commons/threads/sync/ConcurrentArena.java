@@ -3,13 +3,10 @@ package lt.lb.commons.threads.sync;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
-import lt.lb.commons.containers.values.BooleanValue;
 
 /**
  *
@@ -23,7 +20,7 @@ public interface ConcurrentArena<T> extends Iterable<T> {
             throws InterruptedException;
 
     boolean add(T elem);
-    
+
     boolean addAll(Collection<? extends T> all);
 
     int size();
@@ -34,7 +31,15 @@ public interface ConcurrentArena<T> extends Iterable<T> {
         return new ConcurrentArena<T>() {
             @Override
             public T poll() {
-                return queue.poll();
+                int tries = 2;
+                while (tries > 0) {
+                    T poll = queue.poll();
+                    if (poll != null) {
+                        return poll;
+                    }
+                    tries--;
+                }
+                return null;
             }
 
             @Override
@@ -46,6 +51,7 @@ public interface ConcurrentArena<T> extends Iterable<T> {
             public boolean add(T elem) {
                 return queue.add(elem);
             }
+
             @Override
             public boolean addAll(Collection<? extends T> all) {
                 return queue.addAll(all);
@@ -69,11 +75,19 @@ public interface ConcurrentArena<T> extends Iterable<T> {
         };
     }
 
-    public static <T> ConcurrentArena<T> fromQueue(Queue<T> queue) {
+    public static <T> ConcurrentArena<T> fromQueue(ConcurrentLinkedQueue<T> queue) {
         return new ConcurrentArena<T>() {
             @Override
             public T poll() {
-                return queue.poll();
+                int tries = 2;
+                while (tries > 0) {
+                    T poll = queue.poll();
+                    if (poll != null) {
+                        return poll;
+                    }
+                    tries--;
+                }
+                return null;
             }
 
             @Override
@@ -85,7 +99,7 @@ public interface ConcurrentArena<T> extends Iterable<T> {
             public boolean add(T elem) {
                 return queue.add(elem);
             }
-            
+
             @Override
             public boolean addAll(Collection<? extends T> all) {
                 return queue.addAll(all);
@@ -147,7 +161,6 @@ public interface ConcurrentArena<T> extends Iterable<T> {
             }
         }
 
-        
         @Override
         public boolean add(T elem) {
             lock.lock();
@@ -231,7 +244,7 @@ public interface ConcurrentArena<T> extends Iterable<T> {
                 return deque.add(elem);
             }
         }
-        
+
         @Override
         public boolean addAll(Collection<? extends T> all) {
             synchronized (deque) {
@@ -275,214 +288,6 @@ public interface ConcurrentArena<T> extends Iterable<T> {
                 }
 
             };
-        }
-
-    }
-
-    public static class ArrayConcurrentArena<T> implements ConcurrentArena<T> {
-
-        public final int capacity;
-
-        protected AtomicReference[] array;
-
-        protected AtomicInteger add = new AtomicInteger(0);
-        protected AtomicInteger recieve = new AtomicInteger(0);
-
-        protected AtomicInteger size = new AtomicInteger(0);
-
-        public ArrayConcurrentArena(int cap) {
-            this.capacity = cap;
-            array = new AtomicReference[cap];
-            for (int i = 0; i < cap; i++) {
-                array[i] = new AtomicReference();
-            }
-        }
-
-        @Override
-        public T poll() {
-            int attempts = capacity * 2;
-            while (attempts > 0) {
-                attempts--;
-                int i = recieve.getAndIncrement() % capacity;
-                BooleanValue consumed = new BooleanValue(false);
-                Object received = array[i].getAndAccumulate(0, (current, discard) -> {
-                    if (consumed.get()) {
-                        return current;
-                    }
-                    if (current != null) {
-                        consumed.setTrue();
-                    }
-                    return null;
-                });
-                if (consumed.get() && received != null) {
-                    return (T) received;
-                }
-            }
-            return null;
-        }
-
-        @Override
-        public T poll(long timeout, TimeUnit unit) throws InterruptedException {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-        @Override
-        public boolean add(T elem) {
-
-            int attempts = capacity * 2;
-            while (attempts > 0) {
-                attempts--;
-                int i = add.getAndIncrement() % capacity;
-                if (array[i].compareAndSet(null, elem)) {
-                    size.incrementAndGet();
-                    return true;
-                }
-            }
-            return false;
-
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return size.get() == 0;
-        }
-
-        @Override
-        public int size() {
-            return size.get();
-        }
-
-        @Override
-        public Iterator<T> iterator() {
-            return new Iterator<T>() {
-                int i = -1;
-
-                @Override
-                public boolean hasNext() {
-                    return i + 1 < capacity;
-                }
-
-                @Override
-                public T next() {
-                    return (T) array[++i].get();
-                }
-
-                @Override
-                public void remove() {
-                    array[i].set(null);
-                }
-            };
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends T> all) {
-            for(T elem:all){
-                add(elem);
-            }
-            return true;
-        }
-
-    }
-
-    public static class SplitConcurrentArena<T> implements ConcurrentArena<T> {
-
-        AtomicInteger size = new AtomicInteger(0);
-        AtomicInteger add = new AtomicInteger(0);
-//        int add = 0;
-        AtomicInteger splitIndex = new AtomicInteger(0);
-        ThreadLocal<Integer> rec = new ThreadLocal<>();
-        final ArrayLockedArena<T>[] splits;
-        final int spacing;
-
-        public SplitConcurrentArena(int spacing) {
-
-            this.spacing = spacing;
-            splits = new ArrayLockedArena[spacing];
-            for (int i = 0; i < spacing; i++) {
-                splits[i] = new ArrayLockedArena<>();
-            }
-        }
-
-        @Override
-        public T poll() {
-//            if (isEmpty()) {
-//                return null;
-//            }
-            Integer i = rec.get();
-            if (i == null) {
-                int recNew = splitIndex.getAndIncrement() % spacing;
-                rec.set(recNew);
-                i = recNew;
-            }
-
-            T poll = splits[i].poll();
-            if (poll != null) {
-                size.decrementAndGet();
-                return poll;
-            }
-
-            //try other split
-//            int newI = add % spacing;
-            i++;
-
-            int attempts = spacing;
-            while (attempts > 0) {
-                attempts--;
-                ArrayLockedArena<T> split = splits[i];
-                if (!split.isLocked()) {
-                    poll = split.poll();
-                    if (poll != null) {
-                        size.decrementAndGet();
-                        return poll;
-                    }
-                }
-
-                i = (i + 1) % spacing;
-            }
-            return null;
-        }
-
-        @Override
-        public T poll(long timeout, TimeUnit unit) throws InterruptedException {
-            return null;
-        }
-
-        @Override
-        public boolean add(T elem) {
-            int i = add.getAndIncrement() % spacing;
-            if (splits[i].isLocked()) {
-                return add(elem);
-            }
-
-            boolean ok = splits[i].add(elem);
-            if (ok) {
-                size.incrementAndGet();
-            }
-            return ok;
-        }
-        
-        @Override
-        public boolean addAll(Collection<? extends T> all) {
-            for(T elem:all){
-                add(elem);
-            }
-            return true;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return size.get() == 0;
-        }
-
-        @Override
-        public int size() {
-            return size.get();
-        }
-
-        @Override
-        public Iterator<T> iterator() {
-
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }
 
     }

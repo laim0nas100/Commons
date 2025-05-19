@@ -41,6 +41,13 @@ public interface ThreadPool extends ThreadFactory {
     }
 
     /**
+     * Interrupts thread which are of alive
+     */
+    public default void interruptAlive() {
+        enumerate(true).filter(t -> t != null && t.isAlive()).forEach(Thread::interrupt);
+    }
+
+    /**
      * @{inheritDoc}
      */
     @Override

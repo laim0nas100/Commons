@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.DLog;
+import lt.lb.commons.Java;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.executors.FastExecutor;
@@ -24,6 +25,7 @@ public class ExecutorBench {
 
     public static void main(String... args) throws Exception {
 
+        DLog.print(Java.getJavaVersionMajor());
 //        submitEmptyTasks(new FastExecutor(16), 500000, true);
         bench();
 //    DLog.await(1, TimeUnit.MINUTES);
@@ -33,9 +35,10 @@ public class ExecutorBench {
         Benchmark bench = new Benchmark();
         bench.threads = 0;
         bench.warmupTimes = 5;
+        bench.useGChint = true;
 
         int times = 50_000;
-        int t = 8;
+        int t = 2;
         int b = 20;
 
         bench.executeBench(b, "IN_PLACE", () -> {
@@ -47,24 +50,21 @@ public class ExecutorBench {
         bench.executeBench(b, "Fast rework single", () -> {
             submitEmptyTasks(new FastExecutor(1), times);
         }).print(System.out::println);
-        bench.executeBench(b, "Fast rework", () -> {
-            submitEmptyTasks(new FastExecutor(t), times);
+        bench.executeBench(b, "Fast rework single ArrayLockedArena", () -> {
+            submitEmptyTasks(FastExecutor._spec(2, 1), times);
         }).print(System.out::println);
-        
+        bench.executeBench(b, "Fast rework", () -> {
+            submitEmptyTasks(FastExecutor._spec(t, 0), times);
+        }).print(System.out::println);
+
         bench.executeBench(b, "FastWaiting rework", () -> {
             submitEmptyTasks(new FastWaitingExecutor(t, WaitTime.ofMicros(10)), times);
         }).print(System.out::println);
         bench.executeBench(b, "Fast rework ArraySinchronizedArena", () -> {
-            submitEmptyTasks(new FastExecutor(t,0), times);
-        }).print(System.out::println);
-        bench.executeBench(b, "Fast rework ArrayConcurrentArena", () -> {
-            submitEmptyTasks(new FastExecutor(t,1), times);
+            submitEmptyTasks(FastExecutor._spec(t, 1), times);
         }).print(System.out::println);
         bench.executeBench(b, "Fast rework ArrayLockedArena", () -> {
-            submitEmptyTasks(new FastExecutor(t,2), times);
-        }).print(System.out::println);
-         bench.executeBench(b, "Fast rework SplitConcurrentArena", () -> {
-            submitEmptyTasks(new FastExecutor(t,3), times);
+            submitEmptyTasks(FastExecutor._spec(t, 2), times);
         }).print(System.out::println);
         bench.executeBench(b, "Burst", () -> {
             submitEmptyTasks(new BurstExecutor(t), times);
@@ -83,7 +83,7 @@ public class ExecutorBench {
     }
 
     public static void submitEmptyTasks(ExecutorService pool, int times, boolean debug) throws Exception {
-        
+
         AtomicInteger ran = new AtomicInteger(0);
         int repeat = 5;
         for (int r = 0; r < repeat; r++) {
@@ -94,9 +94,9 @@ public class ExecutorBench {
 
                     if (debug) {
 //                    System.out.println(inc);
-                        DLog.print(inc);
+                        DLog.print(1);
                     }
-                    return inc;
+                    return 1;
                 };
                 calls.add(futureTask);
 

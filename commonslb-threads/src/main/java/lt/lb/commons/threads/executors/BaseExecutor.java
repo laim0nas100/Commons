@@ -13,7 +13,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import java.util.concurrent.TimeoutException;
 import lt.lb.commons.F;
 
@@ -160,7 +159,7 @@ public abstract class BaseExecutor extends AbstractExecutorService implements Cl
                     } else if (active == 0) {
                         break;
                     } else if (timed) {
-                        f = ecs.poll(nanos, NANOSECONDS);
+                        f = ecs.poll(nanos, TimeUnit.NANOSECONDS);
                         if (f == null) {
                             throw new TimeoutException();
                         }
@@ -239,8 +238,8 @@ public abstract class BaseExecutor extends AbstractExecutorService implements Cl
             for (Callable<T> t : tasks) {
                 RunnableFuture<T> f = newTaskFor(t);
                 futures.add(f);
-                execute(f);
             }
+            executeAll((Collection) futures);
             for (int i = 0, size = futures.size(); i < size; i++) {
                 Future<T> f = futures.get(i);
                 if (!f.isDone()) {
@@ -298,7 +297,7 @@ public abstract class BaseExecutor extends AbstractExecutorService implements Cl
                 Future<T> f = futures.get(j);
                 if (!f.isDone()) {
                     try {
-                        f.get(deadline - System.nanoTime(), NANOSECONDS);
+                        f.get(deadline - System.nanoTime(), TimeUnit.NANOSECONDS);
                     } catch (CancellationException | ExecutionException ignore) {
                     } catch (TimeoutException timedOut) {
                         break timedOut;

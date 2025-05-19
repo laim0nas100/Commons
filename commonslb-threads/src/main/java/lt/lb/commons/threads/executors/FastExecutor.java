@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
+import lt.lb.commons.Java;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.SimpleThreadPool;
@@ -49,7 +50,7 @@ public class FastExecutor extends BaseExecutor {
     protected int maxThreads;
     protected AtomicInteger occupiedThreads = new AtomicInteger(0);
     protected CompletableFuture awaitTermination = new CompletableFuture();
-    protected int spec;
+    protected int spec = 0;
 
     protected Consumer<Throwable> errorChannel = (err) -> {
     };
@@ -60,9 +61,14 @@ public class FastExecutor extends BaseExecutor {
      * zero no threads, execute during update
      *
      */
-    public FastExecutor(int maxThreads, int spec) {
+    private FastExecutor(int maxThreads, int spec) {
         this(maxThreads, new SimpleThreadPool(FastExecutor.class));
         this.spec = spec;
+        tasks = makeQueue();
+    }
+
+    public static FastExecutor _spec(int maxThreads, int spec) {
+        return new FastExecutor(maxThreads, spec);
     }
 
     /**
@@ -82,6 +88,7 @@ public class FastExecutor extends BaseExecutor {
 //        this.runningTasks = new ConcurrentIndexedBag<>(Math.max(8, (int) (maxThreads * 2.72)));// e approximation
 
         pool.setStarting(true);
+
         tasks = makeQueue();
     }
 
@@ -89,20 +96,17 @@ public class FastExecutor extends BaseExecutor {
         if (maxThreads == 0) {
             return null;
         }
-        if (maxThreads > 0 && maxThreads <= 2) {
+        if (maxThreads > 0 && maxThreads <= 2 && spec == 0) {
             return ConcurrentArena.fromQueue(new ConcurrentLinkedQueue<>());
         }
-        if (spec == 0) {
-            return new ConcurrentArena.ArraySinchronizedArena<>();
-        }
         if (spec == 1) {
-            return new ConcurrentArena.ArrayConcurrentArena<>(10_000);
+            return new ConcurrentArena.ArraySinchronizedArena<>();
         }
         if (spec == 2) {
             return new ConcurrentArena.ArrayLockedArena<>();
         }
-        if (spec == 3) {
-            return new ConcurrentArena.SplitConcurrentArena<>(maxThreads * 2);
+        if (spec == 0 && Java.getJavaVersionMajor() >= 2) {//spec is not set, locks is faster now
+            return new ConcurrentArena.ArrayLockedArena<>();
         }
 
         return ConcurrentArena.fromBlocking(new LinkedBlockingQueue<>());
@@ -170,16 +174,17 @@ public class FastExecutor extends BaseExecutor {
     }
 
     protected Runnable getNext() throws InterruptedException {
-        int tries = 3;
-        while (tries > 0) {
-            Runnable run = tasks.poll();
-            if (run != null) {
-                return run;
-            }
-            LockSupport.parkNanos(1); // helps to mitigate thread congestion
-            tries--;
-        }
-        return null;
+        return tasks.poll();
+//        int tries = 3;
+//        while (tries > 0) {
+//            Runnable run = tasks.poll();
+//            if (run != null) {
+//                return run;
+//            }
+//            LockSupport.parkNanos(1); // helps to mitigate thread congestion
+//            tries--;
+//        }
+//        return null;
     }
 
     protected boolean polling(final boolean parked) {
