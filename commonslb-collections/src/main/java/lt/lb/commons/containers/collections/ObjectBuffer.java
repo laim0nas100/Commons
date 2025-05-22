@@ -37,24 +37,7 @@ public class ObjectBuffer<T> {
     }
 
     public void flush() {
-        ArrayList<T> ok = new ArrayList<>(buffer);
+        flushHere.addAll(buffer);
         buffer.clear();
-        flushHere.addAll(ok);
-
     }
-
-    public void advancedFlush() {
-        ArrayList<T> ok = new ArrayList<>();
-        ok.addAll(buffer);
-        buffer.clear();
-        int size = ok.size();
-        int start = 0;
-        int end = Math.min(size, start + flushingSize);
-        do {
-            flushHere.addAll(ok.subList(start, end));
-            start += flushingSize;
-            end = Math.min(size, start + flushingSize);
-        } while (start < size);
-    }
-
 }
