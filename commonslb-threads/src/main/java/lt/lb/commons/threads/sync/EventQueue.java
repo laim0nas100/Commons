@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.ForwardingFuture;
 import lt.lb.commons.threads.executors.layers.NestedTaskSubmitionExecutorLayer;
 import lt.lb.uncheckedutils.Checked;
@@ -131,8 +132,7 @@ public class EventQueue {
         }
         events.add(ev);
         exe.execute(ev);
-        if (ai.getAndIncrement() % autoCleanUpAfter == 0) {
-            ai.set(1);
+        if (Atomic.cyclicIncrementAndGet(ai, 1, autoCleanUpAfter) == 0) {
             Iterator<Event> iterator = events.iterator();
             while (iterator.hasNext()) {
                 Event next = iterator.next();
