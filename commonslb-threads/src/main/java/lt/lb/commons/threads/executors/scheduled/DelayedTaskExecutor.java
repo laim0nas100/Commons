@@ -1,15 +1,13 @@
 package lt.lb.commons.threads.executors.scheduled;
 
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,6 +22,7 @@ import lt.lb.commons.threads.SimpleThreadPool;
 import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.executors.BaseExecutor;
 import lt.lb.commons.threads.executors.CloseableExecutor;
+import lt.lb.commons.threads.sync.Awaiter;
 import lt.lb.commons.threads.sync.Awaiter.AwaiterTime;
 import lt.lb.commons.threads.sync.SimpleAwaiter;
 import lt.lb.commons.threads.sync.WaitTime;
@@ -36,13 +35,13 @@ import lt.lb.uncheckedutils.func.UncheckedRunnable;
  */
 public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecutor, ScheduledExecutorService {
 
-    private class DelayFutureTask<T> extends FutureTask<T> {
+    private class DTEFutureTask<T> extends FutureTask<T> {
 
-        public DelayFutureTask(Callable<T> callable) {
+        public DTEFutureTask(Callable<T> callable) {
             super(callable);
         }
 
-        public DelayFutureTask(Runnable runnable, T result) {
+        public DTEFutureTask(Runnable runnable, T result) {
             super(runnable, result);
         }
 
@@ -128,19 +127,19 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
 
     @Override
     protected <T> RunnableFuture<T> newTaskFor(Callable<T> task) {
-        if (task instanceof DelayFutureTask) {
+        if (task instanceof DTEFutureTask) {
             return F.cast(task);
         } else {
-            return new DelayFutureTask<>(task);
+            return new DTEFutureTask<>(task);
         }
     }
 
     @Override
     protected <T> RunnableFuture<T> newTaskFor(Runnable task, T res) {
-        if (task instanceof DelayFutureTask) {
+        if (task instanceof DTEFutureTask) {
             return F.cast(task);
         } else {
-            return new DelayFutureTask<>(task, res);
+            return new DTEFutureTask<>(task, res);
         }
     }
 
@@ -148,25 +147,26 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
     public void execute(Runnable command) {
         assertShutdown();
         Objects.requireNonNull(command);
-        boolean failed = true;
-        try {
-            realExe.submit(newTaskFor(command, null));
-            Atomic.incrementAndGet(executing);
-            failed = false;
-            
-        } finally {
-            if (failed) {
-                Atomic.decrementAndGet(executing);
-            }
-        }
-
+        executeWithIncrement(realExe, command);
     }
 
-    public void executeSched(DTEScheduledFuture command) {
+    protected void executeSched(DTEScheduledFuture command) {
         assertShutdown();
-        Objects.requireNonNull(command);
-        Atomic.incrementAndGet(executing);
-        realExe.submit(command);
+        executeWithIncrement(command.taskExecutor, command);
+    }
+
+    protected void executeWithIncrement(Executor exe, Runnable command) {
+        boolean submitted = false;
+        try {
+
+            exe.execute(newTaskFor(command, null));
+            // if throws, this remains false
+            submitted = true;
+        } finally {
+            if (submitted) {
+                Atomic.incrementAndGet(executing);
+            }
+        }
     }
 
     protected void assertShutdown() {
@@ -277,53 +277,77 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return realExe.awaitTermination(timeout, unit);
+        return Awaiter.sharedAwaitTimeBool(
+                Arrays.asList(
+                        Awaiter.fromFunction(realExe::awaitTermination),
+                        awaitFullCompletion()
+                ),
+                timeout, unit);
+    }
+
+    public DTEScheduledFuture schedule(Executor taskExe, WaitTime time, Runnable command) {
+        assertShutdown();
+        return schedule(new DTEScheduledFuture<>(this, taskExe, time, Executors.callable(command)));
     }
 
     public DTEScheduledFuture schedule(WaitTime time, Runnable command) {
+        return schedule(realExe, time, command);
+    }
+
+    public DTEScheduledFuture schedule(Executor taskExe, WaitTime time, UncheckedRunnable command) {
         assertShutdown();
-        return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
+        return schedule(new DTEScheduledFuture<>(this, taskExe, time, Executors.callable(command)));
     }
 
     public DTEScheduledFuture schedule(WaitTime time, UncheckedRunnable command) {
+        return schedule(realExe, time, command);
+    }
+
+    public <V> DTEScheduledFuture<V> schedule(Executor taskExe, WaitTime time, Callable<V> callable) {
         assertShutdown();
-        return schedule(new DTEScheduledFuture<>(this, time, Executors.callable(command)));
+        return schedule(new DTEScheduledFuture<>(this, taskExe, time, callable));
     }
 
     public <V> DTEScheduledFuture<V> schedule(WaitTime time, Callable<V> callable) {
-        assertShutdown();
-        return schedule(new DTEScheduledFuture<>(this, time, callable));
+        return schedule(realExe, time, callable);
+    }
+
+    public ScheduledFuture<?> schedule(Executor taskExe, Runnable command, long delay, TimeUnit unit) {
+        return schedule(taskExe, WaitTime.of(delay, unit), command);
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        assertShutdown();
-        return schedule(WaitTime.of(delay, unit), command);
+        return schedule(realExe, WaitTime.of(delay, unit), command);
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        assertShutdown();
         return schedule(WaitTime.of(delay, unit), callable);
     }
 
-    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, UncheckedRunnable command) {
-        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
+    public <V> ScheduledFuture<V> schedule(Executor taskExe, Callable<V> callable, long delay, TimeUnit unit) {
+        return schedule(taskExe, WaitTime.of(delay, unit), callable);
     }
 
     public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(ScheduleLoopCondition condition, WaitTime time, Runnable command) {
-        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, time, Executors.callable(command)));
+        return scheduleWithFixedDelayAndCondition(realExe, condition, time, command);
+    }
+
+    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelayAndCondition(Executor taskExe, ScheduleLoopCondition condition, WaitTime time, Runnable command) {
+        return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, taskExe, time, Executors.callable(command)));
+    }
+
+    public DTELoopingScheduledFuture scheduleWithFixedDelay(Executor taskExe, WaitTime time, Runnable command) {
+        return schedule(new DTELoopingScheduledFuture<>(this, taskExe, time, Executors.callable(command)));
     }
 
     public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, Runnable command) {
-        return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
-    }
-
-    public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, UncheckedRunnable command) {
-        return schedule(new DTELoopingScheduledFuture<>(this, time, Executors.callable(command)));
+        return scheduleWithFixedDelay(realExe, time, command);
     }
 
     protected void scheduleAtFixedRateContinue(
+            Executor taskExe,
             PersistentForwardingScheduledFuture persFuture,
             final LongValue begunAtNanos,
             final LongValue times,
@@ -351,7 +375,7 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
                 begunAtNanos.set(now - initialDelay + diff);
             }
         }
-        persFuture.set(schedule(WaitTime.ofNanos(p), () -> {
+        persFuture.set(schedule(taskExe, WaitTime.ofNanos(p), () -> {
             if (persFuture.isCancelled()) {
                 return null;
             }
@@ -360,13 +384,17 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
                 return null;
             }
 
-            scheduleAtFixedRateContinue(persFuture, begunAtNanos, times, keepExpectedPace, command, initialDelay, period, resetTimes);
+            scheduleAtFixedRateContinue(taskExe, persFuture, begunAtNanos, times, keepExpectedPace, command, initialDelay, period, resetTimes);
             return null;
         }));
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
+        return scheduleAtFixedRate(realExe, command, initialDelay, period, unit);
+    }
+
+    public ScheduledFuture<?> scheduleAtFixedRate(Executor taskExe, Runnable command, long initialDelay, long period, TimeUnit unit) {
         assertShutdown();
         if (initialDelay < 0) {
             throw new IllegalArgumentException("Negative initial delay");
@@ -374,6 +402,7 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         if (period < 0) {
             throw new IllegalArgumentException("Negative period");
         }
+        Objects.requireNonNull(taskExe, "Task executor is not provided");
 
         long delayNano = TimeUnit.NANOSECONDS.convert(initialDelay, unit);
         long periodNano = TimeUnit.NANOSECONDS.convert(period, unit);
@@ -381,12 +410,16 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         //reset at least once in a while, if been running for that long
         long resetAt = (WaitTime.ofDays(400).convert(TimeUnit.NANOSECONDS).time - delayNano) / periodNano;
         PersistentForwardingScheduledFuture persFuture = new PersistentForwardingScheduledFuture();
-        scheduleAtFixedRateContinue(persFuture, new LongValue(Java.getNanoTime()), new LongValue(0), true, command, delayNano, periodNano, resetAt);
+        scheduleAtFixedRateContinue(taskExe, persFuture, new LongValue(Java.getNanoTime()), new LongValue(0), true, command, delayNano, periodNano, resetAt);
         return persFuture;
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+        return scheduleWithFixedDelay(realExe, command, initialDelay, delay, unit);
+    }
+
+    public ScheduledFuture<?> scheduleWithFixedDelay(Executor taskExe, Runnable command, long initialDelay, long delay, TimeUnit unit) {
         assertShutdown();
         if (initialDelay < 0) {
             throw new IllegalArgumentException("Negative initial delay");
@@ -394,10 +427,11 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         if (delay < 0) {
             throw new IllegalArgumentException("Negative delay");
         }
+        Objects.requireNonNull(taskExe, "Task executor is not provided");
         long delayNano = TimeUnit.NANOSECONDS.convert(initialDelay, unit);
         long periodNano = TimeUnit.NANOSECONDS.convert(delay, unit);
         PersistentForwardingScheduledFuture persFuture = new PersistentForwardingScheduledFuture();
-        scheduleAtFixedRateContinue(persFuture, new LongValue(Long.MIN_VALUE), new LongValue(0), false, command, delayNano, periodNano, Long.MAX_VALUE);
+        scheduleAtFixedRateContinue(taskExe, persFuture, new LongValue(Long.MIN_VALUE), new LongValue(0), false, command, delayNano, periodNano, Long.MAX_VALUE);
         return persFuture;
     }
 

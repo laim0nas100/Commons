@@ -1,6 +1,7 @@
 package lt.lb.commons.threads.executors.scheduled;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import lt.lb.commons.threads.sync.WaitTime;
 
@@ -14,9 +15,14 @@ import lt.lb.commons.threads.sync.WaitTime;
  * @author laim0nas100
  */
 public class DTELoopingScheduledFuture<T> extends DTEScheduledFuture<T> {
+    
 
     public DTELoopingScheduledFuture(DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
         super(exe, wait, call);
+    }
+
+    public DTELoopingScheduledFuture(DelayedTaskExecutor exe, Executor taskExecutor, WaitTime wait, Callable<T> call) {    
+        super(exe, taskExecutor, wait, call);
     }
 
     @Override

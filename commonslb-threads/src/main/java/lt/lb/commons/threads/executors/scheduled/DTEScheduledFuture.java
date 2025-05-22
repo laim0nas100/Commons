@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledFuture;
@@ -29,11 +30,17 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
     public final Callable<T> call;
     public final WaitTime wait;
     public final long waitDurNanos;
+    public final Executor taskExecutor;
     protected final DelayedTaskExecutor exe;
     protected final PersistentCancel<T, FutureTask<T>> ref;
 
     public DTEScheduledFuture(DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
+        this(Objects.requireNonNull(exe), exe.realExe, wait, call);
+    }
+
+    public DTEScheduledFuture(DelayedTaskExecutor exe, Executor taskExecutor, WaitTime wait, Callable<T> call) {
         this.exe = Objects.requireNonNull(exe);
+        this.taskExecutor = taskExecutor;
         this.call = Objects.requireNonNull(call);
         this.ref = new PersistentCancel<>(new FutureTask<>(call));
         this.wait = Objects.requireNonNull(wait);
@@ -57,7 +64,7 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
 
     @Override
     public int compareTo(Delayed o) {
-        if(o == null){
+        if (o == null) {
             return 1;
         }
         if (o instanceof DTEScheduledFuture) {
@@ -93,7 +100,7 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
         try {
             logic();
         } finally {
-            Atomic.incrementAndGet(exe.executing, -1);
+            Atomic.decrementAndGet(exe.executing);
         }
     }
 

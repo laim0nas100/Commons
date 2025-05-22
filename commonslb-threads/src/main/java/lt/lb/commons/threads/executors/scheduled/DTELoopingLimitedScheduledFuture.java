@@ -2,6 +2,7 @@ package lt.lb.commons.threads.executors.scheduled;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import lt.lb.commons.threads.sync.WaitTime;
 
@@ -18,9 +19,17 @@ public class DTELoopingLimitedScheduledFuture<T> extends DTELoopingScheduledFutu
 
     public DTELoopingLimitedScheduledFuture(ScheduleLoopCondition loopCondition, DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
         super(exe, wait, call);
-        this.loopCondition = Objects.requireNonNull(loopCondition);
+        this.loopCondition = loopCondition;
     }
 
+    public DTELoopingLimitedScheduledFuture(ScheduleLoopCondition loopCondition, DelayedTaskExecutor exe, Executor taskExecutor, WaitTime wait, Callable<T> call) {
+        super(exe, taskExecutor, wait, call);
+        this.loopCondition = loopCondition;
+    }
+
+    
+    
+    @Override
     protected void logic() {
         FutureTask<T> currentTask = ref.getRef();
         if (ref.isCancelled()) {
