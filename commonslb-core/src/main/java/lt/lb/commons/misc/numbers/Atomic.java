@@ -46,6 +46,18 @@ public abstract class Atomic {
         });
     }
 
+    public static int cyclicIncrementAndGet(AtomicInteger atomic, int inc, int mod) {
+        return accumulate(true, atomic, inc, (p, x) -> {
+            return Math.floorMod(p + x, mod);
+        });
+    }
+
+    public static int getAndCyclicIncrement(AtomicInteger atomic, int inc, int mod) {
+       return accumulate(false, atomic, inc, (p, x) -> {
+            return Math.floorMod(p + x, mod);
+        });
+    }
+
     public static int getAndIncrement(AtomicInteger atomic, int inc) {
         for (;;) {
             int get = atomic.get();
