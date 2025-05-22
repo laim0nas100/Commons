@@ -137,7 +137,7 @@ public class CosmeticsFX {
                     try {
                         do {
                             FX.submit(run).get();
-                            Thread.sleep(100);
+                            Thread.sleep(10);
                         } while (!this.canceled.get() && !this.done.get());
                     } catch (InterruptedException e) {
                     }

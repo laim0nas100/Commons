@@ -288,6 +288,10 @@ public abstract class FXDefs {
         };
     }
 
+    public static <N> SimpleChangeListener<N> onChange(Consumer<N> newValue) {
+        return diffListener(Objects::equals, newValue);
+    }
+
     public static interface SimpleChangeListener<P> extends ChangeListener<P>, Consumer<P> {
 
         @Override
