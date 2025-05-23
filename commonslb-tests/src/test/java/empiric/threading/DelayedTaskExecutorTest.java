@@ -70,9 +70,10 @@ public class DelayedTaskExecutorTest {
             exe.awaitOneShotCompletion().await();
 
 //            scheduleWithFixedDelay.cancel(true);
-            
             DLog.print("After cancel");
-            exe.awaitFullCompletion().await();
+            exe.close();
+            
+//            exe.awaitFullCompletion().await();
             DLog.print("END");
         }
 

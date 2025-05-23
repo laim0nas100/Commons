@@ -135,13 +135,21 @@ public class FXActionDelegator extends NPhaseActionAggregator<Object, Runnable> 
 
     public <T> void set(WritableValue<T> property, T newValue) {
         Objects.requireNonNull(property);
+        if (FX.isFXthread()) {
+            property.setValue(newValue);
+            return;
+        }
         addAction(new BeanAction(property, false), () -> {
             property.setValue(newValue);
         });
     }
 
     public <T> T get(ObservableValue<T> property) {
+
         Objects.requireNonNull(property);
+        if (FX.isFXthread()) {
+            return property.getValue();
+        }
         FutureTask<T> task = new FutureTask(() -> {
             return property.getValue();
         });
