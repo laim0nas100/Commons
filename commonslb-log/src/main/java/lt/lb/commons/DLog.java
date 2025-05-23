@@ -293,7 +293,7 @@ public class DLog {
             return;
         }
 
-        processString(log, 1, log.printLnDecorator.apply(objects));
+        processString(log, 1, log.printDecorator.apply(objects));
     }
 
     public static <T> void println(DLog log, T... objects) {
@@ -305,7 +305,12 @@ public class DLog {
     }
 
     public static <T> void println(T... objects) {
-        println(main(), objects);
+        DLog log = main();
+        if (log.inactive()) {
+            return;
+        }
+
+        processString(log, 1, log.printLnDecorator.apply(objects));
     }
 
     public static void printStackTrace() {
