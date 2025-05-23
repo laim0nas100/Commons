@@ -61,7 +61,7 @@ public class DelayedTaskExecutorTest {
                 }
 //                DLog.print("after HI");
             }, 1, 1, TimeUnit.SECONDS);
-            
+            DLog.print("Submit cancel");
             exe.schedule(WaitTime.ofSeconds(10), ()->{
                 DLog.print("Cancel from one shot");
                 scheduleWithFixedDelay.cancel(true);
@@ -71,9 +71,9 @@ public class DelayedTaskExecutorTest {
 
 //            scheduleWithFixedDelay.cancel(true);
             DLog.print("After cancel");
-            exe.close();
+//            exe.close();
             
-//            exe.awaitFullCompletion().await();
+            exe.awaitFullCompletion().await();
             DLog.print("END");
         }
 

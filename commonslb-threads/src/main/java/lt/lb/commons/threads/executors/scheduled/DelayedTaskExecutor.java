@@ -338,11 +338,11 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         return schedule(new DTELoopingLimitedScheduledFuture<>(condition, this, taskExe, time, Executors.callable(command)));
     }
 
-    public DTELoopingScheduledFuture scheduleWithFixedDelay(Executor taskExe, WaitTime time, Runnable command) {
-        return schedule(new DTELoopingScheduledFuture<>(this, taskExe, time, Executors.callable(command)));
+    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelay(Executor taskExe, WaitTime time, Runnable command) {
+        return schedule(new DTELoopingLimitedScheduledFuture<>(ScheduleLoopCondition.always(true),this, taskExe, time, Executors.callable(command)));
     }
 
-    public DTELoopingScheduledFuture scheduleWithFixedDelay(WaitTime time, Runnable command) {
+    public DTELoopingLimitedScheduledFuture scheduleWithFixedDelay(WaitTime time, Runnable command) {
         return scheduleWithFixedDelay(realExe, time, command);
     }
 

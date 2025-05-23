@@ -65,6 +65,27 @@ public interface ScheduleLoopCondition {
         public abstract boolean checkIfShouldLoop(FutureTask oldTask, FutureTask newTask);
 
     }
+    
+    public static ScheduleLoopCondition always(final boolean stopOnFailed) {
+        return new AbstractScheduleLoopCondition() {
+            @Override
+            public boolean checkIfShouldLoop(FutureTask oldTask, FutureTask newTask) {
+                if (oldTask.isCancelled()) {
+                    return false;
+                }
+                if (stopOnFailed) {
+                    try {
+                        oldTask.get();
+                    } catch (InterruptedException ex) {
+                        return true;
+                    } catch (ExecutionException failed) {
+                        return !stopOnFailed;
+                    }
+                }
+                return true;
+            }
+        };
+    }
 
     /**
      * Schedule task given amount of times.
@@ -80,14 +101,22 @@ public interface ScheduleLoopCondition {
 
             @Override
             public boolean checkIfShouldLoop(FutureTask oldTask, FutureTask newTask) {
-                if (stopOnFailed && oldTask.isDone()) {
+                if (oldTask.isCancelled()) {
+                    return false;
+                }
+                if (counter.decrementAndGet() <= 0) {
+                    return false;
+                }
+                if (stopOnFailed) {
                     try {
                         oldTask.get();
-                    } catch (InterruptedException | ExecutionException ex) {
+                    } catch (InterruptedException discard) {
+                    } catch (ExecutionException failed) {
                         return false;
                     }
                 }
-                return counter.decrementAndGet() > 0;
+
+                return true;
             }
 
             @Override

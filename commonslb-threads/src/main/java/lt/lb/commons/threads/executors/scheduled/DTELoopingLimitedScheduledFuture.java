@@ -13,22 +13,25 @@ import lt.lb.commons.threads.sync.WaitTime;
  *
  * @author laim0nas100
  */
-public class DTELoopingLimitedScheduledFuture<T> extends DTELoopingScheduledFuture<T> {
+public class DTELoopingLimitedScheduledFuture<T> extends DTEScheduledFuture<T> {
 
     protected ScheduleLoopCondition loopCondition;
 
     public DTELoopingLimitedScheduledFuture(ScheduleLoopCondition loopCondition, DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
         super(exe, wait, call);
-        this.loopCondition = loopCondition;
+        this.loopCondition = Objects.requireNonNull(loopCondition);
     }
 
     public DTELoopingLimitedScheduledFuture(ScheduleLoopCondition loopCondition, DelayedTaskExecutor exe, Executor taskExecutor, WaitTime wait, Callable<T> call) {
         super(exe, taskExecutor, wait, call);
-        this.loopCondition = loopCondition;
+        this.loopCondition = Objects.requireNonNull(loopCondition);
     }
 
-    
-    
+    @Override
+    public boolean isOneShot() {
+        return false;
+    }
+
     @Override
     protected void logic() {
         FutureTask<T> currentTask = ref.getRef();

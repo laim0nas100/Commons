@@ -40,11 +40,11 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
 
     public DTEScheduledFuture(DelayedTaskExecutor exe, Executor taskExecutor, WaitTime wait, Callable<T> call) {
         this.exe = Objects.requireNonNull(exe);
-        this.taskExecutor = taskExecutor;
+        this.taskExecutor = Objects.requireNonNull(taskExecutor);
         this.call = Objects.requireNonNull(call);
         this.ref = new PersistentCancel<>(new FutureTask<>(call));
         this.wait = Objects.requireNonNull(wait);
-        waitDurNanos = wait.convert(TimeUnit.NANOSECONDS).time;
+        waitDurNanos = wait.toNanos();
     }
 
     public boolean isOneShot() {
