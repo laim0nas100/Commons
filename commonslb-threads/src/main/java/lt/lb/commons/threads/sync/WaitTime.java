@@ -87,33 +87,33 @@ public class WaitTime implements Comparable<WaitTime> {
     public static WaitTime ofDays(long time) {
         return new WaitTime(time, TimeUnit.DAYS);
     }
-    
+
     public long toNanos() {
-        return unit.convert(time, TimeUnit.NANOSECONDS);
+        return TimeUnit.NANOSECONDS.convert(time, unit);
     }
 
     public long toMicros() {
-        return unit.convert(time, TimeUnit.MICROSECONDS);
+        return TimeUnit.MICROSECONDS.convert(time, unit);
     }
 
     public long toMillis() {
-        return unit.convert(time, TimeUnit.MILLISECONDS);
+        return TimeUnit.MILLISECONDS.convert(time, unit);
     }
 
     public long toSeconds() {
-        return unit.convert(time, TimeUnit.SECONDS);
+        return TimeUnit.SECONDS.convert(time, unit);
     }
 
     public long toMinutes() {
-        return unit.convert(time, TimeUnit.MINUTES);
+        return TimeUnit.MINUTES.convert(time, unit);
     }
 
     public long toHours() {
-        return unit.convert(time, TimeUnit.HOURS);
+        return TimeUnit.HOURS.convert(time, unit);
     }
-    
+
     public long toDays() {
-        return unit.convert(time, TimeUnit.DAYS);
+        return TimeUnit.DAYS.convert(time, unit);
     }
 
     public static WaitTime convert(WaitTime current, TimeUnit unit) {
