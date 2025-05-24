@@ -2,7 +2,6 @@ package lt.lb.commons.threads;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.uncheckedutils.NestedException;
@@ -12,7 +11,7 @@ import lt.lb.uncheckedutils.func.UncheckedFunction;
  *
  * @author laim0nas100
  */
-public class XTask<T> extends FutureTask<T> {
+public class XTask<T> extends ExplicitFutureTask<T> {
 
     protected Value<XTask> me;
 
