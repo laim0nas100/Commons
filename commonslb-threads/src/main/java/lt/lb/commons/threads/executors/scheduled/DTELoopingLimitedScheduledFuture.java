@@ -3,7 +3,7 @@ package lt.lb.commons.threads.executors.scheduled;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
-import java.util.concurrent.FutureTask;
+import lt.lb.commons.threads.ExplicitFutureTask;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
@@ -18,23 +18,17 @@ public class DTELoopingLimitedScheduledFuture<T> extends DTEScheduledFuture<T> {
     protected ScheduleLoopCondition loopCondition;
 
     public DTELoopingLimitedScheduledFuture(ScheduleLoopCondition loopCondition, DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
-        super(exe, wait, call);
-        this.loopCondition = Objects.requireNonNull(loopCondition);
+        this(loopCondition, exe, exe.realExe, wait, call);
     }
 
     public DTELoopingLimitedScheduledFuture(ScheduleLoopCondition loopCondition, DelayedTaskExecutor exe, Executor taskExecutor, WaitTime wait, Callable<T> call) {
-        super(exe, taskExecutor, wait, call);
+        super(false, exe, taskExecutor, wait, call);
         this.loopCondition = Objects.requireNonNull(loopCondition);
-    }
-
-    @Override
-    public boolean isOneShot() {
-        return false;
     }
 
     @Override
     protected void logic() {
-        FutureTask<T> currentTask = ref.getRef();
+        ExplicitFutureTask<T> currentTask = ref.getRef();
         if (ref.isCancelled()) {
             loopCondition.loopCanceled(currentTask);
             return;
@@ -48,11 +42,15 @@ public class DTELoopingLimitedScheduledFuture<T> extends DTEScheduledFuture<T> {
             loopCondition.loopCanceled(currentTask);
             return;
         }
+
+        if (exe.isShutdown()) {
+            return;
+        }
         // not canceled, try schedule again
-        FutureTask<T> futureTask = new FutureTask<>(call);
+        ExplicitFutureTask<T> futureTask = new ExplicitFutureTask<>(call);
         if (loopCondition.checkIfShouldLoop(currentTask, futureTask)) {
             if (ref.compareAndSet(currentTask, futureTask)) {
-                exe.schedule(this);
+                exe.scheduleForSure(this);
                 loopCondition.newScheduleCommitedAfterCheck(currentTask, futureTask);
             } else {
                 loopCondition.newScheduleFailedAfterCheck(currentTask, futureTask);

@@ -5,8 +5,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -14,7 +12,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
 import lt.lb.commons.misc.numbers.Atomic;
+import lt.lb.commons.threads.ExplicitFutureTask;
 import lt.lb.commons.threads.sync.WaitTime;
+import lt.lb.commons.threads.FailableRunnableFuture;
 
 /**
  *
@@ -24,31 +24,37 @@ import lt.lb.commons.threads.sync.WaitTime;
  * @author laim0nas100
  * @param <T>
  */
-public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture<T> {
+public class DTEScheduledFuture<T> implements ScheduledFuture<T>, FailableRunnableFuture<T> {
 
     public final AtomicLong nanoScheduled = new AtomicLong(Long.MIN_VALUE);
     public final Callable<T> call;
     public final WaitTime wait;
     public final long waitDurNanos;
     public final Executor taskExecutor;
+    protected final boolean oneShot;
     protected final DelayedTaskExecutor exe;
-    protected final PersistentCancel<T, FutureTask<T>> ref;
+    protected final PersistentCancel<T, ExplicitFutureTask<T>> ref;
 
     public DTEScheduledFuture(DelayedTaskExecutor exe, WaitTime wait, Callable<T> call) {
-        this(Objects.requireNonNull(exe), exe.realExe, wait, call);
+        this(true, Objects.requireNonNull(exe), exe.realExe, wait, call);
     }
 
     public DTEScheduledFuture(DelayedTaskExecutor exe, Executor taskExecutor, WaitTime wait, Callable<T> call) {
+        this(true, exe, taskExecutor, wait, call);
+    }
+
+    public DTEScheduledFuture(boolean oneShot, DelayedTaskExecutor exe, Executor taskExecutor, WaitTime wait, Callable<T> call) {
+        this.oneShot = oneShot;
         this.exe = Objects.requireNonNull(exe);
         this.taskExecutor = Objects.requireNonNull(taskExecutor);
         this.call = Objects.requireNonNull(call);
-        this.ref = new PersistentCancel<>(new FutureTask<>(call));
+        this.ref = new PersistentCancel<>(new ExplicitFutureTask<>(call));
         this.wait = Objects.requireNonNull(wait);
-        waitDurNanos = wait.toNanos();
+        waitDurNanos = wait.toNanosAssert();
     }
 
     public boolean isOneShot() {
-        return true;
+        return oneShot;
     }
 
     @Override
@@ -91,8 +97,13 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
         return ref.cancel(mayInterruptIfRunning);
     }
 
+    @Override
+    public void setException(Throwable t) {
+        ref.setException(t);
+    }
+
     protected void logic() {
-        ref.getRef().run();
+        ref.run();
     }
 
     @Override
@@ -100,7 +111,7 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, RunnableFuture
         try {
             logic();
         } finally {
-            Atomic.decrementAndGet(exe.executing);
+            int decrementAndGet = Atomic.decrementAndGet(exe.executing);
         }
     }
 

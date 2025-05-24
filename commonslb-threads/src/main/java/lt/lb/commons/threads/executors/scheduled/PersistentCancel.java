@@ -8,12 +8,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import lt.lb.commons.F;
+import lt.lb.commons.threads.ExplicitFutureTask;
+import lt.lb.commons.threads.FailableRunnableFuture;
 
 /**
  *
  * @author laim0nas100
  */
-public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
+public class PersistentCancel<T, FUT extends Future<T>> implements FailableRunnableFuture<T> {
 
     public PersistentCancel(AtomicReference<FUT> reference) {
         this.futureRef = Objects.requireNonNull(reference);
@@ -23,15 +26,19 @@ public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
         this(new AtomicReference<>(future));
     }
 
-    protected final AtomicInteger cancel = new AtomicInteger(0);// 0 - not, 1 - cancelled, 2 - cancelled with interrupts
+    protected final AtomicInteger state = new AtomicInteger(0);// 0 - not, 1 - failed excplicitly, 2 - cancelled, 3 - cancelled with interrupts, 
     protected final AtomicReference<FUT> futureRef;
+    protected final AtomicReference<Throwable> exception = new AtomicReference<>();
 
     public void set(FUT f) {
         futureRef.set(f);
         if (f != null) {
-            int get = cancel.get();
-            if (get > 0) {
-                f.cancel(get > 1);
+            int get = state.get();
+            if (get == 1 && f instanceof ExplicitFutureTask) {
+                ExplicitFutureTask task = F.cast(f);
+                task.setException(exception.get());
+            } else if (get > 0) {
+                f.cancel(get > 2);
             }
 
         }
@@ -40,9 +47,12 @@ public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
     public boolean compareAndSet(FUT expecting, FUT replacing) {
         if (futureRef.compareAndSet(expecting, replacing)) {
             if (replacing != null) {
-                int get = cancel.get();
-                if (get > 0) {
-                    replacing.cancel(get > 1);
+                int get = state.get();
+                if (get == 1 && replacing instanceof ExplicitFutureTask) {
+                    ExplicitFutureTask task = F.cast(replacing);
+                    task.setException(exception.get());
+                } else if (get > 0) {
+                    replacing.cancel(get > 2);
                 }
             }
             return true;
@@ -56,7 +66,7 @@ public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        if (cancel.compareAndSet(0, mayInterruptIfRunning ? 2 : 1)) {
+        if (state.compareAndSet(0, mayInterruptIfRunning ? 3 : 2)) {
             Future future = futureRef.get();
             if (future != null) {
                 return future.cancel(mayInterruptIfRunning);
@@ -65,9 +75,28 @@ public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
         return false;
     }
 
+    public boolean failed(Throwable error) {
+        if (state.compareAndSet(0, 1)) {
+            exception.set(error);
+            Future replacing = getRef();
+            if (replacing == null) {
+                return true;
+            }
+            
+            if (replacing instanceof FailableRunnableFuture) {
+                FailableRunnableFuture task = F.cast(replacing);
+                task.setException(exception.get());
+            } else {
+                replacing.cancel(true);
+            }
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean isCancelled() {
-        if (cancel.get() > 0) {
+        if (state.get() > 0) {
             return true;
         }
         Future future = futureRef.get();
@@ -79,7 +108,7 @@ public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
 
     @Override
     public boolean isDone() {
-        if (cancel.get() > 0) {
+        if (state.get() > 0) {
             return true;
         }
         FUT future = futureRef.get();
@@ -91,7 +120,16 @@ public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
 
     @Override
     public T get() throws InterruptedException, ExecutionException {
-        if (cancel.get() > 0) {
+        int get = state.get();
+        if (get > 2) {
+            Throwable ex = exception.get();
+            if (ex instanceof ExecutionException) {
+                throw (ExecutionException) ex;
+            } else {
+                throw new ExecutionException("Task explicitly failed", ex);
+            }
+
+        } else if (get > 0) {
             throw new CancellationException();
         }
         FUT future = futureRef.get();
@@ -103,7 +141,16 @@ public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        if (cancel.get() > 0) {
+        int get = state.get();
+        if (get > 2) {
+            Throwable ex = exception.get();
+            if (ex instanceof ExecutionException) {
+                throw (ExecutionException) ex;
+            } else {
+                throw new ExecutionException("Task explicitly failed", ex);
+            }
+
+        } else if (get > 0) {
             throw new CancellationException();
         }
         FUT future = futureRef.get();
@@ -111,6 +158,23 @@ public class PersistentCancel<T, FUT extends Future<T>> implements Future<T> {
             return future.get(timeout, unit);
         }
         throw new IllegalStateException("FutureRef is not set");
+    }
+
+    @Override
+    public void setException(Throwable t) {
+        failed(t);
+    }
+
+    @Override
+    public void run() {
+        if (state.get() > 0) {
+            return;
+        }
+        FUT ref = getRef();
+        if (ref instanceof Runnable) {
+            Runnable r = F.cast(ref);
+            r.run();
+        }
     }
 
 }

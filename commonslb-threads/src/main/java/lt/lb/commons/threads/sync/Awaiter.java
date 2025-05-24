@@ -1,5 +1,6 @@
 package lt.lb.commons.threads.sync;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -8,38 +9,47 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+import lt.lb.commons.F;
+import lt.lb.commons.Nulls;
 
 /**
  *
  * @author laim0nas100
  */
 public interface Awaiter {
-
-    public static interface AwaiterTimeFunction {
-
-        public boolean await(long timeout, TimeUnit unit) throws InterruptedException;
-    }
-
+    
+    public static final BooleanSupplier NEVER_EXIT = () -> false;
+    public static final BooleanSupplier ALWAYS_EXIT = () -> true;
+    
     public static interface AwaiterTime extends Awaiter {
-
+        
         @Override
         public default void await() throws InterruptedException {
             awaitBool(Long.MAX_VALUE - 1, TimeUnit.NANOSECONDS);
         }
-
+        
         @Override
-        public void await(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException;
-
-        public default boolean awaitBool(long timeout, TimeUnit unit) throws InterruptedException {
-            try {
-                await(timeout, unit);
-                return true;
-            } catch (TimeoutException ex) {
-                return false;
+        public default void await(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+            if (!awaitBool(timeout, unit)) {
+                throw new TimeoutException("Times up!");
             }
         }
-
+        
+        @Override
+        public default void await(WaitTime time) throws InterruptedException, TimeoutException {
+            await(time.time, time.unit);
+        }
+        
+        public default boolean awaitBool(WaitTime time) throws InterruptedException, TimeoutException {
+            return awaitBool(time.time, time.unit);
+        }
+        
+        public boolean awaitBool(long timeout, TimeUnit unit) throws InterruptedException;
+        
     }
 
     /**
@@ -69,21 +79,74 @@ public interface Awaiter {
             throws InterruptedException, CancellationException, ExecutionException, TimeoutException;
 
     /**
+     * Waits if necessary for at most the given time for the computation to
+     * complete, and then retrieves its result, if available.
+     *
+     * @param timeout time to wait
+     * @throws CancellationException if the computation was cancelled
+     * @throws ExecutionException if the computation threw an exception
+     * @throws InterruptedException if the current thread was interrupted while
+     * waiting
+     * @throws TimeoutException if the wait timed out
+     */
+    default void await(WaitTime time)
+            throws InterruptedException, CancellationException, ExecutionException, TimeoutException {
+        await(time.time, time.unit);
+    }
+    
+    public static AwaiterTime promote(Awaiter original) {
+        Objects.requireNonNull(original);
+        if (original instanceof AwaiterTime) {
+            return F.cast(original);
+        }
+        return new AwaiterTime() {
+            @Override
+            public boolean awaitBool(long timeout, TimeUnit unit) throws InterruptedException {
+                try {
+                    original.await(timeout, unit);
+                } catch (CancellationException | ExecutionException | TimeoutException ignore) {
+                    return false;
+                }
+                return true;
+            }
+            
+            @Override
+            public void await() throws InterruptedException {
+                try {
+                    original.await();
+                } catch (CancellationException | ExecutionException ignore) {
+                }
+            }
+            
+        };
+    }
+
+    /**
      * Creates simple {@link Awaiter} from given future.
      *
      * @param fut
      * @return
      */
     public static Awaiter fromFuture(Future fut) {
+        Objects.requireNonNull(fut);
         return new Awaiter() {
             @Override
             public void await() throws InterruptedException, ExecutionException {
-                fut.get();
+                try {
+                    fut.get();
+                } catch (CancellationException dicard) {
+                    
+                }
             }
-
+            
             @Override
             public void await(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-                fut.get(timeout, unit);
+                
+                try {
+                    fut.get(timeout, unit);
+                } catch (CancellationException dicard) {
+                    
+                }
             }
         };
     }
@@ -105,7 +168,7 @@ public interface Awaiter {
     public static <T extends Future> Awaiter fromFutureAtomicReference(AtomicReference<T> atomicRef, Supplier<T> factory) {
         return fromFuture(atomicFutureResolve(atomicRef, factory));
     }
-
+    
     public static <T extends Future> T atomicFutureResolve(AtomicReference<T> atomicRef, Supplier<T> factory) {
         T localFuture = atomicRef.get();
         if (localFuture != null) {
@@ -125,109 +188,12 @@ public interface Awaiter {
             } else {
                 return atomicRef.get();
             }
-
+            
         }
     }
-
+    
     public static <T extends CompletableFuture> Awaiter fromCompletableFuture(AtomicReference<CompletableFuture> atomicRef) {
         return fromFutureAtomicReference(atomicRef, CompletableFuture::new);
-    }
-
-    /**
-     * Creates an {@link AwaiterTime> from supplied {@link AwaiterTimeFunction}.
-     *
-     * @param func
-     * @return
-     */
-    public static AwaiterTime fromFunction(AwaiterTimeFunction func) {
-        Objects.requireNonNull(func, "AwaiterTimeFunction is null");
-
-        return new AwaiterTime() {
-            @Override
-            public void await(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
-                if (!func.await(timeout, unit)) {
-                    throw new TimeoutException();
-                }
-            }
-
-            @Override
-            public boolean awaitBool(long timeout, TimeUnit unit) throws InterruptedException {
-                return func.await(timeout, unit);
-            }
-
-        };
-    }
-
-    /**
-     * Invokes {@link Awaiter#await() } for each {@link Awaiter}.
-     *
-     * @param awaiters
-     * @throws InterruptedException
-     * @throws CancellationException
-     * @throws ExecutionException
-     */
-    public static void sharedAwait(Iterable<Awaiter> awaiters) throws InterruptedException, CancellationException, ExecutionException {
-        Objects.requireNonNull(awaiters, "Awaiters are null");
-        for (Awaiter a : awaiters) {
-            a.await();
-        }
-    }
-
-    /**
-     * Invokes {@link Awaiter#await(long, java.util.concurrent.TimeUnit) } for
-     * each {@link Awaiter}, while decrementing remaining time
-     *
-     * @param awaiters
-     * @param time
-     * @param unit
-     * @throws InterruptedException
-     * @throws CancellationException
-     * @throws ExecutionException
-     * @throws TimeoutException
-     */
-    public static void sharedAwait(Iterable<Awaiter> awaiters, long time, TimeUnit unit) throws InterruptedException, CancellationException, ExecutionException, TimeoutException {
-        Objects.requireNonNull(awaiters, "Awaiters are null");
-        long nanos = TimeUnit.NANOSECONDS.convert(time, unit);
-        long now = System.nanoTime();
-        for (Awaiter a : awaiters) {
-            if (nanos <= 0) {
-                throw new TimeoutException("Times up!");
-            }
-
-            a.await(nanos, TimeUnit.NANOSECONDS);
-            long after = System.nanoTime();
-            long diff = after - now;
-            now = after;
-            nanos = nanos - diff;
-        }
-    }
-
-    /**
-     * Invokes {@link AwaiterTime#await(long, java.util.concurrent.TimeUnit) }
-     * for each {@link AwaiterTime}, while decrementing remaining time
-     *
-     * @param awaiters
-     * @param time
-     * @param unit
-     * @throws InterruptedException
-     * @throws CancellationException
-     * @throws TimeoutException
-     */
-    public static void sharedAwaitTime(Iterable<AwaiterTime> awaiters, long time, TimeUnit unit) throws InterruptedException, TimeoutException {
-        Objects.requireNonNull(awaiters, "Awaiters are null");
-        long nanos = TimeUnit.NANOSECONDS.convert(time, unit);
-        long now = System.nanoTime();
-        for (AwaiterTime a : awaiters) {
-            if (nanos <= 0) {
-                throw new TimeoutException("Times up!");
-            }
-
-            a.await(nanos, TimeUnit.NANOSECONDS);
-            long after = System.nanoTime();
-            long diff = after - now;
-            now = after;
-            nanos = nanos - diff;
-        }
     }
 
     /**
@@ -243,21 +209,132 @@ public interface Awaiter {
      * @throws CancellationException
      */
     public static boolean sharedAwaitTimeBool(Iterable<AwaiterTime> awaiters, long time, TimeUnit unit) throws InterruptedException {
-        Objects.requireNonNull(awaiters, "Awaiters are null");
-        long nanos = TimeUnit.NANOSECONDS.convert(time, unit);
-        long now = System.nanoTime();
-        for (AwaiterTime a : awaiters) {
-            if (nanos <= 0) {
-                return false;
+        return compositeTime(NEVER_EXIT, awaiters).awaitBool(time, unit);
+    }
+
+    /**
+     * Invokes {@link AwaiterTime#awaitBool(long, java.util.concurrent.TimeUnit)
+     * } for each {@link AwaiterTime}, while decrementing remaining time.
+     * Returns on first {@code false} occurrence or after every invocation or
+     * positive fast exit condition
+     *
+     * @param awaiters
+     * @param fastExit fast exit condition
+     * @return
+     */
+    public static Awaiter composite(BooleanSupplier fastExit, Iterable<Awaiter> awaiters) {
+        Nulls.requireNonNulls(awaiters, fastExit);
+        return new Awaiter() {
+            @Override
+            public void await() throws InterruptedException, CancellationException, ExecutionException {
+                if (fastExit.getAsBoolean()) {
+                    return;
+                }
+                for (Awaiter a : awaiters) {
+                    a.await();
+                    if (fastExit.getAsBoolean()) {
+                        return;
+                    }
+                }
             }
-            if (!a.awaitBool(nanos, TimeUnit.NANOSECONDS)) {
-                return false;
+            
+            @Override
+            public void await(long timeout, TimeUnit unit) throws InterruptedException, CancellationException, ExecutionException, TimeoutException {
+                long nanos = TimeUnit.NANOSECONDS.convert(timeout, unit);
+                if (fastExit.getAsBoolean()) {
+                    return;
+                }
+                long now = System.nanoTime();
+                for (Awaiter a : awaiters) {
+                    if (nanos <= 0) {
+                        return;
+                    }
+                    a.await(nanos, TimeUnit.NANOSECONDS);
+                    if (fastExit.getAsBoolean()) {
+                        return;
+                    }
+                    long after = System.nanoTime();
+                    long diff = after - now;
+                    now = after;
+                    nanos = nanos - diff;
+                }
             }
-            long after = System.nanoTime();
-            long diff = after - now;
-            now = after;
-            nanos = nanos - diff;
-        }
-        return true;
+        };
+        
+    }
+
+    /**
+     * Helper for {@linkplain Awaiter#composite(java.lang.Iterable, java.util.function.Supplier)
+     * }
+     */
+    public static Awaiter composite(BooleanSupplier fastExit, AwaiterTime... awaiters) {
+        return composite(fastExit, Arrays.asList(awaiters));
+    }
+
+    /**
+     * Invokes {@link AwaiterTime#awaitBool(long, java.util.concurrent.TimeUnit)
+     * } for each {@link AwaiterTime}, while decrementing remaining time.
+     * Returns on first {@code false} occurrence or after every invocation or
+     * positive fast exit condition
+     *
+     * @param awaiters
+     * @param fastExit fast exit condition
+     * @return
+     */
+    public static AwaiterTime compositeTime(BooleanSupplier fastExit, Iterable<AwaiterTime> awaiters) {
+        Nulls.requireNonNulls(awaiters, fastExit);
+        return (long timeout, TimeUnit unit) -> {
+            long nanos = TimeUnit.NANOSECONDS.convert(timeout, unit);
+            if (fastExit.getAsBoolean()) {
+                return true;
+            }
+            
+            long now = System.nanoTime();
+            for (AwaiterTime a : awaiters) {
+                if (nanos <= 0) {
+                    return false;
+                }
+                if (!a.awaitBool(nanos, TimeUnit.NANOSECONDS)) {//time's up
+                    return false;
+                }
+                if (fastExit.getAsBoolean()) {
+                    return true;
+                }
+                long after = System.nanoTime();
+                long diff = after - now;
+                now = after;
+                nanos = nanos - diff;
+            }
+            return true;
+        };
+    }
+
+    /**
+     * Helper for {@linkplain Awaiter#composite(java.lang.Iterable, java.util.function.Supplier)
+     * }
+     */
+    public static AwaiterTime compositeTime(BooleanSupplier fastExit, AwaiterTime... awaiters) {
+        return compositeTime(fastExit, Arrays.asList(awaiters));
+    }
+
+    public static AwaiterTime fromLockCondition(ReentrantLock lock, Condition condition) {
+        return fromLockCondition(NEVER_EXIT, lock, condition);
+    }
+
+    public static AwaiterTime fromLockCondition(BooleanSupplier fastExit, ReentrantLock lock, Condition condition) {
+        Nulls.requireNonNulls(fastExit, lock, condition);
+        return (long timeout, TimeUnit unit) -> {
+            
+            if (fastExit.getAsBoolean()) {
+                return true;
+            }
+            lock.lockInterruptibly();
+            try {
+                return fastExit.getAsBoolean() || condition.await(timeout, unit);
+            } finally {
+                lock.unlock();
+            }
+            
+        };
     }
 }
