@@ -18,7 +18,18 @@ public class DelayedTaskExecutorTest {
         if (false) {
             Long time = WaitTime.ofDays(400).convert(TimeUnit.NANOSECONDS).time;
             Long minutes = WaitTime.ofMinutes(1).convert(TimeUnit.NANOSECONDS).time;
-            DLog.print(time, minutes, time / minutes);
+            DLog.print(time, minutes, time / minutes, Integer.MAX_VALUE);
+            DLog.print(-5000000 % 1000000);
+            DLog.print(WaitTime.ofNanos(Long.MAX_VALUE).toDays());
+            DLog.print(WaitTime.ofDays(106751).toNanos());
+            DLog.print(WaitTime.ofDays(106752).toNanos());
+            DLog.print(WaitTime.ofDays(WaitTime.ofNanos(Long.MAX_VALUE).toDays()).toNanos());
+            DLog.print(Long.MAX_VALUE);
+            DLog.print(WaitTime.ofNanos(Long.MAX_VALUE).toDuration().toDays() / 365.25);
+            DLog.print(WaitTime.ofNanos(Long.MAX_VALUE).toDays() / 365);
+            DLog.print(WaitTime.maxForUnitConversion(TimeUnit.DAYS, TimeUnit.NANOSECONDS));
+            DLog.print(WaitTime.ofDays(106752).canConvertWithoutOverflow(TimeUnit.NANOSECONDS));
+            DLog.print(WaitTime.ofDays(106752).canConvertWithoutOverflow(TimeUnit.MICROSECONDS));
             return;
         }
 
@@ -56,25 +67,37 @@ public class DelayedTaskExecutorTest {
                 try {
                     Thread.sleep((long) (Math.random() * 1200));
                 } catch (InterruptedException ex) {
-                    DLog.print("Cancelled");
-                    return;
+                    DLog.print("interrupted");
+                    throw new RuntimeException();
                 }
 //                DLog.print("after HI");
             }, 1, 1, TimeUnit.SECONDS);
             DLog.print("Submit cancel");
-            exe.schedule(WaitTime.ofSeconds(10), ()->{
+            exe.schedule(WaitTime.ofSeconds(10), () -> {
                 DLog.print("Cancel from one shot");
                 scheduleWithFixedDelay.cancel(true);
             });
-            
+
             exe.awaitOneShotCompletion().await();
 
 //            scheduleWithFixedDelay.cancel(true);
             DLog.print("After cancel");
 //            exe.close();
-            
+
             exe.awaitFullCompletion().await();
             DLog.print("END");
+             exe.awaitFullCompletion().await();
+            DLog.print("Another await");
+            
+            exe.awaitOneShotCompletion().await();
+            DLog.print("Another one shot await");
+            exe.schedule(WaitTime.ofSeconds(2), ()->{
+                DLog.print("Last one shot");
+            });
+            exe.awaitOneShotCompletion().await();
+            DLog.print("Last one shot await");
+            exe.shutdown();
+
         }
 
     }

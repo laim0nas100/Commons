@@ -1,6 +1,8 @@
 package lt.lb.commons.threads.sync;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -9,20 +11,32 @@ import java.util.concurrent.TimeUnit;
 public class ConditionalWait {
 
     private volatile boolean keepWaiting = false;
-    private final Object lock = new Object();
+    private final ReentrantLock lock;
+    private final Condition awaiter;
+
+    public ConditionalWait() {
+        this(false);
+    }
+
+    public ConditionalWait(boolean fair) {
+        lock = new ReentrantLock(fair);
+        awaiter = lock.newCondition();
+    }
 
     public void conditionalWait() {
         if (!keepWaiting) {
             return;
         }
+
         try {
-            synchronized (lock) {
-                while (keepWaiting) {
-                    lock.wait();
-                }
+            lock.lockInterruptibly();
+            while (keepWaiting) {
+                awaiter.await();
             }
 
         } catch (InterruptedException e) {
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -30,15 +44,16 @@ public class ConditionalWait {
         if (!keepWaiting) {
             return;
         }
-        long waitTime = time.convert(TimeUnit.MILLISECONDS).time;
+        Objects.requireNonNull(time);
         try {
-            synchronized (lock) {
-                while (keepWaiting) {
-                    lock.wait(waitTime);
-                }
+            lock.lockInterruptibly();
+            while (keepWaiting) {
+                awaiter.await(time.time, time.unit);
             }
 
-        } catch (InterruptedException ex) {
+        } catch (InterruptedException e) {
+        } finally {
+            lock.unlock();
         }
 
     }
@@ -47,15 +62,28 @@ public class ConditionalWait {
         return keepWaiting;
     }
 
-    public void wakeUp() {
-        keepWaiting = false;
-        synchronized (lock) {
-            lock.notifyAll();
+    private boolean change(boolean newState) {
+        if (keepWaiting == newState) {
+            return false;
         }
+        lock.lock();
+        try {
+            keepWaiting = newState;
+            if (!newState && lock.hasWaiters(awaiter)) {
+                awaiter.signalAll();
+            }
+        } finally {
+            lock.unlock();
+        }
+        return true;
+    }
 
+    public void wakeUp() {
+        change(false);
     }
 
     public void requestWait() {
-        keepWaiting = true;
+        change(true);
+
     }
 }

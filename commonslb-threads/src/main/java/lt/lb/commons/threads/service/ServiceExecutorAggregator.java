@@ -20,9 +20,9 @@ import lt.lb.commons.threads.sync.Awaiter;
 public interface ServiceExecutorAggregator extends ExecutorService {
 
     Collection<ExecutorService> getServices();
-    
-    default ExecutorService getMain(){
-        return getServices().stream().findFirst().orElseThrow(()-> new IllegalStateException("No Executor services are configured"));
+
+    default ExecutorService getMain() {
+        return getServices().stream().findFirst().orElseThrow(() -> new IllegalStateException("No Executor services are configured"));
     }
 
     default <T> List<T> forEachCall(Function<ExecutorService, T> serv) {
@@ -68,7 +68,12 @@ public interface ServiceExecutorAggregator extends ExecutorService {
     @Override
     public default boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         List<Awaiter.AwaiterTime> collect = getServices().stream()
-                .map(m -> Awaiter.fromFunction(m::awaitTermination))
+                .map(m -> new Awaiter.AwaiterTime() {
+                    @Override
+                    public boolean awaitBool(long timeout, TimeUnit unit) throws InterruptedException {
+                        return m.awaitTermination(timeout, unit);
+                    }
+                })
                 .collect(Collectors.toList());
         return Awaiter.sharedAwaitTimeBool(collect, timeout, unit);
     }

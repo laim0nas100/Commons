@@ -1,7 +1,6 @@
 package lt.lb.commons.threads.service;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.Java;
