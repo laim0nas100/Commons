@@ -23,16 +23,19 @@ public class RequestThrottle {
     protected final AtomicLong lastReset;
 
     public RequestThrottle(WaitTime timeWindow, int requestsPerWindow) {
+        if (requestsPerWindow < 1) {
+            throw new IllegalArgumentException("requests per window must be positive:" + requestsPerWindow);
+        }
         this.timeWindow = Objects.requireNonNull(timeWindow);
-        this.requestsPerWindow = Math.max(1, requestsPerWindow);
-        this.lastReset = new AtomicLong(timeIncement());
-        waitNanos = timeWindow.convert(TimeUnit.NANOSECONDS).time;
+        this.requestsPerWindow = requestsPerWindow;
+        this.lastReset = new AtomicLong(timeIncrement());
+        waitNanos = timeWindow.toNanosAssert();
     }
 
     protected void updateTime(long now) {
         long call = lastReset.get();
         if (now - call >= waitNanos) {
-            if (lastReset.compareAndSet(call, now)) {
+            if (lastReset.compareAndSet(call, now)) {// reset only once
                 requestsMade.set(0);
             }
         }
@@ -40,7 +43,7 @@ public class RequestThrottle {
 
     public boolean request() {
 
-        updateTime(timeIncement());
+        updateTime(timeIncrement());
         return Atomic.signedIncrement(requestsMade, requestsPerWindow) >= 0;
     }
 
@@ -49,7 +52,7 @@ public class RequestThrottle {
      *
      * @return
      */
-    protected long timeIncement() {
+    protected long timeIncrement() {
         return Java.getNanoTime();
     }
 }
