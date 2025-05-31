@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.spi.FileSystemProvider;
@@ -25,7 +26,7 @@ public class FileUtils {
 
     public static Logger logger = LoggerFactory.getLogger(FileUtils.class);
     public static final int MB_IN_BYTES = 1024 * 1024;
-    public static final int BUFFER_SIZE = 16 * MB_IN_BYTES;
+    public static final int BUFFER_SIZE = 64 * MB_IN_BYTES;
 
     public static final String BASIC_CREATION_TIME = "basic:creationTime";
     public static final String BASIC_LAST_MODIFIED_TIME = "basic:lastModifiedTime";
@@ -78,8 +79,9 @@ public class FileUtils {
         ExtTask task = new ExtTask() {
             @Override
             protected Object call() throws Exception {
+                CopyOptions opt = options;
                 progress.set(0);
-                if (options.useStreams() && !Files.isDirectory(src)) {
+                if (opt.isUsingStreams() && !Files.isDirectory(src)) {
                     final long totalSize = Files.size(src);
                     final InputStream delegate = new BufferedInputStream(Files.newInputStream(src), BUFFER_SIZE);
                     PausableProgressInputStream stream = new PausableProgressInputStream() {
@@ -113,10 +115,15 @@ public class FileUtils {
                             }
                         }
                     }));
-
-                    Files.copy(stream, dst, options.toArray());
+                    if(opt.isReplaceExisting()){
+                        Files.deleteIfExists(dst);
+                    }
+                    Files.copy(stream, dst);
+                    if (opt.isCopyAttributes() && !canceled.get()) { // stream does not support copy_attributes option for some reason
+                        copyBasicAttributes(src, dst);
+                    }
                 } else {
-                    Files.copy(src, dst, options.toArray());
+                    Files.copy(src, dst,opt.toArray());
                 }
                 progress.set(1);
                 return null;
@@ -134,7 +141,7 @@ public class FileUtils {
                 progress.set(0);
                 FileSystemProvider providerSrc = src.getFileSystem().provider();
                 FileSystemProvider providerDest = dst.getFileSystem().provider();
-                if (!options.useStreams() || Files.isDirectory(src) || (providerSrc == providerDest)) {
+                if (options.isAtomicMove() || Files.isDirectory(src) || (providerSrc == providerDest)) {
                     providerSrc.move(src, dst, options.toArray());
                     progress.set(1);
                 } else {
