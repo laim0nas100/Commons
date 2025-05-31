@@ -35,7 +35,7 @@ public abstract class NPhaseActionAggregator<K, A> implements Runnable {
     }
 
     protected Map<K, AtomicReference<A>> getMapAndPhaseSwitch() {
-        return maps[qNumber.getAndAccumulate(1, (prev, x) -> Math.floorMod(prev + 1, x))]; // priority change
+        return maps[qNumber.getAndAccumulate(phaseCount, (prev, pCount) -> (prev + 1) % pCount)]; // priority change
     }
 
     protected Map<K, AtomicReference<A>> getMap() {
