@@ -2,53 +2,42 @@ package lt.lb.commons.threads.sync;
 
 /**
  *
- * @author laim0nas100
- * Semaphore
+ * @author laim0nas100 Semaphore
  *
  */
-public class UninterruptibleReadWriteLock {
+public class UninterruptibleReadWriteLock extends ReadWriteLock {
 
-    private int readers = 0;
-    private int writers = 0;
-    private int writeReq = 0;
-
+    @Override
     public synchronized void lockRead() {
+        boolean interrupted = false;
         while (writers + writeReq > 0) {
             try {
                 wait();
             } catch (InterruptedException ex) {
+                interrupted = true;
             }
         }
         readers++;
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
     }
 
-    public synchronized void unlockRead() {
-        readers--;
-        notifyAll();
-    }
-
+    @Override
     public synchronized void lockWrite() {
         writeReq++;
+        boolean interrupted = false;
         while (readers + writers > 0) {
             try {
                 wait();
             } catch (InterruptedException ex) {
+                interrupted = true;
             }
         }
         writeReq--;
         writers++;
-    }
-
-    public synchronized void unlockWrite() {
-        writers--;
-        notifyAll();
-    }
-
-    public boolean isBeingWritten() {
-        return writers > 0;
-    }
-
-    public boolean isBeingRead() {
-        return readers > 0;
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
