@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.NestedException;
+import lt.lb.uncheckedutils.Thrower;
 
 /**
  *
@@ -61,42 +61,46 @@ public class TimestampingExecutionExclusive<T> extends TimestampingExecution<T> 
     public TimestampedFuture<T> execute(boolean auto, Callable<T> task, WaitTime tolerance) {
 
         final long firstNow = Java.getNanoTime();
-        lock.lock();
+        lock.readLock().lock();
 
         TimestampedFutureEx<T> last = F.cast(reference.getLastAdded());
         if (last == null) {
+            lock.readLock().unlock();// no lock upgrading
+            lock.writeLock().lock();
             executionLock.acquireUninterruptibly();
             return cyclicAdd(firstNow, task);
         }// last not null
 
         // first check
         if (!auto && (last.created + tolerance.toNanos() >= firstNow)) {
-            lock.unlock();
+            lock.readLock().unlock();
             return last;
         }
 
         //first try
         if (executionLock.tryAcquire()) {
+            lock.readLock().unlock(); // no lock upgrading
+            lock.writeLock().lock();
             return cyclicAdd(firstNow, task);
         }
-        lock.unlock();
+        lock.readLock().unlock();
         //waiting for execution to end
         executionLock.acquireUninterruptibly();
 
-        lock.lock();
+        lock.readLock().lock();
 
         TimestampedFutureEx<T> newLast = F.cast(reference.getLastAdded());
         if (!auto && (newLast.started.get() + tolerance.toNanos() >= firstNow)) {
-            lock.unlock();
+            lock.readLock().unlock();
             return last;
         } else {//auto or too stale
-            if (auto) {// maybe new one fits
-
-                if (newLast.created <= firstNow && newLast.started.get() >= firstNow) {// created before, but executed during waiting
-                    lock.unlock();
-                    return newLast;
-                }
+            // maybe new one fits
+            if (newLast.created <= firstNow && newLast.started.get() >= firstNow) {// created before, but executed during waiting
+                lock.readLock().unlock();
+                return newLast;
             }
+            lock.readLock().unlock();// no lock upgrading
+            lock.writeLock().lock();
             return cyclicAdd(Java.getNanoTime(), task);
         }
 
@@ -113,15 +117,17 @@ public class TimestampingExecutionExclusive<T> extends TimestampingExecution<T> 
             return future;
         } catch (Throwable failedToSubmit) {
             if (future != null) {
+                //calling done releases the executionLock
                 future.setException(failedToSubmit);
-                return future;
             } else {
+                //future was never created somehow, so the lock is still held
                 executionLock.release();
-                throw NestedException.of(failedToSubmit);
             }
-
+            throw Thrower.of(failedToSubmit)
+                    .throwIfUnchecked()
+                    .toRuntime("Failed to submit");
         } finally {
-            lock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
