@@ -36,7 +36,7 @@ public class ReadWriteLock implements Lock {
         if (tryLockWrite()) {
             return true;
         }
-        if(millis <= 0){
+        if (millis <= 0) {
             return false;
         }
 
@@ -44,38 +44,39 @@ public class ReadWriteLock implements Lock {
         long now = Java.getNanoTime();
         long left = WaitTime.ofMillis(millis).toNanos();
         while (readers + writers > 0) {
+            if (left <= 0) {
+                return false;// failed to await
+            }
             wait(WaitTime.ofNanos(left).toMillis());
             long newNow = Java.getNanoTime();
             long elapsed = (newNow - now);
             left = left - elapsed;
-            if(left<= 0){
-                return false;// failed to await
-            }
+
             now = newNow;
         }
         writeReq--;
         writers++;
         return true;
     }
-    
+
     public synchronized boolean tryLockRead(long millis) throws InterruptedException {
         if (tryLockRead()) {
             return true;
         }
-        if(millis <= 0){
+        if (millis <= 0) {
             return false;
         }
 
         long now = Java.getNanoTime();
         long left = WaitTime.ofMillis(millis).toNanos();
         while (writeReq + writers > 0) {
+            if (left <= 0) {
+                return false;// failed to await
+            }
             wait(WaitTime.ofNanos(left).toMillis());
             long newNow = Java.getNanoTime();
             long elapsed = (newNow - now);
             left = left - elapsed;
-            if(left<= 0){
-                return false;// failed to await
-            }
             now = newNow;
         }
         readers++;
@@ -118,9 +119,9 @@ public class ReadWriteLock implements Lock {
 
     @Override
     public void lock() {
-        for(;;){
+        for (;;) {
             try {
-                if(tryLockWrite(60_000)){// retry every minute
+                if (tryLockWrite(60_000)) {// retry every minute
                     return;
                 }
             } catch (InterruptedException ex) {// disregard, go again
@@ -150,7 +151,8 @@ public class ReadWriteLock implements Lock {
 
     /**
      * Not supported.
-     * @return 
+     *
+     * @return
      */
     @Override
     public Condition newCondition() {
