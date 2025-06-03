@@ -46,7 +46,6 @@ public abstract class ForwardingInputStream extends InputStream {
     public static final int STARTING_BUFFER = 1048576; // 1 MB
     public static final int MAX_BUFFER = 134217728;// 128 MB
 
-    @Override
     public long transferTo(OutputStream out) throws IOException {
         Objects.requireNonNull(out, "out");
         long transferred = 0;
