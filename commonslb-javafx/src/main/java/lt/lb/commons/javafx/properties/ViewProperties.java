@@ -1,7 +1,7 @@
 package lt.lb.commons.javafx.properties;
 
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -12,37 +12,13 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TableView;
-import lt.lb.commons.Ins;
-import lt.lb.commons.LineStringBuilder;
-import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.commons.MethodCallSignature;
 
 /**
  *
  * @author laim0nas100
  */
-public interface ViewProperties<T> {
-
-    public static String methodNameArgs(String method, Object... objs) {
-        LineStringBuilder sb = new LineStringBuilder(method);
-        sb.append("(");
-        for (Object o : objs) {
-            String val = SafeOpt.ofNullable(o)
-                    .map(m -> m.getClass().getSimpleName() + " " + m)
-                    .orElse("null");
-            sb.append(val).append(", ");
-        }
-        if (objs.length > 0) {
-            sb.removeFromEnd(2);
-        }
-        return sb.append(")").toString();
-    }
-
-    public default <R> R cacheOr(String str, R item) {
-        Objects.requireNonNull(item);
-        return cacheOrGet(str, () -> item);
-    }
-
-    public <R> R cacheOrGet(String str, Supplier<R> supl);
+public interface ViewProperties<T> extends BindingCache {
 
     public ReadOnlyObjectProperty<T> selectedItem();
 
@@ -61,14 +37,23 @@ public interface ViewProperties<T> {
     public ReadOnlyIntegerProperty selectedIndex();
 
     public default BooleanBinding selectedSize(int size) {
-        return cacheOrGet(methodNameArgs("selectedSize", size), () -> {
-            BooleanBinding equalTo = selectedSize().isEqualTo(size);
-            return equalTo;
+        return cacheOrGet(signature("selectedSizeEq", size), () -> {
+            return selectedSize().isEqualTo(size);
         });
     }
 
+    public default BooleanBinding selectedSizeAtLeast(int size) {
+        return cacheOrGet(signature("selectedSizeEqAtLeast", size), () -> {
+            return selectedSize().greaterThanOrEqualTo(size);
+        });
+    }
+
+    public default BooleanBinding selectedSomething() {
+        return selectedSizeAtLeast(1);
+    }
+
     public default BooleanBinding itemsSize(int size) {
-        return cacheOrGet(methodNameArgs("itemsSize", size), () -> itemsSize().isEqualTo(size));
+        return cacheOrGet(signature("itemsSize", size), () -> itemsSize().isEqualTo(size));
     }
 
     public default BooleanBinding selectedItemNull() {
@@ -80,7 +65,7 @@ public interface ViewProperties<T> {
     }
 
     public default BooleanBinding itemsEmpty() {
-        return cacheOrGet("itemsEmpty", () -> itemsSize().isEqualTo(0));
+        return itemsSize(0);
     }
 
     public default BooleanBinding itemsNotEmpty() {
@@ -88,15 +73,15 @@ public interface ViewProperties<T> {
     }
 
     public static <T> ViewProperties<T> ofListView(ListView<T> view) {
-        return of(() -> view.getItems(), () -> view.getSelectionModel());
+        return of(view::getItems, view::getSelectionModel);
     }
 
     public static <T> ViewProperties<T> ofTableView(TableView<T> view) {
-        return of(() -> view.getItems(), () -> view.getSelectionModel());
+        return of(view::getItems, view::getSelectionModel);
     }
 
     public static <T> ViewProperties<T> of(Supplier<ObservableList<T>> list, Supplier<MultipleSelectionModel<T>> model) {
-        ConcurrentHashMap<String, Object> cache = new ConcurrentHashMap<>();
+        final HashMap<MethodCallSignature, Object> cache = new HashMap<>();
         return new ViewProperties<T>() {
             @Override
             public ReadOnlyObjectProperty<T> selectedItem() {
@@ -119,28 +104,9 @@ public interface ViewProperties<T> {
             }
 
             @Override
-            public <R> R cacheOrGet(String str, Supplier<R> supl) {
-
-                if (!cache.containsKey(str)) {
-                    R supplied = supl.get();
-                    Objects.requireNonNull(supplied);
-                    return (R) cache.computeIfAbsent(str, key -> supplied);
-                } else {
-                    Object get = cache.get(str);
-                    R supplied = supl.get();
-                    Objects.requireNonNull(supplied);
-
-                    if (!Ins.of(get.getClass()).superClassOf(supplied)) {
-                        throw new IllegalArgumentException("Reassigning cache object of different class" + get + " -> " + supplied);
-                    } else {
-                        cache.put(str, supplied);
-                        return supplied;
-                    }
-
-                }
-
+            public Map<MethodCallSignature, Object> cache() {
+                return cache;
             }
-
         };
     }
 }
