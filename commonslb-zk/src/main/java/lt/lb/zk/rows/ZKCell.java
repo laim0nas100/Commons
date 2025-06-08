@@ -7,16 +7,17 @@ import org.zkoss.zul.Cell;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ZKCell extends BaseCell<Component, Component> {
+
     protected Cell cell = makeCell();
     
     protected String allign;
     
-    protected Cell makeCell(){
+    protected Cell makeCell() {
         Cell cellTemplate = new Cell();
-        LineStringBuilder sb = new LineStringBuilder(";\n");
+        LineStringBuilder sb = LineStringBuilder.usingEnding(";\n");
         sb
                 .appendLine("margin-top: 1px")
                 .appendLine("margin-right: 3px")
@@ -33,11 +34,11 @@ public class ZKCell extends BaseCell<Component, Component> {
     
     public ZKCell() {
     }
-
+    
     public String getAllign() {
         return allign;
     }
-
+    
     public void setAllign(String allign) {
         this.allign = allign;
     }
@@ -45,9 +46,9 @@ public class ZKCell extends BaseCell<Component, Component> {
     public Cell getCell() {
         return cell;
     }
-
+    
     public void setCell(Cell cell) {
         this.cell = cell;
     }
-
+    
 }

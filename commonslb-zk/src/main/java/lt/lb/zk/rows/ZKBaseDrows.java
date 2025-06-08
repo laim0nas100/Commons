@@ -7,7 +7,7 @@ import org.zkoss.zul.Rows;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public abstract class ZKBaseDrows<R extends ZKBaseDrow, DR extends ZKBaseDrows<R,DR>> extends SyncDrows<R, ZKLine<R,DR>, DR, ZKUpdates> {
 

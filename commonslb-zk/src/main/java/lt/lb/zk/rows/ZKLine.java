@@ -6,7 +6,7 @@ import org.zkoss.zul.Row;
 
 /**
  *
- * @author Laimonas-Beniusis-PC
+ * @author laim0nas100
  */
 public class ZKLine<R extends ZKBaseDrow,DR extends ZKBaseDrows<R,DR>> extends BaseLine<DR,ZKCell, Component> {
 

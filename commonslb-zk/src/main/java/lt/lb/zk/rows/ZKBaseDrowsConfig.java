@@ -8,7 +8,7 @@ import lt.lb.commons.rows.base.BaseDrowsBindsConf;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class ZKBaseDrowsConfig<R extends ZKBaseDrow, DR extends ZKBaseDrows<R, DR>> extends BaseDrowsBindsConf<DR, R, ZKUpdates> {
 

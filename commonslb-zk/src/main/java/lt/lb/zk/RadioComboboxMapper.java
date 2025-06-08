@@ -1,12 +1,14 @@
-package lt.lb.zk.dynamicrows;
+package lt.lb.zk;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lt.lb.commons.misc.IntRange;
 import lt.lb.uncheckedutils.SafeOpt;
 import org.zkoss.zk.ui.Component;
@@ -200,8 +202,27 @@ public class RadioComboboxMapper<T> {
         if (this.getPreselectedIndex() != -1) {
             rad.setSelectedIndex(this.getPreselectedIndex());
         }
-        
+
         return rad;
+    }
+
+    public static <R extends Enum> RadioComboboxMapper<R> comboEnum(Class<R> cls, Function<R, String> mapper) {
+        RadioComboboxMapper<R> cbm = new RadioComboboxMapper<>();
+        return cbm.withOptions(Stream.of(cls.getEnumConstants()).collect(Collectors.toList())).withMapper(mapper);
+    }
+
+    public static <R extends Enum> RadioComboboxMapper<R> comboEnumDefaultNames(Class<R> cls) {
+        return comboEnum(cls, Enum::name);
+    }
+
+    public static <R> RadioComboboxMapper<R> comboMapped(Collection<R> opt, Function<R, String> mapper) {
+        RadioComboboxMapper<R> cbm = new RadioComboboxMapper<>();
+        return cbm.withOptions(opt).withMapper(mapper);
+    }
+
+    public static RadioComboboxMapper<String> comboNames(String... names) {
+        RadioComboboxMapper<String> cbm = new RadioComboboxMapper<>();
+        return cbm.withOptions(Arrays.asList(names)).withMapper(s -> s);
     }
 
 }

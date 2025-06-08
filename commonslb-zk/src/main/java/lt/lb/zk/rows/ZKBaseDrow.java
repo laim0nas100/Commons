@@ -13,7 +13,7 @@ import lt.lb.commons.rows.SyncDrow;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.NestedException;
 import lt.lb.zk.ZKValidation;
-import lt.lb.zk.dynamicrows.RadioComboboxMapper;
+import lt.lb.zk.RadioComboboxMapper;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.HtmlBasedComponent;
 import org.zkoss.zk.ui.event.Events;
