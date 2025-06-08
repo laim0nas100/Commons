@@ -25,16 +25,22 @@ public class MethodCallSignature {
         this.args = args.length == 0 ? Collections.EMPTY_LIST : Collections.unmodifiableList(Arrays.asList(args));
     }
 
+    protected int hash = 0;
+
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 11 * hash + Objects.hashCode(this.name);
-        hash = 11 * hash + Objects.hashCode(this.args);
+        if (hash == 0) {// in unlikely case that the computed hash is 0, recompute everytime
+            int h = 7;
+            h = 11 * h + Objects.hashCode(this.name);
+            h = 11 * h + Objects.hashCode(this.args);
+            hash = h;
+        }
+
         return hash;
     }
 
     private static boolean argEquals(List a, List b) {
-        if (a == b) {// both null
+        if (a == b) {// both empty
             return true;
         }
         if (a.size() != b.size()) {

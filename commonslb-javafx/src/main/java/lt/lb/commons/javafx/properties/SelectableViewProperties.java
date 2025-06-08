@@ -18,7 +18,7 @@ import lt.lb.commons.MethodCallSignature;
  *
  * @author laim0nas100
  */
-public interface ViewProperties<T> extends BindingCache {
+public interface SelectableViewProperties<T> extends BindingCache {
 
     public ReadOnlyObjectProperty<T> selectedItem();
 
@@ -37,13 +37,13 @@ public interface ViewProperties<T> extends BindingCache {
     public ReadOnlyIntegerProperty selectedIndex();
 
     public default BooleanBinding selectedSize(int size) {
-        return cacheOrGet(signature("selectedSizeEq", size), () -> {
+        return cacheOrGet(signature("selectedSize", size), () -> {
             return selectedSize().isEqualTo(size);
         });
     }
 
     public default BooleanBinding selectedSizeAtLeast(int size) {
-        return cacheOrGet(signature("selectedSizeEqAtLeast", size), () -> {
+        return cacheOrGet(signature("selectedSizeAtLeast", size), () -> {
             return selectedSize().greaterThanOrEqualTo(size);
         });
     }
@@ -72,30 +72,30 @@ public interface ViewProperties<T> extends BindingCache {
         return cacheOrGet("itemsNotEmpty", () -> itemsSize().greaterThan(0));
     }
 
-    public static <T> ViewProperties<T> ofListView(ListView<T> view) {
+    public static <T> SelectableViewProperties<T> ofListView(ListView<T> view) {
         return of(view::getItems, view::getSelectionModel);
     }
 
-    public static <T> ViewProperties<T> ofTableView(TableView<T> view) {
+    public static <T> SelectableViewProperties<T> ofTableView(TableView<T> view) {
         return of(view::getItems, view::getSelectionModel);
     }
 
-    public static <T> ViewProperties<T> of(Supplier<ObservableList<T>> list, Supplier<MultipleSelectionModel<T>> model) {
-        final HashMap<MethodCallSignature, Object> cache = new HashMap<>();
-        return new ViewProperties<T>() {
+    public static <T> SelectableViewProperties<T> of(Supplier<ObservableList<T>> list, Supplier<MultipleSelectionModel<T>> model) {
+        return new SelectableViewProperties<T>() {
+            final HashMap<MethodCallSignature, Object> cache = new HashMap<>();
             @Override
             public ReadOnlyObjectProperty<T> selectedItem() {
-                return cacheOrGet("selectedItem", () -> model.get().selectedItemProperty());
+                return model.get().selectedItemProperty();
             }
 
             @Override
             public ReadOnlyIntegerProperty selectedIndex() {
-                return cacheOrGet("selectedIndex", () -> model.get().selectedIndexProperty());
+                return model.get().selectedIndexProperty();
             }
 
             @Override
             public ObservableList<T> selectedItems() {
-                return cacheOrGet("selectedItems", () -> model.get().getSelectedItems());
+                return model.get().getSelectedItems();
             }
 
             @Override
