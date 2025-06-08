@@ -34,7 +34,7 @@ import org.junit.Test;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class IterationTest {
 

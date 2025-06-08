@@ -32,7 +32,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class DataGen {
 

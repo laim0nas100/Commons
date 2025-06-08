@@ -11,7 +11,7 @@ import lt.lb.commons.DLog;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class HashMapTest {
 

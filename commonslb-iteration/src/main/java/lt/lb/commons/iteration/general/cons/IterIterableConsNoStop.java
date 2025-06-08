@@ -4,7 +4,7 @@ import lt.lb.commons.iteration.general.result.IterIterableResult;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 @FunctionalInterface
 public interface IterIterableConsNoStop<Type> extends IterIterableCons<Type> {

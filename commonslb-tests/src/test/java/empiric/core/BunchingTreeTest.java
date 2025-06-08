@@ -20,7 +20,7 @@ import lt.lb.fastid.FastIDGen;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class BunchingTreeTest {
 

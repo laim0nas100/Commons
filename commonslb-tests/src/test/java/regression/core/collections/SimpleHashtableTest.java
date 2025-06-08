@@ -23,7 +23,7 @@ import lt.lb.commons.iteration.For;
 
 /**
  *
- * @author Lemmin
+ * @author laim0nas100
  */
 public class SimpleHashtableTest {
 
