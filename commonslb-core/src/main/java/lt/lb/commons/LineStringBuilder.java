@@ -1,5 +1,8 @@
 package lt.lb.commons;
 
+import java.nio.CharBuffer;
+import java.util.Objects;
+import java.util.function.Function;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineStringBuilder;
 
 /**
@@ -10,16 +13,23 @@ import lt.lb.commons.interfaces.StringBuilderActions.ILineStringBuilder;
  */
 public class LineStringBuilder implements java.io.Serializable, CharSequence, ILineStringBuilder, Appendable {
 
-    private final StringBuilder sb;
+    protected final StringBuilder sb;
     public final String lineEnding;
     public static final String UNIX_LINE_END = "\n";
     public static final String DOS_LINE_END = "\r\n";
 
-    public LineStringBuilder(String lineEnding) {
-        this.lineEnding = lineEnding;
+    protected LineStringBuilder(String lineEnding) {
+        this.lineEnding = Objects.requireNonNull(lineEnding);
         this.sb = new StringBuilder();
     }
 
+    public static LineStringBuilder usingEnding(String ending) {
+        return new LineStringBuilder(ending);
+    }
+
+    /**
+     * Use unix line ending
+     */
     public LineStringBuilder() {
         this(UNIX_LINE_END);
     }
@@ -447,6 +457,54 @@ public class LineStringBuilder implements java.io.Serializable, CharSequence, IL
     public LineStringBuilder append(char arg0) {
         sb.append(arg0);
         return this;
+    }
+
+    /**
+     * appends the repeated the codepoint given amount of times
+     *
+     * @param codePoint
+     * @param count
+     * @return
+     */
+    public LineStringBuilder repeat(int codePoint, int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Count is negative");
+        }
+        if (Character.isBmpCodePoint(codePoint)) {
+            repeat(String.valueOf((char) codePoint), count);
+        } else {
+            repeat(CharBuffer.wrap(Character.toChars(codePoint)), count);
+        }
+        return this;
+    }
+
+    /**
+     * appends the repeated the CharSequence given amount of times
+     *
+     * @param cs
+     * @param count
+     * @return
+     */
+    public LineStringBuilder repeat(CharSequence cs, int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Count is negative");
+        }
+        StringBuilder builder = createBuilderOf();
+        for (int i = 0; i < count; i++) {
+            builder.append(cs);
+        }
+        return append(builder);
+    }
+
+    /**
+     * Chain this object to produce something else
+     *
+     * @param <U> result
+     * @param chainFunction chaining function
+     * @return
+     */
+    public <U> U chain(Function<LineStringBuilder, ? extends U> chainFunction) {
+        return Objects.requireNonNull(chainFunction, "Chain function is null").apply(this);
     }
 
 }
