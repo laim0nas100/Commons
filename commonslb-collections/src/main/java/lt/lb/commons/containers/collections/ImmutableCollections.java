@@ -9,9 +9,10 @@ import java.util.Set;
 
 /**
  *
- * @author laim0nas100
+ * @author laim0nas100 Immutable {@link Collection} that retains element order.
  *
- * if using Java 9, use respective immutable Map, Set, List, operations instead
+ * If ordering doesn't matter and you using Java 9, use respective immutable
+ * Map, Set, List, operations instead
  */
 public abstract class ImmutableCollections {
 
@@ -26,14 +27,14 @@ public abstract class ImmutableCollections {
             case 1:
                 return Collections.singleton(items[0]);
             default:
-                if(items.length <= 10){
+                if (items.length <= 10) {
                     return new ImmutableLinearSet<>(items);
                 }
                 LinkedHashSet<T> set = new LinkedHashSet<>(items.length, 1f);
-                for(T item:items){
+                for (T item : items) {
                     boolean add = set.add(item);
-                    if(!add){
-                        throw new IllegalArgumentException("Duplicate element in a set:"+item);
+                    if (!add) {
+                        throw new IllegalArgumentException("Duplicate element in a set:" + item);
                     }
                 }
                 return Collections.unmodifiableSet(set);
