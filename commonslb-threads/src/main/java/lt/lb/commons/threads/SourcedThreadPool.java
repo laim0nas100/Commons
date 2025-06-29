@@ -9,25 +9,40 @@ import lt.lb.commons.Nulls;
  *
  * @author laim0nas100
  */
-public class SimpleThreadPool implements ThreadPool {
+public class SourcedThreadPool implements ThreadPool {
 
     /**
      * Empty subclass to differentiate threads from the same group created by
      * this ThreadPool
      */
-    public static class SimpleThread extends Thread {
+    public static class SourcedThread extends Thread {
 
-        public SimpleThread(ThreadGroup group, Runnable target, String name) {
+        private final Runnable task;
+        private final ThreadPool pool;
+
+        public SourcedThread(ThreadPool pool, ThreadGroup group, Runnable target, String name) {
             super(group, target, name);
+            this.pool = pool;
+            this.task = target;
         }
 
-        public SimpleThread(ThreadGroup group, Runnable target, String name, boolean deamon, int priority, ClassLoader clLoader) {
+        public SourcedThread(ThreadPool pool, ThreadGroup group, Runnable target, String name, boolean deamon, int priority, ClassLoader clLoader) {
             super(group, target, name);
+            this.pool = pool;
+            this.task = target;
             setDaemon(deamon);
             setPriority(priority);
             if (clLoader != null) {
                 setContextClassLoader(clLoader);
             }
+        }
+
+        public Runnable getTask() {
+            return task;
+        }
+
+        public ThreadPool getPool() {
+            return pool;
         }
 
     }
@@ -42,17 +57,17 @@ public class SimpleThreadPool implements ThreadPool {
 
     protected final ThreadGroup group;
 
-    public SimpleThreadPool(Class cls) {
+    public SourcedThreadPool(Class cls) {
         this(cls.getSimpleName() + " ", new ThreadGroup(cls.getSimpleName()));
     }
 
-    public SimpleThreadPool(String prefix, ThreadGroup group) {
+    public SourcedThreadPool(String prefix, ThreadGroup group) {
         this.threadPrefix = Nulls.requireNonNull(prefix, "Thread prefix is null");
         this.group = Nulls.requireNonNull(group, "Threadgroup is null");
     }
 
-    public SimpleThreadPool(String prefix) {
-        this(prefix, new ThreadGroup("ThreadPool"));
+    public SourcedThreadPool(String prefix) {
+        this( prefix, new ThreadGroup("ThreadPool"));
     }
 
     @Override
@@ -122,17 +137,27 @@ public class SimpleThreadPool implements ThreadPool {
         int size = activeCount + Math.max(16, activeCount / 2);// ensure none are ignored
         Thread[] threads = new Thread[size];
         group.enumerate(threads);
-        return Stream.of(threads).filter(t -> (t != null && t instanceof SimpleThread));
+        return Stream.of(threads).filter(this::threadEnumerationFilter);
     }
 
     protected String nextThreadName() {
         return threadPrefix + "thread-" + threadNum.getAndIncrement() + threadSuffix;
     }
 
+    protected boolean threadEnumerationFilter(Thread t) {
+        if (t != null && t instanceof SourcedThread) {
+            SourcedThread st = (SourcedThread) t;
+            return st.pool == this;
+        }
+        return false;
+    }
+
     @Override
-    public Thread newThread(Runnable run) {
+    public SourcedThread newThread(Runnable run) {
         Nulls.requireNonNull(run, "Provided Runnable is null");
-        Thread thread = new SimpleThread(getThreadGroup(),
+        SourcedThread thread = new SourcedThread(
+                this,
+                getThreadGroup(),
                 run,
                 nextThreadName(),
                 isDaemon(),

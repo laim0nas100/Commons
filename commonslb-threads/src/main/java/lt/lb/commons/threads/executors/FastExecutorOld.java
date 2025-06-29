@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
-import lt.lb.commons.threads.SimpleThreadPool;
+import lt.lb.commons.threads.SourcedThreadPool;
 import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentIndexedAbstract;
 import lt.lb.commons.threads.sync.ConcurrentIndexedBag;
@@ -70,7 +70,7 @@ public class FastExecutorOld extends AbstractExecutorService implements Closeabl
      *
      */
     public FastExecutorOld(int maxThreads) {
-        this(maxThreads, new SimpleThreadPool(FastExecutorOld.class));
+        this(maxThreads, new SourcedThreadPool(FastExecutorOld.class));
     }
 
     protected FastExecutorOld(int maxThreads, ThreadPool threadPool) {

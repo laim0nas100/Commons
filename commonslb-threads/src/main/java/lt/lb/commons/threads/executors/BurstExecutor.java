@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.misc.numbers.Atomic;
-import lt.lb.commons.threads.SimpleThreadPool;
+import lt.lb.commons.threads.SourcedThreadPool;
 import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentConsume;
 
@@ -89,7 +89,7 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
      *
      */
     public BurstExecutor(int maxThreads) {
-        this(maxThreads, new SimpleThreadPool(BurstExecutor.class));
+        this(maxThreads, new SourcedThreadPool(BurstExecutor.class));
     }
 
     protected BurstExecutor(int maxThreads, ThreadPool threadPool) {

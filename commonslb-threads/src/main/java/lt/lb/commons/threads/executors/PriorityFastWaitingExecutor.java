@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
-import lt.lb.commons.threads.SimpleThreadPool;
+import lt.lb.commons.threads.SourcedThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentArena;
 import lt.lb.commons.threads.sync.WaitTime;
 
@@ -70,7 +70,7 @@ public class PriorityFastWaitingExecutor extends FastWaitingExecutor {
      * {@inheritDoc}
      */
     public PriorityFastWaitingExecutor(int maxThreads, WaitTime time) {
-        super(maxThreads, time, new SimpleThreadPool(PriorityFastWaitingExecutor.class));
+        super(maxThreads, time, new SourcedThreadPool(PriorityFastWaitingExecutor.class));
         this.wt = time;
     }
 

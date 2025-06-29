@@ -12,13 +12,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.misc.numbers.Atomic;
-import lt.lb.commons.threads.SimpleThreadPool;
-import lt.lb.commons.threads.ThreadPool;
+import lt.lb.commons.threads.SourcedThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentArena;
-import lt.lb.uncheckedutils.concurrent.ThreadLocalParkSpace;
 
 /**
  *
@@ -40,9 +39,7 @@ public class FastExecutor extends BaseExecutor {
 
     protected ConcurrentArena<Runnable> tasks;
 
-    protected ThreadLocalParkSpace<Running> runningTasks;
-
-    protected ThreadPool pool;
+    protected SourcedThreadPool pool;
 
     protected int maxThreads;
     protected AtomicInteger occupiedThreads = new AtomicInteger(0);
@@ -59,7 +56,7 @@ public class FastExecutor extends BaseExecutor {
      *
      */
     private FastExecutor(int maxThreads, int spec) {
-        this(maxThreads, new SimpleThreadPool(FastExecutor.class));
+        this(maxThreads, new SourcedThreadPool(FastExecutor.class));
         this.spec = spec;
         tasks = makeQueue(spec);
     }
@@ -75,15 +72,12 @@ public class FastExecutor extends BaseExecutor {
      *
      */
     public FastExecutor(int maxThreads) {
-        this(maxThreads, new SimpleThreadPool(FastExecutor.class));
+        this(maxThreads, new SourcedThreadPool(FastExecutor.class));
     }
 
-    protected FastExecutor(int maxThreads, ThreadPool threadPool) {
+    protected FastExecutor(int maxThreads, SourcedThreadPool threadPool) {
         this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
         this.maxThreads = maxThreads;
-        this.runningTasks = new ThreadLocalParkSpace<>(Math.max(8, (int) (maxThreads * Math.E)));
-//        this.runningTasks = new ConcurrentIndexedBag<>(Math.max(8, (int) (maxThreads * 2.72)));// e approximation
-
         pool.setStarting(true);
 
         tasks = makeQueue();
@@ -145,11 +139,12 @@ public class FastExecutor extends BaseExecutor {
         if (maxThreads == 0) {
             executeSingle(command);
         } else {
-            if (!tasks.add(command)) {
-                throw new IllegalStateException("Failed to submit runnable, queue overflow");
+            if (!maybeStartThread(maxThreads, command)) {
+                if (!tasks.add(command)) {
+                    throw new IllegalStateException("Failed to submit runnable, queue overflow");
 
+                }
             }
-            maybeStartThread(maxThreads);
         }
 
     }
@@ -165,53 +160,37 @@ public class FastExecutor extends BaseExecutor {
 
             int howMany = maxThreads < 0 ? all.size() : Math.min(maxThreads, all.size());
             for (int i = occupiedThreads.get(); i < howMany; i++) {
-                maybeStartThread(maxThreads);
+                maybeStartThread(maxThreads, null);
             }
         }
     }
 
     protected Runnable getNext() throws InterruptedException {
-        return tasks.poll();
-//        int tries = 3;
-//        while (tries > 0) {
-//            Runnable run = tasks.poll();
-//            if (run != null) {
-//                return run;
-//            }
-//            LockSupport.parkNanos(1); // helps to mitigate thread congestion
-//            tries--;
-//        }
-//        return null;
+        int tries = 3;
+        while (--tries >= 0) {
+            Runnable poll = tasks.poll();
+            if (poll != null) {
+                return poll;
+            }
+            LockSupport.parkNanos(1);
+        }
+        return null;
     }
 
-    protected boolean polling(final boolean parked) {
-
-        final Running running = parked ? new Running(Thread.currentThread(), null) : Running.EMPTY;
-        int index = parked ? runningTasks.park(running) : -1;
+    protected void polling(Runnable run) {
         try {
-            for (;;) {
-                Runnable run = getNext();
-                if (run == null) {
-                    return running.canceled;
-                } else {
-                    if (parked) {
-                        if (running.canceled) {
-                            return true;
-                        }
-                        running.runnable = run;
-                    }
 
+            for (;;) {
+                executeSingle(run);// null check inside
+                run = getNext();
+                if (run == null) {
+                    return;
+                } else {
                     executeSingle(run);
                 }
             }
         } catch (InterruptedException ex) {
-            return running.canceled;
-        } finally {
-            if (index >= 0) {
-                runningTasks.unpark(index);
-            }
         }
-
     }
 
     protected final void executeSingle(Runnable run) {
@@ -230,19 +209,18 @@ public class FastExecutor extends BaseExecutor {
         }
     }
 
-    protected final Runnable threadBody(final int bakedMax) {
+    protected final Runnable threadBody(final int bakedMax, Runnable first) {
         return () -> {
 
-            boolean cancel = false;
             try {
-                cancel = polling(true);
+                polling(first);
             } finally {
                 int leftRunning = Atomic.decrementAndGet(occupiedThreads); //thread no longer running (not really)
                 int get = tasks.size();
                 if (!open && get == 0) {
                     maybeTerminate(leftRunning);
                 } else if (get > 0) {
-                    maybeStartThread(bakedMax);
+                    maybeStartThread(bakedMax, null);
                 }
 
             }
@@ -255,40 +233,34 @@ public class FastExecutor extends BaseExecutor {
         }
     }
 
-    protected Thread startThread(final int maxT) {
-        return pool.newThread(threadBody(maxT));//pool should start the thread
+    protected Thread startThread(final int maxT, Runnable first) {
+        return pool.newThread(threadBody(maxT, first));//pool should start the thread
     }
 
-    protected void maybeStartThread(final int maxT) {
+    protected boolean maybeStartThread(final int maxT, Runnable first) {
         if (maxT > 0) { // limitedThreads
             if (occupiedThreads.get() >= maxT) {//fast exit
-                return;
+                return false;
             }
             if (Atomic.incrementAndGet(occupiedThreads) > maxT) {
                 Atomic.decrementAndGet(occupiedThreads);
             } else {
-                startThread(maxT);
+                startThread(maxT, first);
+                return true;
             }
         } else if (maxT == 0) {
             throw new IllegalArgumentException("Max threads is 0");
         } else {//unlimited threads
             Atomic.incrementAndGet(occupiedThreads);
-            startThread(maxT);
+            startThread(maxT, first);
+            return true;
         }
+        return false;
     }
 
     public List<Runnable> cancelAll(boolean interrupting) {
-        if (interrupting) {
-            for (Running r : runningTasks) {
-                if (r != null) {
-                    r.canceled = true;
-                    if (r.thread.isAlive()) {
-                        r.thread.interrupt();
-                    }
-                }
-            }
-        }
-        ArrayList<Runnable> unfinished = new ArrayList<>();
+
+        ArrayList<Runnable> unfinished = new ArrayList<>(tasks.size());
         Iterator<Runnable> iterator = tasks.iterator();
         while (iterator.hasNext()) {
             Runnable next = iterator.next();
@@ -296,6 +268,9 @@ public class FastExecutor extends BaseExecutor {
             if (next != null) {
                 unfinished.add(next);
             }
+        }
+        if (interrupting) {
+            pool.interruptAlive();
         }
 
         return unfinished;
@@ -308,10 +283,6 @@ public class FastExecutor extends BaseExecutor {
         maybeTerminate(occupiedThreads.get());
 
         return unfinished;
-    }
-
-    protected Iterator<Running> getRunningTasks() {
-        return runningTasks.iterator();
     }
 
     public boolean isBusy() {
@@ -332,9 +303,7 @@ public class FastExecutor extends BaseExecutor {
             maybeTerminate(occupiedThreads.get());
             this.awaitTermination.get(timeout, unit);
             return true;
-        } catch (ExecutionException exe) {
-            throw new Error("Should never happen", exe);
-        } catch (TimeoutException ex) {
+        } catch (ExecutionException | TimeoutException ex) {
             return false; // too late
         }
 
