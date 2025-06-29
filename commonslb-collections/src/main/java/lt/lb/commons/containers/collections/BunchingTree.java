@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.iteration.TreeVisitor;
@@ -407,7 +406,7 @@ public abstract class BunchingTree<T, D extends Comparable<D>> {
             super(div, layers);
             this.searchRatioMult = 1 + searchRatio;
             this.distanceSlice = maxPossibleDistance / div;
-            this.distanceFunc = distanceFunc;
+            this.distanceFunc = Objects.requireNonNull(distanceFunc);
             this.overlapMult = div / 2;
 
         }
