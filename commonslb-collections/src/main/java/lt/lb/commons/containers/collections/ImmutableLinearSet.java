@@ -2,6 +2,7 @@ package lt.lb.commons.containers.collections;
 
 import java.util.AbstractCollection;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -9,7 +10,9 @@ import java.util.Set;
 
 /**
  *
- * Linear lookup immutable set, for small data; 
+ * Linear lookup immutable set, for up to 10 elements speed is the same as {@link LinkedHashSet}.
+ * Smaller memory footprint.
+ *
  * @author laim0nas100
  */
 public class ImmutableLinearSet<T> extends AbstractCollection<T> implements Set<T> {
@@ -28,12 +31,11 @@ public class ImmutableLinearSet<T> extends AbstractCollection<T> implements Set<
         this.data = data;
     }
 
-    private static void assertDistinct(Object[] data) {
+    public static void assertDistinct(Object[] data) {
+        Set<Object> set = new HashSet<>(data.length);
         for (int i = 0; i < data.length; i++) {
-            for (int j = i + 1; j < data.length; j++) {
-                if (Objects.equals(data[i], data[j])) {
-                    throw new IllegalArgumentException("duplicate elements not allowed:" + data[i]);
-                }
+            if (!set.add(data[i])) {
+                throw new IllegalArgumentException("duplicate elements not allowed at index:" + i + " element:" + data);
             }
         }
     }
@@ -51,7 +53,9 @@ public class ImmutableLinearSet<T> extends AbstractCollection<T> implements Set<
     @Override
     public boolean contains(Object o) {
         for (int i = 0; i < data.length; i++) {
-            return Objects.equals(o, data[i]);
+            if(Objects.equals(o, data[i])){
+                return true;
+            }
         }
         return false;
     }

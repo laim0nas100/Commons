@@ -2,7 +2,6 @@ package lt.lb.commons.containers.collections;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +26,7 @@ public abstract class ImmutableCollections {
             case 1:
                 return Collections.singleton(items[0]);
             default:
-                if(items.length <= 16){
+                if(items.length <= 10){
                     return new ImmutableLinearSet<>(items);
                 }
                 LinkedHashSet<T> set = new LinkedHashSet<>(items.length, 1f);
