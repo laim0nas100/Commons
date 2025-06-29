@@ -1,6 +1,7 @@
 package lt.lb.commons.containers.collections;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -11,8 +12,34 @@ import java.util.function.Supplier;
  */
 public class MapEntries {
 
+    public static abstract class AbstractEntry<K, V> implements Map.Entry<K, V> {
+
+        @Override
+        public boolean equals(Object other) {
+            if (other == this) {
+                return true;
+            }
+            if (other instanceof Map.Entry) {
+                Map.Entry entry = (Map.Entry) other;
+                return Objects.equals(getKey(), entry.getKey()) && Objects.equals(getValue(), entry.getValue());
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getKey());
+        }
+
+        @Override
+        public String toString() {
+            return getKey() + "=" + getValue();
+        }
+
+    }
+
     public static <K, V> Map.Entry<K, V> byKey(Map<K, V> map, K k) {
-        return new Map.Entry<K, V>() {
+        return new AbstractEntry<K, V>() {
             @Override
             public K getKey() {
                 return k;
@@ -35,7 +62,7 @@ public class MapEntries {
     }
 
     public static <K, V> Map.Entry<K, V> immutable(K k, V v) {
-        return new Map.Entry<K, V>() {
+        return new AbstractEntry<K, V>() {
             @Override
             public K getKey() {
                 return k;
@@ -48,7 +75,7 @@ public class MapEntries {
 
             @Override
             public V setValue(V value) {
-                throw new UnsupportedOperationException("Not supported");
+                throw new UnsupportedOperationException("Immutable");
             }
         };
     }
