@@ -139,11 +139,9 @@ public class FastExecutor extends BaseExecutor {
         if (maxThreads == 0) {
             executeSingle(command);
         } else {
-            if (!maybeStartThread(maxThreads, command)) {
-                if (!tasks.add(command)) {
-                    throw new IllegalStateException("Failed to submit runnable, queue overflow");
-
-                }
+            boolean started = maybeStartThread(maxThreads, command);
+            if (!started && !tasks.add(command)) {
+                throw new IllegalStateException("Failed to submit runnable, queue overflow");
             }
         }
 
@@ -185,8 +183,6 @@ public class FastExecutor extends BaseExecutor {
                 run = getNext();
                 if (run == null) {
                     return;
-                } else {
-                    executeSingle(run);
                 }
             }
         } catch (InterruptedException ex) {
@@ -244,6 +240,7 @@ public class FastExecutor extends BaseExecutor {
             }
             if (Atomic.incrementAndGet(occupiedThreads) > maxT) {
                 Atomic.decrementAndGet(occupiedThreads);
+                return false;
             } else {
                 startThread(maxT, first);
                 return true;
@@ -255,7 +252,6 @@ public class FastExecutor extends BaseExecutor {
             startThread(maxT, first);
             return true;
         }
-        return false;
     }
 
     public List<Runnable> cancelAll(boolean interrupting) {
