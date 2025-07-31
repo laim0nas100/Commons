@@ -10,7 +10,7 @@ import lt.lb.commons.javafx.scenemanagement.Frame;
  */
 public class FrameDecorateProps extends FrameDecorate {
 
-    protected HashMap<String, Props> frameProps = new HashMap<>();
+    protected HashMap<String, Props<String>> frameProps = new HashMap<>();
 
     /**
      * Get or create Props object for given frame.
@@ -18,7 +18,7 @@ public class FrameDecorateProps extends FrameDecorate {
      * @param frame
      * @return
      */
-    public Props getFrameProps(Frame frame) {
+    public Props<String> getFrameProps(Frame frame) {
         return frameProps.computeIfAbsent(frame.getID(), k -> new Props());
     }
 
@@ -30,11 +30,11 @@ public class FrameDecorateProps extends FrameDecorate {
      * @param frame
      * @return
      */
-    public Props removeFrameProps(Frame frame) {
+    public Props<String> removeFrameProps(Frame frame) {
         if (frameProps.containsKey(frame.getID())) {
             return frameProps.remove(frame.getID());
         } else {
-            return new Props();
+            return new Props<>();
         }
     }
 

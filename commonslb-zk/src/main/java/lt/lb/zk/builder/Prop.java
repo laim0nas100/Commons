@@ -8,11 +8,11 @@ import lt.lb.uncheckedutils.SafeOpt;
  *
  * @author laim0nas100
  */
-public class Prop<T> extends Props.PropGet<String> implements StringParserWithDefaultValue<String,T> {
+public class Prop<T> extends Props.PropGet<String,String> implements StringParserWithDefaultValue<String,T> {
 
     public T defaultVal;
     public boolean optional;
-    public Props props;
+    public Props<String> props;
 
     @Override
     public T getDefault() {

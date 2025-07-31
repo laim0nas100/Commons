@@ -11,5 +11,5 @@ public interface CTX {
 
     public List<Prop> getProperties();
 
-    public Props getData();
+    public Props<String> getData();
 }

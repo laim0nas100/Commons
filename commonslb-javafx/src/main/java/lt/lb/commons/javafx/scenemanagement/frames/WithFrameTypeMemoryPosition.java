@@ -14,12 +14,12 @@ import static lt.lb.commons.javafx.scenemanagement.frames.Util.listenerUpdating;
  */
 public class WithFrameTypeMemoryPosition extends FrameDecorateProps {
 
-    public HashMap<String, Props> memoryMap = new HashMap<>();
+    public HashMap<String, Props<String>> memoryMap = new HashMap<>();
 
-    public static final PropGet<Double> prop_y = PropGet.of("y");
-    public static final PropGet<Double> prop_x = PropGet.of("x");
-    public static final PropGet<ChangeListener> prop_y_listen = PropGet.of("y_listen");
-    public static final PropGet<ChangeListener> prop_x_listen = PropGet.of("x_listen");
+    public static final PropGet<String,Double> prop_y = PropGet.of("y");
+    public static final PropGet<String,Double> prop_x = PropGet.of("x");
+    public static final PropGet<String,ChangeListener> prop_y_listen = PropGet.of("y_listen");
+    public static final PropGet<String,ChangeListener> prop_x_listen = PropGet.of("x_listen");
 
     public WithFrameTypeMemoryPosition() {
         addFrameDecorator(FrameState.FrameStateOpen.instance, this::decorateOpen);

@@ -13,12 +13,12 @@ import lt.lb.commons.javafx.scenemanagement.Frame;
  */
 public class WithFrameTypeMemorySize extends FrameDecorateProps {
 
-    public static final PropGet<Double> prop_height = PropGet.of("h");
-    public static final PropGet<Double> prop_width = PropGet.of("w");
-    public static final PropGet<ChangeListener> prop_height_listen = PropGet.of("h_listen");
-    public static final PropGet<ChangeListener> prop_width_listen = PropGet.of("w_listen");
+    public static final PropGet<String,Double> prop_height = PropGet.of("h");
+    public static final PropGet<String,Double> prop_width = PropGet.of("w");
+    public static final PropGet<String,ChangeListener> prop_height_listen = PropGet.of("h_listen");
+    public static final PropGet<String,ChangeListener> prop_width_listen = PropGet.of("w_listen");
 
-    public HashMap<String, Props> memoryMap = new HashMap<>();
+    public HashMap<String, Props<String>> memoryMap = new HashMap<>();
 
     public WithFrameTypeMemorySize() {
         addFrameDecorator(FrameState.FrameStateOpen.instance, this::decorateOpen);
@@ -29,9 +29,9 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
         String type = frame.getType();
         Stage stage = frame.getStage();
 
-        Props memoryProp = memoryMap.computeIfAbsent(type, k -> {
+        Props<String> memoryProp = memoryMap.computeIfAbsent(type, k -> {
 
-            Props p = new Props();
+            Props<String> p = new Props<>();
             prop_height.insert(p, stage.getHeight());
             prop_width.insert(p, stage.getWidth());
             return p;
@@ -43,7 +43,7 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
         stage.setHeight(height.get());
         stage.setWidth(width.get());
 
-        Props props = getFrameProps(frame);
+        Props<String> props = getFrameProps(frame);
 
         stage.widthProperty().addListener(prop_width_listen.insertGet(props, Util.listenerUpdating(width)));
         stage.heightProperty().addListener(prop_height_listen.insertGet(props, Util.listenerUpdating(height)));
@@ -51,7 +51,7 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
     }
 
     public void decorateClose(Frame frame) {
-        Props props = removeFrameProps(frame);
+        Props<String> props = removeFrameProps(frame);
         Stage stage = frame.getStage();
         stage.widthProperty().removeListener(prop_width_listen.removeGet(props));
         stage.heightProperty().removeListener(prop_height_listen.removeGet(props));
