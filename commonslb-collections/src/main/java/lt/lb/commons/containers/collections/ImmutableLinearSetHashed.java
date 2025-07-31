@@ -2,34 +2,82 @@ package lt.lb.commons.containers.collections;
 
 import java.io.Serializable;
 import java.util.AbstractCollection;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 
 /**
  *
- * Linear lookup immutable set, for up to 10 elements speed is the same as
- * {@link LinkedHashSet}. Smaller memory footprint.
+ * Linear lookup immutable set with hashing, so 2x speedup over linear lookup,
+ * for up to 16 elements speed is the same as {@link LinkedHashSet}. Smaller
+ * memory footprint.
  *
  * @author laim0nas100
  */
-public class ImmutableLinearSet<T> extends AbstractCollection<T> implements Set<T>, Serializable, Cloneable {
+public class ImmutableLinearSetHashed<T> extends AbstractCollection<T> implements Set<T>, Serializable, Cloneable {
 
     protected final Object[] data;
+    protected int[] hashes;
 
-    public ImmutableLinearSet(Object... data) {
-        this(true, data);
+    protected final int hashMult;
+
+    public ImmutableLinearSetHashed(Object... data) {
+        this(true, true, data);
     }
 
-    public ImmutableLinearSet(boolean check, Object[] data) {
+    public ImmutableLinearSetHashed(boolean check, boolean findBestHash, Object[] data) {
         Objects.requireNonNull(data);
         if (check) {
             assertDistinct(data);
         }
         this.data = data;
+        this.hashes = new int[data.length];
+        int bestHashed = computeHashes(data, hashes, 1);
+        int bestMulti = 1;
+        for (int i = 2; findBestHash && i < data.length; i++) {//dont bother with fiding best hash or
+            if (bestHashed * 2 < data.length) {// less than 50% collision rate, settle
+                break;
+            }
+            int[] potentialHash = new int[data.length];
+            int computeHashes = computeHashes(data, potentialHash, i);
+            if (computeHashes < bestHashed) {
+                bestHashed = computeHashes;
+                hashes = potentialHash;
+                bestMulti = i;
+            }
+        }
+        hashMult = bestMulti;
+
+    }
+
+    private static int hash(Object ob, int hm) {
+        return Objects.hashCode(ob) * hm;
+    }
+
+    public static int computeHashes(Object[] data, int[] h, int hm) {
+        Arrays.fill(h, -1);
+        int maxShift = 0;
+        for (int i = 0; i < data.length; i++) {
+
+            Object ob = data[i];
+            int index = Math.floorMod(hash(ob, hm), data.length);
+            int shift = index;
+            int shifting = 0;
+            while (h[shift] != -1) {
+                shifting++;
+                shift = (shift + 1) % data.length;
+            }
+            h[shift] = i;
+            if (shifting > maxShift) {
+                maxShift = shifting;
+            }
+        }
+        return maxShift;
     }
 
     public static void assertDistinct(Object[] data) {
@@ -53,8 +101,10 @@ public class ImmutableLinearSet<T> extends AbstractCollection<T> implements Set<
 
     @Override
     public boolean contains(Object o) {
+        int first = hashes[Math.floorMod(hash(o, hashMult), data.length)];
         for (int i = 0; i < data.length; i++) {
-            if (Objects.equals(o, data[i])) {
+            int h = (first + i) % data.length;
+            if (Objects.equals(o, data[h])) {
                 return true;
             }
         }
@@ -120,10 +170,9 @@ public class ImmutableLinearSet<T> extends AbstractCollection<T> implements Set<
     @Override
     public Object clone() {
         try {
-            return super.clone();// only clone the array
+            return super.clone();//all primitive fields or arrays
         } catch (CloneNotSupportedException ex) {
             throw new InternalError(ex);
         }
     }
-
 }

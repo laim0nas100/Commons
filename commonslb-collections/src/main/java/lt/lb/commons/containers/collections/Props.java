@@ -1,9 +1,9 @@
 package lt.lb.commons.containers.collections;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.containers.values.ValueProxy;
 import lt.lb.prebuiltcollections.DelegatingMap;
 
@@ -12,11 +12,11 @@ import lt.lb.prebuiltcollections.DelegatingMap;
  *
  * @author laim0nas100
  */
-public class Props implements DelegatingMap<String, Object> {
+public class Props<K> implements DelegatingMap<K, Object>, Serializable {
 
-    protected Map<String, Object> map;
+    protected Map<K, Object> map;
 
-    public Props(Map<String, Object> delegated) {
+    public Props(Map<K, Object> delegated) {
         this.map = delegated;
     }
 
@@ -24,11 +24,11 @@ public class Props implements DelegatingMap<String, Object> {
         this(new HashMap<>());
     }
 
-    public Map<String, Object> getMap() {
+    public Map<K, Object> getMap() {
         return map;
     }
 
-    public static <T> ValueProxy<T> asValueProxy(Props props, String key) {
+    public static <K, T> ValueProxy<T> asValueProxy(Props<K> props, K key) {
         return new ValueProxy<T>() {
             @Override
             public T get() {
@@ -47,13 +47,13 @@ public class Props implements DelegatingMap<String, Object> {
         };
     }
 
-    public <T> Props with(String key, T val) {
+    public <T> Props<K> with(K key, T val) {
         this.put(key, val);
         return this;
     }
 
     @Override
-    public Map<String, Object> delegate() {
+    public Map<K, Object> delegate() {
         return map;
     }
 
@@ -63,22 +63,23 @@ public class Props implements DelegatingMap<String, Object> {
      *
      * @param <T>
      */
-    public static class PropGet<T> {
+    public static class PropGet<K, T> {
 
         /**
          * Construct PropGet of specified key and explicit type.
          *
-         * @param <Type>
-         * @param str
+         * @param K key type
+         * @param Type value type
+         * @param prop
          * @return
          */
-        public static <Type> PropGet<Type> of(String str) {
-            return new PropGet<>(str);
+        public static <K, Type> PropGet<K, Type> of(K prop) {
+            return new PropGet<>(prop);
         }
 
-        public final String propKey;
+        public final K propKey;
 
-        public PropGet(String propKey) {
+        public PropGet(K propKey) {
             this.propKey = Objects.requireNonNull(propKey);
         }
 
@@ -88,7 +89,7 @@ public class Props implements DelegatingMap<String, Object> {
          * @param props
          * @return
          */
-        public boolean containsKey(Props props) {
+        public boolean containsKey(Props<K> props) {
             return props.containsKey(propKey);
         }
 
@@ -98,7 +99,7 @@ public class Props implements DelegatingMap<String, Object> {
          * @param props
          * @return
          */
-        public ValueProxy<T> getAsValue(Props props) {
+        public ValueProxy<T> getAsValue(Props<K> props) {
             return asValueProxy(props, propKey);
         }
 
@@ -110,7 +111,7 @@ public class Props implements DelegatingMap<String, Object> {
          * @param value
          * @return
          */
-        public ValueProxy<T> insert(Props props, T value) {
+        public ValueProxy<T> insert(Props<K> props, T value) {
             return props.insert(propKey, value);
         }
 
@@ -120,7 +121,7 @@ public class Props implements DelegatingMap<String, Object> {
          * @param props
          * @return
          */
-        public ValueProxy<T> remove(Props props) {
+        public ValueProxy<T> remove(Props<K> props) {
             props.remove(propKey);
             return getAsValue(props);
         }
@@ -131,7 +132,7 @@ public class Props implements DelegatingMap<String, Object> {
          * @param props
          * @return
          */
-        public T removeGet(Props props) {
+        public T removeGet(Props<K> props) {
             Object remove = props.remove(propKey);
             if (remove == null) {
                 return null;
@@ -147,7 +148,7 @@ public class Props implements DelegatingMap<String, Object> {
          * @param value
          * @return
          */
-        public T insertGet(Props props, T value) {
+        public T insertGet(Props<K> props, T value) {
             return (T) props.insert(propKey, value).get();
         }
 
@@ -157,7 +158,7 @@ public class Props implements DelegatingMap<String, Object> {
          * @param props
          * @return
          */
-        public T get(Props props) {
+        public T get(Props<K> props) {
             return props.getCast(propKey);
         }
 
@@ -171,23 +172,9 @@ public class Props implements DelegatingMap<String, Object> {
      * @param value
      * @return
      */
-    public <T> ValueProxy<T> insert(String key, T value) {
+    public <T> ValueProxy<T> insert(K key, T value) {
         this.put(key, value);
         return asValueProxy(this, key);
-    }
-
-    /**
-     * Inserts value with generated UUID and returns key specification.
-     *
-     * @param <T>
-     * @param value
-     * @return
-     */
-    public <T> PropGet<T> insertAny(T value) {
-        String key = "PropGet-" + idGen.getAndIncrement();
-        insert(key, value);
-        return new PropGet<>(key);
-
     }
 
     /**
@@ -195,12 +182,12 @@ public class Props implements DelegatingMap<String, Object> {
      * value.
      *
      * @param <T>
-     * @param str
+     * @param key
      * @param val
      * @return
      */
-    public <T> T getOrDefaultCast(String str, T val) {
-        Object get = this.get(str);
+    public <T> T getOrDefaultCast(K key, T val) {
+        Object get = this.get(key);
         if (get == null) {
             return val;
         }
@@ -211,11 +198,11 @@ public class Props implements DelegatingMap<String, Object> {
      * Retrieves and casts value by given key.
      *
      * @param <T>
-     * @param str
+     * @param key
      * @return
      */
-    public <T> T getCast(String str) {
-        Object get = this.get(str);
+    public <T> T getCast(K key) {
+        Object get = this.get(key);
         if (get == null) {
             return null;
         }
@@ -225,17 +212,15 @@ public class Props implements DelegatingMap<String, Object> {
     /**
      * Retrieves value and returns it as a String.
      *
-     * @param str
+     * @param key
      * @return
      */
-    public String getString(String str) {
-        Object get = this.get(str);
+    public String getString(K key) {
+        Object get = this.get(key);
         if (get == null) {
             return null;
         }
         return String.valueOf(get);
     }
-
-    private static final AtomicLong idGen = new AtomicLong(0L);
 
 }

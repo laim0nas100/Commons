@@ -30,6 +30,9 @@ public abstract class ImmutableCollections {
                 if (items.length <= 10) {
                     return new ImmutableLinearSet<>(items);
                 }
+                if (items.length <= 20) {
+                    return new ImmutableLinearSetHashed<>(true,false,items);
+                }
                 LinkedHashSet<T> set = new LinkedHashSet<>(items.length, 1f);
                 for (T item : items) {
                     boolean add = set.add(item);
