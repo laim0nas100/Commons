@@ -1,0 +1,98 @@
+package lt.lb.commons.io.serialization;
+
+import lt.lb.commons.io.serialization.VersionedChanges.VersionChange;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import lt.lb.commons.F;
+import lt.lb.commons.containers.collections.ImmutableCollections;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public class VSManager extends VersionedSerializationMapper<VSManager> {
+
+    @Override
+    protected VSManager me() {
+        return this;
+    }
+
+    protected Map<Long, List<VersionChange>> versionChanges = new LinkedHashMap<>();
+
+    protected VersionedSerializer serializer = new VersionedSerializer();
+    protected VersionedDeserializer deserializer = new VersionedDeserializer();
+
+    public VSManager() {
+        //merge references so modifying this one affects everything
+        bindTo(serializer);
+        bindTo(deserializer);
+    }
+
+    public VersionedSerializer getSerializer() {
+        return serializer;
+    }
+
+    public VersionedDeserializer getDeserializer() {
+        return deserializer;
+    }
+
+    public VersionedSerialization.CustomVSUnit serializeRoot(Object value, VersionedSerializationContext context) {
+        return getSerializer().serializeRoot(value, context);
+    }
+
+    public VersionedSerialization.CustomVSUnit serializeRoot(Object value) {
+        return getSerializer().serializeRoot(value);
+    }
+
+    public <T> T deserializeRoot(VersionedSerialization.CustomVSUnit custom) {
+        return getDeserializer().deserializeRoot(custom);
+    }
+
+    public <T> T deserializeRoot(VersionedSerialization.CustomVSUnit custom, VersionedDeserializationContext context) {
+        return getDeserializer().deserializeRoot(custom, context);
+    }
+
+    public VSManager addVersionChanger(VersionChange versionChange) {
+        Objects.requireNonNull(versionChange);
+        this.versionChanges.computeIfAbsent(versionChange.version(), k -> {
+            return new ArrayList<>();
+        }).add(versionChange);
+        return me();
+    }
+
+    public void applyVersionChange(VersionedSerialization.CustomVSUnit root) {
+        VersionedSerialization.treeVisitor(unit -> {
+
+            if (unit instanceof VersionedSerialization.CustomVSUnit) {
+                VersionedSerialization.CustomVSUnit customUnit = F.cast(unit);
+                Long version = customUnit.getVersion();
+                for (;;) {
+                    List<VersionChange> changes = versionChanges.getOrDefault(version, ImmutableCollections.listOf());
+                    if (changes.isEmpty()) {//nothing to do
+                        break;
+                    }
+                    VersionChange[] applicableChanges = changes.stream()
+                            .filter(ch -> ch.applicable(unit))
+                            .toArray(s -> new VersionChange[s]); // which one changes the unit version should not matter
+                    for (VersionChange applicable : applicableChanges) {
+                        applicable.change(unit);
+                    }
+                    Long newVersion = customUnit.getVersion();
+                    if (Objects.equals(newVersion, version)) {// no version change after all applicable changes, so stop trying
+                        break;
+                    }
+                    version = newVersion;
+
+                }
+
+            }
+
+            return false;
+        }).PostOrder(root);// traverse the leafs before parent
+    }
+
+}
