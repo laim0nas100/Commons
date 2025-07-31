@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 import lt.lb.commons.func.Lambda;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.threads.Futures;
-import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
 import lt.lb.uncheckedutils.Checked;
@@ -110,10 +109,10 @@ public class DLog {
 
     public Lambda.L2R<Throwable, Integer, Supplier<String>> stackTraceSupplier = DefaultDLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
-    public FastExecutor exe = defaultExecutor();
+    public ExecutorService exe = defaultExecutor();
     public final ConcurrentLinkedDeque<String> list = new ConcurrentLinkedDeque<>();
 
-    public static FastExecutor defaultExecutor() {
+    public static ExecutorService defaultExecutor() {
         return new FastWaitingExecutor(1, WaitTime.ofSeconds(1));
     }
 
