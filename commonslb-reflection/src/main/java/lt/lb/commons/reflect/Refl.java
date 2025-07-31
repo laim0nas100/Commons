@@ -121,6 +121,18 @@ public class Refl {
             throw NestedException.of(cause);
         }
     }
+    
+    /**
+     * SafeOpt wrapper around {@link Refl#invokeMethod(java.lang.reflect.Method, java.lang.Object, java.lang.Object...) }
+     * @param <T>
+     * @param method
+     * @param target
+     * @param args
+     * @return 
+     */
+    public static <T> SafeOpt<T> safeInvokeMethod(Method method, Object target, Object...args){
+        return SafeOpt.of(method).map(meth -> invokeMethod(meth, target, args));
+    }
 
     /**
      * Simple base class to abstract
