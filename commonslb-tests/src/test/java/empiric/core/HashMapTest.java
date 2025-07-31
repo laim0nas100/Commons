@@ -18,6 +18,7 @@ import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.containers.collections.ImmutableLinearSet;
+import lt.lb.commons.containers.collections.ImmutableLinearSetHashed;
 import lt.lb.commons.iteration.streams.MakeStream;
 
 /**
@@ -29,10 +30,21 @@ public class HashMapTest {
     public static void main(String[] args) throws Exception {
 
         DLog.main().async = false;
+
+        bench();
+        DLog.await(1, TimeUnit.MINUTES);
+    }
+    private static long hashCounter;
+    private static long linearHashCounter;
+    private static long linearCounter;
+
+    public static void bench() {
         Benchmark bench = new Benchmark();
-        List<Integer> counts = ImmutableCollections.listOf(2, 4, 8, 9,10,11,12,13,14,15,16);
+//        List<Integer> counts = ImmutableCollections.listOf(2, 4, 8, 9, 10, 11, 12, 13, 14, 15, 16,20,25,29,32,64);
+        List<Integer> counts = ImmutableCollections.listOf(16, 32, 64, 128, 256, 512);
+
         int repeat = 20000;
-        Random rng= new Random(1337);
+        Random rng = new Random(1337);
         for (int count : counts) {
             List<Object> list = new ArrayList<>(count);
             for (int i = 0; i < count; i++) {
@@ -41,6 +53,8 @@ public class HashMapTest {
             List shuffled = new ArrayList<>(list);
             Collections.shuffle(shuffled);
             ImmutableLinearSet linear = new ImmutableLinearSet<>(MakeStream.from(list).distinct().toArray());
+            ImmutableLinearSetHashed linearHashed = new ImmutableLinearSetHashed<>(MakeStream.from(list).distinct().toArray());
+
             Set linked = MakeStream.from(list).distinct().toUnmodifiableLinkedSet();
 
 //            bench.executeBench(repeat, "Hash Create " + count, () -> {
@@ -52,6 +66,12 @@ public class HashMapTest {
             bench.executeBench(repeat, "Hash contains all " + count, () -> {
                 if (linked.containsAll(shuffled)) {
                     hashCounter++;
+                }
+            }).print(DLog::print);
+
+            bench.executeBench(repeat, "Linear Hash contains all " + count, () -> {
+                if (linearHashed.containsAll(shuffled)) {
+                    linearHashCounter++;
                 }
             }).print(DLog::print);
 
@@ -69,6 +89,14 @@ public class HashMapTest {
                 }
             }).print(DLog::print);
 
+            bench.executeBench(repeat, "Linear hash contains some " + count, () -> {
+                for (int i = 0; i < count / 2; i++) {
+                    if (linearHashed.contains(shuffled.get(i))) {
+                        linearHashCounter++;
+                    }
+                }
+            }).print(DLog::print);
+
             bench.executeBench(repeat, "Linear contains some " + count, () -> {
                 for (int i = 0; i < count / 2; i++) {
                     if (linear.contains(shuffled.get(i))) {
@@ -78,12 +106,8 @@ public class HashMapTest {
             }).print(DLog::print);
 
         }
-        DLog.print(linearCounter,hashCounter);
-
-        DLog.await(1, TimeUnit.MINUTES);
+        DLog.print(linearCounter, linearHashCounter, hashCounter);
     }
-    private static long hashCounter;
-    private static long linearCounter;
 
     public static void test() {
         Map<Integer, String> map = ImmutableCollections.mapOf(1, "one", 2, "two", 3, "two");
