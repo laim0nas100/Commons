@@ -75,7 +75,7 @@ public class VersionedSerialization {
             super(new ArrayLinearMap<>());
             //for storing up to 4 traits, linear lookup and small memory footprint at most is 
             //TYPE, VERSION, REF_ID and FIELD_NAME at the same time
-            //every value insert expands inner array and value remove shrinks inner array by 2 (key,value)
+            //every value setOrRemoveNull expands inner array and value remove shrinks inner array by 2 (key,value)
         }
 
     }
@@ -105,7 +105,7 @@ public class VersionedSerialization {
         }
 
         public default void setFieldName(String fieldName) {
-            VSTraits.FIELD_NAME.insert(traits(), fieldName);
+            VSTraits.FIELD_NAME.setOrRemoveNull(traits(), fieldName);
         }
     }
 
@@ -116,7 +116,7 @@ public class VersionedSerialization {
         }
 
         public default void setVersion(Long version) {
-            VSTraits.VERSION.insert(traits(), version);
+            VSTraits.VERSION.setOrRemoveNull(traits(), version);
         }
     }
 
@@ -127,7 +127,7 @@ public class VersionedSerialization {
         }
 
         public default void setType(String type) {
-            VSTraits.TYPE.insert(traits(), type);
+            VSTraits.TYPE.setOrRemoveNull(traits(), type);
         }
     }
 
@@ -138,7 +138,7 @@ public class VersionedSerialization {
         }
 
         public default void setCollectionType(String type) {
-            VSTraits.COLLECTION_TYPE.insert(traits(), type);
+            VSTraits.COLLECTION_TYPE.setOrRemoveNull(traits(), type);
         }
     }
 
@@ -149,7 +149,7 @@ public class VersionedSerialization {
         }
 
         public default void setRef(Long ref) {
-            VSTraits.REF_ID.insert(traits(), ref);
+            VSTraits.REF_ID.setOrRemoveNull(traits(), ref);
         }
     }
 
@@ -160,7 +160,7 @@ public class VersionedSerialization {
         }
 
         public default void setValue(T value) {
-            VSTraits.VALUE.insert(traits(), value);
+            VSTraits.VALUE.setOrRemoveNull(traits(), value);
         }
     }
 
@@ -171,7 +171,7 @@ public class VersionedSerialization {
         }
 
         public default void setBinary(byte[] binary) {
-            VSTraits.BINARY.insert(traits(), binary);
+            VSTraits.BINARY.setOrRemoveNull(traits(), binary);
         }
     }
 

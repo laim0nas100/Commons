@@ -104,6 +104,21 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
         }
 
         /**
+         * Sets the value if not null, removes otherwise
+         *
+         * @param props
+         * @param value
+         * @return
+         */
+        public ValueProxy<T> setOrRemoveNull(Props<K> props, T value) {
+            if (value == null) {
+                return remove(props);
+            } else {
+                return insert(props, value);
+            }
+        }
+
+        /**
          * Inserts new value at given Props object by this key and returns newly
          * inserted value proxy.
          *

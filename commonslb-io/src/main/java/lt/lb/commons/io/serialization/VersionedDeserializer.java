@@ -9,13 +9,16 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
+import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.reflect.Refl;
 import lt.lb.commons.reflect.unified.IObjectField;
@@ -28,6 +31,18 @@ import lt.lb.uncheckedutils.SafeOpt;
  */
 public class VersionedDeserializer extends VersionedSerializationMapper<VersionedDeserializer> {
 
+    public static Map<String, Class> PRIMITIVES = getPrimitives();
+
+    private static Map<String, Class> getPrimitives() {
+        List<Class> list = ImmutableCollections.listOf(
+                Boolean.TYPE, Character.TYPE, Byte.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
+        Map<String, Class> primitives = new HashMap<>();
+        for (Class clazz : list) {
+            primitives.put(clazz.getName(), clazz);
+        }
+        return Collections.unmodifiableMap(primitives);
+    }
+
     protected Map<String, Class> classMap = new HashMap<>();
     protected Map<String, Supplier> customConstructors = new HashMap<>();
 
@@ -38,7 +53,9 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
      * @return
      */
     public Class getClass(String type) {
-        return classMap.computeIfAbsent(type, k -> {
+        Class val = PRIMITIVES.getOrDefault(type, null);
+
+        return val != null ? val : classMap.computeIfAbsent(type, k -> {
             try {
                 return Class.forName(type);
             } catch (ClassNotFoundException ex) {

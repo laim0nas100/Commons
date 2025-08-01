@@ -49,7 +49,6 @@ public class VSTest {
         public Map<String, Student> compValMap = new HashMap<>();
 
         public List<Student> students = new ArrayList<>();
-        public int[] array = {1, 2, 3};
     }
 
     public static class Data2 extends BaseData {
@@ -58,7 +57,7 @@ public class VSTest {
         public BigInteger bigInt = BigInteger.ONE;
         public BigDecimal bigDec = new BigDecimal(10).divide(BigDecimal.valueOf(3), MathContext.DECIMAL32);
 
-        public List<Integer> numbers = new LinkedList<>();
+        public int[] array;
 
         public String name;
 
@@ -78,6 +77,7 @@ public class VSTest {
         public Runnable run = () -> {
             System.out.println(firstName + " " + lName);
         };
+
         public Student(String firstName, String lName) {
             this.firstName = firstName;
             this.lName = lName;
@@ -98,6 +98,7 @@ public class VSTest {
         public Runnable run = () -> {
             System.out.println(firstName + " " + lastName);
         };
+
         public StudentNew(String firstName, String lastName) {
             this.firstName = firstName;
             this.lastName = lastName;
@@ -155,42 +156,17 @@ public class VSTest {
         String dump = yaml.dump(newRoot);
         DLog.print(dump);
 
-//        VersionedSerialization.treeVisitor(unit -> {
-//            if (unit instanceof VersionedSerialization.CustomVSUnit) {
-//                VersionedSerialization.CustomVSUnit customUnit = F.cast(unit);
-//                if (customUnit.getType().equals(Data.class.getName())) {
-//                    customUnit.setType(Data2.class.getName());
-//                    customUnit.setVersion(1L);
-//
-//                } else if (customUnit.getType().equals(Student.class.getName())) {
-//                    customUnit.setType(StudentNew.class.getName());
-//                    customUnit.setVersion(1L);
-//                    Map<String, VersionedSerialization.VSField> fieldMap = customUnit.fieldMap();
-//                    VersionedSerialization.VSField field = fieldMap.get("lName");
-//                    field.setFieldName("lastName");
-//                }
-//            }
-//
-//            return false;
-//        }).BFS(newRoot);
-//        ser.addVersionChanger(new VersionChangeFieldRename(
-//                Student.class.getName(), 0, 1, "lName", "lastName")// either one can change the version
-//        );
-//        ser.addVersionChanger(new VersionChangeTypeChange(
-//                Student.class.getName(), 0, 1, StudentNew.class.getName())
-//        );
-//        ser.addVersionChanger(new VersionChangeTypeChange(
-//                Data.class.getName(), 0, 1, Data2.class.getName())
-//        );
         ser.addVersionChanger(VersionedChanges.builderVerionInc(Student.class, 0)
                 .withFieldRename("lName", "lastName")
                 .withTypeChange(StudentNew.class)
         );
         ser.addVersionChanger(VersionedChanges.builderVerionInc(Data.class, 0)
                 .withTypeChange(Data2.class)
-                .withFieldRefactor("numbers", field -> {//change the collection type
+                .withFieldRefactor("numbers", field -> {//change the list<Integer>  to int[] and  fieldName
                     VersionedSerialization.ArrayFieldVSUnit array = F.cast(field);
-                    array.setCollectionType(LinkedList.class.getName());
+                    array.setCollectionType(null);//removes trait
+                    array.setType(Integer.TYPE.getName());
+                    array.setFieldName("array");
                     return field;
                 })
                 .withFieldRefactor("compValMap", field -> {//change the collection type
@@ -198,7 +174,6 @@ public class VSTest {
                     array.setCollectionType(LinkedHashMap.class.getName());
                     return field;
                 })
-                .withFieldRemove("array")
         );
 
         // modify tree to
