@@ -16,19 +16,16 @@ import lt.lb.commons.io.serialization.VersionedSerialization.Values.StringVSU;
 import lt.lb.commons.io.serialization.VersionedSerialization.Values.TypedStringVSU;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.ArrayLinearMap;
 import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.containers.collections.Props;
 import lt.lb.commons.iteration.TreeVisitor;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -54,47 +51,42 @@ public class VersionedSerialization {
         public T fromString(String str);
     }
 
-    public static class TypeHolder<T> {
-
-        public final Class<T> type;
-
-        public TypeHolder(Class<T> type) {
-            this.type = type;
-        }
-
-        public static <Type> TypeHolder<Type> of(Class<Type> clazz) {
-            return new TypeHolder<>(clazz);
-        }
-
-    }
-
-    public static enum VSTrait {
+    public static enum VSTraitEnum {
         FIELD_NAME, TYPE, COLLECTION_TYPE, VERSION, BINARY, VALUE, REF_ID;
     }
 
-    public static class VSTraits extends Props<VSTrait> implements Serializable {
+    public static class VSTraits extends Props<VSTraitEnum> implements Serializable {
 
-        public static final PropGet<VSTrait, String> FIELD_NAME = PropGet.of(VSTrait.FIELD_NAME);
-        public static final PropGet<VSTrait, String> TYPE = PropGet.of(VSTrait.TYPE);
-        public static final PropGet<VSTrait, String> COLLECTION_TYPE = PropGet.of(VSTrait.COLLECTION_TYPE); // used also with Map type
-        public static final PropGet<VSTrait, Long> VERSION = PropGet.of(VSTrait.VERSION);
-        public static final PropGet<VSTrait, byte[]> BINARY = PropGet.of(VSTrait.BINARY);
-        public static final PropGet<VSTrait, Object> VALUE = PropGet.of(VSTrait.VALUE);
-        public static final PropGet<VSTrait, Long> REFERENCED = PropGet.of(VSTrait.REF_ID);
+        /**
+         * Using enum for map rather than string for instant equals performance
+         */
+
+        public static final PropGet<VSTraitEnum, String> FIELD_NAME = PropGet.of(VSTraitEnum.FIELD_NAME);
+        public static final PropGet<VSTraitEnum, String> TYPE = PropGet.of(VSTraitEnum.TYPE);
+        public static final PropGet<VSTraitEnum, String> COLLECTION_TYPE = PropGet.of(VSTraitEnum.COLLECTION_TYPE); // used also with Map type
+        public static final PropGet<VSTraitEnum, Long> VERSION = PropGet.of(VSTraitEnum.VERSION);
+        public static final PropGet<VSTraitEnum, byte[]> BINARY = PropGet.of(VSTraitEnum.BINARY);
+        public static final PropGet<VSTraitEnum, Object> VALUE = PropGet.of(VSTraitEnum.VALUE);
+        public static final PropGet<VSTraitEnum, Long> REF_ID = PropGet.of(VSTraitEnum.REF_ID);
 
         public VSTraits() {
 
-            super(new EnumMap<>(VSTrait.class));
-//            super(new ArrayLinearMap<>());//for storing up to 4 traits, linear lookup and small memory footprint (at most is TYPE, VERSION, REF_ID
+//            super(new EnumMap<>(VSTraitEnum.class));
+            super(new ArrayLinearMap<>());
+            //for storing up to 4 traits, linear lookup and small memory footprint at most is 
+            //TYPE, VERSION, REF_ID and FIELD_NAME at the same time
+            //every value insert expands inner array and value remove shrinks inner array by 2 (key,value)
         }
 
     }
 
     public static interface VSUnit extends Serializable {
 
-        public default VSTraits traits() {
-            throw new UnsupportedOperationException("Implement VSTraits method");
-        }
+    }
+
+    public static interface VSTrait extends VSUnit {
+
+        public VSTraits traits();
     }
 
     public static interface VSLeaf extends VSUnit {
@@ -106,7 +98,7 @@ public class VersionedSerialization {
         public Iterable<? extends VSUnit> children();
     }
 
-    public static interface TraitFieldName extends VSUnit {
+    public static interface TraitFieldName extends VSTrait {
 
         public default String getFieldName() {
             return VSTraits.FIELD_NAME.get(traits());
@@ -117,7 +109,7 @@ public class VersionedSerialization {
         }
     }
 
-    public static interface TraitVersion extends VSUnit {
+    public static interface TraitVersion extends VSTrait {
 
         public default Long getVersion() {
             return VSTraits.VERSION.get(traits());
@@ -128,7 +120,7 @@ public class VersionedSerialization {
         }
     }
 
-    public static interface TraitType extends VSUnit {
+    public static interface TraitType extends VSTrait {
 
         public default String getType() {
             return VSTraits.TYPE.get(traits());
@@ -139,7 +131,7 @@ public class VersionedSerialization {
         }
     }
 
-    public static interface TraitCollectionType extends VSUnit {
+    public static interface TraitCollectionType extends VSTrait {
 
         public default String getCollectionType() {
             return VSTraits.COLLECTION_TYPE.get(traits());
@@ -150,18 +142,18 @@ public class VersionedSerialization {
         }
     }
 
-    public static interface TraitReferenced extends VSUnit {
+    public static interface TraitReferenced extends VSTrait {
 
         public default Long getRef() {
-            return VSTraits.REFERENCED.get(traits());
+            return VSTraits.REF_ID.get(traits());
         }
 
         public default void setRef(Long ref) {
-            VSTraits.REFERENCED.insert(traits(), ref);
+            VSTraits.REF_ID.insert(traits(), ref);
         }
     }
 
-    public static interface TraitValue<T> extends VSUnit {
+    public static interface TraitValue<T> extends VSTrait {
 
         public default T getValue() {
             return (T) VSTraits.VALUE.get(traits());
@@ -172,7 +164,7 @@ public class VersionedSerialization {
         }
     }
 
-    public static interface TraitBinary extends VSUnit {
+    public static interface TraitBinary extends VSTrait {
 
         public default byte[] getBinary() {
             return VSTraits.BINARY.get(traits());
@@ -191,7 +183,7 @@ public class VersionedSerialization {
 
     }
 
-    public static abstract class BaseVSUnit implements VSUnit {
+    public static abstract class BaseVSUnit implements VSTrait {
 
         protected VSTraits traits;
 
