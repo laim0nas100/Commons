@@ -31,6 +31,28 @@ public abstract class ReflBase {
             return field;
         }
 
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 61 * hash + Objects.hashCode(this.field);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final ReflStaticField<?, ?> other = (ReflStaticField<?, ?>) obj;
+            return Objects.equals(this.field, other.field);
+        }
+
     }
 
     public static class ReflObjectField<S, T> implements IObjectField<S, T> {
@@ -44,6 +66,28 @@ public abstract class ReflBase {
         @Override
         public Field field() {
             return field;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 29 * hash + Objects.hashCode(this.field);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final ReflObjectField<?, ?> other = (ReflObjectField<?, ?>) obj;
+            return Objects.equals(this.field, other.field);
         }
 
     }
@@ -97,6 +141,28 @@ public abstract class ReflBase {
             return method;
         }
 
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 53 * hash + Objects.hashCode(this.method);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final ReflStaticMethod<?, ?> other = (ReflStaticMethod<?, ?>) obj;
+            return Objects.equals(this.method, other.method);
+        }
+
     }
 
     public static class ReflObjectMethod<S, T> implements IObjectMethod<S, T> {
@@ -110,6 +176,28 @@ public abstract class ReflBase {
         @Override
         public Method method() {
             return method;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 97 * hash + Objects.hashCode(this.method);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final ReflObjectMethod<?, ?> other = (ReflObjectMethod<?, ?>) obj;
+            return Objects.equals(this.method, other.method);
         }
 
     }
@@ -154,17 +242,24 @@ public abstract class ReflBase {
 
         public SuperClassIterator(Class node) {
             this.node = Objects.requireNonNull(node);
+            this.first = node;
         }
 
+        protected Class first = null;
         protected Class node;
 
         @Override
         public boolean hasNext() {
-            return node.getSuperclass() != null;
+            return first != null || node.getSuperclass() != null;
         }
 
         @Override
         public Class next() {
+            if (first != null) {
+                Class toReturn = first;
+                first = null;
+                return toReturn;
+            }
             Class parent = node.getSuperclass();
             if (parent != null) {
                 node = parent;
@@ -179,14 +274,12 @@ public abstract class ReflBase {
     public static SimpleStream<Class> inheritanceStream(Class child) {
         Objects.requireNonNull(child);
         return MakeStream.from(new SuperClassIterator(child))
-                .prepend(child)
                 .flatMap(cls -> MakeStream.from(cls.getInterfaces()).prepend(cls));
     }
 
     public static SimpleStream<Class> superclassStream(Class child) {
         Objects.requireNonNull(child);
-        return MakeStream.from(new SuperClassIterator(child))
-                .prepend(child);
+        return MakeStream.from(new SuperClassIterator(child));
     }
 
     public static SimpleStream<Class> superclassInterfaceStream(Class child) {

@@ -2,13 +2,19 @@ package lt.lb.commons.reflect;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import lt.lb.commons.F;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.collections.ImmutableCollections;
@@ -16,7 +22,10 @@ import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.misc.NestedCallDetection;
 import lt.lb.commons.reflect.unified.IObjectField;
+import lt.lb.commons.reflect.unified.IObjectMethod;
+import lt.lb.commons.reflect.unified.IRecordComponent;
 import lt.lb.commons.reflect.unified.ReflFields;
+import lt.lb.commons.reflect.unified.ReflMethods;
 import lt.lb.uncheckedutils.NestedException;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
@@ -121,16 +130,18 @@ public class Refl {
             throw NestedException.of(cause);
         }
     }
-    
+
     /**
-     * SafeOpt wrapper around {@link Refl#invokeMethod(java.lang.reflect.Method, java.lang.Object, java.lang.Object...) }
+     * SafeOpt wrapper around {@link Refl#invokeMethod(java.lang.reflect.Method, java.lang.Object, java.lang.Object...)
+     * }
+     *
      * @param <T>
      * @param method
      * @param target
      * @param args
-     * @return 
+     * @return
      */
-    public static <T> SafeOpt<T> safeInvokeMethod(Method method, Object target, Object...args){
+    public static <T> SafeOpt<T> safeInvokeMethod(Method method, Object target, Object... args) {
         return SafeOpt.of(method).map(meth -> invokeMethod(meth, target, args));
     }
 
@@ -144,7 +155,6 @@ public class Refl {
 
         private static final Set<String> inside_names = ImmutableCollections.setOf("inside_hash", "inside_equals", "inside_string");
 
-        
         private static boolean notNestedCall(Field field) {
             return !inside_names.contains(field.getName())
                     || !field.getType().isAssignableFrom(NestedCallDetection.class);
@@ -362,6 +372,112 @@ public class Refl {
                 .flatMap(m -> MakeStream.from(m.getPropertyDescriptors()))
                 .filter(Nulls::nonNull)
                 .filter(p -> !p.getName().equals("class"));
+    }
+
+    public static class BasicRecordComponent implements IRecordComponent {
+
+        private static final Map<String, IObjectMethod> recordComponentGetterMethods = establishGetterMethods();
+
+        protected Map<String, Object> cachedResults = new HashMap<>();
+        protected Object recordComponent;
+
+        private static Map<String, IObjectMethod> establishGetterMethods() {
+            if (!recordsSupported()) {
+                return ImmutableCollections.UNMODIFIABLE_EMPTY_MAP;
+            }
+            
+           return ReflMethods.getGetterMethods(recordComponentClass.get())
+                   .toUnmodifiableMap(m -> m.getName(), m -> m);
+        }
+
+        public BasicRecordComponent(Object recordComponent) {
+            if (recordComponentClass.isEmpty()) {
+                throw new IllegalStateException("Records are not defined in this version");
+            }
+            this.recordComponent = Objects.requireNonNull(recordComponent);
+        }
+
+        protected <T> T getCastCache(String method) {
+            return (T) cachedResults.computeIfAbsent(method, name -> {
+                IObjectMethod orDefault = recordComponentGetterMethods.getOrDefault(name, null);
+                if (orDefault == null) {
+                    throw new UnsupportedOperationException("Failed to invoke RecordComponent method:" + method);
+                }
+                return orDefault.safeInvoke(recordComponent).throwAnyOrNull();
+            });
+        }
+
+        @Override
+        public AnnotatedType getAnnotatedType() {
+            return getCastCache("getAnnotatedType");
+        }
+
+        @Override
+        public Method getAccessor() {
+            return getCastCache("getAccessor");
+        }
+
+        @Override
+        public Class<?> getType() {
+            return getCastCache("getType");
+        }
+
+        @Override
+        public String getGenericSignature() {
+            return getCastCache("getGenericSignature");
+        }
+
+        @Override
+        public Type getGenericType() {
+            return getCastCache("getGenericType");
+        }
+
+        @Override
+        public String getName() {
+            return getCastCache("getName");
+        }
+        
+         @Override
+        public Class getDeclaringRecord() {
+             return getCastCache("getDeclaringRecord");
+        }
+
+        @Override
+        public AnnotatedElement annotatedElement() {
+            return F.cast(recordComponent);
+        }
+
+       
+
+    }
+
+    private static final SafeOpt<Method> isRecord = SafeOpt.ofLazy(Class.class).map(m -> m.getDeclaredMethod("isRecord"));
+    private static final SafeOpt<Method> getRecordComponents = SafeOpt.ofLazy(Class.class).map(m -> m.getDeclaredMethod("getRecordComponents"));
+    private static final SafeOpt<Class<?>> recordComponentClass = SafeOpt.ofLazy("java.lang.reflect.RecordComponent")
+            .map(s -> Class.forName(s));
+
+    public static boolean recordsSupported() {
+        return isRecord.isPresent();
+    }
+
+    public static boolean typeIsRecord(Class type) {
+        if (isRecord.isEmpty()) {
+            throw new IllegalStateException("Records are not defined in this version");
+        }
+        return isRecord.map(m -> m.invoke(type)).map(m -> (boolean) m).throwAnyGet();
+    }
+
+    public static SimpleStream<IRecordComponent> getRecordComponents(Class recordClass) {
+        if (getRecordComponents.isEmpty()) {
+            throw new IllegalStateException("Records are not defined in this version");
+        }
+
+        Object[] components = (Object[]) getRecordComponents.map(m -> m.invoke(recordClass)).throwAnyOrNull();
+        if (components == null) {
+            throw new IllegalArgumentException(recordClass + " is not a record");
+        }
+
+        return MakeStream.from(components).map(ob -> new BasicRecordComponent(ob));
     }
 
     /**
