@@ -13,7 +13,7 @@ import java.util.function.Function;
 import lt.lb.commons.Ins;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.values.Value;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 /**
  *
@@ -26,10 +26,10 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected Map<String, SerializerStringMapping> stringifyTypes = new HashMap<>();
 
     protected Value<Boolean> throwOnBinaryError = new Value<>(true);
-    protected Value<Boolean> throwOnReflectionRead =  new Value<>(true);
-    protected Value<Boolean> throwOnReflectionWrite =  new Value<>(true);
-    protected Value<Boolean> throwOnUnrecognizedPrimitive =  new Value<>(true);
-    protected Value<Boolean> throwOnFieldNotFound =  new Value<>(true);
+    protected Value<Boolean> throwOnReflectionRead = new Value<>(true);
+    protected Value<Boolean> throwOnReflectionWrite = new Value<>(true);
+    protected Value<Boolean> throwOnUnrecognizedPrimitive = new Value<>(true);
+    protected Value<Boolean> throwOnFieldNotFound = new Value<>(true);
 
     protected Map<Class, Long> customTypeVersions = new HashMap<>();
 
@@ -189,7 +189,7 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     }
 
     public static boolean isShadowed(String fieldName) {
-        return StringUtils.contains(fieldName, "#");
+        return Strings.CS.contains(fieldName, "#");
     }
 
     public static String shadowedName(String fieldName, String type) {
@@ -197,10 +197,10 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     }
 
     public static String unshadowedName(String fieldName) {
-        int index = StringUtils.indexOf(fieldName, "#");
+        int index = Strings.CS.indexOf(fieldName, "#");
         return index > 0 ? fieldName.substring(0, index) : fieldName;
     }
-
+    
     public M appendTypeData(VersionedSerializationMapper other) {
         customTypeVersions.putAll(other.customTypeVersions);
         refCountingTypes.addAll(other.refCountingTypes);
@@ -227,29 +227,29 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         clearTypeData();
         return appendTypeData(other);
     }
-    
-    public M clearSerializers(){
+
+    public M clearSerializers() {
         customValueSerializers.clear();
         stringifyTypes.clear();
         return me();
     }
-    
-    public M setSerializers(VersionedSerializationMapper other){
+
+    public M setSerializers(VersionedSerializationMapper other) {
         clearSerializers();
         return appendSerializers(other);
     }
-    
-    public M appendSerializers(VersionedSerializationMapper other){
+
+    public M appendSerializers(VersionedSerializationMapper other) {
         this.stringifyTypes.putAll(other.stringifyTypes);
         this.customValueSerializers.putAll(other.customValueSerializers);
         return me();
     }
-    
-    protected void bindTo(VersionedSerializationMapper mapper){
+
+    protected void bindTo(VersionedSerializationMapper mapper) {
         mapper.beanAccessTypes = beanAccessTypes;
         mapper.customTypeVersions = customTypeVersions;
-        mapper.customValueSerializers= customValueSerializers;
-        mapper.excludedBases =excludedBases;
+        mapper.customValueSerializers = customValueSerializers;
+        mapper.excludedBases = excludedBases;
         mapper.excludedTypes = excludedTypes;
         mapper.includedBases = includedBases;
         mapper.includedRegular = includedRegular;

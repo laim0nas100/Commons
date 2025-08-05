@@ -20,6 +20,7 @@ import lt.lb.commons.Ins;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.reflect.Refl;
 import lt.lb.commons.reflect.unified.IObjectField;
+import lt.lb.commons.reflect.unified.IRecordComponent;
 import lt.lb.commons.reflect.unified.ReflFields;
 import lt.lb.uncheckedutils.SafeOpt;
 
@@ -225,9 +226,17 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         }
         ComplexVSUnit unit;
         if (this.customTypeVersions.containsKey(type)) {
-            unit = new CustomVSUnit(customTypeVersions.get(type));
+            if (fieldName.isPresent()) {
+                unit = new CustomVSUnitField(customTypeVersions.get(type), fieldName.get());
+            } else {
+                unit = new CustomVSUnit(customTypeVersions.get(type));
+            }
         } else {//base version
-            unit = new ComplexVSUnit();
+            if (fieldName.isPresent()) {
+                unit = new ComplexFieldVSUnit(fieldName.get());
+            } else {
+                unit = new ComplexVSUnit();
+            }
         }
         if (refCounted) {//store reference
             context.refMap.put(value, unit);
@@ -249,7 +258,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
 
                 if (safeGet.hasError()) {
                     if (throwOnReflectionRead.get()) {
-                        throw VSException.readFail(type, name, true, safeGet.rawException());
+                        throw VSException.readFail(type, name, VSException.FieldType.BEAN, safeGet.rawException());
                     } else {
                         fieldValue = null;
                     }
@@ -262,11 +271,37 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                     fields.add(auto);
                 }
             }
+        } else if (Refl.recordsSupported() && Refl.typeIsRecord(type)) {
+            List<IRecordComponent> recordComponents = Refl.getRecordComponents(type).toList();
+            for (IRecordComponent field : recordComponents) {
+                if (excludedType(field.getType())) {
+                    continue;
+                }
+                String name = field.getName();//shadowing doesn't makes sense in record context
+
+                SafeOpt safeGet = Refl.safeInvokeMethod(field.getAccessor(), value);
+                Object fieldValue = null;
+
+                if (safeGet.hasError()) {
+                    if (throwOnReflectionRead.get()) {
+                        throw VSException.readFail(type, name, VSException.FieldType.RECORD, safeGet.rawException());
+                    } else {
+                        fieldValue = null;
+                    }
+
+                } else {//no error
+                    fieldValue = safeGet.orNull();
+                }
+                VSUnit auto = serializeAuto(Optional.of(name), fieldValue, context);
+                if (auto != null) { // null means not included
+                    fields.add(auto);
+                }
+
+            }
 
         } else {
             SimpleStream<IObjectField> localFields = ReflFields.getLocalFields(type);
             IObjectField[] objectFields = localFields.toArray(s -> new IObjectField[s]);
-            unit.fields = new VSField[objectFields.length];
 
             Map<String, IObjectField> fieldMap = new LinkedHashMap<>();
             for (IObjectField field : objectFields) {
@@ -284,7 +319,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
 
                 if (safeGet.hasError()) {
                     if (throwOnReflectionRead.get()) {
-                        throw VSException.readFail(type, name, false, safeGet.rawException());
+                        throw VSException.readFail(type, name, VSException.FieldType.FIELD, safeGet.rawException());
                     } else {
                         fieldValue = null;
                     }
@@ -334,14 +369,15 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         Set<Map.Entry> entrySet = map.entrySet();
         for (Map.Entry entry : entrySet) {
             VSUnit key = serializeAuto(Optional.empty(), entry.getKey(), context);
-            if (key != null) {
-                VSUnit val = serializeAuto(Optional.empty(), entry.getValue(), context);
-                if (val != null) {
-                    EntryVSUnit entryUnit = new EntryVSUnit();
-                    entryUnit.key = key;
-                    entryUnit.val = val;
-                    entries.add(entryUnit);
-                }
+            if (key == null) {// value doesn't matter if key is excluded
+                continue;
+            }
+            VSUnit val = serializeAuto(Optional.empty(), entry.getValue(), context);
+            if (val != null) {
+                EntryVSUnit entryUnit = new EntryVSUnit();
+                entryUnit.key = key;
+                entryUnit.val = val;
+                entries.add(entryUnit);
             }
         }
         mapUnit.values = entries.stream().toArray(s -> new EntryVSUnit[s]);

@@ -2,6 +2,7 @@ package lt.lb.commons.io.serialization;
 
 import java.util.HashMap;
 import java.util.Map;
+import lt.lb.commons.containers.values.Value;
 
 /**
  *
@@ -9,6 +10,6 @@ import java.util.Map;
  */
 public class VersionedDeserializationContext {
 
-    public Map<Long, Object> refMap = new HashMap<>();
+    public Map<Long, Value> refMap = new HashMap<>();
 
 }

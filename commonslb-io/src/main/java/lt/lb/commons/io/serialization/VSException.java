@@ -18,6 +18,10 @@ public class VSException extends RuntimeException {
         super(message, cause);
     }
 
+    public static enum FieldType {
+        FIELD, BEAN, RECORD
+    }
+
     public static VSException unrecognized(Class type, Optional<String> fieldName) {
         if (fieldName.isPresent()) {
             String name = fieldName.get();
@@ -56,29 +60,40 @@ public class VSException extends RuntimeException {
         }
     }
 
-    public static VSException readFail(Class type, String fieldName, boolean bean, Throwable cause) {
-        if (bean) {
-            return new VSException("Failed to read property:" + fieldName + " of type:" + type.getName(), cause);
-        } else {
-            return new VSException("Failed to read field:" + fieldName + " of type:" + type.getName(), cause);
+    public static VSException readFail(Class type, String fieldName, FieldType ft, Throwable cause) {
+        switch (ft) {
+            case BEAN:
+                return new VSException("Failed to read property:" + fieldName + " of type:" + type.getName(), cause);
+            case FIELD:
+                return new VSException("Failed to read field:" + fieldName + " of type:" + type.getName(), cause);
+            case RECORD:
+                 return new VSException("Failed to read record component:" + fieldName + " of type:" + type.getName(), cause);
         }
+        return null;
     }
 
-    public static VSException writeFail(Class type, String fieldName, boolean bean, Throwable cause) {
-        if (bean) {
-            return new VSException("Failed to write property:" + fieldName + " of type:" + type.getName(), cause);
-        } else {
-            return new VSException("Failed to write field:" + fieldName + " of type:" + type.getName(), cause);
+    public static VSException writeFail(Class type, String fieldName, FieldType ft, Throwable cause) {
+        switch (ft) {
+            case BEAN:
+                 return new VSException("Failed to write property:" + fieldName + " of type:" + type.getName(), cause);
+            case FIELD:
+                return new VSException("Failed to write field:" + fieldName + " of type:" + type.getName(), cause);
+            case RECORD:
+                return new VSException("Failed to write record component:" + fieldName + " of type:" + type.getName(), cause);
         }
+        return null;
     }
 
-    public static VSException fieldNotFound(Class type, String fieldName, boolean bean) {
-        if (bean) {
-            return new VSException(fieldName + " property on type " + type + " was not found");
-        } else {
-            return new VSException(fieldName + " field on type " + type + " was not found");
+    public static VSException fieldNotFound(Class type, String fieldName, FieldType ft) {
+        switch (ft) {
+            case BEAN:
+                return new VSException(fieldName + " property on type " + type + " was not found");
+            case FIELD:
+                return new VSException(fieldName + " field on type " + type + " was not found");
+            case RECORD:
+                return new VSException(fieldName + " record component on type " + type + " was not found");
         }
-
+        return null;
     }
 
 }
