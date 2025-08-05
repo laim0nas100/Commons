@@ -20,6 +20,12 @@ public class MethodCallSignature {
      */
     public final List args;
 
+    /**
+     * Concrete call
+     *
+     * @param name
+     * @param args
+     */
     public MethodCallSignature(String name, Object... args) {
         this.name = Objects.requireNonNull(name, "Method name must be provided");
         this.args = args.length == 0 ? Collections.EMPTY_LIST : Collections.unmodifiableList(Arrays.asList(args));

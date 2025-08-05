@@ -128,7 +128,7 @@ public interface IDFactory<I> {
             }
 
         } else {
-            SimpleStream<IObjectMethod<T, I>> getterMethods = ReflMethods.getGetterMethods(cls);
+            SimpleStream<IObjectMethod<T, I>> getterMethods = ReflMethods.getGetterMethodsTyped(cls);
             Optional<IObjectMethod<T, I>> findFirst = getterMethods.filter(me -> me.isAnnotationPresent(Id.class)).findFirst();
             if (!findFirst.isPresent()) {
                 throw new IllegalArgumentException("Failed to resolve a way to get Id form " + cls);
