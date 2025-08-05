@@ -9,18 +9,16 @@ import java.io.ObjectInputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
@@ -36,12 +34,22 @@ import lt.lb.uncheckedutils.SafeOpt;
  */
 public class VersionedDeserializer extends VersionedSerializationMapper<VersionedDeserializer> {
 
-    public static Map<String, Class> PRIMITIVES = MakeStream.fromValues(
+    public static final Map<String, Class> PRIMITIVES = MakeStream.fromValues(
             Boolean.TYPE, Character.TYPE, Byte.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE
     ).toUnmodifiableMap(Class::getName, Function.identity());
 
     protected Map<String, Class> classMap = new HashMap<>();
     protected Map<String, Supplier> customConstructors = new HashMap<>();
+
+    public static class WorkRecordComponent<T> {
+
+        public final IRecordComponent record;
+        public T value = null;
+
+        public WorkRecordComponent(IRecordComponent record) {
+            this.record = Objects.requireNonNull(record);
+        }
+    }
 
     /**
      * Class cache for method {@link Class#forName(java.lang.String) }.
@@ -79,10 +87,10 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         }
     }
 
-    public <T> T instantiateRecord(Class clazz, Object[] parameters) {
+    public <T> T instantiateRecord(Class clazz, Class[] types, Object[] parameters) {
         try {
             for (Constructor cons : clazz.getDeclaredConstructors()) {
-                if (typeFit(cons.getParameterTypes(), parameters)) {
+                if (Arrays.equals(types, cons.getParameterTypes())) {//exact fit
                     return (T) cons.newInstance(parameters);
                 }
             }
@@ -90,27 +98,6 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             throw new VSException("Failed to instantiate record:" + clazz.getName(), ex);
         }
-    }
-
-    private static boolean typeFit(Class[] types, Object[] params) {
-        if (types.length != params.length) {
-            return false;
-        }
-        for (int i = 0; i < types.length; i++) {
-            Object param = params[i];
-            Class type = types[i];
-            if (param == null) {
-                //everything fits except primitives
-                if (type.isPrimitive()) {
-                    return false;
-                }
-            } else {
-                if (!Ins.instanceOfPrimitivePromotion(param, type)) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     @Override
@@ -146,19 +133,12 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return map;
     }
 
-    protected String assertFieldName(VSUnit unit) {
-        if (unit instanceof TraitFieldName) {
-            TraitFieldName fn = F.cast(unit);
-            return fn.getFieldName();
-        }
-        throw new IllegalArgumentException(unit.getClass() + " does not have a FieldName trait");
-    }
-
     public <T> T deserializeRoot(CustomVSUnit custom) {
         return deserializeRoot(custom, new VersionedDeserializationContext());
     }
 
     public <T> T deserializeRoot(CustomVSUnit custom, VersionedDeserializationContext context) {
+        Objects.requireNonNull(custom);
         Objects.requireNonNull(context);
         String type = custom.getType();
         Class clazz = getClass(custom.getType());
@@ -169,6 +149,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
     }
 
     public Object deserializeComplex(boolean refCheck, VSUnit unit, VersionedDeserializationContext context) {
+         Objects.requireNonNull(unit, "deserializeComplex passed unit was null");
         if (unit instanceof NullUnit) {
             return null;
         }
@@ -178,15 +159,15 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             if (context.refMap.containsKey(ref)) {
                 Value placedReference = context.refMap.getOrDefault(ref, null);
                 if (placedReference == null) {
-                    throw new IllegalStateException("Placed referenced is gone. Maybe shared context across threads?");
+                    throw new VSException("Placed referenced is gone. Maybe shared context across threads?");
                 } else {
                     if (placedReference.isEmpty()) {//reference is a record, that is cyclical
-                        throw new IllegalStateException("Can't dereference in cyclical record layout");
+                        throw new VSException("Can't dereference in cyclical record layout, bad data order");
                     }
                     return placedReference.get();
                 }
             } else {
-                throw new IllegalStateException("Can't deserialize reference we haven't encountered, bad data order");
+                throw new VSException("Can't deserialize reference we haven't encountered, bad data order");
             }
 
         }
@@ -249,35 +230,26 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                 }
             }
         } else if (Refl.recordsSupported() && Refl.typeIsRecord(clazz)) { // cant set reference before, resolving all fields
-            SimpleStream<IRecordComponent> recordComponents = Refl.getRecordComponents(clazz);
-            List<IRecordComponent> components = recordComponents.toList();
-            Map<String, IRecordComponent> recordFields = new LinkedHashMap<>();
-            for (IRecordComponent field : components) {
-                if (excludedType(field.getType())) {
-                    continue;
-                }
-                String name = field.getName();
-                String key = name;
-                recordFields.put(key, field);
+            IRecordComponent[] recordComponents = Refl.getRecordComponents(clazz).toArray(s -> new IRecordComponent[s]);
+            Map<String, WorkRecordComponent> recordFields = new LinkedHashMap<>();//preserve order for later
+            for (IRecordComponent field : recordComponents) { // cant ignore record fields
+                recordFields.put(field.getName(), new WorkRecordComponent(field));
             }
-            List deserializedRecordFields = new ArrayList<>();
             for (VSUnit field : complex.fields) {
-                TraitFieldName fieldTrait = F.cast(field);
-                String name = fieldTrait.getFieldName();
-                IRecordComponent objectField = recordFields.getOrDefault(name, null);
-                if (objectField == null) {// no such field, ignore
+                String name = assertFieldName(field);
+                WorkRecordComponent recordComponent = recordFields.getOrDefault(name, null);
+                if (recordComponent == null) {// no such field
                     if (throwOnFieldNotFound.get()) {
                         throw VSException.fieldNotFound(clazz, name, VSException.FieldType.RECORD);
                     } else {
                         continue;
                     }
                 }
-
-                Object fieldValue = deserializeAuto(field, context);
-                deserializedRecordFields.add(fieldValue);
+                recordComponent.value = deserializeAuto(field, context);
             }
-            Object[] toArray = deserializedRecordFields.stream().toArray(s -> new Object[s]);
-            Object instantiatedRecord = instantiateRecord(clazz, toArray);
+            Object[] parameters = recordFields.values().stream().map(m -> m.value).toArray(s -> new Object[s]);//excluded types remain null
+            Class[] parameterTypes = recordFields.values().stream().map(m -> m.record.getType()).toArray(s -> new Class[s]);
+            Object instantiatedRecord = instantiateRecord(clazz, parameterTypes, parameters);
             if (value != null) {
                 value.set(instantiatedRecord);
             }
@@ -306,12 +278,10 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                     key = shadowedName(key, field.getDeclaringClass().getName());
                 }
                 fieldMap.put(key, field);
-
             }
 
             for (VSUnit field : complex.fields) {
-                TraitFieldName fieldTrait = F.cast(field);
-                String name = fieldTrait.getFieldName();
+                String name = assertFieldName(field);
                 IObjectField objectField = fieldMap.getOrDefault(name, null);
                 if (objectField == null) {// no such field, ignore
                     if (throwOnFieldNotFound.get()) {
@@ -335,7 +305,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
     }
 
     public Object deserializeAuto(VSUnit unit, VersionedDeserializationContext context) {
-        Objects.requireNonNull(unit);
+        Objects.requireNonNull(unit, "deserializeAuto passed unit was null");
         if (unit instanceof NullUnit) {
             return null;
         }
@@ -361,7 +331,10 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         ObjectInputStream stream = null;
         try {
             stream = new ObjectInputStream(array);
-            return stream.readObject();
+            Object readObject = stream.readObject();
+            stream.close();
+            stream = null;
+            return readObject;
         } finally {
             if (stream != null) {
                 stream.close();
@@ -374,7 +347,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
     }
 
     public Object deserializeValue(VSUnit unit) {
-        Objects.requireNonNull(unit, "Deserialized passed unit was null");
+        Objects.requireNonNull(unit, "deserializeValue passed unit was null");
         if (unit instanceof NullUnit) {
             return null;
         }

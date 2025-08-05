@@ -1,6 +1,8 @@
 package lt.lb.commons.io.serialization;
 
 import lt.lb.commons.io.serialization.VersionedSerialization.*;
+import lt.lb.commons.io.serialization.VersionedSerialization.ValueFields.*;
+import lt.lb.commons.io.serialization.VersionedSerialization.Values.*;
 import java.beans.PropertyDescriptor;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,17 +31,19 @@ import lt.lb.uncheckedutils.SafeOpt;
  * @author laim0nas100
  */
 public class VersionedSerializer extends VersionedSerializationMapper<VersionedSerializer> {
-
+    
+    @Override
     protected VersionedSerializer me() {
         return this;
     }
-
+    
     public static byte[] autoBytes(Serializable value) throws IOException {
         ByteArrayOutputStream array = new ByteArrayOutputStream();
         ObjectOutputStream stream = null;
         try {
             stream = new ObjectOutputStream(array);
             stream.writeObject(value);
+            stream.flush();
             return array.toByteArray();
         } finally {
             if (stream != null) {
@@ -47,145 +51,85 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
             }
         }
     }
-
+    
     public static SafeOpt<byte[]> safeBytes(Serializable value) {
         return SafeOpt.of(value).map(m -> autoBytes(m));
     }
-
+    
     public VSUnit serializeValue(Optional<String> fieldName, Object value) throws VSException {
+        boolean fn = fieldName.isPresent();
+        String name = fieldName.orElse(null);
         if (value == null) {
-            if (fieldName.isPresent()) {
-                return new NullFieldUnit(fieldName.get());
-            } else {
-                return new NullUnit();
-            }
+            return fn ? new NullFieldUnit(name) : new NullUnit();
         }
         //casting to object promotes to non-primitive
         Ins<Object> ins = Ins.ofNullable(value);
         //value not null
-        if (fieldName.isPresent()) {
-            String name = fieldName.get();
-            if (ins.instanceOf(String.class)) {
-                return new ValueFields.StringVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Enum.class)) {
-                return new ValueFields.EnumVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Character.class)) {
-                return new ValueFields.CharVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Integer.class)) {
-                return new ValueFields.IntegerVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Long.class)) {
-                return new ValueFields.LongVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Short.class)) {
-                return new ValueFields.ShortVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Byte.class)) {
-                return new ValueFields.ByteVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Boolean.class)) {
-                return new ValueFields.BooleanVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Float.class)) {
-                return new ValueFields.FloatVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(Double.class)) {
-                return new ValueFields.DoubleVSUField(name, F.cast(value));
-            }
-            if (ins.instanceOf(byte[].class)) {
-                return new ValueFields.BinaryVSUField(name, F.cast(value));
-            }
-
-            Class<? extends Object> clazz = value.getClass();
-            if (customValueSerializers.containsKey(clazz)) {
-                return customValueSerializers.get(clazz).serialize(value);
-            }
-            //needs type
-            String typeName = clazz.getName();
-            if (stringifyTypes.containsKey(typeName)) {
-                return new ValueFields.TypedStringVSUField(name, typeName, stringifyTypes.get(typeName).toString(value));
-            }
-            //try auto binarization
-            if (value instanceof Serializable) {
-                try {
-                    byte[] bytes = autoBytes(F.cast(value));
-                    String type = value.getClass().getName();
-                    return new ValueFields.TypedBinaryVSUField(name, type, bytes);
-                } catch (IOException ex) {
-
-                    if (throwOnBinaryError.get()) {
-                        throw VSException.binaryFail(clazz, fieldName, ex);
-                    }
-                }
-            }
-            throw VSException.unrecognized(clazz, fieldName);
-
-        } // no field name
         if (ins.instanceOf(String.class)) {
-            return new Values.StringVSU(F.cast(value));
+            return fn ? new StringVSUField(name, F.cast(value)) : new StringVSU(F.cast(value));
         }
         if (ins.instanceOf(Enum.class)) {
-            return new Values.EnumVSU(F.cast(value));
+            return fn ? new EnumVSUField(name, F.cast(value)) : new EnumVSU(F.cast(value));
         }
         if (ins.instanceOf(Character.class)) {
-            return new Values.CharVSU(F.cast(value));
+            return fn ? new CharVSUField(name, F.cast(value)) : new CharVSU(F.cast(value));
         }
         if (ins.instanceOf(Integer.class)) {
-            return new Values.IntegerVSU(F.cast(value));
+            return fn ? new IntegerVSUField(name, F.cast(value)) : new IntegerVSU(F.cast(value));
         }
         if (ins.instanceOf(Long.class)) {
-            return new Values.LongVSU(F.cast(value));
+            return fn ? new LongVSUField(name, F.cast(value)) : new LongVSU(F.cast(value));
         }
         if (ins.instanceOf(Short.class)) {
-            return new Values.ShortVSU(F.cast(value));
+            return fn ? new ShortVSUField(name, F.cast(value)) : new ShortVSU(F.cast(value));
         }
         if (ins.instanceOf(Byte.class)) {
-            return new Values.ByteVSU(F.cast(value));
+            return fn ? new ByteVSUField(name, F.cast(value)) : new ByteVSU(F.cast(value));
         }
         if (ins.instanceOf(Boolean.class)) {
-            return new Values.BooleanVSU(F.cast(value));
+            return fn ? new BooleanVSUField(name, F.cast(value)) : new BooleanVSU(F.cast(value));
         }
         if (ins.instanceOf(Float.class)) {
-            return new Values.FloatVSU(F.cast(value));
+            return fn ? new FloatVSUField(name, F.cast(value)) : new FloatVSU(F.cast(value));
         }
         if (ins.instanceOf(Double.class)) {
-            return new Values.DoubleVSU(F.cast(value));
+            return fn ? new DoubleVSUField(name, F.cast(value)) : new DoubleVSU(F.cast(value));
         }
         if (ins.instanceOf(byte[].class)) {
-            return new Values.BinaryVSU(F.cast(value));
+            return fn ? new BinaryVSUField(name, F.cast(value)) : new BinaryVSU(F.cast(value));
         }
+        
         Class<? extends Object> clazz = value.getClass();
         if (customValueSerializers.containsKey(clazz)) {
-            return customValueSerializers.get(clazz).serialize(value);
+            SerializerMapping customSerializer = customValueSerializers.get(clazz);
+            return fn ? customSerializer.serialize(name, value) : customSerializer.serialize(value);
         }
         //needs type
         String typeName = clazz.getName();
         if (stringifyTypes.containsKey(typeName)) {
-            return new Values.TypedStringVSU(typeName, stringifyTypes.get(typeName).toString(value));
+            String stringified = stringifyTypes.get(typeName).toString(value);
+            return fn ? new TypedStringVSUField(name, typeName, stringified) : new TypedStringVSU(typeName, stringified);
         }
         //try auto binarization
         if (value instanceof Serializable) {
             try {
-                byte[] bytes = autoBytes(F.cast(value));;
+                byte[] bytes = autoBytes(F.cast(value));
                 String type = value.getClass().getName();
-                return new Values.TypedBinaryVSU(type, bytes);
+                return fn ? new TypedBinaryVSUField(name, type, bytes) : new TypedBinaryVSU(type, bytes);
             } catch (IOException ex) {
-
                 if (throwOnBinaryError.get()) {
                     throw VSException.binaryFail(clazz, fieldName, ex);
                 }
             }
         }
         throw VSException.unrecognized(clazz, fieldName);
+        
     }
-
+    
     public CustomVSUnit serializeRoot(Object value) {
         return serializeRoot(value, new VersionedSerializationContext());
     }
-
+    
     public CustomVSUnit serializeRoot(Object value, VersionedSerializationContext context) {
         Objects.requireNonNull(context);
         Class<? extends Object> type = value.getClass();
@@ -194,55 +138,37 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         }
         return (CustomVSUnit) serializeComplex(Optional.empty(), value, context);
     }
-
+    
     public VSUnit serializeComplex(Optional<String> fieldName, Object value, VersionedSerializationContext context) throws VSException {
         if (value == null) {
-            if (fieldName.isPresent()) {
-                return new NullFieldUnit(fieldName.get());
-            } else {
-                return new NullUnit();
-            }
+            return newNullUnit(fieldName);
         }
         // not null
         Class type = value.getClass();
         boolean refCounted = false;
-
+        
         if (refCountingTypes.contains(type)) {
             refCounted = true;
             if (context.refMap.containsKey(value)) {
                 VSUnit reference = context.refMap.get(value);
                 TraitReferenced referenced = F.cast(reference);
                 Long id = referenced.getRef();
-                if (id == null) {
+                if (id == null) {// not referenced before, set and increment
                     id = context.refId++;
                     referenced.setRef(id);
                 }
-                if (fieldName.isPresent()) {
-                    return new VSUnitFieldReference(fieldName.get(), id);
-                } else {
-                    return new VSUnitReference(id);
-                }
+                
+                return newReference(fieldName, id);
             }
         }
-        ComplexVSUnit unit;
-        if (this.customTypeVersions.containsKey(type)) {
-            if (fieldName.isPresent()) {
-                unit = new CustomVSUnitField(customTypeVersions.get(type), fieldName.get());
-            } else {
-                unit = new CustomVSUnit(customTypeVersions.get(type));
-            }
-        } else {//base version
-            if (fieldName.isPresent()) {
-                unit = new ComplexFieldVSUnit(fieldName.get());
-            } else {
-                unit = new ComplexVSUnit();
-            }
-        }
+        
+        Long version = customTypeVersions.getOrDefault(type, null);
+        final ComplexVSUnit unit = version == null ? newComplexUnit(fieldName) : newCustomUnit(fieldName, version);
+        unit.setType(type.getName());
         if (refCounted) {//store reference
             context.refMap.put(value, unit);
         }
-        unit.setType(type.getName());
-
+        
         List<VSUnit> fields = new ArrayList<>();
         if (beanAccessTypes.contains(type)) { // do bean access
             PropertyDescriptor[] localFields = Refl.getPropertyDescriptors(type).toArray(s -> new PropertyDescriptor[s]);
@@ -250,19 +176,19 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 if (excludedType(field.getPropertyType())) {
                     continue;
                 }
-
+                
                 String name = field.getName();//shadowing doesn't makes sense in beans context
 
                 SafeOpt safeGet = Refl.safeInvokeMethod(field.getReadMethod(), value);
                 Object fieldValue = null;
-
+                
                 if (safeGet.hasError()) {
                     if (throwOnReflectionRead.get()) {
                         throw VSException.readFail(type, name, VSException.FieldType.BEAN, safeGet.rawException());
                     } else {
                         fieldValue = null;
                     }
-
+                    
                 } else {//no error
                     fieldValue = safeGet.orNull();
                 }
@@ -272,23 +198,24 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 }
             }
         } else if (Refl.recordsSupported() && Refl.typeIsRecord(type)) {
-            List<IRecordComponent> recordComponents = Refl.getRecordComponents(type).toList();
+            IRecordComponent[] recordComponents = Refl.getRecordComponents(type).toArray(s -> new IRecordComponent[s]);
             for (IRecordComponent field : recordComponents) {
-                if (excludedType(field.getType())) {
+                if (excludedType(field.getType())) {//cant ignore so just add null value
+                    fields.add(newNullUnit(Optional.of(field.getName())));
                     continue;
+                    
                 }
                 String name = field.getName();//shadowing doesn't makes sense in record context
-
                 SafeOpt safeGet = Refl.safeInvokeMethod(field.getAccessor(), value);
                 Object fieldValue = null;
-
+                
                 if (safeGet.hasError()) {
                     if (throwOnReflectionRead.get()) {
                         throw VSException.readFail(type, name, VSException.FieldType.RECORD, safeGet.rawException());
                     } else {
                         fieldValue = null;
                     }
-
+                    
                 } else {//no error
                     fieldValue = safeGet.orNull();
                 }
@@ -296,56 +223,50 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 if (auto != null) { // null means not included
                     fields.add(auto);
                 }
-
+                
             }
-
+            
         } else {
             SimpleStream<IObjectField> localFields = ReflFields.getLocalFields(type);
             IObjectField[] objectFields = localFields.toArray(s -> new IObjectField[s]);
-
+            
             Map<String, IObjectField> fieldMap = new LinkedHashMap<>();
             for (IObjectField field : objectFields) {
                 if (excludedType(field.getType())) {
                     continue;
                 }
                 String name = field.getName();
-                String key = name;
-                if (fieldMap.containsKey(key)) {
-                    key = shadowedName(key, field.getDeclaringClass().getName());
+                if (fieldMap.containsKey(name)) {
+                    name = shadowedName(name, field.getDeclaringClass().getName());
                 }
-
+                
                 SafeOpt safeGet = field.safeGet(value);
                 Object fieldValue = null;
-
+                
                 if (safeGet.hasError()) {
                     if (throwOnReflectionRead.get()) {
                         throw VSException.readFail(type, name, VSException.FieldType.FIELD, safeGet.rawException());
                     } else {
                         fieldValue = null;
                     }
-
+                    
                 } else {//no error
                     fieldValue = safeGet.orNull();
                 }
-                VSUnit auto = serializeAuto(Optional.of(key), fieldValue, context);
+                VSUnit auto = serializeAuto(Optional.of(name), fieldValue, context);
                 if (auto != null) { // null means not included
                     fields.add(auto);
-                    fieldMap.put(key, field);
+                    fieldMap.put(name, field);
                 }
             }
         }
         unit.fields = fields.stream().toArray(s -> new VSField[s]);
         return unit;
-
+        
     }
-
+    
     public VSUnit serializeCollection(Optional<String> fieldName, Collection col, VersionedSerializationContext context) {
-        ArrayVSUnit arrayUnit = null;
-        if (fieldName.isPresent()) {
-            arrayUnit = new ArrayFieldVSUnit(fieldName.get());
-        } else {
-            arrayUnit = new ArrayVSUnit();
-        }
+        ArrayVSUnit arrayUnit = newArrayUnit(fieldName);
         List<VSUnit> values = new ArrayList<>(col.size());
         for (Object val : col) {
             VSUnit unit = serializeAuto(Optional.empty(), val, context);
@@ -357,14 +278,9 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         arrayUnit.setCollectionType(col.getClass().getName());
         return arrayUnit;
     }
-
+    
     public VSUnit serializeMap(Optional<String> fieldName, Map map, VersionedSerializationContext context) {
-        MapVSUnit mapUnit = null;
-        if (fieldName.isPresent()) {
-            mapUnit = new MapFieldVSUnit(fieldName.get());
-        } else {
-            mapUnit = new MapVSUnit();
-        }
+        MapVSUnit mapUnit = newMapUnit(fieldName);
         List<EntryVSUnit> entries = new ArrayList<>(map.size());
         Set<Map.Entry> entrySet = map.entrySet();
         for (Map.Entry entry : entrySet) {
@@ -384,11 +300,9 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         mapUnit.setCollectionType(map.getClass().getName());
         return mapUnit;
     }
-
+    
     public VSUnit serializeArray(Optional<String> fieldName, Object array, VersionedSerializationContext context) {
-        ArrayVSUnit arrayUnit = fieldName.isPresent()
-                ? new ArrayFieldVSUnit(fieldName.get()) : new ArrayVSUnit();
-
+        ArrayVSUnit arrayUnit = newArrayUnit(fieldName);
         int length = Array.getLength(array);
         List<VSUnit> values = new ArrayList<>(length);
         for (int i = 0; i < length; i++) {
@@ -401,14 +315,10 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         arrayUnit.setType(array.getClass().getComponentType().getName());
         return arrayUnit;
     }
-
+    
     public VSUnit serializeAuto(Optional<String> fieldName, Object value, VersionedSerializationContext context) {
         if (value == null) {
-            if (fieldName.isPresent()) {
-                return new NullFieldUnit(fieldName.get());
-            } else {
-                return new NullUnit();
-            }
+            return newNullUnit(fieldName);
         }
         Class<? extends Object> type = value.getClass();
         if (excludedType(type)) {
@@ -428,5 +338,29 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         }
         return serializeValue(fieldName, value);
     }
-
+    
+    public ArrayVSUnit newArrayUnit(Optional<String> fieldName) {
+        return fieldName.isPresent() ? new ArrayFieldVSUnit(fieldName.get()) : new ArrayVSUnit();
+    }
+    
+    public MapVSUnit newMapUnit(Optional<String> fieldName) {
+        return fieldName.isPresent() ? new MapFieldVSUnit(fieldName.get()) : new MapVSUnit();
+    }
+    
+    public NullUnit newNullUnit(Optional<String> fieldName) {
+        return fieldName.isPresent() ? new NullFieldUnit(fieldName.get()) : new NullUnit();
+    }
+    
+    public CustomVSUnit newCustomUnit(Optional<String> fieldName, long version) {
+        return fieldName.isPresent() ? new CustomVSUnitField(version, fieldName.get()) : new CustomVSUnit(version);
+    }
+    
+    public ComplexVSUnit newComplexUnit(Optional<String> fieldName) {
+        return fieldName.isPresent() ? new ComplexFieldVSUnit(fieldName.get()) : new ComplexVSUnit();
+    }
+    
+    public VSUnitReference newReference(Optional<String> fieldName, long id) {
+        return fieldName.isPresent() ? new VSUnitFieldReference(fieldName.get(), id) : new VSUnitReference(id);
+    }
+    
 }

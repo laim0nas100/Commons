@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.values.Value;
@@ -199,6 +200,14 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     public static String unshadowedName(String fieldName) {
         int index = Strings.CS.indexOf(fieldName, "#");
         return index > 0 ? fieldName.substring(0, index) : fieldName;
+    }
+    
+     protected String assertFieldName(VersionedSerialization.VSUnit unit) {
+        if (unit instanceof VersionedSerialization.TraitFieldName) {
+            VersionedSerialization.TraitFieldName fn = F.cast(unit);
+            return fn.getFieldName();
+        }
+        throw new IllegalArgumentException(unit.getClass() + " does not have a FieldName trait");
     }
     
     public M appendTypeData(VersionedSerializationMapper other) {
