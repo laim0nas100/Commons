@@ -1,8 +1,6 @@
 package lt.lb.commons.io.serialization;
 
 import lt.lb.commons.io.serialization.VersionedSerialization.*;
-import lt.lb.commons.io.serialization.VersionedSerialization.ValueFields.*;
-import lt.lb.commons.io.serialization.VersionedSerialization.Values.*;
 import java.beans.PropertyDescriptor;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

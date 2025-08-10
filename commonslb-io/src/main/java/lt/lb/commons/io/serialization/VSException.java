@@ -1,6 +1,6 @@
 package lt.lb.commons.io.serialization;
 
-import lt.lb.commons.io.serialization.VersionedSerialization.Values.TypedBinaryVSU;
+import lt.lb.commons.io.serialization.VersionedSerialization.TypedBinaryVSU;
 import java.util.Optional;
 import lt.lb.commons.F;
 

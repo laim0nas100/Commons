@@ -352,13 +352,13 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             return null;
         }
 
-        if (unit instanceof Values.EnumVSU) {
-            Values.EnumVSU cast = F.cast(unit);
+        if (unit instanceof EnumVSU) {
+            EnumVSU cast = F.cast(unit);
             return Enum.valueOf(F.cast(getClass(cast.getType())), cast.getValue());
         }
 
-        if (unit instanceof Values.TypedBinaryVSU) {
-            Values.TypedBinaryVSU cast = F.cast(unit);
+        if (unit instanceof TypedBinaryVSU) {
+            TypedBinaryVSU cast = F.cast(unit);
             try {
                 return autoBytes(cast.getBinary());
             } catch (IOException | ClassNotFoundException ex) {
@@ -367,13 +367,13 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                 }
             }
         }
-        if (unit instanceof Values.BinaryVSU) {
-            Values.BinaryVSU cast = F.cast(unit);
+        if (unit instanceof BinaryVSU) {
+            BinaryVSU cast = F.cast(unit);
             return cast.getBinary();
         }
 
-        if (unit instanceof Values.TypedStringVSU) {
-            Values.TypedStringVSU cast = F.cast(unit);
+        if (unit instanceof TypedStringVSU) {
+            TypedStringVSU cast = F.cast(unit);
             String type = cast.getType();
             if (!stringifyTypes.containsKey(type)) {
                 throw new IllegalStateException("No string mapper found for deserialization of type:" + type);
@@ -381,8 +381,8 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             return stringifyTypes.get(type).fromString(cast.getValue());
         }
 
-        if (unit instanceof Values.BasePrimitiveVSU) {
-            Values.BasePrimitiveVSU cast = F.cast(unit);
+        if (unit instanceof BasePrimitiveVSU) {
+            BasePrimitiveVSU cast = F.cast(unit);
             return cast.getValue();
         }
         throw VSException.unrecognized(unit);

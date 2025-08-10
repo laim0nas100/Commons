@@ -1,7 +1,6 @@
 package lt.lb.commons.io.serialization;
 
 import lt.lb.commons.io.serialization.VersionedSerialization.TraitFieldName;
-import lt.lb.commons.io.serialization.VersionedSerialization.Values.*;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -358,320 +357,312 @@ public class VersionedSerialization {
     }
 
     //implementation
-    public abstract static class Values {
+    public static class BinaryVSU extends BaseVSUnit implements VSLeaf, TraitBinary {
 
-        public static class BinaryVSU extends BaseVSUnit implements VSLeaf, TraitBinary {
-
-            public BinaryVSU(byte[] value) {
-                setBinary(value);
-            }
-
-            public BinaryVSU() {
-            }
-
+        public BinaryVSU(byte[] value) {
+            setBinary(value);
         }
 
-        public static class TypedBinaryVSU extends BinaryVSU implements TraitType {
-
-            public TypedBinaryVSU(String type, byte[] value) {
-                super(value);
-                setType(type);
-            }
-
-            public TypedBinaryVSU() {
-            }
-
-        }
-
-        public static class BasePrimitiveVSU<T> extends BaseVSUnit implements VSLeaf, TraitValue<T> {
-
-            public BasePrimitiveVSU(T value) {
-                setValue(value);
-            }
-
-            public BasePrimitiveVSU() {
-            }
-
-        }
-
-        public static class StringVSU extends BasePrimitiveVSU<String> {
-
-            public StringVSU(String value) {
-                super(value);
-            }
-
-            public StringVSU() {
-            }
-
-        }
-
-        public static class TypedStringVSU extends StringVSU implements TraitType {
-
-            public TypedStringVSU(String type, String value) {
-                super(value);
-                setType(type);
-            }
-
-            public TypedStringVSU() {
-            }
-
-        }
-
-        public static class EnumVSU extends TypedStringVSU {
-
-            public EnumVSU(Enum value) {
-                super(value.getClass().getName(), value.name());
-            }
-
-            public EnumVSU() {
-            }
-
-        }
-
-        public static class CharVSU extends BasePrimitiveVSU<Character> {
-
-            public CharVSU(Character value) {
-                super(value);
-            }
-
-            public CharVSU() {
-            }
-
-        }
-
-        public static class IntegerVSU extends BasePrimitiveVSU<Integer> {
-
-            public IntegerVSU(Integer value) {
-                super(value);
-            }
-
-            public IntegerVSU() {
-            }
-
-        }
-
-        public static class LongVSU extends BasePrimitiveVSU<Long> {
-
-            public LongVSU(Long value) {
-                super(value);
-            }
-
-            public LongVSU() {
-            }
-
-        }
-
-        public static class ShortVSU extends BasePrimitiveVSU<Short> {
-
-            public ShortVSU(Short value) {
-                super(value);
-            }
-
-            public ShortVSU() {
-            }
-
-        }
-
-        public static class ByteVSU extends BasePrimitiveVSU<Byte> {
-
-            public ByteVSU(Byte value) {
-                super(value);
-            }
-
-            public ByteVSU() {
-            }
-
-        }
-
-        public static class BooleanVSU extends BasePrimitiveVSU<Boolean> {
-
-            public BooleanVSU(Boolean value) {
-                super(value);
-            }
-
-            public BooleanVSU() {
-            }
-
-        }
-
-        public static class FloatVSU extends BasePrimitiveVSU<Float> {
-
-            public FloatVSU(Float value) {
-                super(value);
-            }
-
-            public FloatVSU() {
-            }
-
-        }
-
-        public static class DoubleVSU extends BasePrimitiveVSU<Double> {
-
-            public DoubleVSU(Double value) {
-                super(value);
-            }
-
-            public DoubleVSU() {
-            }
+        public BinaryVSU() {
         }
 
     }
 
-    public abstract static class ValueFields {
+    public static class TypedBinaryVSU extends BinaryVSU implements TraitType {
 
-        public static class BinaryVSUField extends BinaryVSU implements VSLeafField {
-
-            public BinaryVSUField(String fieldName, byte[] value) {
-                super(value);
-                setFieldName(fieldName);
-            }
-
-            public BinaryVSUField() {
-            }
-
+        public TypedBinaryVSU(String type, byte[] value) {
+            super(value);
+            setType(type);
         }
 
-        public static class TypedBinaryVSUField extends BinaryVSUField implements VSLeafField, TraitType {
-
-            public TypedBinaryVSUField(String fieldName, String type, byte[] value) {
-                super(fieldName, value);
-                setType(type);
-            }
-
-            public TypedBinaryVSUField() {
-            }
-
+        public TypedBinaryVSU() {
         }
 
-        public static class StringVSUField extends StringVSU implements VSLeafField {
+    }
 
-            public StringVSUField(String fieldName, String value) {
-                super(value);
-                setFieldName(fieldName);
-            }
+    public static class BasePrimitiveVSU<T> extends BaseVSUnit implements VSLeaf, TraitValue<T> {
 
-            public StringVSUField() {
-            }
+        public BasePrimitiveVSU(T value) {
+            setValue(value);
         }
 
-        public static class TypedStringVSUField extends TypedStringVSU implements VSLeafField {
-
-            public TypedStringVSUField(String fieldName, String type, String value) {
-                super(type, value);
-                setFieldName(fieldName);
-            }
-
-            public TypedStringVSUField() {
-            }
-
+        public BasePrimitiveVSU() {
         }
 
-        public static class EnumVSUField extends EnumVSU implements VSLeafField {
+    }
 
-            public EnumVSUField(String fieldName, Enum value) {
-                super(value);
-                setFieldName(fieldName);
-            }
+    public static class StringVSU extends BasePrimitiveVSU<String> {
 
-            public EnumVSUField() {
-            }
-
+        public StringVSU(String value) {
+            super(value);
         }
 
-        public static class CharVSUField extends CharVSU implements VSLeafField {
-
-            public CharVSUField(String fieldName, Character value) {
-                super(value);
-                setFieldName(fieldName);
-            }
-
-            public CharVSUField() {
-            }
-
+        public StringVSU() {
         }
 
-        public static class IntegerVSUField extends IntegerVSU implements VSLeafField {
+    }
 
-            public IntegerVSUField(String fieldName, Integer value) {
-                super(value);
-                setFieldName(fieldName);
-            }
+    public static class TypedStringVSU extends StringVSU implements TraitType {
 
-            public IntegerVSUField() {
-            }
-
+        public TypedStringVSU(String type, String value) {
+            super(value);
+            setType(type);
         }
 
-        public static class LongVSUField extends LongVSU implements VSLeafField {
-
-            public LongVSUField(String fieldName, Long value) {
-                super(value);
-                setFieldName(fieldName);
-            }
-
-            public LongVSUField() {
-            }
-
+        public TypedStringVSU() {
         }
 
-        public static class ShortVSUField extends ShortVSU implements VSLeafField {
+    }
 
-            public ShortVSUField(String fieldName, Short value) {
-                super(value);
-                setFieldName(fieldName);
-            }
+    public static class EnumVSU extends TypedStringVSU {
 
-            public ShortVSUField() {
-            }
-
+        public EnumVSU(Enum value) {
+            super(value.getClass().getName(), value.name());
         }
 
-        public static class ByteVSUField extends ByteVSU implements VSLeafField {
-
-            public ByteVSUField(String fieldName, Byte value) {
-                super(value);
-                setFieldName(fieldName);
-            }
-
-            public ByteVSUField() {
-            }
-
+        public EnumVSU() {
         }
 
-        public static class BooleanVSUField extends BooleanVSU implements VSLeafField {
+    }
 
-            public BooleanVSUField(String fieldName, Boolean value) {
-                super(value);
-                setFieldName(fieldName);
-            }
+    public static class CharVSU extends BasePrimitiveVSU<Character> {
 
-            public BooleanVSUField() {
-            }
-
+        public CharVSU(Character value) {
+            super(value);
         }
 
-        public static class FloatVSUField extends FloatVSU implements VSLeafField {
-
-            public FloatVSUField(String fieldName, Float value) {
-                super(value);
-                setFieldName(fieldName);
-            }
-
-            public FloatVSUField() {
-            }
-
+        public CharVSU() {
         }
 
-        public static class DoubleVSUField extends DoubleVSU implements VSLeafField {
+    }
 
-            public DoubleVSUField(String fieldName, Double value) {
-                super(value);
-                setFieldName(fieldName);
-            }
+    public static class IntegerVSU extends BasePrimitiveVSU<Integer> {
 
-            public DoubleVSUField() {
-            }
+        public IntegerVSU(Integer value) {
+            super(value);
+        }
 
+        public IntegerVSU() {
+        }
+
+    }
+
+    public static class LongVSU extends BasePrimitiveVSU<Long> {
+
+        public LongVSU(Long value) {
+            super(value);
+        }
+
+        public LongVSU() {
+        }
+
+    }
+
+    public static class ShortVSU extends BasePrimitiveVSU<Short> {
+
+        public ShortVSU(Short value) {
+            super(value);
+        }
+
+        public ShortVSU() {
+        }
+
+    }
+
+    public static class ByteVSU extends BasePrimitiveVSU<Byte> {
+
+        public ByteVSU(Byte value) {
+            super(value);
+        }
+
+        public ByteVSU() {
+        }
+
+    }
+
+    public static class BooleanVSU extends BasePrimitiveVSU<Boolean> {
+
+        public BooleanVSU(Boolean value) {
+            super(value);
+        }
+
+        public BooleanVSU() {
+        }
+
+    }
+
+    public static class FloatVSU extends BasePrimitiveVSU<Float> {
+
+        public FloatVSU(Float value) {
+            super(value);
+        }
+
+        public FloatVSU() {
+        }
+
+    }
+
+    public static class DoubleVSU extends BasePrimitiveVSU<Double> {
+
+        public DoubleVSU(Double value) {
+            super(value);
+        }
+
+        public DoubleVSU() {
+        }
+    }
+
+    public static class BinaryVSUField extends BinaryVSU implements VSLeafField {
+
+        public BinaryVSUField(String fieldName, byte[] value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public BinaryVSUField() {
+        }
+
+    }
+
+    public static class TypedBinaryVSUField extends TypedBinaryVSU implements VSLeafField, TraitType {
+
+        public TypedBinaryVSUField(String fieldName, String type, byte[] value) {
+            super(type, value);
+            setFieldName(fieldName);
+        }
+
+        public TypedBinaryVSUField() {
+        }
+
+    }
+
+    public static class StringVSUField extends StringVSU implements VSLeafField {
+
+        public StringVSUField(String fieldName, String value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public StringVSUField() {
+        }
+    }
+
+    public static class TypedStringVSUField extends TypedStringVSU implements VSLeafField {
+
+        public TypedStringVSUField(String fieldName, String type, String value) {
+            super(type, value);
+            setFieldName(fieldName);
+        }
+
+        public TypedStringVSUField() {
+        }
+
+    }
+
+    public static class EnumVSUField extends EnumVSU implements VSLeafField {
+
+        public EnumVSUField(String fieldName, Enum value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public EnumVSUField() {
+        }
+
+    }
+
+    public static class CharVSUField extends CharVSU implements VSLeafField {
+
+        public CharVSUField(String fieldName, Character value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public CharVSUField() {
+        }
+
+    }
+
+    public static class IntegerVSUField extends IntegerVSU implements VSLeafField {
+
+        public IntegerVSUField(String fieldName, Integer value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public IntegerVSUField() {
+        }
+
+    }
+
+    public static class LongVSUField extends LongVSU implements VSLeafField {
+
+        public LongVSUField(String fieldName, Long value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public LongVSUField() {
+        }
+
+    }
+
+    public static class ShortVSUField extends ShortVSU implements VSLeafField {
+
+        public ShortVSUField(String fieldName, Short value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public ShortVSUField() {
+        }
+
+    }
+
+    public static class ByteVSUField extends ByteVSU implements VSLeafField {
+
+        public ByteVSUField(String fieldName, Byte value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public ByteVSUField() {
+        }
+
+    }
+
+    public static class BooleanVSUField extends BooleanVSU implements VSLeafField {
+
+        public BooleanVSUField(String fieldName, Boolean value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public BooleanVSUField() {
+        }
+
+    }
+
+    public static class FloatVSUField extends FloatVSU implements VSLeafField {
+
+        public FloatVSUField(String fieldName, Float value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public FloatVSUField() {
+        }
+
+    }
+
+    public static class DoubleVSUField extends DoubleVSU implements VSLeafField {
+
+        public DoubleVSUField(String fieldName, Double value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public DoubleVSUField() {
         }
 
     }
