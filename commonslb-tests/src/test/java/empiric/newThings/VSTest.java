@@ -1,5 +1,8 @@
 package empiric.newThings;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.lang.reflect.Modifier;
 import lt.lb.commons.io.serialization.VSManager;
 import lt.lb.commons.io.serialization.VersionedChanges;
 import lt.lb.commons.io.serialization.VersionedSerialization;
@@ -10,12 +13,17 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import javax.xml.parsers.ParserConfigurationException;
 import lt.lb.commons.DLog;
 import lt.lb.commons.F;
+import lt.lb.commons.Ins;
+import lt.lb.commons.io.serialization.VersionedSerialization.VSUnit;
+import lt.lb.commons.io.serialization.VersionedSerializationXML;
 import org.apache.commons.lang3.SerializationUtils;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -66,6 +74,7 @@ public class VSTest {
         public Map<String, StudentNew> compValMap = new LinkedHashMap<>();
 
         public List<StudentNew> students = new ArrayList<>();
+
     }
 
     public static class Student {
@@ -118,7 +127,7 @@ public class VSTest {
         };
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         DLog.main().async = false;
         Data data = new Data();
 
@@ -143,7 +152,7 @@ public class VSTest {
         ser.exludeBase(Runnable.class);
         ser.withStringifyType(BigInteger.class, s -> new BigInteger(s));
         ser.withStringifyType(BigDecimal.class, s -> new BigDecimal(s));
-        ser.withStringifyType(ZonedDateTime.class, s -> ZonedDateTime.parse(s));
+//        ser.withStringifyType(ZonedDateTime.class, s -> ZonedDateTime.parse(s));
 
         VersionedSerialization.CustomVSUnit root = ser.serializeRoot(data);
 
@@ -183,8 +192,15 @@ public class VSTest {
         DLog.print(yaml.dump(newRoot));
 
         Data2 deserialized = ser.deserializeRoot(newRoot);
+        StringBuilder stringBuilder = new StringBuilder();
+        VersionedSerializationXML xml = new VersionedSerializationXML();
+        xml.writeWithEncodingHeader(stringBuilder, root);
 
-        DLog.print();
+        xml.readXml(new InputSource(new StringReader(stringBuilder.toString())));
+
+        System.out.println(stringBuilder);
+
+       
 
     }
 }
