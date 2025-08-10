@@ -2,12 +2,17 @@ package lt.lb.commons.io.serialization;
 
 import lt.lb.commons.io.serialization.VersionedSerialization.TraitFieldName;
 import java.io.Serializable;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import lt.lb.commons.F;
+import lt.lb.commons.Ins;
 import lt.lb.commons.containers.collections.ArrayLinearMap;
 import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.containers.collections.Props;
@@ -18,6 +23,11 @@ import lt.lb.commons.iteration.TreeVisitor;
  * @author laim0nas100
  */
 public class VersionedSerialization {
+
+    /**
+     * To avoid reflection in invoking constructors for de-serialization
+     */
+    public static final Map<Class, Supplier<VSUnit>> DEFAULT_CONSTRUCTORS = Collections.unmodifiableMap(constructorMap());
 
     public static interface SerializerMapping<T> {
 
@@ -685,6 +695,67 @@ public class VersionedSerialization {
                 }
             }
         };
+    }
+
+    private static Map<Class, Supplier<VSUnit>> constructorMap() {
+        Map<Class, Supplier<VSUnit>> map = new HashMap<>();
+        map.put(DoubleVSUField.class, DoubleVSUField::new);
+        map.put(FloatVSUField.class, FloatVSUField::new);
+        map.put(BooleanVSUField.class, BooleanVSUField::new);
+        map.put(ByteVSUField.class, ByteVSUField::new);
+        map.put(ShortVSUField.class, ShortVSUField::new);
+        map.put(LongVSUField.class, LongVSUField::new);
+        map.put(IntegerVSUField.class, IntegerVSUField::new);
+        map.put(CharVSUField.class, CharVSUField::new);
+        map.put(EnumVSUField.class, EnumVSUField::new);
+        map.put(TypedStringVSUField.class, TypedStringVSUField::new);
+        map.put(StringVSUField.class, StringVSUField::new);
+        map.put(TypedBinaryVSUField.class, TypedBinaryVSUField::new);
+        map.put(BinaryVSUField.class, BinaryVSUField::new);
+        map.put(DoubleVSU.class, DoubleVSU::new);
+        map.put(FloatVSU.class, FloatVSU::new);
+        map.put(BooleanVSU.class, BooleanVSU::new);
+        map.put(ByteVSU.class, ByteVSU::new);
+        map.put(ShortVSU.class, ShortVSU::new);
+        map.put(LongVSU.class, LongVSU::new);
+        map.put(IntegerVSU.class, IntegerVSU::new);
+        map.put(CharVSU.class, CharVSU::new);
+        map.put(EnumVSU.class, EnumVSU::new);
+        map.put(TypedStringVSU.class, TypedStringVSU::new);
+        map.put(StringVSU.class, StringVSU::new);
+        map.put(BasePrimitiveVSU.class, BasePrimitiveVSU::new);
+        map.put(TypedBinaryVSU.class, TypedBinaryVSU::new);
+        map.put(BinaryVSU.class, BinaryVSU::new);
+        map.put(ComplexFieldVSUnit.class, ComplexFieldVSUnit::new);
+        map.put(ComplexVSUnit.class, ComplexVSUnit::new);
+        map.put(CustomVSUnitField.class, CustomVSUnitField::new);
+        map.put(CustomVSUnit.class, CustomVSUnit::new);
+        map.put(MapFieldVSUnit.class, MapFieldVSUnit::new);
+        map.put(MapVSUnit.class, MapVSUnit::new);
+        map.put(ArrayFieldVSUnit.class, ArrayFieldVSUnit::new);
+        map.put(ArrayVSUnit.class, ArrayVSUnit::new);
+        map.put(EntryVSUnit.class, EntryVSUnit::new);
+        map.put(VSUnitFieldReference.class, VSUnitFieldReference::new);
+        map.put(VSUnitReference.class, VSUnitReference::new);
+        map.put(NullFieldUnit.class, NullFieldUnit::new);
+        map.put(NullUnit.class, NullUnit::new);
+        return map;
+    }
+
+    /**
+     * Above code generation to put all instantiatable classes to map with their
+     * default empty constructors.
+     * Prints to std.out
+     */
+    public static void _codeGen() {
+        Class<?>[] declaredClasses = VersionedSerialization.class.getDeclaredClasses();
+        for (Class cls : declaredClasses) {
+            if (Ins.instanceOfClass(cls, VSUnit.class) && !Modifier.isAbstract(cls.getModifiers()) && Modifier.isStatic(cls.getModifiers())) {// relevant classes
+                String name = cls.getSimpleName();
+                System.out.println("map.put(" + name + ".class," + name + "::new);");
+            }
+
+        }
     }
 
 }
