@@ -31,6 +31,7 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected Value<Boolean> throwOnReflectionWrite = new Value<>(true);
     protected Value<Boolean> throwOnUnrecognizedPrimitive = new Value<>(true);
     protected Value<Boolean> throwOnFieldNotFound = new Value<>(true);
+    protected Value<Boolean> ignoreTransientFields = new Value<>(true);
 
     protected Map<Class, Long> customTypeVersions = new HashMap<>();
 
@@ -269,5 +270,56 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         mapper.throwOnReflectionRead = throwOnReflectionRead;
         mapper.throwOnReflectionWrite = throwOnReflectionWrite;
         mapper.throwOnUnrecognizedPrimitive = throwOnUnrecognizedPrimitive;
+        mapper.ignoreTransientFields = ignoreTransientFields;
     }
+
+    public boolean getThrowOnBinaryError() {
+        return throwOnBinaryError.get();
+    }
+
+    public void setThrowOnBinaryError(boolean throwOnBinaryError) {
+        this.throwOnBinaryError.set(throwOnBinaryError);
+    }
+
+    public boolean getThrowOnReflectionRead() {
+        return throwOnReflectionRead.get();
+    }
+
+    public void setThrowOnReflectionRead(boolean throwOnReflectionRead) {
+        this.throwOnReflectionRead.set(throwOnReflectionRead);
+    }
+
+    public boolean getThrowOnReflectionWrite() {
+        return throwOnReflectionWrite.get();
+    }
+
+    public void setThrowOnReflectionWrite(boolean throwOnReflectionWrite) {
+        this.throwOnReflectionWrite.set(throwOnReflectionWrite);
+    }
+
+    public boolean getThrowOnUnrecognizedPrimitive() {
+        return throwOnUnrecognizedPrimitive.get();
+    }
+
+    public void setThrowOnUnrecognizedPrimitive(boolean throwOnUnrecognizedPrimitive) {
+        this.throwOnUnrecognizedPrimitive.set(throwOnUnrecognizedPrimitive);
+    }
+
+    public boolean getThrowOnFieldNotFound() {
+        return throwOnFieldNotFound.get();
+    }
+
+    public void setThrowOnFieldNotFound(boolean throwOnFieldNotFound) {
+        this.throwOnFieldNotFound.set(throwOnFieldNotFound);
+    }
+
+    public boolean getIgnoreTransientFields() {
+        return ignoreTransientFields.get();
+    }
+
+    public void setIgnoreTransientFields(boolean ignoreTransientFields) {
+        this.ignoreTransientFields.set(ignoreTransientFields);
+    }
+    
+    
 }

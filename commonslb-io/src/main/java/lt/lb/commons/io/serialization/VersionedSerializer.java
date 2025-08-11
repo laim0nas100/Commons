@@ -230,7 +230,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
             
             Map<String, IObjectField> fieldMap = new LinkedHashMap<>();
             for (IObjectField field : objectFields) {
-                if (excludedType(field.getType())) {
+                if (excludedType(field.getType()) || (ignoreTransientFields.get() && field.isTransient())) {
                     continue;
                 }
                 String name = field.getName();

@@ -149,7 +149,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
     }
 
     public Object deserializeComplex(boolean refCheck, VSUnit unit, VersionedDeserializationContext context) {
-         Objects.requireNonNull(unit, "deserializeComplex passed unit was null");
+        Objects.requireNonNull(unit, "deserializeComplex passed unit was null");
         if (unit instanceof NullUnit) {
             return null;
         }
@@ -269,7 +269,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
             Map<String, IObjectField> fieldMap = new LinkedHashMap<>();
             for (IObjectField field : objectFields) {
-                if (excludedType(field.getType())) {
+                if (excludedType(field.getType()) || (ignoreTransientFields.get() && field.isTransient())) {
                     continue;
                 }
                 String name = field.getName();
@@ -353,7 +353,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         }
 
         if (unit instanceof EnumVSU) {
-            EnumVSU cast = F.cast(unit);
+            EnumVSU cast = F.cast(unit);   
             return Enum.valueOf(F.cast(getClass(cast.getType())), cast.getValue());
         }
 
