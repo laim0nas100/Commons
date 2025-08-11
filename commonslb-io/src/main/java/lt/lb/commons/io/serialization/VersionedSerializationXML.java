@@ -66,6 +66,7 @@ public class VersionedSerializationXML {
         }
 
         protected ArrayDeque<StackNode> stack = new ArrayDeque<>();
+        public VSUnit root;
 
         protected boolean valueOrBinaryElem = false;
 
@@ -163,6 +164,8 @@ public class VersionedSerializationXML {
                 StackNode parentNode = stack.peekFirst();
                 if (parentNode != null) {// not root node pop
                     parentNode.children.add(completedChild.node);
+                } else {//assign root
+                    root = completedChild.node;
                 }
 
             }
@@ -233,13 +236,12 @@ public class VersionedSerializationXML {
                 .throwIfError(SAXException.class)
                 .get();
 
-        Value<VSUnit> rootHolder = new Value<>();
-
         XMLReader xmlReader = saxParser.getXMLReader();
-        xmlReader.setContentHandler(new VSXMLContentHandler());
+        VSXMLContentHandler vsxmlContentHandler = new VSXMLContentHandler();
+        xmlReader.setContentHandler(vsxmlContentHandler);
         xmlReader.parse(reader);
 
-        return rootHolder.get();
+        return vsxmlContentHandler.root;
 
     }
 
