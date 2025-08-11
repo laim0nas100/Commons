@@ -14,14 +14,17 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.ImmutableCollections;
-import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.io.serialization.VersionedSerialization.*;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.uncheckedutils.SafeOpt;
 import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -30,6 +33,8 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author laim0nas100
  */
 public class VersionedSerializationXML {
+
+    static Logger logger = LoggerFactory.getLogger(VersionedSerializationXML.class);
 
     public static final Map<String, Supplier<VSUnit>> simpleNameToConstructor = MakeStream.from(VersionedSerialization.DEFAULT_CONSTRUCTORS.entrySet())
             .toUnmodifiableMap(e -> e.getKey().getSimpleName(), e -> e.getValue());
@@ -45,7 +50,7 @@ public class VersionedSerializationXML {
         }
     }
 
-    protected XMLEncoding encoding = XMLEncoding.ENC1_1;
+    protected XMLEncoding encoding = XMLEncoding.ENC1_0;
     protected SafeOpt<SAXParserFactory> factory = SafeOpt.ofLazy(SAXParserFactory.newInstance()).map(this::configFactory);
 
     protected SAXParserFactory configFactory(SAXParserFactory fac) {
@@ -68,7 +73,7 @@ public class VersionedSerializationXML {
         protected ArrayDeque<StackNode> stack = new ArrayDeque<>();
         public VSUnit root;
 
-        protected boolean valueOrBinaryElem = false;
+        protected StringBuilder valueOrBinaryElem = null;
 
         protected <T extends VSUnit> T current() {
             if (stack.isEmpty()) {
@@ -79,9 +84,20 @@ public class VersionedSerializationXML {
         }
 
         @Override
-        public void characters(char[] ch, int start, int length) throws SAXException {
-            String value = String.valueOf(ch, start, length);
-            if (valueOrBinaryElem) {
+        public void characters(char[] ch, int start, int length) throws SAXException {//can be called more than once per element
+            if (valueOrBinaryElem == null) {
+                throw new SAXException("Unexpected characters value");
+            } else {
+                valueOrBinaryElem.append(ch, start, length);
+            }
+
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName) throws SAXException {
+            if (valueOrBinaryElem != null && isValueOrBinary(localName)) {
+                String value = valueOrBinaryElem.toString();
+                valueOrBinaryElem = null;
                 VSUnit current = current();
                 if (current instanceof TraitBinary) {
                     byte[] decode = Base64.getDecoder().decode(value);
@@ -101,7 +117,7 @@ public class VersionedSerializationXML {
                         cast.setValue(value);
 
                     } else if (current instanceof CharVSU) {
-                        if (length != 1) {
+                        if (value.length() != 1) {
                             throw new SAXException(CharVSU.class.getSimpleName() + " expects 1 character value");
                         }
                         ((CharVSU) current).setValue(value.charAt(0));
@@ -126,39 +142,31 @@ public class VersionedSerializationXML {
                 } else {
                     throw new SAXException("Expected value or binary element");
                 }
-            }
 
-        }
-
-        @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException {
-            if (valueOrBinaryElem) {
-                valueOrBinaryElem = false;
             } else {
                 StackNode completedChild = stack.pop();
                 List<VSUnit> children = completedChild.children;
-                if (!children.isEmpty()) {// handle all cases where there are children elements
-                    VSUnit unit = completedChild.node;
-                    if (unit instanceof EntryVSUnit) {
-                        EntryVSUnit cast = F.cast(unit);
-                        int size = children.size();
-                        if (size != 2) {
-                            throw new SAXException(EntryVSUnit.class.getSimpleName() + " expects exacly 2 elements");
-                        }
-                        cast.key = children.get(0);
-                        cast.val = children.get(1);
-                    } else if (unit instanceof ArrayVSUnit) {
-                        ArrayVSUnit cast = F.cast(unit);
-                        cast.values = children.stream().toArray(s -> new VSUnit[s]);
-                    } else if (unit instanceof MapVSUnit) {
-                        MapVSUnit cast = F.cast(unit);
-                        cast.values = children.stream().toArray(s -> new EntryVSUnit[s]);
-                    } else if (unit instanceof ComplexVSUnit) {
-                        ComplexVSUnit cast = F.cast(unit);
-                        cast.fields = children.stream().toArray(s -> new VSField[s]);
-                    } else {
-                        throw new SAXException("unrecognized element:" + unit.getClass().getSimpleName());
+                VSUnit unit = completedChild.node;
+                //ensure even if children are empty, to make an empty array
+                if (unit instanceof EntryVSUnit) {
+                    EntryVSUnit cast = F.cast(unit);
+                    int size = children.size();
+                    if (size != 2) {
+                        throw new SAXException(EntryVSUnit.class.getSimpleName() + " expects exacly 2 elements");
                     }
+                    cast.key = children.get(0);
+                    cast.val = children.get(1);
+                } else if (unit instanceof ArrayVSUnit) {
+                    ArrayVSUnit cast = F.cast(unit);
+                    cast.values = children.stream().toArray(s -> new VSUnit[s]);
+                } else if (unit instanceof MapVSUnit) {
+                    MapVSUnit cast = F.cast(unit);
+                    cast.values = children.stream().toArray(s -> new EntryVSUnit[s]);
+                } else if (unit instanceof ComplexVSUnit) {
+                    ComplexVSUnit cast = F.cast(unit);
+                    cast.fields = children.stream().toArray(s -> new VSField[s]);
+                } else if (!children.isEmpty()) {
+                    throw new SAXException("unrecognized element with children:" + unit.getClass().getSimpleName());
                 }
 
                 StackNode parentNode = stack.peekFirst();
@@ -174,7 +182,10 @@ public class VersionedSerializationXML {
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
             if (isValueOrBinary(localName)) {
-                valueOrBinaryElem = true;
+                if (valueOrBinaryElem != null) {
+                    throw new SAXException("Started new value or binary sequance when the old one was not done");
+                }
+                valueOrBinaryElem = new StringBuilder();
             } else {
                 VSUnit unit = createInstance(localName);
                 readAttributes(unit, attributes);
@@ -229,7 +240,7 @@ public class VersionedSerializationXML {
         }
     }
 
-    public VSUnit readXml(InputSource reader) throws IOException, ParserConfigurationException, SAXException {
+    public <T extends VSUnit> T readXml(InputSource reader) throws IOException, ParserConfigurationException, SAXException {
 
         SAXParser saxParser = factory.map(m -> m.newSAXParser())
                 .throwIfError(ParserConfigurationException.class)
@@ -239,9 +250,26 @@ public class VersionedSerializationXML {
         XMLReader xmlReader = saxParser.getXMLReader();
         VSXMLContentHandler vsxmlContentHandler = new VSXMLContentHandler();
         xmlReader.setContentHandler(vsxmlContentHandler);
+        xmlReader.setErrorHandler(new ErrorHandler() {
+            @Override
+            public void warning(SAXParseException exception) throws SAXException {
+                logger.warn("warning:", exception);
+            }
+
+            @Override
+            public void error(SAXParseException exception) throws SAXException {
+                logger.error("error:", exception);
+            }
+
+            @Override
+            public void fatalError(SAXParseException exception) throws SAXException {
+                logger.error("fatal error:", exception);
+                throw exception;
+            }
+        });
         xmlReader.parse(reader);
 
-        return vsxmlContentHandler.root;
+        return (T) vsxmlContentHandler.root;
 
     }
 
@@ -307,7 +335,7 @@ public class VersionedSerializationXML {
                 writer.append('<').append('/').append(VSTraitEnum.VALUE.name()).append('>');
             }
             if (traits.hasTrait(VSTraitEnum.BINARY)) {
-                Object get = traits.traits().get(VSTraitEnum.BINARY);// non binary, so just convert to string
+                Object get = traits.traits().get(VSTraitEnum.BINARY);// binary, convert to base64
                 writer.append('<').append(VSTraitEnum.BINARY.name()).append('>');
                 String encodeToString = Base64.getEncoder().encodeToString(F.cast(get));
                 writer.append(encodeToString);
