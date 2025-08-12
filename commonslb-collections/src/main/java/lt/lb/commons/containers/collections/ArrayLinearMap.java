@@ -1,13 +1,13 @@
 package lt.lb.commons.containers.collections;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import lt.lb.commons.containers.collections.MapEntries.MapEntrySet;
 
 /**
  *
@@ -17,6 +17,8 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
 
     private static final Object[] EMPTY_DATA = new Object[0];
     protected Object[] data;
+
+    protected transient MapEntrySet<K, V> entrySet;
 
     public ArrayLinearMap() {
         this.data = EMPTY_DATA;
@@ -32,7 +34,7 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
         return data.length == 0;
     }
 
-    private int find(int offset, Object value) {
+    protected int find(int offset, Object value) {
         for (int i = 0; i < data.length; i += 2) {
             int index = i + offset;
             if (Objects.equals(value, data[index])) {
@@ -116,44 +118,35 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
         data = EMPTY_DATA;
     }
 
-    private static Object[] extractKeys(boolean check, Object[] array) {
-        if (check && Objects.requireNonNull(array).length % 2 != 0) {
-            throw new IllegalArgumentException("Must be even size:" + array.length);
+    private Optional<Map.Entry<K, V>> entryGenerator(int index) {
+        if (index < 0 || index >= size()) {
+            return Optional.empty();
         }
-        int size = array.length / 2;
-        Object[] keys = new Object[size];
-        for (int i = 0; i < size; i++) {
-            keys[i] = array[i * 2];
-        }
-        if (check) {
-            ImmutableLinearSet.assertDistinct(keys);
-        }
+        return Optional.of(new MapEntries.AbstractEntry<K, V>() {
+            private final int i = index * 2;
 
-        return keys;
-    }
+            @Override
+            public K getKey() {
+                return (K) data[i];
+            }
 
-    @Override
-    public Set<K> keySet() {
-        return new ImmutableLinearSet<>(false, extractKeys(false, data));//was prechecked
-    }
+            @Override
+            public V getValue() {
+                return (V) data[i + 1];
+            }
 
-    @Override
-    public Collection<V> values() {
-        ArrayList<V> array = new ArrayList<>(size());
-        for (int i = 0; i < size(); i++) {
-            array.add((V) data[1 + (i * 2)]);
-        }
-
-        return Collections.unmodifiableList(array);
+            @Override
+            public V setValue(V value) {
+                V old = (V) data[i + 1];
+                data[i + 1] = value;
+                return old;
+            }
+        });
     }
 
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
-        Map.Entry[] entries = new Map.Entry[size()];
-        for (int i = 0; i < size(); i++) {
-            entries[i] = MapEntries.immutable(data[i * 2], data[1 + (i * 2)]);
-        }
-        return new ImmutableLinearSet<>(false, entries);//was prechecked
+        return entrySet == null ? entrySet = new MapEntrySet<>(true, this, this::entryGenerator) : entrySet;
     }
 
     @Override
@@ -164,6 +157,16 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
             // this shouldn't happen, since we are Cloneable
             throw new InternalError(e);
         }
+    }
+
+    @Override
+    public Set<K> keySet() {
+        return entrySet.keySet();
+    }
+
+    @Override
+    public Collection<V> values() {
+        return entrySet.values();
     }
 
 }
