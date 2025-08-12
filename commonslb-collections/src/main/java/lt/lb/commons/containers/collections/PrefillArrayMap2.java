@@ -18,7 +18,7 @@ class PrefillArrayMap2<T> implements Map<Integer, T> {
     private int size = 0;
     private int prefSize = 10;
 
-    private Object[] data = ArrayOp.replicate(10, Nulls.EMPTY_OBJECT);
+    private Object[] data;
 
     public PrefillArrayMap2(int preferedSize) {
         this.prefSize = preferedSize;
