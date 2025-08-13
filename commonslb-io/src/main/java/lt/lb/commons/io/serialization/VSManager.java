@@ -1,5 +1,11 @@
 package lt.lb.commons.io.serialization;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import lt.lb.commons.io.serialization.VersionedChanges.VersionChange;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -8,6 +14,10 @@ import java.util.Map;
 import java.util.Objects;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.ImmutableCollections;
+import lt.lb.commons.io.serialization.VersionedSerialization.CustomVSUnit;
+import org.xml.sax.InputSource;
+import lt.lb.commons.io.SerializingStreams.SerializingBufferedStreams;
+import lt.lb.commons.io.SerializingStreams.SerializingObjectStreams;
 
 /**
  *
@@ -19,6 +29,8 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
     protected VSManager me() {
         return this;
     }
+
+    protected VersionedSerializationXML xml = new VersionedSerializationXML();
 
     protected Map<Long, List<VersionChange>> versionChanges = new LinkedHashMap<>();
 
@@ -92,6 +104,53 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
 
             return false;
         }).PostOrder(root);// traverse the leafs before parent
+    }
+
+    public <T> SerializingObjectStreams<T, T> serializingObjectStream() {
+        return new SerializingObjectStreams<T, T>() {
+            @Override
+            public T readObjectLogic(ObjectInputStream input) throws Throwable {
+                CustomVSUnit root = F.cast(input.readObject());
+                if (!versionChanges.isEmpty()) {
+                    applyVersionChange(root);
+                }
+                return deserializeRoot(root);
+            }
+
+            @Override
+            public void writeObjectLogic(T object, ObjectOutputStream out) throws Throwable {
+                out.writeObject(serializeRoot(object));
+            }
+        };
+    }
+
+    public <T> SerializingBufferedStreams<T, T> serializingXMLStream() {
+        return new SerializingBufferedStreams<T, T>() {
+            @Override
+            public T readObjectLogic(BufferedInputStream input) throws Throwable {
+                CustomVSUnit root = xml.readXml(new InputSource(input));
+                if (!versionChanges.isEmpty()) {
+                    applyVersionChange(root);
+                }
+                return deserializeRoot(root);
+            }
+
+            @Override
+            public void writeObjectLogic(T object, BufferedOutputStream out) throws Throwable {
+
+                BufferedWriter writer = null;
+                try {
+                    CustomVSUnit root = serializeRoot(object);
+                    writer = new BufferedWriter(new OutputStreamWriter(out));
+                    xml.writeWithEncodingHeader(writer, root);
+
+                } finally {
+                    if (writer != null) {
+                        writer.close();
+                    }
+                }
+            }
+        };
     }
 
 }
