@@ -96,7 +96,7 @@ public class VersionedSerialization {
 
     public static interface VSChildren extends VSUnit {
 
-        public Iterable<? extends VSUnit> children();
+        public Collection<? extends VSUnit> children();
     }
 
     public static interface TraitFieldName extends VSTrait {
@@ -241,7 +241,7 @@ public class VersionedSerialization {
         public VSUnit val;
 
         @Override
-        public Iterable<VSUnit> children() {
+        public Collection<VSUnit> children() {
             return ImmutableCollections.listOf(key, val);
         }
     }
@@ -256,7 +256,7 @@ public class VersionedSerialization {
         public VSUnit[] values;
 
         @Override
-        public Iterable<VSUnit> children() {
+        public Collection<VSUnit> children() {
             return ImmutableCollections.listOf(values);
         }
 
@@ -278,7 +278,7 @@ public class VersionedSerialization {
         public EntryVSUnit[] values;
 
         @Override
-        public Iterable<VSUnit> children() {
+        public Collection<VSUnit> children() {
             return ImmutableCollections.listOf(values);
         }
 
@@ -324,7 +324,7 @@ public class VersionedSerialization {
         public VSField[] fields;
 
         @Override
-        public Iterable<VSField> children() {
+        public Collection<VSField> children() {
             return ImmutableCollections.listOf(fields);
         }
 

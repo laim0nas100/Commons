@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,7 +96,10 @@ public class VersionedSerializationXML {
 
         @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
-            if (valueOrBinaryElem != null && isValueOrBinary(localName)) {
+            if (isValueOrBinary(localName)) {
+                if (valueOrBinaryElem == null) {
+                    throw new SAXException("Nested elements inside value or binary not expected");
+                }
                 String value = valueOrBinaryElem.toString();
                 valueOrBinaryElem = null;
                 VSUnit current = current();
@@ -105,14 +109,8 @@ public class VersionedSerializationXML {
                     binary.setBinary(decode);
                 } else if (current instanceof TraitValue) {
                     //try primitive VSU
-                    if (current instanceof EnumVSU) {
-                        EnumVSU cast = F.cast(current);
-                        cast.setValue(value);
-                    } else if (current instanceof TypedStringVSU) {
-                        TypedStringVSU cast = F.cast(current);
-                        cast.setValue(value);
-
-                    } else if (current instanceof StringVSU) {
+                    //EnumVSU and TypedStringVSU are subtypes of StringVSU
+                    if (current instanceof StringVSU) {
                         StringVSU cast = F.cast(current);
                         cast.setValue(value);
 
@@ -152,7 +150,7 @@ public class VersionedSerializationXML {
                     EntryVSUnit cast = F.cast(unit);
                     int size = children.size();
                     if (size != 2) {
-                        throw new SAXException(EntryVSUnit.class.getSimpleName() + " expects exacly 2 elements");
+                        throw new SAXException(EntryVSUnit.class.getSimpleName() + " expects exactly 2 elements");
                     }
                     cast.key = children.get(0);
                     cast.val = children.get(1);
@@ -281,19 +279,18 @@ public class VersionedSerializationXML {
     public void writeGeneric(Appendable writer, VSUnit unit) throws IOException {
         boolean hasChildren = false;
         boolean hasValues = hasValues(unit);
-        Iterable<? extends VSUnit> children = ImmutableCollections.listOf();
+        Collection<? extends VSUnit> children = ImmutableCollections.listOf();
         if (unit instanceof VSChildren) {
-            VSChildren childrenParent = F.cast(unit);
-            children = childrenParent.children();
-            boolean hasNext = children.iterator().hasNext();
-            if (hasNext) {
-                hasChildren = true;
-            }
+            VSChildren parent = F.cast(unit);
+            children = parent.children();
+            hasChildren = !children.isEmpty();
         }
 
-        writeTagAndAttributes(writer, unit, !hasChildren && !hasValues);
+        boolean shortTag = !hasChildren && !hasValues;
 
-        if (hasChildren || hasValues) {
+        writeTagAndAttributes(writer, unit, shortTag);
+
+        if (!shortTag) {
             for (VSUnit child : children) {
                 writeGeneric(writer, child);
             }
@@ -328,16 +325,20 @@ public class VersionedSerializationXML {
     protected void writeValues(Appendable writer, VSUnit unit) throws IOException {
         if (unit instanceof VSTrait) {
             VSTrait traits = F.cast(unit);
-            if (traits.hasTrait(VSTraitEnum.VALUE)) {
-                Object get = traits.traits().get(VSTraitEnum.VALUE);// non binary, so just convert to string
+            Object value = traits.traits().get(VSTraitEnum.VALUE);
+            Object binary = traits.traits().get(VSTraitEnum.BINARY);
+
+            if (value != null) {
                 writer.append('<').append(VSTraitEnum.VALUE.name()).append('>');
-                writer.append(escapeString(get));
+                writer.append(escapeString(value));// non binary, so just convert to string
                 writer.append('<').append('/').append(VSTraitEnum.VALUE.name()).append('>');
             }
-            if (traits.hasTrait(VSTraitEnum.BINARY)) {
-                Object get = traits.traits().get(VSTraitEnum.BINARY);// binary, convert to base64
+            if (binary != null) {
+                if (value != null) {
+                    throw new IllegalStateException("Found value and binary in the same element, should be only one");
+                }
                 writer.append('<').append(VSTraitEnum.BINARY.name()).append('>');
-                String encodeToString = Base64.getEncoder().encodeToString(F.cast(get));
+                String encodeToString = Base64.getEncoder().encodeToString(F.cast(binary));
                 writer.append(encodeToString);
                 writer.append('<').append('/').append(VSTraitEnum.BINARY.name()).append('>');
             }
@@ -348,14 +349,14 @@ public class VersionedSerializationXML {
         writer.append('<').append('/').append(escapeString(unit.getClass().getSimpleName())).append('>');
     }
 
-    protected void writeTagAndAttributes(Appendable writer, VSUnit unit, boolean empty) throws IOException {
+    protected void writeTagAndAttributes(Appendable writer, VSUnit unit, boolean shortTag) throws IOException {
         writer.append('<').append(escapeString(unit.getClass().getSimpleName()));
         Set<Map.Entry<String, String>> entrySet = getAttributes(unit).entrySet();
         for (Map.Entry<String, String> attribute : entrySet) {
             writer.append(' ').append(attribute.getKey()).append('=')
                     .append('"').append(attribute.getValue()).append('"');
         }
-        if (empty) {
+        if (shortTag) {
             writer.append('/').append('>');
         } else {
             writer.append('>');
