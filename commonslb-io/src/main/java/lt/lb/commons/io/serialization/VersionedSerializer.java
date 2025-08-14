@@ -58,43 +58,43 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         boolean fn = fieldName.isPresent();
         String name = fieldName.orElse(null);
         if (value == null) {
-            return fn ? new NullFieldUnit(name) : new NullUnit();
+            return fn ? new NullVSUF(name) : new NullVSU();
         }
         //casting to object promotes to non-primitive
         Ins<Object> ins = Ins.ofNullable(value);
         //value not null
         if (ins.instanceOf(String.class)) {
-            return fn ? new StringVSUField(name, F.cast(value)) : new StringVSU(F.cast(value));
+            return fn ? new StringVSUF(name, F.cast(value)) : new StringVSU(F.cast(value));
         }
         if (ins.instanceOf(Enum.class)) {
-            return fn ? new EnumVSUField(name, F.cast(value)) : new EnumVSU(F.cast(value));
+            return fn ? new EnumVSUF(name, F.cast(value)) : new EnumVSU(F.cast(value));
         }
         if (ins.instanceOf(Character.class)) {
-            return fn ? new CharVSUField(name, F.cast(value)) : new CharVSU(F.cast(value));
+            return fn ? new CharVSUF(name, F.cast(value)) : new CharVSU(F.cast(value));
         }
         if (ins.instanceOf(Integer.class)) {
-            return fn ? new IntegerVSUField(name, F.cast(value)) : new IntegerVSU(F.cast(value));
+            return fn ? new IntVSUF(name, F.cast(value)) : new IntVSU(F.cast(value));
         }
         if (ins.instanceOf(Long.class)) {
-            return fn ? new LongVSUField(name, F.cast(value)) : new LongVSU(F.cast(value));
+            return fn ? new LongVSUF(name, F.cast(value)) : new LongVSU(F.cast(value));
         }
         if (ins.instanceOf(Short.class)) {
-            return fn ? new ShortVSUField(name, F.cast(value)) : new ShortVSU(F.cast(value));
+            return fn ? new ShortVSUF(name, F.cast(value)) : new ShortVSU(F.cast(value));
         }
         if (ins.instanceOf(Byte.class)) {
-            return fn ? new ByteVSUField(name, F.cast(value)) : new ByteVSU(F.cast(value));
+            return fn ? new ByteVSUF(name, F.cast(value)) : new ByteVSU(F.cast(value));
         }
         if (ins.instanceOf(Boolean.class)) {
-            return fn ? new BooleanVSUField(name, F.cast(value)) : new BooleanVSU(F.cast(value));
+            return fn ? new BoolVSUF(name, F.cast(value)) : new BoolVSU(F.cast(value));
         }
         if (ins.instanceOf(Float.class)) {
-            return fn ? new FloatVSUField(name, F.cast(value)) : new FloatVSU(F.cast(value));
+            return fn ? new FloatVSUF(name, F.cast(value)) : new FloatVSU(F.cast(value));
         }
         if (ins.instanceOf(Double.class)) {
-            return fn ? new DoubleVSUField(name, F.cast(value)) : new DoubleVSU(F.cast(value));
+            return fn ? new DoubleVSUF(name, F.cast(value)) : new DoubleVSU(F.cast(value));
         }
         if (ins.instanceOf(byte[].class)) {
-            return fn ? new BinaryVSUField(name, F.cast(value)) : new BinaryVSU(F.cast(value));
+            return fn ? new BinaryVSUF(name, F.cast(value)) : new BinaryVSU(F.cast(value));
         }
         
         Class<? extends Object> clazz = value.getClass();
@@ -106,14 +106,14 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         String typeName = clazz.getName();
         if (stringifyTypes.containsKey(typeName)) {
             String stringified = stringifyTypes.get(typeName).toString(value);
-            return fn ? new TypedStringVSUField(name, typeName, stringified) : new TypedStringVSU(typeName, stringified);
+            return fn ? new TypedStringVSUF(name, typeName, stringified) : new TypedStringVSU(typeName, stringified);
         }
         //try auto binarization
         if (value instanceof Serializable) {
             try {
                 byte[] bytes = autoBytes(F.cast(value));
                 String type = value.getClass().getName();
-                return fn ? new TypedBinaryVSUField(name, type, bytes) : new TypedBinaryVSU(type, bytes);
+                return fn ? new TypedBinaryVSUF(name, type, bytes) : new TypedBinaryVSU(type, bytes);
             } catch (IOException ex) {
                 if (throwOnBinaryError.get()) {
                     throw VSException.binaryFail(clazz, fieldName, ex);
@@ -124,17 +124,17 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         
     }
     
-    public CustomVSUnit serializeRoot(Object value) {
+    public CustomVSU serializeRoot(Object value) {
         return serializeRoot(value, new VersionedSerializationContext());
     }
     
-    public CustomVSUnit serializeRoot(Object value, VersionedSerializationContext context) {
+    public CustomVSU serializeRoot(Object value, VersionedSerializationContext context) {
         Objects.requireNonNull(context);
         Class<? extends Object> type = value.getClass();
         if (!customTypeVersions.containsKey(type)) {
             throw new IllegalArgumentException("Not registered root custom type:" + type);
         }
-        return (CustomVSUnit) serializeComplex(Optional.empty(), value, context);
+        return (CustomVSU) serializeComplex(Optional.empty(), value, context);
     }
     
     public VSUnit serializeComplex(Optional<String> fieldName, Object value, VersionedSerializationContext context) throws VSException {
@@ -161,7 +161,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         }
         
         Long version = customTypeVersions.getOrDefault(type, null);
-        final ComplexVSUnit unit = version == null ? newComplexUnit(fieldName) : newCustomUnit(fieldName, version);
+        final ComplexVSU unit = version == null ? newComplexUnit(fieldName) : newCustomUnit(fieldName, version);
         unit.setType(type.getName());
         if (refCounted) {//store reference
             context.refMap.put(value, unit);
@@ -258,13 +258,13 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 }
             }
         }
-        unit.fields = fields.stream().toArray(s -> new VSField[s]);
+        unit.fields = fields.stream().toArray(s -> new VSUField[s]);
         return unit;
         
     }
     
-    public VSUnit serializeCollection(Optional<String> fieldName, Collection col, VersionedSerializationContext context) {
-        ArrayVSUnit arrayUnit = newArrayUnit(fieldName);
+    public ArrayVSU serializeCollection(Optional<String> fieldName, Collection col, VersionedSerializationContext context) {
+        ArrayVSU arrayUnit = newArrayUnit(fieldName);
         List<VSUnit> values = new ArrayList<>(col.size());
         for (Object val : col) {
             VSUnit unit = serializeAuto(Optional.empty(), val, context);
@@ -277,9 +277,9 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         return arrayUnit;
     }
     
-    public VSUnit serializeMap(Optional<String> fieldName, Map map, VersionedSerializationContext context) {
-        MapVSUnit mapUnit = newMapUnit(fieldName);
-        List<EntryVSUnit> entries = new ArrayList<>(map.size());
+    public MapVSU serializeMap(Optional<String> fieldName, Map map, VersionedSerializationContext context) {
+        MapVSU mapUnit = newMapUnit(fieldName);
+        List<EntryVSU> entries = new ArrayList<>(map.size());
         Set<Map.Entry> entrySet = map.entrySet();
         for (Map.Entry entry : entrySet) {
             VSUnit key = serializeAuto(Optional.empty(), entry.getKey(), context);
@@ -288,19 +288,19 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
             }
             VSUnit val = serializeAuto(Optional.empty(), entry.getValue(), context);
             if (val != null) {
-                EntryVSUnit entryUnit = new EntryVSUnit();
+                EntryVSU entryUnit = new EntryVSU();
                 entryUnit.key = key;
                 entryUnit.val = val;
                 entries.add(entryUnit);
             }
         }
-        mapUnit.values = entries.stream().toArray(s -> new EntryVSUnit[s]);
+        mapUnit.values = entries.stream().toArray(s -> new EntryVSU[s]);
         mapUnit.setCollectionType(map.getClass().getName());
         return mapUnit;
     }
     
-    public VSUnit serializeArray(Optional<String> fieldName, Object array, VersionedSerializationContext context) {
-        ArrayVSUnit arrayUnit = newArrayUnit(fieldName);
+    public ArrayVSU serializeArray(Optional<String> fieldName, Object array, VersionedSerializationContext context) {
+        ArrayVSU arrayUnit = newArrayUnit(fieldName);
         int length = Array.getLength(array);
         List<VSUnit> values = new ArrayList<>(length);
         for (int i = 0; i < length; i++) {
@@ -337,28 +337,28 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         return serializeValue(fieldName, value);
     }
     
-    public ArrayVSUnit newArrayUnit(Optional<String> fieldName) {
-        return fieldName.isPresent() ? new ArrayFieldVSUnit(fieldName.get()) : new ArrayVSUnit();
+    public ArrayVSU newArrayUnit(Optional<String> fieldName) {
+        return fieldName.isPresent() ? new ArrayVSUF(fieldName.get()) : new ArrayVSU();
     }
     
-    public MapVSUnit newMapUnit(Optional<String> fieldName) {
-        return fieldName.isPresent() ? new MapFieldVSUnit(fieldName.get()) : new MapVSUnit();
+    public MapVSU newMapUnit(Optional<String> fieldName) {
+        return fieldName.isPresent() ? new MapVSUF(fieldName.get()) : new MapVSU();
     }
     
-    public NullUnit newNullUnit(Optional<String> fieldName) {
-        return fieldName.isPresent() ? new NullFieldUnit(fieldName.get()) : new NullUnit();
+    public NullVSU newNullUnit(Optional<String> fieldName) {
+        return fieldName.isPresent() ? new NullVSUF(fieldName.get()) : new NullVSU();
     }
     
-    public CustomVSUnit newCustomUnit(Optional<String> fieldName, long version) {
-        return fieldName.isPresent() ? new CustomVSUnitField(version, fieldName.get()) : new CustomVSUnit(version);
+    public CustomVSU newCustomUnit(Optional<String> fieldName, long version) {
+        return fieldName.isPresent() ? new CustomVSUF(version, fieldName.get()) : new CustomVSU(version);
     }
     
-    public ComplexVSUnit newComplexUnit(Optional<String> fieldName) {
-        return fieldName.isPresent() ? new ComplexFieldVSUnit(fieldName.get()) : new ComplexVSUnit();
+    public ComplexVSU newComplexUnit(Optional<String> fieldName) {
+        return fieldName.isPresent() ? new ComplexVSUF(fieldName.get()) : new ComplexVSU();
     }
     
-    public VSUnitReference newReference(Optional<String> fieldName, long id) {
-        return fieldName.isPresent() ? new VSUnitFieldReference(fieldName.get(), id) : new VSUnitReference(id);
+    public ReferenceVSU newReference(Optional<String> fieldName, long id) {
+        return fieldName.isPresent() ? new ReferenceVSUF(fieldName.get(), id) : new ReferenceVSU(id);
     }
     
 }

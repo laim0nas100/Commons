@@ -37,9 +37,6 @@ public class VersionedSerializationXML {
 
     static Logger logger = LoggerFactory.getLogger(VersionedSerializationXML.class);
 
-    public static final Map<String, Supplier<VSUnit>> simpleNameToConstructor = MakeStream.from(VersionedSerialization.DEFAULT_CONSTRUCTORS.entrySet())
-            .toUnmodifiableMap(e -> e.getKey().getSimpleName(), e -> e.getValue());
-
     public static enum XMLEncoding {
 
         ENC1_0("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"), ENC1_1("<?xml version=\"1.1\" encoding=\"UTF-8\"?>");
@@ -119,16 +116,16 @@ public class VersionedSerializationXML {
                             throw new SAXException(CharVSU.class.getSimpleName() + " expects 1 character value");
                         }
                         ((CharVSU) current).setValue(value.charAt(0));
-                    } else if (current instanceof IntegerVSU) {
-                        ((IntegerVSU) current).setValue(Integer.valueOf(value));
+                    } else if (current instanceof IntVSU) {
+                        ((IntVSU) current).setValue(Integer.valueOf(value));
                     } else if (current instanceof LongVSU) {
                         ((LongVSU) current).setValue(Long.valueOf(value));
                     } else if (current instanceof ShortVSU) {
                         ((ShortVSU) current).setValue(Short.valueOf(value));
                     } else if (current instanceof ByteVSU) {
                         ((ByteVSU) current).setValue(Byte.valueOf(value));
-                    } else if (current instanceof BooleanVSU) {
-                        ((BooleanVSU) current).setValue(Boolean.valueOf(value));
+                    } else if (current instanceof BoolVSU) {
+                        ((BoolVSU) current).setValue(Boolean.valueOf(value));
                     } else if (current instanceof FloatVSU) {
                         ((FloatVSU) current).setValue(Float.valueOf(value));
                     } else if (current instanceof DoubleVSU) {
@@ -146,23 +143,23 @@ public class VersionedSerializationXML {
                 List<VSUnit> children = completedChild.children;
                 VSUnit unit = completedChild.node;
                 //ensure even if children are empty, to make an empty array
-                if (unit instanceof EntryVSUnit) {
-                    EntryVSUnit cast = F.cast(unit);
+                if (unit instanceof EntryVSU) {
+                    EntryVSU cast = F.cast(unit);
                     int size = children.size();
                     if (size != 2) {
-                        throw new SAXException(EntryVSUnit.class.getSimpleName() + " expects exactly 2 elements");
+                        throw new SAXException(EntryVSU.class.getSimpleName() + " expects exactly 2 elements");
                     }
                     cast.key = children.get(0);
                     cast.val = children.get(1);
-                } else if (unit instanceof ArrayVSUnit) {
-                    ArrayVSUnit cast = F.cast(unit);
+                } else if (unit instanceof ArrayVSU) {
+                    ArrayVSU cast = F.cast(unit);
                     cast.values = children.stream().toArray(s -> new VSUnit[s]);
-                } else if (unit instanceof MapVSUnit) {
-                    MapVSUnit cast = F.cast(unit);
-                    cast.values = children.stream().toArray(s -> new EntryVSUnit[s]);
-                } else if (unit instanceof ComplexVSUnit) {
-                    ComplexVSUnit cast = F.cast(unit);
-                    cast.fields = children.stream().toArray(s -> new VSField[s]);
+                } else if (unit instanceof MapVSU) {
+                    MapVSU cast = F.cast(unit);
+                    cast.values = children.stream().toArray(s -> new EntryVSU[s]);
+                } else if (unit instanceof ComplexVSU) {
+                    ComplexVSU cast = F.cast(unit);
+                    cast.fields = children.stream().toArray(s -> new VSUField[s]);
                 } else if (!children.isEmpty()) {
                     throw new SAXException("unrecognized element with children:" + unit.getClass().getSimpleName());
                 }
@@ -193,8 +190,8 @@ public class VersionedSerializationXML {
         }
 
         protected void readAttributes(VSUnit unit, Attributes attributes) throws SAXException {
-            if (unit instanceof VSTrait) {
-                VSTrait trait = F.cast(unit);
+            if (unit instanceof VSUTrait) {
+                VSUTrait trait = F.cast(unit);
                 VSTraits traits = trait.traits();
                 int length = attributes.getLength();
                 for (int i = 0; i < length; i++) {
@@ -230,7 +227,7 @@ public class VersionedSerializationXML {
         }
 
         protected <T extends VSUnit> T createInstance(String localName) throws SAXException {
-            Supplier<VSUnit> type = simpleNameToConstructor.getOrDefault(localName, null);
+            Supplier<VSUnit> type = VersionedSerialization.NAME_CONSTRUCTORS.getOrDefault(localName, null);
             if (type == null) {
                 throw new SAXException("Unrecognized element:" + localName);
             }
@@ -280,8 +277,8 @@ public class VersionedSerializationXML {
         boolean hasChildren = false;
         boolean hasValues = hasValues(unit);
         Collection<? extends VSUnit> children = ImmutableCollections.listOf();
-        if (unit instanceof VSChildren) {
-            VSChildren parent = F.cast(unit);
+        if (unit instanceof VSUChildren) {
+            VSUChildren parent = F.cast(unit);
             children = parent.children();
             hasChildren = !children.isEmpty();
         }
@@ -303,8 +300,8 @@ public class VersionedSerializationXML {
     }
 
     protected boolean hasValues(VSUnit unit) {
-        if (unit instanceof VSTrait) {
-            VSTrait traits = F.cast(unit);
+        if (unit instanceof VSUTrait) {
+            VSUTrait traits = F.cast(unit);
             return traits.hasTrait(VSTraitEnum.VALUE) || traits.hasTrait(VSTraitEnum.BINARY);
         }
         return false;
@@ -323,8 +320,8 @@ public class VersionedSerializationXML {
     }
 
     protected void writeValues(Appendable writer, VSUnit unit) throws IOException {
-        if (unit instanceof VSTrait) {
-            VSTrait traits = F.cast(unit);
+        if (unit instanceof VSUTrait) {
+            VSUTrait traits = F.cast(unit);
             Object value = traits.traits().get(VSTraitEnum.VALUE);
             Object binary = traits.traits().get(VSTraitEnum.BINARY);
 
@@ -365,9 +362,9 @@ public class VersionedSerializationXML {
     }
 
     protected Map<String, String> getAttributes(VSUnit unit) {
-        if (unit instanceof VSTrait) {
+        if (unit instanceof VSUTrait) {
             Map<String, String> attributes = new LinkedHashMap<>();
-            VSTrait trait = F.cast(unit);
+            VSUTrait trait = F.cast(unit);
             //only possible attributes to write
             resolveTrait(trait, attributes, VSTraitEnum.TYPE);
             resolveTrait(trait, attributes, VSTraitEnum.COLLECTION_TYPE);
@@ -381,7 +378,7 @@ public class VersionedSerializationXML {
 
     }
 
-    protected void resolveTrait(VSTrait trait, Map<String, String> attributes, VSTraitEnum traitEnum) {
+    protected void resolveTrait(VSUTrait trait, Map<String, String> attributes, VSTraitEnum traitEnum) {
         if (trait.hasTrait(traitEnum)) {
             Object get = trait.traits().get(traitEnum);
             attributes.put(traitEnum.name(), escapeString(get));

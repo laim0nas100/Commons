@@ -1,6 +1,5 @@
 package lt.lb.commons.io.serialization;
 
-import lt.lb.commons.io.serialization.VersionedSerialization.VSField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +7,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
+import lt.lb.commons.io.serialization.VersionedSerialization.VSUField;
 
 /**
  *
@@ -97,10 +97,10 @@ public abstract class VersionedChanges {
         @Override
         public void change(VersionedSerialization.VSUnit unit) {//assume is applicable
 
-            VersionedSerialization.CustomVSUnit customUnit = F.cast(unit);
+            VersionedSerialization.CustomVSU customUnit = F.cast(unit);
             customUnit.setVersion(newVersion);
-            Map<String, VersionedSerialization.VSField> fieldMap = customUnit.fieldMap();
-            VersionedSerialization.VSField field = fieldMap.getOrDefault(this.fieldToRename, null);
+            Map<String, VersionedSerialization.VSUField> fieldMap = customUnit.fieldMap();
+            VersionedSerialization.VSUField field = fieldMap.getOrDefault(this.fieldToRename, null);
             if (field == null) {
                 throw new VSException(fieldToRename + " field to rename was not found");
             }
@@ -113,10 +113,10 @@ public abstract class VersionedChanges {
 
     public static class VersionChangeFieldAdd extends VersionChangeBase {
 
-        protected final Supplier<? extends VersionedSerialization.VSField> fieldMaker;
+        protected final Supplier<? extends VersionedSerialization.VSUField> fieldMaker;
         protected final long newVersion;
 
-        public VersionChangeFieldAdd(String expectedType, long expectedVersion, long newVersion, Supplier<? extends VersionedSerialization.VSField> fieldMaker) {
+        public VersionChangeFieldAdd(String expectedType, long expectedVersion, long newVersion, Supplier<? extends VersionedSerialization.VSUField> fieldMaker) {
             super(expectedType, expectedVersion);
             this.fieldMaker = Objects.requireNonNull(fieldMaker);
             this.newVersion = newVersion;
@@ -127,10 +127,10 @@ public abstract class VersionedChanges {
         @Override
         public void change(VersionedSerialization.VSUnit unit) {//assume is applicable
 
-            VersionedSerialization.CustomVSUnit customUnit = F.cast(unit);
+            VersionedSerialization.CustomVSU customUnit = F.cast(unit);
 
-            Map<String, VersionedSerialization.VSField> fieldMap = customUnit.fieldMap();
-            VersionedSerialization.VSField newField = fieldMaker.get();
+            Map<String, VersionedSerialization.VSUField> fieldMap = customUnit.fieldMap();
+            VersionedSerialization.VSUField newField = fieldMaker.get();
             String fieldName = newField.getFieldName();
             if (fieldMap.containsKey(fieldName)) {
                 throw new VSException(fieldName + " field name already exists");
@@ -145,11 +145,11 @@ public abstract class VersionedChanges {
 
     public static class VersionChangeFieldRefactor extends VersionChangeBase {
 
-        protected final Function<VersionedSerialization.VSField, ? extends VersionedSerialization.VSField> fieldRefactor;
+        protected final Function<VersionedSerialization.VSUField, ? extends VersionedSerialization.VSUField> fieldRefactor;
         protected final String fieldName;
         protected final long newVersion;
 
-        public VersionChangeFieldRefactor(String expectedType, long expectedVersion, long newVersion, String fieldName, Function<VersionedSerialization.VSField, ? extends VersionedSerialization.VSField> fieldRefactor) {
+        public VersionChangeFieldRefactor(String expectedType, long expectedVersion, long newVersion, String fieldName, Function<VersionedSerialization.VSUField, ? extends VersionedSerialization.VSUField> fieldRefactor) {
             super(expectedType, expectedVersion);
             this.fieldName = Objects.requireNonNull(fieldName);
             this.fieldRefactor = Objects.requireNonNull(fieldRefactor);
@@ -161,15 +161,15 @@ public abstract class VersionedChanges {
         @Override
         public void change(VersionedSerialization.VSUnit unit) {//assume is applicable
 
-            VersionedSerialization.CustomVSUnit customUnit = F.cast(unit);
+            VersionedSerialization.CustomVSU customUnit = F.cast(unit);
 
-            Map<String, VersionedSerialization.VSField> fieldMap = customUnit.fieldMap();
-            VersionedSerialization.VSField field = fieldMap.getOrDefault(fieldName, null);
+            Map<String, VersionedSerialization.VSUField> fieldMap = customUnit.fieldMap();
+            VersionedSerialization.VSUField field = fieldMap.getOrDefault(fieldName, null);
             if (field == null) {
                 throw new VSException(fieldName + " field to refactor not found");
             }
 
-            VersionedSerialization.VSField changedField = fieldRefactor.apply(field);
+            VersionedSerialization.VSUField changedField = fieldRefactor.apply(field);
             fieldMap.put(fieldName, changedField);//even if changed fieldName is different, it puts in the same place as the previous field
             customUnit.replaceFields(fieldMap.values());
             if (applyVersionChange) {
@@ -194,10 +194,10 @@ public abstract class VersionedChanges {
         @Override
         public void change(VersionedSerialization.VSUnit unit) {//assume is applicable
 
-            VersionedSerialization.CustomVSUnit customUnit = F.cast(unit);
+            VersionedSerialization.CustomVSU customUnit = F.cast(unit);
 
-            Map<String, VersionedSerialization.VSField> fieldMap = customUnit.fieldMap();
-            VersionedSerialization.VSField field = fieldMap.getOrDefault(fieldToRemove, null);
+            Map<String, VersionedSerialization.VSUField> fieldMap = customUnit.fieldMap();
+            VersionedSerialization.VSUField field = fieldMap.getOrDefault(fieldToRemove, null);
             if (field == null) {
                 throw new VSException(fieldToRemove + " field to remove was not found");
             }
@@ -222,7 +222,7 @@ public abstract class VersionedChanges {
 
         @Override
         public void change(VersionedSerialization.VSUnit unit) {//assume is applicable
-            VersionedSerialization.CustomVSUnit customUnit = F.cast(unit);
+            VersionedSerialization.CustomVSU customUnit = F.cast(unit);
             customUnit.setVersion(newVersion);
             customUnit.setType(newType);
         }
@@ -275,11 +275,11 @@ public abstract class VersionedChanges {
             return withBaseChange(new VersionChangeFieldRemove(expectedType, expectedVersion, newVersion, fieldName));
         }
 
-        public VersionChangeAggregate withFieldAdd(Supplier<? extends VSField> fieldMaker) {
+        public VersionChangeAggregate withFieldAdd(Supplier<? extends VSUField> fieldMaker) {
             return withBaseChange(new VersionChangeFieldAdd(expectedType, expectedVersion, newVersion, fieldMaker));
         }
 
-        public VersionChangeAggregate withFieldRefactor(String field, Function<VSField, ? extends VSField> fieldRefactor) {
+        public VersionChangeAggregate withFieldRefactor(String field, Function<VSUField, ? extends VSUField> fieldRefactor) {
             return withBaseChange(new VersionChangeFieldRefactor(expectedType, expectedVersion, newVersion, field, fieldRefactor));
         }
 

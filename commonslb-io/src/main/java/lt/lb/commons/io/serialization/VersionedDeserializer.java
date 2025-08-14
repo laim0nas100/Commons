@@ -105,7 +105,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return this;
     }
 
-    public Object deserializeArray(ArrayVSUnit unit, VersionedDeserializationContext context) {
+    public Object deserializeArray(ArrayVSU unit, VersionedDeserializationContext context) {
         Class arrayType = getClass(unit.getType());
         Object array = Array.newInstance(arrayType, unit.values.length);
         for (int i = 0; i < unit.values.length; i++) {
@@ -114,7 +114,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return array;
     }
 
-    public Collection deserializeCollection(ArrayVSUnit unit, VersionedDeserializationContext context) {
+    public Collection deserializeCollection(ArrayVSU unit, VersionedDeserializationContext context) {
         Collection collection = instantiate(unit.getCollectionType());
         for (int i = 0; i < unit.values.length; i++) {
             collection.add(deserializeAuto(unit.values[i], context));
@@ -122,10 +122,10 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return collection;
     }
 
-    public Map deserializeMap(MapVSUnit unit, VersionedDeserializationContext context) {
+    public Map deserializeMap(MapVSU unit, VersionedDeserializationContext context) {
         Map map = instantiate(unit.getCollectionType());
         for (int i = 0; i < unit.values.length; i++) {
-            EntryVSUnit entry = unit.values[i];
+            EntryVSU entry = unit.values[i];
             Object key = deserializeAuto(entry.key, context);
             Object val = deserializeAuto(entry.val, context);
             map.put(key, val);
@@ -133,11 +133,11 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return map;
     }
 
-    public <T> T deserializeRoot(CustomVSUnit custom) {
+    public <T> T deserializeRoot(CustomVSU custom) {
         return deserializeRoot(custom, new VersionedDeserializationContext());
     }
 
-    public <T> T deserializeRoot(CustomVSUnit custom, VersionedDeserializationContext context) {
+    public <T> T deserializeRoot(CustomVSU custom, VersionedDeserializationContext context) {
         Objects.requireNonNull(custom);
         Objects.requireNonNull(context);
         String type = custom.getType();
@@ -150,11 +150,11 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
     public Object deserializeComplex(boolean refCheck, VSUnit unit, VersionedDeserializationContext context) {
         Objects.requireNonNull(unit, "deserializeComplex passed unit was null");
-        if (unit instanceof NullUnit) {
+        if (unit instanceof NullVSU) {
             return null;
         }
-        if (unit instanceof VSUnitReference) {
-            VSUnitReference reference = F.cast(unit);
+        if (unit instanceof ReferenceVSU) {
+            ReferenceVSU reference = F.cast(unit);
             Long ref = reference.getRef();
             if (context.refMap.containsKey(ref)) {
                 Value placedReference = context.refMap.getOrDefault(ref, null);
@@ -171,10 +171,10 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             }
 
         }
-        if (!(unit instanceof ComplexVSUnit)) {
-            throw new IllegalArgumentException(unit + " is not " + ComplexVSUnit.class);
+        if (!(unit instanceof ComplexVSU)) {
+            throw new IllegalArgumentException(unit + " is not " + ComplexVSU.class);
         }
-        ComplexVSUnit complex = F.cast(unit);
+        ComplexVSU complex = F.cast(unit);
         String type = complex.getType();
 
         Object object;
@@ -190,7 +190,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         Class clazz = getClass(type);
         if (beanAccessTypes.contains(clazz)) { // is a bean
 
-            if (complex instanceof CustomVSUnit) {
+            if (complex instanceof CustomVSU) {
                 object = instantiateCustom(type);
             } else {
                 object = instantiate(type);
@@ -256,7 +256,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             return instantiatedRecord;
 
         } else {//do field access
-            if (complex instanceof CustomVSUnit) {
+            if (complex instanceof CustomVSU) {
                 object = instantiateCustom(type);
             } else {
                 object = instantiate(type);
@@ -306,21 +306,21 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
     public Object deserializeAuto(VSUnit unit, VersionedDeserializationContext context) {
         Objects.requireNonNull(unit, "deserializeAuto passed unit was null");
-        if (unit instanceof NullUnit) {
+        if (unit instanceof NullVSU) {
             return null;
         }
-        if (unit instanceof ArrayVSUnit) {
-            ArrayVSUnit array = F.cast(unit);
+        if (unit instanceof ArrayVSU) {
+            ArrayVSU array = F.cast(unit);
             if (array.getCollectionType() != null) {// is collection
                 return deserializeCollection(array, context);
             } else {// is array
                 return deserializeArray(array, context);
             }
         }
-        if (unit instanceof MapVSUnit) {
+        if (unit instanceof MapVSU) {
             return deserializeMap(F.cast(unit), context);
         }
-        if (unit instanceof ComplexVSUnit || unit instanceof VSUnitReference) {
+        if (unit instanceof ComplexVSU || unit instanceof ReferenceVSU) {
             return deserializeComplex(true, unit, context);
         }
         return deserializeValue(unit);
@@ -348,7 +348,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
     public Object deserializeValue(VSUnit unit) {
         Objects.requireNonNull(unit, "deserializeValue passed unit was null");
-        if (unit instanceof NullUnit) {
+        if (unit instanceof NullVSU) {
             return null;
         }
 

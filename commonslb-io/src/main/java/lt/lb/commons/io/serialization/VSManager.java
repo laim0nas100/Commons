@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.ImmutableCollections;
-import lt.lb.commons.io.serialization.VersionedSerialization.CustomVSUnit;
+import lt.lb.commons.io.serialization.VersionedSerialization.CustomVSU;
 import org.xml.sax.InputSource;
 import lt.lb.commons.io.SerializingStreams.SerializingBufferedStreams;
 import lt.lb.commons.io.SerializingStreams.SerializingObjectStreams;
@@ -51,19 +51,19 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
         return deserializer;
     }
 
-    public VersionedSerialization.CustomVSUnit serializeRoot(Object value, VersionedSerializationContext context) {
+    public VersionedSerialization.CustomVSU serializeRoot(Object value, VersionedSerializationContext context) {
         return getSerializer().serializeRoot(value, context);
     }
 
-    public VersionedSerialization.CustomVSUnit serializeRoot(Object value) {
+    public VersionedSerialization.CustomVSU serializeRoot(Object value) {
         return getSerializer().serializeRoot(value);
     }
 
-    public <T> T deserializeRoot(VersionedSerialization.CustomVSUnit custom) {
+    public <T> T deserializeRoot(VersionedSerialization.CustomVSU custom) {
         return getDeserializer().deserializeRoot(custom);
     }
 
-    public <T> T deserializeRoot(VersionedSerialization.CustomVSUnit custom, VersionedDeserializationContext context) {
+    public <T> T deserializeRoot(VersionedSerialization.CustomVSU custom, VersionedDeserializationContext context) {
         return getDeserializer().deserializeRoot(custom, context);
     }
 
@@ -75,11 +75,11 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
         return me();
     }
 
-    public void applyVersionChange(VersionedSerialization.CustomVSUnit root) {
+    public void applyVersionChange(VersionedSerialization.CustomVSU root) {
         VersionedSerialization.treeVisitor(unit -> {
 
-            if (unit instanceof VersionedSerialization.CustomVSUnit) {
-                VersionedSerialization.CustomVSUnit customUnit = F.cast(unit);
+            if (unit instanceof VersionedSerialization.CustomVSU) {
+                VersionedSerialization.CustomVSU customUnit = F.cast(unit);
                 Long version = customUnit.getVersion();
                 for (;;) {
                     List<VersionChange> changes = versionChanges.getOrDefault(version, ImmutableCollections.listOf());
@@ -110,7 +110,7 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
         return new SerializingObjectStreams<T, T>() {
             @Override
             public T readObjectLogic(ObjectInputStream input) throws Throwable {
-                CustomVSUnit root = F.cast(input.readObject());
+                CustomVSU root = F.cast(input.readObject());
                 if (!versionChanges.isEmpty()) {
                     applyVersionChange(root);
                 }
@@ -128,7 +128,7 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
         return new SerializingBufferedStreams<T, T>() {
             @Override
             public T readObjectLogic(BufferedInputStream input) throws Throwable {
-                CustomVSUnit root = xml.readXml(new InputSource(input));
+                CustomVSU root = xml.readXml(new InputSource(input));
                 if (!versionChanges.isEmpty()) {
                     applyVersionChange(root);
                 }
@@ -140,7 +140,7 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
 
                 BufferedWriter writer = null;
                 try {
-                    CustomVSUnit root = serializeRoot(object);
+                    CustomVSU root = serializeRoot(object);
                     writer = new BufferedWriter(new OutputStreamWriter(out));
                     xml.writeWithEncodingHeader(writer, root);
 
