@@ -4,12 +4,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import lt.lb.commons.F;
-import lt.lb.commons.reflect.unified.IObjectField;
-import lt.lb.commons.reflect.unified.ReflFields;
-import lt.lb.uncheckedutils.Checked;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -21,9 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Fil {
 
-    private static Logger logger = LoggerFactory.getLogger(Fil.class);
-
-    protected Map<String, Fil> map;
+    static Logger logger = LoggerFactory.getLogger(Fil.class);
 
     public final String absolutePath;
 
@@ -32,28 +24,6 @@ public class Fil {
     public Fil(String absolutePath) {
         this.absolutePath = absolutePath;
         this.path = Paths.get(absolutePath);
-        map = new LinkedHashMap<>();
-        ReflFields.getLocalFields(getClass(),Fil.class)
-                .filter(f -> f.isPublic() && f.isAnnotationPresent(FileInfo.class))
-                .forEachOrdered((IObjectField field) -> {
-                    FileInfo fileInfo = field.getAnnotation(FileInfo.class);
-                    String fileName = StringUtils.isNotEmpty(fileInfo.value()) ? fileInfo.value() : field.getName();
-
-                    if (StringUtils.isNotEmpty(fileInfo.extension())) {
-                        fileName = fileName + "." + fileInfo.extension();
-                    }
-                    final String fName = fileName;
-                    Checked.checkedRun(() -> {
-                        Path newRoot = Paths.get(getAbsolutePathWithSeparator() + fName);
-                        Fil fieldInstance = create(newRoot, F.cast(field.getType()));
-                        field.set(this, fieldInstance);
-                        map.put(fName, fieldInstance);
-                    }).ifPresent(error -> {
-                        logger.error("Failed to parse field named:" + fName, error);
-                    });
-
-                });
-
     }
 
     public static <T extends Fil> T create(Path path, Class<T> cls) throws Exception {
