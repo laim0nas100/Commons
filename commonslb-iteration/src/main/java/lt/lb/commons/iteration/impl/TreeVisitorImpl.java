@@ -1,14 +1,13 @@
 package lt.lb.commons.iteration.impl;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import lt.lb.commons.iteration.ChildrenIteratorProvider;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
@@ -73,7 +72,7 @@ public abstract class TreeVisitorImpl {
     public static <T> Optional<T> BFS(TreeVisitor<T> visitor, T root, Optional<Collection<T>> visited) {
         ReadOnlyIterator<T> composite = ReadOnlyIterator.of(root);
         while (composite.hasNext()) {
-            LinkedList<ReadOnlyIterator<T>> nextIteration = new LinkedList<>();
+            List<ReadOnlyIterator<T>> nextIteration = new ArrayList<>();
             for (T newRoot : composite) {
                 if (visitedCheck(newRoot, visited)) {
                     continue;
@@ -93,7 +92,7 @@ public abstract class TreeVisitorImpl {
         if (visitedCheck(root, visited)) {
             return ReadOnlyIterator.of();
         }
-        LinkedList<T> stack = new LinkedList<>();
+        ArrayDeque<T> stack = new ArrayDeque<>();
         stack.add(root);
         Iterator<T> iterator = new Iterator<T>() {
 
@@ -108,8 +107,7 @@ public abstract class TreeVisitorImpl {
                     throw new NoSuchElementException("No next value");
                 }
                 T next = stack.pollFirst();
-                Iterable<T> childrenIterator = visitor.getChildren(next);
-                for (T child : childrenIterator) {
+                for (T child : visitor.getChildren(next)) {
                     if (visitedCheck(child, visited)) {
                         continue;
                     }
@@ -141,10 +139,13 @@ public abstract class TreeVisitorImpl {
                     throw new NoSuchElementException("No next value");
                 }
                 T next = stack.pollFirst();
+                List<T> collect = new ArrayList<>();
+                for (T child : visitor.getChildren(next)) {
+                    if (!visitedCheck(child, visited)) {
+                        collect.add(child);
+                    }
+                }
 
-                List<T> collect = StreamSupport.stream(visitor.getChildren(next).spliterator(), false)
-                        .filter(child -> !visitedCheck(child, visited))
-                        .collect(Collectors.toList());
                 stack.addAll(0, collect);
                 return next;
             }
@@ -162,12 +163,12 @@ public abstract class TreeVisitorImpl {
             this.root = root;
             this.iterator = iterable.iterator();
         }
-        
-        public boolean hasNext(){
+
+        public boolean hasNext() {
             return iterator.hasNext();
         }
-        
-        public T next(){
+
+        public T next() {
             return iterator.next();
         }
 
@@ -193,8 +194,8 @@ public abstract class TreeVisitorImpl {
                     if (!stack.getFirst().hasNext()) { // has no more nodes, send in parent of those nodes
                         return stack.pollFirst().root; // the only way to correctly exit loop
                     }
-                    
-                     T newRoot = stack.getFirst().next();
+
+                    T newRoot = stack.getFirst().next();
                     if (!visitedCheck(newRoot, visited)) {
                         stack.addFirst(new PostOrderInner<>(newRoot, visitor.getChildren(newRoot)));
                     }
@@ -212,7 +213,7 @@ public abstract class TreeVisitorImpl {
         if (visitedCheck(root, visited)) {
             return Optional.empty();//empty, root is allready visited
         }
-        
+
         ArrayDeque<PostOrderInner<T>> stack = new ArrayDeque<>();
         stack.addFirst(new PostOrderInner<>(root, visitor.getChildren(root)));
         while (!stack.isEmpty()) {
