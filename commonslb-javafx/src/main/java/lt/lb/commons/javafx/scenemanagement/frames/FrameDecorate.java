@@ -11,7 +11,7 @@ import lt.lb.commons.containers.collections.RelationMap;
  */
 public class FrameDecorate {
 
-    protected RelationMap<Class, List<FrameDecorator>> decorators = RelationMap.newTypeMap(FrameState.class, new ArrayList<>(0));
+    protected RelationMap<Class, List<FrameDecorator>> decorators = RelationMap.newTypeMap(FrameState.class, new ArrayList<>());
 
     public FrameDecorate() {
     }

@@ -13,12 +13,12 @@ import lt.lb.commons.javafx.scenemanagement.Frame;
  */
 public class WithFrameTypeMemorySize extends FrameDecorateProps {
 
-    public static final PropGet<String,Double> prop_height = PropGet.of("h");
-    public static final PropGet<String,Double> prop_width = PropGet.of("w");
-    public static final PropGet<String,ChangeListener> prop_height_listen = PropGet.of("h_listen");
-    public static final PropGet<String,ChangeListener> prop_width_listen = PropGet.of("w_listen");
+    public HashMap<String, Props<String>> typeMap = new HashMap<>();
 
-    public HashMap<String, Props<String>> memoryMap = new HashMap<>();
+    public static final PropGet<String, Double> prop_height = PropGet.of("h");
+    public static final PropGet<String, Double> prop_width = PropGet.of("w");
+    public static final PropGet<String, ChangeListener> prop_height_listen = PropGet.of("h_listen");
+    public static final PropGet<String, ChangeListener> prop_width_listen = PropGet.of("w_listen");
 
     public WithFrameTypeMemorySize() {
         addFrameDecorator(FrameState.FrameStateOpen.instance, this::decorateOpen);
@@ -29,19 +29,18 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
         String type = frame.getType();
         Stage stage = frame.getStage();
 
-        Props<String> memoryProp = memoryMap.computeIfAbsent(type, k -> {
-
-            Props<String> p = new Props<>();
-            prop_height.insert(p, stage.getHeight());
-            prop_width.insert(p, stage.getWidth());
-            return p;
-        });
+        Props<String> memoryProp = typeMap.computeIfAbsent(type, k -> new Props<>());
 
         ValueProxy<Double> height = prop_height.getAsValue(memoryProp);
         ValueProxy<Double> width = prop_width.getAsValue(memoryProp);
 
-        stage.setHeight(height.get());
-        stage.setWidth(width.get());
+        if (height.isEmpty() || width.isEmpty()) {//clean up incomplete data, dont set
+            height.set(stage.getHeight());
+            width.set(stage.getWidth());
+        } else {
+            stage.setHeight(height.get());
+            stage.setWidth(width.get());
+        }
 
         Props<String> props = getFrameProps(frame);
 
@@ -60,6 +59,6 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
     @Override
     public void clearProps() {
         super.clearProps();
-        memoryMap.clear();
+        typeMap.clear();
     }
 }
