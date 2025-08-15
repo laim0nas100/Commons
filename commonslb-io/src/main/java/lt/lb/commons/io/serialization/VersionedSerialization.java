@@ -3,16 +3,22 @@ package lt.lb.commons.io.serialization;
 import lt.lb.commons.io.serialization.VersionedSerialization.TraitFieldName;
 import java.io.Serializable;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
 import lt.lb.commons.Ins;
+import lt.lb.commons.clone.CloneSupport;
+import lt.lb.commons.clone.Cloner;
 import lt.lb.commons.containers.collections.ArrayLinearMap;
 import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.containers.collections.Props;
@@ -55,7 +61,7 @@ public class VersionedSerialization {
         FIELD_NAME, TYPE, COLLECTION_TYPE, VERSION, BINARY, VALUE, REF_ID;
     }
 
-    public static class VSTraits extends Props<VSTraitEnum> implements Serializable {
+    public static final class VSTraits extends Props<VSTraitEnum> implements Serializable, CloneSupport<VSTraits> {
 
         /**
          * Using enum for map rather than string for instant equals performance
@@ -77,9 +83,101 @@ public class VersionedSerialization {
             //every value setOrRemoveNull expands inner array and value remove shrinks inner array by 2 (key,value)
         }
 
+        public VSTraits(Map<VSTraitEnum, Object> delegated) {
+            super(delegated);
+        }
+
+        public static boolean traitsEqual(VSTraits me, VSTraits other) {
+            if (me == other) {
+                return true;
+            }
+            if (me == null || other == null) {
+                return false;
+            }
+            if (me.size() != other.size()) {
+                return false;
+            }
+            //check entries
+            Set<Entry<VSTraitEnum, Object>> entrySet = me.getMap().entrySet();
+            for (Entry<VSTraitEnum, Object> entry : entrySet) {
+                VSTraitEnum key = entry.getKey();
+
+                Object otherValue = other.getOrDefault(key, null);
+                if (otherValue == null) {//no null values
+                    return false;
+                }
+                if (key == VSTraitEnum.BINARY) {//the only special case
+                    if (!Arrays.equals((byte[]) entry.getValue(), (byte[]) otherValue)) {
+                        return false;
+                    }
+                } else {
+                    if (!Objects.equals(entry.getValue(), otherValue)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public VSTraits clone() throws CloneNotSupportedException {
+            VSTraits traits = new VSTraits();
+            traits.putAll(this);
+            return traits;
+        }
+
     }
 
-    public static interface VSUnit extends Serializable {
+    public static interface VSUnit extends Serializable, CloneSupport<VSUnit> {
+
+        public static boolean equals(Object me, Object other) {
+            if (me == other) {
+                return true;
+            }
+            if (other == null) {
+                return false;
+            }
+            if (me.getClass() != other.getClass()) {
+                return false;
+            }
+            if (me instanceof BaseVSUnit) { // try not to populate traits if unused
+                BaseVSUnit myTrais = F.cast(me);
+                BaseVSUnit otherTraits = F.cast(other);
+                if (!VSTraits.traitsEqual(myTrais.traits, otherTraits.traits)) {
+                    return false;
+                }
+            } else if (me instanceof VSUTrait) {
+                VSUTrait myTrais = F.cast(me);
+                VSUTrait otherTraits = F.cast(other);
+                if (!VSTraits.traitsEqual(myTrais.traits(), otherTraits.traits())) {
+                    return false;
+                }
+            }
+
+            if (me instanceof VSUChildren) {
+                VSUChildren thisParent = F.cast(me);
+                VSUChildren otherParent = F.cast(other);
+                List<? extends VSUnit> myChildren = thisParent.children();
+                List<? extends VSUnit> otherChildren = otherParent.children();
+                if (myChildren.size() != otherChildren.size()) {
+                    return false;
+                }
+                Iterator<? extends VSUnit> myIterator = myChildren.iterator();
+                Iterator<? extends VSUnit> otherIterator = otherChildren.iterator();
+                while (myIterator.hasNext() && otherIterator.hasNext()) {
+                    VSUnit myNext = myIterator.next();
+                    VSUnit otherNext = otherIterator.next();
+                    if (!Objects.equals(myNext, otherNext)) {
+                        return false;
+                    }
+                }
+                if (myIterator.hasNext() != otherIterator.hasNext()) {//should be the same (empty)
+                    return false;
+                }
+
+            }
+            return true;
+        }
 
     }
 
@@ -102,7 +200,7 @@ public class VersionedSerialization {
 
     public static interface VSUChildren extends VSUnit {
 
-        public Collection<? extends VSUnit> children();
+        public List<? extends VSUnit> children();
     }
 
     public static interface TraitFieldName extends VSUTrait {
@@ -194,13 +292,38 @@ public class VersionedSerialization {
 
         protected VSTraits traits;
 
+        public BaseVSUnit() {
+        }
+
         @Override
         public VSTraits traits() {
-            if (traits == null) {
-                traits = new VSTraits();
-            }
-            return traits;
+            return traits == null ? traits = new VSTraits() : traits;
         }
+
+        @Override
+        public int hashCode() {
+            int hash = 5;
+            hash = 37 * hash + Objects.hashCode(this.getClass());
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return VSUnit.equals(this, obj);
+        }
+
+        @Override
+        public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
+            BaseVSUnit clone = F.cast(super.clone());
+            clone.traits = cloner.cloneOrNull(this.traits);
+            return clone;
+        }
+
+        @Override
+        public VSUnit clone() throws CloneNotSupportedException {
+            return clone(Cloner.get());
+        }
+
     }
 
     public static class NullVSU extends BaseVSUnit implements VSULeaf {
@@ -226,7 +349,6 @@ public class VersionedSerialization {
 
         public ReferenceVSU() {
         }
-
     }
 
     public static class ReferenceVSUF extends ReferenceVSU implements VSUField {
@@ -247,9 +369,23 @@ public class VersionedSerialization {
         public VSUnit val;
 
         @Override
-        public Collection<VSUnit> children() {
+        public List<VSUnit> children() {
             return ImmutableCollections.listOf(key, val);
         }
+
+        @Override
+        public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
+            EntryVSU clone = F.cast(super.clone());
+            clone.key = cloner.cloneOrNull(key);
+            clone.val = cloner.cloneOrNull(val);
+            return clone;
+        }
+
+        @Override
+        public VSUnit clone() throws CloneNotSupportedException {
+            return clone(Cloner.get());
+        }
+
     }
 
     /**
@@ -262,8 +398,20 @@ public class VersionedSerialization {
         public VSUnit[] values;
 
         @Override
-        public Collection<VSUnit> children() {
+        public List<VSUnit> children() {
             return ImmutableCollections.listOf(values);
+        }
+
+        @Override
+        public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
+            ArrayVSU clone = F.cast(super.clone());
+            clone.values = cloner.cloneArrayCast(values, s -> new VSUnit[s]);
+            return clone;
+        }
+
+        @Override
+        public VSUnit clone() throws CloneNotSupportedException {
+            return clone(Cloner.get());
         }
 
     }
@@ -284,8 +432,20 @@ public class VersionedSerialization {
         public EntryVSU[] values;
 
         @Override
-        public Collection<VSUnit> children() {
+        public List<VSUnit> children() {
             return ImmutableCollections.listOf(values);
+        }
+
+        @Override
+        public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
+            MapVSU clone = F.cast(super.clone());
+            clone.values = cloner.cloneArrayCast(values, s -> new EntryVSU[s]);
+            return clone;
+        }
+
+        @Override
+        public VSUnit clone() throws CloneNotSupportedException {
+            return clone(Cloner.get());
         }
 
     }
@@ -330,7 +490,7 @@ public class VersionedSerialization {
         public VSUField[] fields;
 
         @Override
-        public Collection<VSUField> children() {
+        public List<VSUField> children() {
             return ImmutableCollections.listOf(fields);
         }
 
@@ -359,6 +519,18 @@ public class VersionedSerialization {
             }).toArray(s -> new VSUField[s]);
         }
 
+        @Override
+        public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
+            ComplexVSU clone = F.cast(super.clone());
+            clone.fields = cloner.cloneArrayCast(fields, s -> new VSUField[s]);
+            return clone;
+        }
+
+        @Override
+        public VSUnit clone() throws CloneNotSupportedException {
+            return clone(Cloner.get());
+        }
+
     }
 
     public static class ComplexVSUF extends ComplexVSU implements VSUField {
@@ -372,7 +544,6 @@ public class VersionedSerialization {
 
     }
 
-    //implementation
     public static class BinaryVSU extends BaseVSUnit implements VSULeaf, TraitBinary {
 
         public BinaryVSU(byte[] value) {
@@ -380,6 +551,21 @@ public class VersionedSerialization {
         }
 
         public BinaryVSU() {
+        }
+
+        @Override
+        public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
+            BinaryVSU clone = F.cast(super.clone());
+            byte[] binary = this.getBinary();
+            if (binary != null) {
+                clone.setBinary(Arrays.copyOf(binary, binary.length));
+            }
+            return clone;
+        }
+
+        @Override
+        public VSUnit clone() throws CloneNotSupportedException {
+            return clone(Cloner.get());
         }
 
     }
