@@ -374,6 +374,34 @@ public class VersionedSerialization {
         }
 
         @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 61 * hash + Objects.hashCode(this.key);
+            hash = 61 * hash + Objects.hashCode(this.val);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final EntryVSU other = (EntryVSU) obj;
+            if (!Objects.equals(this.key, other.key)) {
+                return false;
+            }
+            return Objects.equals(this.val, other.val);
+        }
+        
+        
+
+        @Override
         public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
             EntryVSU clone = F.cast(super.clone());
             clone.key = cloner.cloneOrNull(key);
@@ -404,7 +432,7 @@ public class VersionedSerialization {
 
         @Override
         public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
-            ArrayVSU clone = F.cast(super.clone());
+            ArrayVSU clone = F.cast(super.clone(cloner));
             clone.values = cloner.cloneArrayCast(values, s -> new VSUnit[s]);
             return clone;
         }
@@ -438,7 +466,7 @@ public class VersionedSerialization {
 
         @Override
         public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
-            MapVSU clone = F.cast(super.clone());
+            MapVSU clone = F.cast(super.clone(cloner));
             clone.values = cloner.cloneArrayCast(values, s -> new EntryVSU[s]);
             return clone;
         }
@@ -521,7 +549,7 @@ public class VersionedSerialization {
 
         @Override
         public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
-            ComplexVSU clone = F.cast(super.clone());
+            ComplexVSU clone = F.cast(super.clone(cloner));
             clone.fields = cloner.cloneArrayCast(fields, s -> new VSUField[s]);
             return clone;
         }
@@ -555,7 +583,7 @@ public class VersionedSerialization {
 
         @Override
         public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
-            BinaryVSU clone = F.cast(super.clone());
+            BinaryVSU clone = F.cast(super.clone(cloner));
             byte[] binary = this.getBinary();
             if (binary != null) {
                 clone.setBinary(Arrays.copyOf(binary, binary.length));
