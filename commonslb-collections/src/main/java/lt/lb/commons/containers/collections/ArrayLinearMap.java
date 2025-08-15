@@ -19,9 +19,15 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
     protected Object[] data;
 
     protected transient MapEntrySet<K, V> entrySet;
+    protected transient final boolean allowNulls;
 
-    public ArrayLinearMap() {
+    public ArrayLinearMap(boolean allowNulls) {
+        this.allowNulls = allowNulls;
         this.data = EMPTY_DATA;
+    }
+    
+    public ArrayLinearMap() {
+        this(false);
     }
 
     @Override
@@ -65,6 +71,10 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
 
     @Override
     public V put(K key, V value) {
+        if(!allowNulls){
+            Objects.requireNonNull(key);
+            Objects.requireNonNull(value);
+        }
         int find = find(0, key);
         V oldValue = null;
         int index = -1;
