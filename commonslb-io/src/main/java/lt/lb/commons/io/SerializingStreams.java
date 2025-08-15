@@ -2,8 +2,6 @@ package lt.lb.commons.io;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -137,7 +135,7 @@ public interface SerializingStreams<O_IN, O_OUT, IN extends InputStream, OUT ext
                         if (read < size) {//buffer end
                             break;
                         } else {
-                            size = Math.min(size * 2, 1024);
+                            size = Math.min(size * 2, 8192);//expanding buffer up to default InputStreamBuffer size
                         }
                     }
 
