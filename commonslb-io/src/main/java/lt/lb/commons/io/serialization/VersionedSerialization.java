@@ -155,9 +155,9 @@ public class VersionedSerialization {
             }
 
             if (me instanceof VSUChildren) {
-                VSUChildren thisParent = F.cast(me);
+                VSUChildren meAsParent = F.cast(me);
                 VSUChildren otherParent = F.cast(other);
-                List<? extends VSUnit> myChildren = thisParent.children();
+                List<? extends VSUnit> myChildren = meAsParent.children();
                 List<? extends VSUnit> otherChildren = otherParent.children();
                 if (myChildren.size() != otherChildren.size()) {
                     return false;
@@ -369,7 +369,7 @@ public class VersionedSerialization {
         public VSUnit val;
 
         @Override
-        public List<VSUnit> children() {
+        public List<? extends VSUnit> children() {
             return ImmutableCollections.listOf(key, val);
         }
 
@@ -398,7 +398,7 @@ public class VersionedSerialization {
         public VSUnit[] values;
 
         @Override
-        public List<VSUnit> children() {
+        public List<? extends VSUnit> children() {
             return ImmutableCollections.listOf(values);
         }
 
@@ -432,7 +432,7 @@ public class VersionedSerialization {
         public EntryVSU[] values;
 
         @Override
-        public List<VSUnit> children() {
+        public List<EntryVSU> children() {
             return ImmutableCollections.listOf(values);
         }
 
