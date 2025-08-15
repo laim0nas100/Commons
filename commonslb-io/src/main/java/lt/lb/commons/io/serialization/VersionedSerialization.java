@@ -43,11 +43,11 @@ public class VersionedSerialization {
 
     public static interface SerializerMapping<T> {
 
-        public VersionedSerialization.VSUnit serialize(T value);
+        public TraitType serialize(VersionedSerializationContext context, T value);
 
-        public VersionedSerialization.VSUField serialize(String fieldName, T value);
+        public VSUTypedField serialize(VersionedSerializationContext context, String fieldName, T value);
 
-        public T deserialize(VersionedSerialization.VSUnit unit);
+        public T deserialize(VersionedDeserializationContext context, TraitType unit);
     }
 
     public static interface SerializerStringMapping<T> {
@@ -284,6 +284,10 @@ public class VersionedSerialization {
 
     }
 
+    public static interface VSUTypedField extends TraitType, VSUField {
+
+    }
+
     public static interface VSULeafField extends VSULeaf, VSUField {
 
     }
@@ -398,8 +402,6 @@ public class VersionedSerialization {
             }
             return Objects.equals(this.val, other.val);
         }
-        
-        
 
         @Override
         public VSUnit clone(Cloner cloner) throws CloneNotSupportedException {
@@ -444,7 +446,7 @@ public class VersionedSerialization {
 
     }
 
-    public static class ArrayVSUF extends ArrayVSU implements VSUField {
+    public static class ArrayVSUF extends ArrayVSU implements VSUTypedField {
 
         public ArrayVSUF(String fieldName) {
             setFieldName(fieldName);
@@ -500,7 +502,7 @@ public class VersionedSerialization {
 
     }
 
-    public static class CustomVSUF extends CustomVSU implements VSUField {
+    public static class CustomVSUF extends CustomVSU implements VSUTypedField {
 
         public CustomVSUF(Long version, String fieldName) {
             super(version);
@@ -561,7 +563,7 @@ public class VersionedSerialization {
 
     }
 
-    public static class ComplexVSUF extends ComplexVSU implements VSUField {
+    public static class ComplexVSUF extends ComplexVSU implements VSUTypedField {
 
         public ComplexVSUF(String fieldName) {
             setFieldName(fieldName);
@@ -754,7 +756,7 @@ public class VersionedSerialization {
 
     }
 
-    public static class TypedBinaryVSUF extends TypedBinaryVSU implements VSULeafField, TraitType {
+    public static class TypedBinaryVSUF extends TypedBinaryVSU implements VSULeafField, VSUTypedField {
 
         public TypedBinaryVSUF(String fieldName, String type, byte[] value) {
             super(type, value);
@@ -766,7 +768,7 @@ public class VersionedSerialization {
 
     }
 
-    public static class StringVSUF extends StringVSU implements VSULeafField {
+    public static class StringVSUF extends StringVSU implements VSULeafField, VSUTypedField {
 
         public StringVSUF(String fieldName, String value) {
             super(value);
@@ -777,7 +779,7 @@ public class VersionedSerialization {
         }
     }
 
-    public static class TypedStringVSUF extends TypedStringVSU implements VSULeafField {
+    public static class TypedStringVSUF extends TypedStringVSU implements VSULeafField, VSUTypedField {
 
         public TypedStringVSUF(String fieldName, String type, String value) {
             super(type, value);
@@ -789,7 +791,7 @@ public class VersionedSerialization {
 
     }
 
-    public static class EnumVSUF extends EnumVSU implements VSULeafField {
+    public static class EnumVSUF extends EnumVSU implements VSULeafField, VSUTypedField {
 
         public EnumVSUF(String fieldName, Enum value) {
             super(value);

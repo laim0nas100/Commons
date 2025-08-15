@@ -309,6 +309,14 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         if (unit instanceof NullVSU) {
             return null;
         }
+        if (unit instanceof TraitType) {
+            TraitType typed = F.cast(unit);
+            String type = typed.getType();
+            if (type != null && customValueSerializers.containsKey(type)) {
+                SerializerMapping customSerializer = customValueSerializers.get(type);
+                return customSerializer.deserialize(context, typed);
+            }
+        }
         if (unit instanceof ArrayVSU) {
             ArrayVSU array = F.cast(unit);
             if (array.getCollectionType() != null) {// is collection
@@ -323,7 +331,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         if (unit instanceof ComplexVSU || unit instanceof ReferenceVSU) {
             return deserializeComplex(true, unit, context);
         }
-        return deserializeValue(unit);
+        return deserializeValue(unit, context);
     }
 
     public static Object autoBytes(byte[] binary) throws IOException, ClassNotFoundException {
@@ -346,14 +354,14 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return SafeOpt.of(binary).map(m -> autoBytes(binary));
     }
 
-    public Object deserializeValue(VSUnit unit) {
+    public Object deserializeValue(VSUnit unit, VersionedDeserializationContext context) {
         Objects.requireNonNull(unit, "deserializeValue passed unit was null");
         if (unit instanceof NullVSU) {
             return null;
         }
 
         if (unit instanceof EnumVSU) {
-            EnumVSU cast = F.cast(unit);   
+            EnumVSU cast = F.cast(unit);
             return Enum.valueOf(F.cast(getClass(cast.getType())), cast.getValue());
         }
 

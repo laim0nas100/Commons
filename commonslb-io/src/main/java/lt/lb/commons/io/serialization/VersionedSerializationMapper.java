@@ -23,7 +23,10 @@ import org.apache.commons.lang3.Strings;
 public abstract class VersionedSerializationMapper<M extends VersionedSerializationMapper> {
 
     protected Value<Long> defaultVersion = new Value<>(0L);
-    protected Map<Class, SerializerMapping> customValueSerializers = new HashMap<>();
+    /**
+     * These types are custom and can exists or not, or not even correspond to a class
+     */
+    protected Map<String, SerializerMapping> customValueSerializers = new HashMap<>();
     protected Map<String, SerializerStringMapping> stringifyTypes = new HashMap<>();
 
     protected Value<Boolean> throwOnBinaryError = new Value<>(true);
@@ -33,6 +36,9 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected Value<Boolean> throwOnFieldNotFound = new Value<>(true);
     protected Value<Boolean> ignoreTransientFields = new Value<>(true);
 
+    /**
+     * These types must be loaded in classpath
+     */
     protected Map<Class, Long> customTypeVersions = new HashMap<>();
 
     protected Set<Class> refCountingTypes = new HashSet<>();
@@ -98,33 +104,39 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         return me();
     }
 
-    public <T> M withSerializer(Class<T> type, SerializerMapping<T> func) {
+    public <T> M withSerializer(String type, SerializerMapping<T> func) {
         Nulls.requireNonNulls(type, func);
         if (customValueSerializers.containsKey(type)) {
             throw new IllegalArgumentException(type + " serializer is already registered");
         }
-
         customValueSerializers.put(type, func);
         return me();
     }
 
-    public <T> M withStringifyType(Class<T> type, SerializerStringMapping<T> func) {
+    public <T> M withSerializer(Class<T> type, SerializerMapping<T> func) {
+        return withSerializer(type.getName(), func);
+    }
+
+    public <T> M withStringifyType(String type, SerializerStringMapping<T> func) {
         Nulls.requireNonNulls(type, func);
-        if (stringifyTypes.containsKey(type.getName())) {
+        if (stringifyTypes.containsKey(type)) {
             throw new IllegalArgumentException(type + " serializer is already registered");
         }
-
-        stringifyTypes.put(type.getName(), func);
+        stringifyTypes.put(type, func);
         return me();
     }
 
-    public <T> M withStringifyType(Class<T> type, Function<String, T> revMapper) {
+    public <T> M withStringifyType(Class<T> type, SerializerStringMapping<T> func) {
+        return withStringifyType(type.getName(), func);
+    }
+
+    public <T> M withStringifyType(String type, Function<String, T> revMapper) {
         Nulls.requireNonNulls(type, revMapper);
-        if (stringifyTypes.containsKey(type.getName())) {
+        if (stringifyTypes.containsKey(type)) {
             throw new IllegalArgumentException(type + " serializer is already registered");
         }
 
-        stringifyTypes.put(type.getName(), new SerializerStringMapping<T>() {
+        stringifyTypes.put(type, new SerializerStringMapping<T>() {
             @Override
             public String toString(T value) {
                 return String.valueOf(value);
@@ -136,6 +148,10 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
             }
         });
         return me();
+    }
+
+    public <T> M withStringifyType(Class<T> type, Function<String, T> revMapper) {
+        return withStringifyType(type.getName(), revMapper);
     }
 
     protected boolean isInBases(Class type, Collection<Class> bases) {
@@ -187,7 +203,7 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         if (of.instanceOfAny(Serializable.class, Collection.class, Map.class)) {
             return true;
         }
-        return isComplexType(type) || customValueSerializers.containsKey(type);
+        return isComplexType(type) || customValueSerializers.containsKey(type.getName());
     }
 
     public static boolean isShadowed(String fieldName) {
@@ -202,15 +218,15 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         int index = Strings.CS.indexOf(fieldName, "#");
         return index > 0 ? fieldName.substring(0, index) : fieldName;
     }
-    
-     protected String assertFieldName(VersionedSerialization.VSUnit unit) {
+
+    protected String assertFieldName(VersionedSerialization.VSUnit unit) {
         if (unit instanceof VersionedSerialization.TraitFieldName) {
             VersionedSerialization.TraitFieldName fn = F.cast(unit);
             return fn.getFieldName();
         }
         throw new IllegalArgumentException(unit.getClass() + " does not have a FieldName trait");
     }
-    
+
     public M appendTypeData(VersionedSerializationMapper other) {
         customTypeVersions.putAll(other.customTypeVersions);
         refCountingTypes.addAll(other.refCountingTypes);
@@ -320,6 +336,5 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     public void setIgnoreTransientFields(boolean ignoreTransientFields) {
         this.ignoreTransientFields.set(ignoreTransientFields);
     }
-    
-    
+
 }
