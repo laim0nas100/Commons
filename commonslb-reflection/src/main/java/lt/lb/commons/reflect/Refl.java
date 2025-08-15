@@ -364,6 +364,12 @@ public class Refl {
 
     }
 
+    /**
+     * Get object properties from bean method naming conventions except for {@link Object#getClass() }
+     *
+     * @param sourceClass
+     * @return
+     */
     public static SimpleStream<PropertyDescriptor> getPropertyDescriptors(Class sourceClass) {
         Nulls.requireNonNull(sourceClass);
 
@@ -372,6 +378,20 @@ public class Refl {
                 .flatMap(m -> MakeStream.from(m.getPropertyDescriptors()))
                 .filter(Nulls::nonNull)
                 .filter(p -> !p.getName().equals("class"));
+    }
+
+    /**
+     * Get object properties from bean method naming conventions, make sure
+     * write and read methods are exposed
+     *
+     * @param sourceClass
+     * @return
+     */
+    public static SimpleStream<PropertyDescriptor> geBeanPropertyDescriptors(Class sourceClass) {
+        return getPropertyDescriptors(sourceClass)
+                .filter(p -> {
+                    return p.getWriteMethod() != null && p.getReadMethod() != null;
+                });
     }
 
     public static class BasicRecordComponent implements IRecordComponent {
@@ -385,9 +405,9 @@ public class Refl {
             if (!recordsSupported()) {
                 return ImmutableCollections.UNMODIFIABLE_EMPTY_MAP;
             }
-            
-           return ReflMethods.getGetterMethods(recordComponentClass.get())
-                   .toUnmodifiableMap(m -> m.getName(), m -> m);
+
+            return ReflMethods.getGetterMethods(recordComponentClass.get())
+                    .toUnmodifiableMap(m -> m.getName(), m -> m);
         }
 
         public BasicRecordComponent(Object recordComponent) {
@@ -436,18 +456,16 @@ public class Refl {
         public String getName() {
             return getCastCache("getName");
         }
-        
-         @Override
+
+        @Override
         public Class getDeclaringRecord() {
-             return getCastCache("getDeclaringRecord");
+            return getCastCache("getDeclaringRecord");
         }
 
         @Override
         public AnnotatedElement annotatedElement() {
             return F.cast(recordComponent);
         }
-
-       
 
     }
 
