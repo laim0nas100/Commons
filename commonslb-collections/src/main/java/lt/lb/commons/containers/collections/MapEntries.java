@@ -90,6 +90,14 @@ public class MapEntries {
 
     public static class DetachedMapEntry<K, V> extends AbstractEntry<K, V> {
 
+        public DetachedMapEntry() {
+        }
+
+        public DetachedMapEntry(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+        
         private K key;
         private V value;
 
