@@ -104,6 +104,9 @@ public class VersionedSerializationXML {
                     TraitBinary binary = F.cast(current);
                     binary.setBinary(decode);
                 } else if (current instanceof TraitValue) {
+                    if (current instanceof HolderVSU) {
+                        throw new VSException("Cannot deserialize from XML " + HolderVSU.class.getSimpleName() + " type, is used only for custom version changes or ObjectStream");
+                    }
                     //try primitive VSU
                     //EnumVSU and TypedStringVSU are subtypes of StringVSU
                     if (current instanceof StringVSU) {
@@ -273,6 +276,9 @@ public class VersionedSerializationXML {
     }
 
     public void writeGeneric(Appendable writer, VSUnit unit) throws IOException {
+        if (unit instanceof HolderVSU) {
+            throw new VSException("Cannot serialize to XML" + HolderVSU.class.getSimpleName() + " type, is used only for custom version changes or ObjectStream");
+        }
         boolean hasChildren = false;
         boolean hasValues = hasValues(unit);
         Collection<? extends VSUnit> children = ImmutableCollections.listOf();

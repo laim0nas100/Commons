@@ -12,7 +12,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -56,8 +55,8 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
     }
 
     /**
-     * Class cache for method {@link Class#forName(java.lang.String) }.
-     * Also works with primitive types.
+     * Class cache for method {@link Class#forName(java.lang.String) }. Also
+     * works with primitive types.
      *
      * @param type
      * @return
@@ -264,20 +263,20 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
      */
     public Object deserializeReference(ReferenceVSU reference, VersionedDeserializationContext context) {
         Long ref = reference.getRef();
-        if (context.refMap.containsKey(ref)) {
-            Resolving placedReference = context.refMap.getOrDefault(ref, null);
-            if (placedReference == null) {
-                throw new VSException("Placed referenced is gone. Maybe shared context across threads?");
-            } else {
-                if (placedReference.isEmpty()) {//reference is a record, that is cyclical
-                    throw new VSException("Can't dereference in cyclical record layout, use special VersionedDeserializationContext parameter instead");
-                }
-                return placedReference.get();
-            }
-        } else {
-            throw new VSException("Can't deserialize reference we haven't encountered, bad data order");
+        if (ref == null) {
+            throw new VSException("Can't deserialize reference without refId");
         }
-
+        Resolving placedReference = context.refMap.getOrDefault(ref, null);
+        if (placedReference == null) {
+            throw new VSException("Can't deserialize reference we haven't encountered, bad data order");
+        } else {
+            //reference is a record, that is cyclical, but  because we are in this method, it means we missed it 
+            //with stackOrResolveCycle method or cyclic resolve is not turned on, either way - error
+            if (placedReference.isUnresolved()) {
+                throw new VSException("Can't dereference in cyclical record layout, use special VersionedDeserializationContext parameter instead");
+            }
+            return placedReference.get();
+        }
     }
 
     /**
@@ -292,10 +291,17 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         if (context.resolvedCyclicRecords) { // look inside
             if (unit instanceof ReferenceVSU) {
                 ReferenceVSU ref = F.cast(unit);
-                Resolving res = context.refMap.get(ref.getRef());
-                if (res.isEmpty()) {//unresolvable
+                Long r = ref.getRef();
+                if (r == null) {
+                    throw new VSException("Reference without refId");
+                }
+                Resolving res = context.refMap.getOrDefault(r, null);
+                if (res == null) {
+                    throw new VSException("Can't deserialize reference we haven't encountered, bad data order");
+                }
+                if (res.isUnresolved()) {//yet unresolved
                     res.addAction(consumer);
-                    res.cyclicResolve = true;
+//                    res.cyclicResolve = true;
                     return;
                 }
             }
@@ -323,6 +329,9 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         if (refCheck) {
             Long referenced = complex.getRef();
             if (referenced != null) {
+                if (context.refMap.containsKey(referenced)) {
+                    throw new VSException("Duplicate refId in refMap is not allowed");
+                }
                 resolving = new Resolving();
                 context.refMap.put(referenced, resolving);
             }
@@ -395,13 +404,6 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             Object instantiatedRecord = instantiateRecordLike(clazz, parameterTypes, parameters);
             if (resolving != null) {
                 resolving.set(instantiatedRecord);
-                if (resolving.cyclicResolve) { // resolve
-                    Iterator<Consumer> it = resolving.getActions().iterator();
-                    while (it.hasNext()) {
-                        it.next().accept(instantiatedRecord);
-                        it.remove();
-                    }
-                }
             }
             return instantiatedRecord;
 
@@ -467,6 +469,18 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         Objects.requireNonNull(unit, "deserializeAuto passed unit was null");
         if (unit instanceof NullVSU) {
             return null;
+        }
+        if (unit instanceof HolderVSU) {
+            HolderVSU holder = F.cast(unit);
+            Long ref = holder.getRef();
+            Object value = holder.getValue();
+            if (ref != null) {
+                Resolving resolving = context.refMap.computeIfAbsent(ref, k -> new Resolving());
+                if (resolving.isUnresolved()) {
+                    resolving.set(value);
+                }
+            }
+            return value;
         }
         if (unit instanceof TraitType) {
             TraitType typed = F.cast(unit);

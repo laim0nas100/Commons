@@ -1,12 +1,10 @@
 package lt.lb.commons.io.serialization;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import lt.lb.commons.containers.collections.ImmutableCollections;
-import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.reflect.Refl;
 
 /**
@@ -26,25 +24,44 @@ public class VersionedDeserializationContext {
         this.resolvedCyclicRecords = resolvedCyclicRecords && Refl.recordsSupported();
     }
 
-    public static class Resolving extends Value {
+    public static class Resolving {
 
-        public boolean cyclicResolve;
         protected List<Consumer> resolveActions;
+        protected boolean set = false;
+        protected Object value;
 
         public Resolving() {
         }
 
-        public List<Consumer> getActions() {
-            if (resolveActions == null) {
-                return ImmutableCollections.listOf();
-            } else {
-                return resolveActions;
+        public Object get() {
+            return value;
+        }
+
+        public void set(Object val) {
+            if (set) {
+                throw new IllegalStateException("Value was set already");
             }
+            set = true;
+            this.value = val;
+            if (resolveActions != null) {
+                for (Consumer cons : resolveActions) {
+                    cons.accept(val);
+                }
+            }
+
+            resolveActions = null;
+        }
+
+        public boolean isUnresolved() {
+            return !set;
         }
 
         public void addAction(Consumer cons) {
+            if (set) {
+                throw new IllegalStateException("Value was set already");
+            }
             if (resolveActions == null) {
-                resolveActions = new LinkedList<>();
+                resolveActions = new ArrayList<>();
             }
             resolveActions.add(cons);
         }

@@ -369,6 +369,37 @@ public class VersionedSerialization {
 
     }
 
+    /**
+     * Only used for deserialization. Just put the value directly when updating
+     * version. Can be referenced.
+     */
+    public static class HolderVSU<T> extends BaseVSUnit implements VSULeaf, TraitValue<T>, TraitReferenced {
+
+        public HolderVSU(T value) {
+            setValue(value);
+        }
+
+        public HolderVSU() {
+        }
+
+    }
+
+    /**
+     * Only used for deserialization. Just put the value directly when updating
+     * version. Can be referenced.
+     */
+    public static class HolderVSUF<T> extends HolderVSU<T> implements VSULeafField {
+
+        public HolderVSUF(String fieldName, T value) {
+            super(value);
+            setFieldName(fieldName);
+        }
+
+        public HolderVSUF() {
+        }
+
+    }
+
     public static class EntryVSU implements VSUChildren {
 
         public VSUnit key;
@@ -1016,6 +1047,8 @@ public class VersionedSerialization {
         map.put(ReferenceVSU.class, ReferenceVSU::new);
         map.put(NullVSUF.class, NullVSUF::new);
         map.put(NullVSU.class, NullVSU::new);
+        map.put(HolderVSU.class, HolderVSU::new);
+        map.put(HolderVSUF.class, HolderVSUF::new);
         return map;
     }
 
