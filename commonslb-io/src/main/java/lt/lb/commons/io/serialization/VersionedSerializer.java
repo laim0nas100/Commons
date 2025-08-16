@@ -35,6 +35,13 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         return this;
     }
 
+    /**
+     * Convert serializable to ObjectOutputStream produced byte array.
+     *
+     * @param value
+     * @return
+     * @throws IOException
+     */
     public static byte[] autoBytes(Serializable value) throws IOException {
         ByteArrayOutputStream array = new ByteArrayOutputStream();
         ObjectOutputStream stream = null;
@@ -50,10 +57,28 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         }
     }
 
+    /**
+     * Convert serializable to ObjectOutputStream produced byte array with
+     * capturing exceptions.
+     *
+     * @param value
+     * @return
+     */
     public static SafeOpt<byte[]> safeBytes(Serializable value) {
         return SafeOpt.of(value).map(m -> autoBytes(m));
     }
 
+    /**
+     * Serialize an object with optional fieldName to VSUnit. Works with all
+     * primitives, {@link Serializable} and custom types that can be converted
+     * to string or binary array.
+     *
+     * @param fieldName
+     * @param value
+     * @param context
+     * @return
+     * @throws VSException
+     */
     public VSUnit serializeValue(Optional<String> fieldName, Object value, VersionedSerializationContext context) throws VSException {
         boolean fn = fieldName.isPresent();
         String name = fieldName.orElse(null);
@@ -120,10 +145,25 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
 
     }
 
+    /**
+     * Serialization entry point with default
+     * {@link VersionedSerializationContext}
+     *
+     * @param value
+     * @return
+     */
     public CustomVSU serializeRoot(Object value) {
         return serializeRoot(value, new VersionedSerializationContext());
     }
 
+    /**
+     * Serialization entry point with given
+     * {@link VersionedSerializationContext}
+     *
+     * @param value
+     * @param context
+     * @return
+     */
     public CustomVSU serializeRoot(Object value, VersionedSerializationContext context) {
         Objects.requireNonNull(context);
         Class<? extends Object> type = value.getClass();
@@ -133,6 +173,19 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         return (CustomVSU) serializeComplex(Optional.empty(), value, context);
     }
 
+    /**
+     * Serialize complex object with optional field name.
+     *
+     * Complex type is defined by predicate
+     * {@link VersionedSerializer#isComplexType(java.lang.Class)}, which can be
+     * customized by adding various types.
+     *
+     * @param fieldName
+     * @param value
+     * @param context
+     * @return
+     * @throws VSException
+     */
     public VSUnit serializeComplex(Optional<String> fieldName, Object value, VersionedSerializationContext context) throws VSException {
         if (value == null) {
             return newNullUnit(fieldName);
@@ -172,7 +225,6 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 }
 
                 String name = field.getName();//shadowing doesn't makes sense in beans context
-
                 SafeOpt safeGet = Refl.safeInvokeMethod(field.getReadMethod(), value);
                 Object fieldValue = null;
 
@@ -217,7 +269,6 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 if (auto != null) { // null means not included
                     fields.add(auto);
                 }
-
             }
 
         } else {
@@ -256,9 +307,16 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         }
         unit.fields = fields.stream().toArray(s -> new VSUField[s]);
         return unit;
-
     }
 
+    /**
+     * Serialize a collection with optional field name.
+     *
+     * @param fieldName
+     * @param col
+     * @param context
+     * @return
+     */
     public ArrayVSU serializeCollection(Optional<String> fieldName, Collection col, VersionedSerializationContext context) {
         ArrayVSU arrayUnit = newArrayUnit(fieldName);
         List<VSUnit> values = new ArrayList<>(col.size());
@@ -273,6 +331,14 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         return arrayUnit;
     }
 
+    /**
+     * Serialize a map with optional field name.
+     *
+     * @param fieldName
+     * @param map
+     * @param context
+     * @return
+     */
     public MapVSU serializeMap(Optional<String> fieldName, Map map, VersionedSerializationContext context) {
         MapVSU mapUnit = newMapUnit(fieldName);
         List<EntryVSU> entries = new ArrayList<>(map.size());
@@ -295,6 +361,14 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         return mapUnit;
     }
 
+    /**
+     * Serialize array with optional field name.
+     *
+     * @param fieldName
+     * @param array
+     * @param context
+     * @return
+     */
     public ArrayVSU serializeArray(Optional<String> fieldName, Object array, VersionedSerializationContext context) {
         ArrayVSU arrayUnit = newArrayUnit(fieldName);
         int length = Array.getLength(array);
@@ -310,6 +384,15 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         return arrayUnit;
     }
 
+    /**
+     * Serialization default entry point that delegates to other methods by
+     * given object type.
+     *
+     * @param fieldName
+     * @param value
+     * @param context
+     * @return
+     */
     public VSUnit serializeAuto(Optional<String> fieldName, Object value, VersionedSerializationContext context) {
         if (value == null) {
             return newNullUnit(fieldName);
@@ -339,26 +422,62 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         return serializeValue(fieldName, value, context);
     }
 
+    /**
+     * Create empty {@link ArrayVSU} or {@link ArrayVSUF}.
+     *
+     * @param fieldName
+     * @return
+     */
     public ArrayVSU newArrayUnit(Optional<String> fieldName) {
         return fieldName.isPresent() ? new ArrayVSUF(fieldName.get()) : new ArrayVSU();
     }
 
+    /**
+     * Create empty {@link MapVSU} or {@link MapVSUF}.
+     *
+     * @param fieldName
+     * @return
+     */
     public MapVSU newMapUnit(Optional<String> fieldName) {
         return fieldName.isPresent() ? new MapVSUF(fieldName.get()) : new MapVSU();
     }
 
+    /**
+     * Create {@link NullVSU} or {@link NullVSUF}.
+     *
+     * @param fieldName
+     * @return
+     */
     public NullVSU newNullUnit(Optional<String> fieldName) {
         return fieldName.isPresent() ? new NullVSUF(fieldName.get()) : new NullVSU();
     }
 
+    /**
+     * Create empty default {@link CustomVSU} or {@link CustomVSUF}.
+     *
+     * @param fieldName
+     * @return
+     */
     public CustomVSU newCustomUnit(Optional<String> fieldName, long version) {
         return fieldName.isPresent() ? new CustomVSUF(version, fieldName.get()) : new CustomVSU(version);
     }
 
+    /**
+     * Create empty default {@link ComplexVSU} or {@link ComplexVSUF}.
+     *
+     * @param fieldName
+     * @return
+     */
     public ComplexVSU newComplexUnit(Optional<String> fieldName) {
         return fieldName.isPresent() ? new ComplexVSUF(fieldName.get()) : new ComplexVSU();
     }
 
+    /**
+     * Create empty default {@link ReferenceVSU} or {@link ReferenceVSUF}.
+     *
+     * @param fieldName
+     * @return
+     */
     public ReferenceVSU newReference(Optional<String> fieldName, long id) {
         return fieldName.isPresent() ? new ReferenceVSUF(fieldName.get(), id) : new ReferenceVSU(id);
     }

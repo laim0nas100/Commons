@@ -30,6 +30,9 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
      * deserializing. When serializing object class name is used, but you can
      * make multiple types correspond to same mapping to achieve custom type
      * when serializing to write a non-class type.
+     *
+     * Immutable collection types can be deserialized using this tactic, but
+     * requires manual configuration of mappers.
      */
     protected Map<String, SerializerMapping> customValueSerializers = new HashMap<>();
     protected Map<String, SerializerStringMapping> stringifyTypes = new HashMap<>();

@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,9 +21,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.collections.MapEntries;
 import lt.lb.commons.containers.collections.MapEntries.DetachedMapEntry;
-import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.io.serialization.VersionedDeserializationContext.Resolving;
 import lt.lb.commons.iteration.streams.MakeStream;
@@ -60,6 +57,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
     /**
      * Class cache for method {@link Class#forName(java.lang.String) }.
+     * Also works with primitive types.
      *
      * @param type
      * @return
@@ -85,6 +83,13 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return (T) customConstructors.getOrDefault(type, () -> instantiate(type)).get();
     }
 
+    /**
+     * Instantiate class by given type.
+     *
+     * @param <T>
+     * @param type
+     * @return
+     */
     public <T> T instantiate(String type) {
         Class clazz = getClass(type);
         try {
@@ -94,16 +99,26 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         }
     }
 
-    public <T> T instantiateRecord(Class clazz, Class[] types, Object[] parameters) {
+    /**
+     * Instantiate a record or record-like class by finding the matching
+     * constructor. Does not check the parameters, so provide correct ones.
+     *
+     * @param <T>
+     * @param clazz
+     * @param types
+     * @param parameters
+     * @return
+     */
+    public <T> T instantiateRecordLike(Class clazz, Class[] types, Object[] parameters) {
         try {
             for (Constructor cons : clazz.getDeclaredConstructors()) {
                 if (Arrays.equals(types, cons.getParameterTypes())) {//exact fit
                     return (T) cons.newInstance(parameters);
                 }
             }
-            throw new VSException("Failed to find suitable constructor to instantiate record:" + clazz.getName());
+            throw new VSException("Failed to find suitable constructor to instantiate record or record like type:" + clazz.getName());
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            throw new VSException("Failed to instantiate record:" + clazz.getName(), ex);
+            throw new VSException("Failed to instantiate record or record like type:" + clazz.getName(), ex);
         }
     }
 
@@ -112,6 +127,13 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return this;
     }
 
+    /**
+     * Deserialize array
+     *
+     * @param unit
+     * @param context
+     * @return
+     */
     public Object deserializeArray(ArrayVSU unit, VersionedDeserializationContext context) {
         Class arrayType = getClass(unit.getType());
         Object array = Array.newInstance(arrayType, unit.values.length);
@@ -120,11 +142,17 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             stackOrResolveCycle(context, unit.values[i], v -> {
                 Array.set(array, index, v);
             });
-
         }
         return array;
     }
 
+    /**
+     * Deserialize collection
+     *
+     * @param unit
+     * @param context
+     * @return
+     */
     public Collection deserializeCollection(ArrayVSU unit, VersionedDeserializationContext context) {
         Collection collection = instantiate(unit.getCollectionType());
         if (!context.resolvedCyclicRecords || unit.values.length == 0) {
@@ -140,7 +168,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                 stackOrResolveCycle(context, unit.values[i], v -> {
                     array[index] = v;
                     Integer inc = filled.incrementAndGet();
-                    if (inc >= array.length) {//last one
+                    if (inc == array.length) {//last one
                         collection.addAll(Arrays.asList(array));
                     }
                 });
@@ -150,6 +178,13 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
     }
 
+    /**
+     * Deserialize map
+     *
+     * @param unit
+     * @param context
+     * @return
+     */
     public Map deserializeMap(MapVSU unit, VersionedDeserializationContext context) {
         Map map = instantiate(unit.getCollectionType());
         if (!context.resolvedCyclicRecords || unit.values.length == 0) {
@@ -164,10 +199,11 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             DetachedMapEntry[] array = new DetachedMapEntry[unit.values.length];
             for (int i = 0; i < unit.values.length; i++) {
                 final int index = i;
+                array[index] = new DetachedMapEntry();
                 stackOrResolveCycle(context, unit.values[i].key, v -> {
                     array[index].setKey(v);
                     Integer inc = filled.incrementAndGet();
-                    if (inc >= array.length * 2) {//last one
+                    if (inc == array.length * 2) {//last one
                         for (DetachedMapEntry entry : array) {
                             map.put(entry.getKey(), entry.getValue());
                         }
@@ -188,10 +224,25 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return map;
     }
 
+    /**
+     * Deserialization starting point
+     *
+     * @param <T>
+     * @param custom
+     * @return
+     */
     public <T> T deserializeRoot(CustomVSU custom) {
         return deserializeRoot(custom, new VersionedDeserializationContext());
     }
 
+    /**
+     * Deserialization starting point with given context
+     *
+     * @param <T>
+     * @param custom
+     * @param context
+     * @return
+     */
     public <T> T deserializeRoot(CustomVSU custom, VersionedDeserializationContext context) {
         Objects.requireNonNull(custom);
         Objects.requireNonNull(context);
@@ -203,6 +254,14 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return (T) deserializeComplex(true, custom, context);
     }
 
+    /**
+     * Deserialize reference by getting resolved value from reference map in
+     * context
+     *
+     * @param reference
+     * @param context
+     * @return
+     */
     public Object deserializeReference(ReferenceVSU reference, VersionedDeserializationContext context) {
         Long ref = reference.getRef();
         if (context.refMap.containsKey(ref)) {
@@ -211,8 +270,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                 throw new VSException("Placed referenced is gone. Maybe shared context across threads?");
             } else {
                 if (placedReference.isEmpty()) {//reference is a record, that is cyclical
-                    throw new VSException("Can't dereference in cyclical record layout, use special VersionedDeserializationContext parameter");
-
+                    throw new VSException("Can't dereference in cyclical record layout, use special VersionedDeserializationContext parameter instead");
                 }
                 return placedReference.get();
             }
@@ -222,7 +280,15 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
     }
 
-    private void stackOrResolveCycle(VersionedDeserializationContext context, VSUnit unit, Consumer consumer) {
+    /**
+     * Cyclic record resolving helper, which resolves the value after the record
+     * has been initialized by queuing assignment action
+     *
+     * @param context
+     * @param unit
+     * @param consumer
+     */
+    protected void stackOrResolveCycle(VersionedDeserializationContext context, VSUnit unit, Consumer consumer) {
         if (context.resolvedCyclicRecords) { // look inside
             if (unit instanceof ReferenceVSU) {
                 ReferenceVSU ref = F.cast(unit);
@@ -237,6 +303,15 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         consumer.accept(deserializeAuto(unit, context));
     }
 
+    /**
+     * Complex object deserialization.
+     *
+     * @param refCheck will resolve references if object is referenced further
+     * along the object tree
+     * @param complex
+     * @param context
+     * @return
+     */
     public Object deserializeComplex(boolean refCheck, ComplexVSU complex, VersionedDeserializationContext context) {
         Objects.requireNonNull(complex, "deserializeComplex passed unit was null");
 
@@ -284,14 +359,6 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                     }
                 }
 
-//                Object fieldValue = deserializeAuto(fieldVSUnit, context);
-//                SafeOpt safeSet = Refl.safeInvokeMethod(property.getWriteMethod(), object, fieldValue);
-//
-//                if (safeSet.hasError()) {// set failed
-//                    if (throwOnReflectionWrite.get()) {
-//                        throw VSException.writeFail(clazz, name, VSException.FieldType.BEAN, safeSet.rawException());
-//                    }
-//                }
                 stackOrResolveCycle(context, fieldVSUnit, v -> {
                     SafeOpt safeSet = Refl.safeInvokeMethod(property.getWriteMethod(), object, v);
 
@@ -325,7 +392,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             }
             Object[] parameters = recordFields.values().stream().map(m -> m.value).toArray(s -> new Object[s]);//excluded types remain null
             Class[] parameterTypes = recordFields.values().stream().map(m -> m.record.getType()).toArray(s -> new Class[s]);
-            Object instantiatedRecord = instantiateRecord(clazz, parameterTypes, parameters);
+            Object instantiatedRecord = instantiateRecordLike(clazz, parameterTypes, parameters);
             if (resolving != null) {
                 resolving.set(instantiatedRecord);
                 if (resolving.cyclicResolve) { // resolve
@@ -374,13 +441,6 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                     }
                 }
 
-//                Object fieldValue = deserializeAuto(field, context);
-//                SafeOpt safeSet = objectField.safeSet(object, fieldValue);
-//                if (safeSet.hasError()) {
-//                    if (throwOnReflectionWrite.get()) {
-//                        throw VSException.writeFail(clazz, name, VSException.FieldType.FIELD, safeSet.rawException());
-//                    }
-//                }
                 stackOrResolveCycle(context, field, v -> {
                     SafeOpt safeSet = objectField.safeSet(object, v);
                     if (safeSet.hasError()) {
@@ -395,6 +455,14 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
     }
 
+    /**
+     * Deserialization entry point for any VSUnit, will check for types and
+     * delegate accordingly.
+     *
+     * @param unit
+     * @param context
+     * @return
+     */
     public Object deserializeAuto(VSUnit unit, VersionedDeserializationContext context) {
         Objects.requireNonNull(unit, "deserializeAuto passed unit was null");
         if (unit instanceof NullVSU) {
@@ -428,6 +496,14 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return deserializeValue(unit, context);
     }
 
+    /**
+     * Read java object from ObjectInputStream from given byte array
+     *
+     * @param binary
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public static Object autoBytes(byte[] binary) throws IOException, ClassNotFoundException {
         ByteArrayInputStream array = new ByteArrayInputStream(binary);
         ObjectInputStream stream = null;
@@ -444,10 +520,26 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         }
     }
 
+    /**
+     * Read java object from ObjectInputStream from given byte array capturing
+     * exceptions
+     *
+     * @param binary
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public static SafeOpt safeBytes(byte[] binary) {
         return SafeOpt.of(binary).map(m -> autoBytes(binary));
     }
 
+    /**
+     * Deserialize VSU value with no children
+     *
+     * @param unit
+     * @param context
+     * @return
+     */
     public Object deserializeValue(VSUnit unit, VersionedDeserializationContext context) {
         Objects.requireNonNull(unit, "deserializeValue passed unit was null");
         if (unit instanceof NullVSU) {

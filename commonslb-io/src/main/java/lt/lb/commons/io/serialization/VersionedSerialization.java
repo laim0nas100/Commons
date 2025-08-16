@@ -1,6 +1,5 @@
 package lt.lb.commons.io.serialization;
 
-import lt.lb.commons.io.serialization.VersionedSerialization.TraitFieldName;
 import java.io.Serializable;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;

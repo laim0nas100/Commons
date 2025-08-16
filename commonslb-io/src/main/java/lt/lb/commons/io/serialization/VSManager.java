@@ -51,18 +51,50 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
         return deserializer;
     }
 
+    /**
+     * Delegates to {@link VersionedSerializer#serializeRoot(java.lang.Object, VersionedSerializationContext)
+     * }
+     *
+     * @param value
+     * @param context
+     * @return
+     */
     public VersionedSerialization.CustomVSU serializeRoot(Object value, VersionedSerializationContext context) {
         return getSerializer().serializeRoot(value, context);
     }
 
+    /**
+     * Delegates to {@link VersionedSerializer#serializeRoot(java.lang.Object)
+     * }
+     *
+     * @param value
+     * @return
+     */
     public VersionedSerialization.CustomVSU serializeRoot(Object value) {
         return getSerializer().serializeRoot(value);
     }
 
+    /**
+     * Delegates to {@link VersionedDeserializer#deserializeRoot(VersionedSerialization.CustomVSU)
+     * }
+     *
+     * @param <T>
+     * @param custom
+     * @return
+     */
     public <T> T deserializeRoot(VersionedSerialization.CustomVSU custom) {
         return getDeserializer().deserializeRoot(custom);
     }
 
+    /**
+     * Delegates to {@link VersionedDeserializer#deserializeRoot(VersionedSerialization.CustomVSU, VersionedDeserializationContext)
+     * }
+     *
+     * @param <T>
+     * @param custom
+     * @param context
+     * @return
+     */
     public <T> T deserializeRoot(VersionedSerialization.CustomVSU custom, VersionedDeserializationContext context) {
         return getDeserializer().deserializeRoot(custom, context);
     }
@@ -75,6 +107,12 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
         return me();
     }
 
+    /**
+     * Traverse the root in post-order and mutate any
+     * {@link VersionedSerialization.CustomVSU} elements.
+     *
+     * @param root
+     */
     public void applyVersionChange(VersionedSerialization.CustomVSU root) {
         VersionedSerialization.treeVisitor(unit -> {
 
@@ -106,6 +144,14 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
         }).PostOrder(root);// traverse the leafs before parent
     }
 
+    /**
+     * Gets new stateless {@link SerializingObjectStreams} instance which
+     * facilitates serialization and deserialization (with version change) to
+     * default ObjectInputStream.
+     *
+     * @param <T>
+     * @return
+     */
     public <T> SerializingObjectStreams<T, T> serializingObjectStream() {
         return new SerializingObjectStreams<T, T>() {
             @Override
@@ -124,6 +170,14 @@ public class VSManager extends VersionedSerializationMapper<VSManager> {
         };
     }
 
+    /**
+     * Gets new stateless {@link SerializingBufferedStreams} instance which
+     * facilitates serialization and deserialization (with version change) to
+     * XML via {@link VersionedSerializationXML} using UTF-8 charset {@link java.nio.charset.Charset#defaultCharset}.
+     *
+     * @param <T>
+     * @return
+     */
     public <T> SerializingBufferedStreams<T, T> serializingXMLStream() {
         return new SerializingBufferedStreams<T, T>() {
             @Override
