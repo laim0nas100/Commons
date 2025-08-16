@@ -13,7 +13,8 @@ import java.util.function.Function;
 import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.Nulls;
-import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.containers.values.BooleanValue;
+import lt.lb.commons.containers.values.LongValue;
 import org.apache.commons.lang3.Strings;
 
 /**
@@ -22,20 +23,23 @@ import org.apache.commons.lang3.Strings;
  */
 public abstract class VersionedSerializationMapper<M extends VersionedSerializationMapper> {
 
-    protected Value<Long> defaultVersion = new Value<>(0L);
+    protected LongValue defaultVersion = new LongValue(0L);
     /**
-     * These types are custom and can exists or not, or not even correspond to a
-     * class
+     * These types can be custom and can exist or not, or not even correspond to
+     * a class, custom types (non-class) can only be resolved when
+     * deserializing. When serializing object class name is used, but you can
+     * make multiple types correspond to same mapping to achieve custom type
+     * when serializing to write a non-class type.
      */
     protected Map<String, SerializerMapping> customValueSerializers = new HashMap<>();
     protected Map<String, SerializerStringMapping> stringifyTypes = new HashMap<>();
 
-    protected Value<Boolean> throwOnBinaryError = new Value<>(true);
-    protected Value<Boolean> throwOnReflectionRead = new Value<>(true);
-    protected Value<Boolean> throwOnReflectionWrite = new Value<>(true);
-    protected Value<Boolean> throwOnUnrecognizedPrimitive = new Value<>(true);
-    protected Value<Boolean> throwOnFieldNotFound = new Value<>(true);
-    protected Value<Boolean> ignoreTransientFields = new Value<>(true);
+    protected BooleanValue throwOnBinaryError = BooleanValue.TRUE();
+    protected BooleanValue throwOnReflectionRead = BooleanValue.TRUE();
+    protected BooleanValue throwOnReflectionWrite = BooleanValue.TRUE();
+    protected BooleanValue throwOnUnrecognizedPrimitive = BooleanValue.TRUE();
+    protected BooleanValue throwOnFieldNotFound = BooleanValue.TRUE();
+    protected BooleanValue ignoreTransientFields = BooleanValue.TRUE();
 
     /**
      * These types must be loaded in classpath
@@ -296,6 +300,15 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         mapper.throwOnReflectionWrite = throwOnReflectionWrite;
         mapper.throwOnUnrecognizedPrimitive = throwOnUnrecognizedPrimitive;
         mapper.ignoreTransientFields = ignoreTransientFields;
+        mapper.defaultVersion = defaultVersion;
+    }
+
+    public long getDefaultVersion() {
+        return defaultVersion.get();
+    }
+
+    public void setDefaultVersion(long defaultVersion) {
+        this.defaultVersion.set(defaultVersion);
     }
 
     public boolean getThrowOnBinaryError() {
