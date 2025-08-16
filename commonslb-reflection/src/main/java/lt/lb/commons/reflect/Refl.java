@@ -387,7 +387,7 @@ public class Refl {
      * @param sourceClass
      * @return
      */
-    public static SimpleStream<PropertyDescriptor> geBeanPropertyDescriptors(Class sourceClass) {
+    public static SimpleStream<PropertyDescriptor> getBeanPropertyDescriptors(Class sourceClass) {
         return getPropertyDescriptors(sourceClass)
                 .filter(p -> {
                     return p.getWriteMethod() != null && p.getReadMethod() != null;
