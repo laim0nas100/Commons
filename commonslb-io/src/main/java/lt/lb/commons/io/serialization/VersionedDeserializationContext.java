@@ -1,8 +1,8 @@
 package lt.lb.commons.io.serialization;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import lt.lb.commons.containers.collections.ImmutableCollections;
@@ -32,12 +32,12 @@ public class VersionedDeserializationContext {
     public static class Resolving extends Value {
 
         public boolean cyclicResolve;
-        protected List<Consumer> resolveActions;
+        protected Collection<Consumer> resolveActions;
 
         public Resolving() {
         }
 
-        public List<Consumer> getActions() {
+        public Collection<Consumer> getActions() {
             if (resolveActions == null) {
                 return ImmutableCollections.listOf();
             } else {
@@ -47,7 +47,7 @@ public class VersionedDeserializationContext {
 
         public void addAction(Consumer cons) {
             if (resolveActions == null) {
-                resolveActions = new ArrayList<>();
+                resolveActions = new ArrayDeque<>();
             }
             resolveActions.add(cons);
         }

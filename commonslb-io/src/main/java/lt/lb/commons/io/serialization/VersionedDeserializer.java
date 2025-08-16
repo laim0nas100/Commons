@@ -242,7 +242,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
         String type = complex.getType();
 
-        Object object;
+        final Object object;
         Resolving resolving = null;
 
         if (refCheck) {
