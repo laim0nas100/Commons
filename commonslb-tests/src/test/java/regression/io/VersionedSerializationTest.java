@@ -268,23 +268,23 @@ public class VersionedSerializationTest {
         ser.includeCustomRefCounting(SelfRef.class, 0);
         ser.includeCustomRefCounting(SelfRecord.class, 0);
         ser.includeCustomBean(Value.class);
-        
 
         SelfRef me = new SelfRef();
         me.string = "Some value";
         me.refernced = me;
-        
+
         Value<SelfRecord> val = new Value<>();
         SelfRecord rec = new SelfRecord("Record ", val);
         val.set(rec);
 
         VersionedSerialization.CustomVSU root = ser.serializeRoot(me);
-        Object deserializeRoot = ser.deserializeRoot(root);
-        
+        SelfRef deserializeRoot = ser.deserializeRoot(root);
+
+        assertThat(deserializeRoot).isSameAs(deserializeRoot.refernced);
+
         VersionedSerialization.CustomVSU recordRoot = ser.serializeRoot(rec);
-        Object deserializedRecord = ser.deserializeRoot(recordRoot, new VersionedDeserializationContext(true));
-        DLog.print("");
-        
-        
+        SelfRecord deserializedRecord = ser.deserializeRoot(recordRoot, new VersionedDeserializationContext(true));
+        assertThat(deserializedRecord).isSameAs(deserializedRecord.selfValue.get());
+
     }
 }
