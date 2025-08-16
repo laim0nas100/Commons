@@ -24,7 +24,8 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
 
     protected Value<Long> defaultVersion = new Value<>(0L);
     /**
-     * These types are custom and can exists or not, or not even correspond to a class
+     * These types are custom and can exists or not, or not even correspond to a
+     * class
      */
     protected Map<String, SerializerMapping> customValueSerializers = new HashMap<>();
     protected Map<String, SerializerStringMapping> stringifyTypes = new HashMap<>();
@@ -50,12 +51,12 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected Set<Class> excludedTypes = new HashSet<>();
 
     protected abstract M me();
-    
-    public M includeCustomBean(Class type){
+
+    public M includeCustomBean(Class type) {
         return includeType(type, false, true, defaultVersion.get());
     }
-    
-    public M includeCustomBeanRefcounting(Class type){
+
+    public M includeCustomBeanRefcounting(Class type) {
         return includeType(type, true, true, defaultVersion.get());
     }
 

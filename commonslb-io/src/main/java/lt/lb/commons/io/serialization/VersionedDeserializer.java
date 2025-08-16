@@ -12,14 +12,21 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
-import lt.lb.commons.containers.values.Value;
+import lt.lb.commons.containers.collections.MapEntries;
+import lt.lb.commons.containers.collections.MapEntries.DetachedMapEntry;
+import lt.lb.commons.containers.values.BooleanValue;
+import lt.lb.commons.containers.values.IntegerValue;
+import lt.lb.commons.io.serialization.VersionedDeserializationContext.Resolving;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.reflect.Refl;
@@ -109,27 +116,75 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         Class arrayType = getClass(unit.getType());
         Object array = Array.newInstance(arrayType, unit.values.length);
         for (int i = 0; i < unit.values.length; i++) {
-            Array.set(array, i, deserializeAuto(unit.values[i], context));
+            final int index = i;
+            stackOrResolveCycle(context, unit.values[i], v -> {
+                Array.set(array, index, v);
+            });
+
         }
         return array;
     }
 
     public Collection deserializeCollection(ArrayVSU unit, VersionedDeserializationContext context) {
         Collection collection = instantiate(unit.getCollectionType());
-        for (int i = 0; i < unit.values.length; i++) {
-            collection.add(deserializeAuto(unit.values[i], context));
+        if (!context.resolvedCyclicRecords || unit.values.length == 0) {
+            for (int i = 0; i < unit.values.length; i++) {
+                collection.add(deserializeAuto(unit.values[i], context));
+            }
+            return collection;
+        } else {
+            IntegerValue filled = new IntegerValue(0);
+            Object[] array = new Object[unit.values.length];
+            for (int i = 0; i < unit.values.length; i++) {
+                final int index = i;
+                stackOrResolveCycle(context, unit.values[i], v -> {
+                    array[index] = v;
+                    Integer inc = filled.incrementAndGet();
+                    if (inc >= array.length) {//last one
+                        collection.addAll(Arrays.asList(array));
+                    }
+                });
+            }
+            return collection;
         }
-        return collection;
+
     }
 
     public Map deserializeMap(MapVSU unit, VersionedDeserializationContext context) {
         Map map = instantiate(unit.getCollectionType());
-        for (int i = 0; i < unit.values.length; i++) {
-            EntryVSU entry = unit.values[i];
-            Object key = deserializeAuto(entry.key, context);
-            Object val = deserializeAuto(entry.val, context);
-            map.put(key, val);
+        if (!context.resolvedCyclicRecords || unit.values.length == 0) {
+            for (int i = 0; i < unit.values.length; i++) {
+                EntryVSU entry = unit.values[i];
+                Object key = deserializeAuto(entry.key, context);
+                Object val = deserializeAuto(entry.val, context);
+                map.put(key, val);
+            }
+        } else {
+            IntegerValue filled = new IntegerValue(0);
+            DetachedMapEntry[] array = new DetachedMapEntry[unit.values.length];
+            for (int i = 0; i < unit.values.length; i++) {
+                final int index = i;
+                stackOrResolveCycle(context, unit.values[i].key, v -> {
+                    array[index].setKey(v);
+                    Integer inc = filled.incrementAndGet();
+                    if (inc >= array.length * 2) {//last one
+                        for (DetachedMapEntry entry : array) {
+                            map.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                });
+                stackOrResolveCycle(context, unit.values[i].val, v -> {
+                    array[index].setValue(v);
+                    Integer inc = filled.incrementAndGet();
+                    if (inc >= array.length * 2) {//last one
+                        for (DetachedMapEntry entry : array) {
+                            map.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                });
+            }
         }
+
         return map;
     }
 
@@ -148,43 +203,53 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         return (T) deserializeComplex(true, custom, context);
     }
 
-    public Object deserializeComplex(boolean refCheck, VSUnit unit, VersionedDeserializationContext context) {
-        Objects.requireNonNull(unit, "deserializeComplex passed unit was null");
-        if (unit instanceof NullVSU) {
-            return null;
-        }
-        if (unit instanceof ReferenceVSU) {
-            ReferenceVSU reference = F.cast(unit);
-            Long ref = reference.getRef();
-            if (context.refMap.containsKey(ref)) {
-                Value placedReference = context.refMap.getOrDefault(ref, null);
-                if (placedReference == null) {
-                    throw new VSException("Placed referenced is gone. Maybe shared context across threads?");
-                } else {
-                    if (placedReference.isEmpty()) {//reference is a record, that is cyclical
-                        throw new VSException("Can't dereference in cyclical record layout, bad data order");
-                    }
-                    return placedReference.get();
-                }
+    public Object deserializeReference(ReferenceVSU reference, VersionedDeserializationContext context) {
+        Long ref = reference.getRef();
+        if (context.refMap.containsKey(ref)) {
+            Resolving placedReference = context.refMap.getOrDefault(ref, null);
+            if (placedReference == null) {
+                throw new VSException("Placed referenced is gone. Maybe shared context across threads?");
             } else {
-                throw new VSException("Can't deserialize reference we haven't encountered, bad data order");
-            }
+                if (placedReference.isEmpty()) {//reference is a record, that is cyclical
+                    throw new VSException("Can't dereference in cyclical record layout, use special VersionedDeserializationContext parameter");
 
+                }
+                return placedReference.get();
+            }
+        } else {
+            throw new VSException("Can't deserialize reference we haven't encountered, bad data order");
         }
-        if (!(unit instanceof ComplexVSU)) {
-            throw new IllegalArgumentException(unit + " is not " + ComplexVSU.class);
-        }
-        ComplexVSU complex = F.cast(unit);
+
+    }
+
+    private void stackOrResolveCycle(VersionedDeserializationContext context, VSUnit unit, Consumer consumer) {
+        if (context.resolvedCyclicRecords) { // look inside
+            if (unit instanceof ReferenceVSU) {
+                ReferenceVSU ref = F.cast(unit);
+                Resolving res = context.refMap.get(ref.getRef());
+                if (res.isEmpty()) {//unresolvable
+                    res.addAction(consumer);
+                    res.cyclicResolve = true;
+                    return;
+                }
+            }
+        } // just do the action
+        consumer.accept(deserializeAuto(unit, context));
+    }
+
+    public Object deserializeComplex(boolean refCheck, ComplexVSU complex, VersionedDeserializationContext context) {
+        Objects.requireNonNull(complex, "deserializeComplex passed unit was null");
+
         String type = complex.getType();
 
         Object object;
-        Value value = null;
+        Resolving resolving = null;
 
         if (refCheck) {
             Long referenced = complex.getRef();
             if (referenced != null) {
-                value = new Value();
-                context.refMap.put(referenced, value);
+                resolving = new Resolving();
+                context.refMap.put(referenced, resolving);
             }
         }
         Class clazz = getClass(type);
@@ -195,8 +260,8 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             } else {
                 object = instantiate(type);
             }
-            if (value != null) {
-                value.set(object);
+            if (resolving != null) {
+                resolving.set(object);
             }
             Map<String, VSUnit> beanFields = new HashMap<>();
             for (VSUField uField : complex.fields) {
@@ -218,16 +283,25 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                         continue;
                     }
                 }
-                Object fieldValue = deserializeAuto(fieldVSUnit, context);
-                SafeOpt safeSet = Refl.safeInvokeMethod(property.getWriteMethod(), object, fieldValue);
 
-                if (safeSet.hasError()) {
-                    if (throwOnReflectionWrite.get()) {
-                        throw VSException.writeFail(clazz, name, VSException.FieldType.BEAN, safeSet.rawException());
-                    } else {
-                        fieldValue = null;
+//                Object fieldValue = deserializeAuto(fieldVSUnit, context);
+//                SafeOpt safeSet = Refl.safeInvokeMethod(property.getWriteMethod(), object, fieldValue);
+//
+//                if (safeSet.hasError()) {// set failed
+//                    if (throwOnReflectionWrite.get()) {
+//                        throw VSException.writeFail(clazz, name, VSException.FieldType.BEAN, safeSet.rawException());
+//                    }
+//                }
+                stackOrResolveCycle(context, fieldVSUnit, v -> {
+                    SafeOpt safeSet = Refl.safeInvokeMethod(property.getWriteMethod(), object, v);
+
+                    if (safeSet.hasError()) {// set failed
+                        if (throwOnReflectionWrite.get()) {
+                            throw VSException.writeFail(clazz, name, VSException.FieldType.BEAN, safeSet.rawException());
+                        }
                     }
-                }
+                });
+
             }
         } else if (Refl.recordsSupported() && Refl.typeIsRecord(clazz)) { // cant set reference before, resolving all fields
             IRecordComponent[] recordComponents = Refl.getRecordComponents(clazz).toArray(s -> new IRecordComponent[s]);
@@ -245,13 +319,22 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                         continue;
                     }
                 }
+                // this is the culprit, no resolve stacking
                 recordComponent.value = deserializeAuto(field, context);
+
             }
             Object[] parameters = recordFields.values().stream().map(m -> m.value).toArray(s -> new Object[s]);//excluded types remain null
             Class[] parameterTypes = recordFields.values().stream().map(m -> m.record.getType()).toArray(s -> new Class[s]);
             Object instantiatedRecord = instantiateRecord(clazz, parameterTypes, parameters);
-            if (value != null) {
-                value.set(instantiatedRecord);
+            if (resolving != null) {
+                resolving.set(instantiatedRecord);
+                if (resolving.cyclicResolve) { // resolve
+                    Iterator<Consumer> it = resolving.getActions().iterator();
+                    while (it.hasNext()) {
+                        it.next().accept(instantiatedRecord);
+                        it.remove();
+                    }
+                }
             }
             return instantiatedRecord;
 
@@ -261,8 +344,8 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             } else {
                 object = instantiate(type);
             }
-            if (value != null) {
-                value.set(object);
+            if (resolving != null) {
+                resolving.set(object);
             }
             SimpleStream<IObjectField> localFields = ReflFields.getLocalFields(clazz);
             IObjectField[] objectFields = localFields.toArray(s -> new IObjectField[s]);
@@ -291,13 +374,21 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                     }
                 }
 
-                Object fieldValue = deserializeAuto(field, context);
-                SafeOpt safeSet = objectField.safeSet(object, fieldValue);
-                if (safeSet.hasError()) {
-                    if (throwOnReflectionWrite.get()) {
-                        throw VSException.writeFail(clazz, name, VSException.FieldType.FIELD, safeSet.rawException());
+//                Object fieldValue = deserializeAuto(field, context);
+//                SafeOpt safeSet = objectField.safeSet(object, fieldValue);
+//                if (safeSet.hasError()) {
+//                    if (throwOnReflectionWrite.get()) {
+//                        throw VSException.writeFail(clazz, name, VSException.FieldType.FIELD, safeSet.rawException());
+//                    }
+//                }
+                stackOrResolveCycle(context, field, v -> {
+                    SafeOpt safeSet = objectField.safeSet(object, v);
+                    if (safeSet.hasError()) {
+                        if (throwOnReflectionWrite.get()) {
+                            throw VSException.writeFail(clazz, name, VSException.FieldType.FIELD, safeSet.rawException());
+                        }
                     }
-                }
+                });
             }
         }
         return object;
@@ -328,8 +419,11 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         if (unit instanceof MapVSU) {
             return deserializeMap(F.cast(unit), context);
         }
-        if (unit instanceof ComplexVSU || unit instanceof ReferenceVSU) {
-            return deserializeComplex(true, unit, context);
+        if (unit instanceof ReferenceVSU) {
+            return deserializeReference(F.cast(unit), context);
+        }
+        if (unit instanceof ComplexVSU) {
+            return deserializeComplex(true, F.cast(unit), context);
         }
         return deserializeValue(unit, context);
     }
