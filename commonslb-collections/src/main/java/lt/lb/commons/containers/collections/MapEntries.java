@@ -88,6 +88,36 @@ public class MapEntries {
         };
     }
 
+    public static class DetachedMapEntry<K, V> extends AbstractEntry<K, V> {
+
+        private K key;
+        private V value;
+
+        public K setKey(K key) {
+            K old = this.key;
+            this.key = key;
+            return old;
+        }
+
+        @Override
+        public K getKey() {
+            return key;
+        }
+
+        @Override
+        public V getValue() {
+            return value;
+        }
+
+        @Override
+        public V setValue(V value) {
+            V old = this.value;
+            this.value = value;
+            return old;
+        }
+
+    }
+
     public static class MapEntrySet<K, V> extends AbstractSet<Map.Entry<K, V>> {
 
         protected final Map<K, V> map;
@@ -108,7 +138,7 @@ public class MapEntries {
             return new Iterator<Map.Entry<K, V>>() {
                 int i = 0;
                 Optional<Map.Entry<K, V>> cached = null;
-                Map.Entry<K,V> lastNext = null;
+                Map.Entry<K, V> lastNext = null;
 
                 @Override
                 public boolean hasNext() {
