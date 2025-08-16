@@ -16,7 +16,8 @@ import lt.lb.commons.reflect.Refl;
 public class VersionedDeserializationContext {
 
     public final boolean resolvedCyclicRecords;
-    
+    public Map<Long, Resolving> refMap = new HashMap<>();
+
     public VersionedDeserializationContext() {
         this(false);
     }
@@ -24,10 +25,6 @@ public class VersionedDeserializationContext {
     public VersionedDeserializationContext(boolean resolvedCyclicRecords) {
         this.resolvedCyclicRecords = resolvedCyclicRecords && Refl.recordsSupported();
     }
-    
-    
-
-    public Map<Long, Resolving> refMap = new HashMap<>();
 
     public static class Resolving extends Value {
 
