@@ -199,10 +199,10 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                 value.set(object);
             }
             Map<String, VSUnit> beanFields = new HashMap<>();
-            for (VSUnit uField : complex.fields) {
-                beanFields.put(assertFieldName(unit), uField);
+            for (VSUField uField : complex.fields) {
+                beanFields.put(assertFieldName(uField), uField);
             }
-            PropertyDescriptor[] localFields = Refl.getPropertyDescriptors(clazz).toArray(s -> new PropertyDescriptor[s]);
+            PropertyDescriptor[] localFields = Refl.getBeanPropertyDescriptors(clazz).toArray(s -> new PropertyDescriptor[s]);
             //ignore non-property fields
             for (PropertyDescriptor property : localFields) {
                 if (excludedType(property.getPropertyType())) {

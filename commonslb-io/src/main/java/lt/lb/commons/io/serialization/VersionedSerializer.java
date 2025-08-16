@@ -165,7 +165,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
 
         List<VSUnit> fields = new ArrayList<>();
         if (beanAccessTypes.contains(type)) { // do bean access
-            PropertyDescriptor[] localFields = Refl.getPropertyDescriptors(type).toArray(s -> new PropertyDescriptor[s]);
+            PropertyDescriptor[] localFields = Refl.getBeanPropertyDescriptors(type).toArray(s -> new PropertyDescriptor[s]);
             for (PropertyDescriptor field : localFields) {
                 if (excludedType(field.getPropertyType())) {
                     continue;

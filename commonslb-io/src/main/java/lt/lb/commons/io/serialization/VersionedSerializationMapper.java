@@ -50,6 +50,14 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected Set<Class> excludedTypes = new HashSet<>();
 
     protected abstract M me();
+    
+    public M includeCustomBean(Class type){
+        return includeType(type, false, true, defaultVersion.get());
+    }
+    
+    public M includeCustomBeanRefcounting(Class type){
+        return includeType(type, true, true, defaultVersion.get());
+    }
 
     public M includeCustom(Class type) {
         return includeType(type, false, false, defaultVersion.get());
@@ -222,7 +230,7 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected String assertFieldName(VersionedSerialization.VSUnit unit) {
         if (unit instanceof VersionedSerialization.TraitFieldName) {
             VersionedSerialization.TraitFieldName fn = F.cast(unit);
-            return fn.getFieldName();
+            return Objects.requireNonNull(fn.getFieldName());
         }
         throw new IllegalArgumentException(unit.getClass() + " does not have a FieldName trait");
     }
