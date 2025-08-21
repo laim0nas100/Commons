@@ -151,8 +151,9 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
      *
      * @param value
      * @return
+     * @throws VSException
      */
-    public CustomVSU serializeRoot(Object value) {
+    public CustomVSU serializeRoot(Object value) throws VSException {
         return serializeRoot(value, new VersionedSerializationContext());
     }
 
@@ -163,14 +164,40 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
      * @param value
      * @param context
      * @return
+     * @throws VSException
      */
-    public CustomVSU serializeRoot(Object value, VersionedSerializationContext context) {
+    public CustomVSU serializeRoot(Object value, VersionedSerializationContext context) throws VSException {
         Objects.requireNonNull(context);
         Class<? extends Object> type = value.getClass();
         if (!customTypeVersions.containsKey(type)) {
             throw new IllegalArgumentException("Not registered root custom type:" + type);
         }
         return (CustomVSU) serializeComplex(Optional.empty(), value, context);
+    }
+
+    /**
+     * Serialize complex object.
+     *
+     * @param value
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public VSUnit serializeComplex(Object value, VersionedSerializationContext context) throws VSException {
+        return F.cast(serializeComplex(Optional.empty(), value, context));
+    }
+
+    /**
+     * Serialize complex object with field name.
+     *
+     * @param fieldName
+     * @param value
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public VSUField serializeComplex(String fieldName, Object value, VersionedSerializationContext context) throws VSException {
+        return F.cast(serializeComplex(Optional.of(fieldName), value, context));
     }
 
     /**
@@ -310,14 +337,41 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
     }
 
     /**
+     * Serialize a collection with field name.
+     *
+     * @param fieldName
+     * @param col
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public ArrayVSUF serializeCollection(String fieldName, Collection col, VersionedSerializationContext context) throws VSException {
+        return F.cast(serializeCollection(Optional.of(fieldName), col, context));
+    }
+
+    /**
+     * Serialize a collection.
+     *
+     * @param fieldName
+     * @param col
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public ArrayVSU serializeCollection(Collection col, VersionedSerializationContext context) throws VSException {
+        return serializeCollection(Optional.empty(), col, context);
+    }
+
+    /**
      * Serialize a collection with optional field name.
      *
      * @param fieldName
      * @param col
      * @param context
      * @return
+     * @throws VSException
      */
-    public ArrayVSU serializeCollection(Optional<String> fieldName, Collection col, VersionedSerializationContext context) {
+    public ArrayVSU serializeCollection(Optional<String> fieldName, Collection col, VersionedSerializationContext context) throws VSException {
         ArrayVSU arrayUnit = newArrayUnit(fieldName);
         List<VSUnit> values = new ArrayList<>(col.size());
         for (Object val : col) {
@@ -332,14 +386,40 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
     }
 
     /**
+     * Serialize map.
+     *
+     * @param map
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public MapVSU serializeMap(Map map, VersionedSerializationContext context) throws VSException {
+        return serializeMap(Optional.empty(), map, context);
+    }
+
+    /**
+     * Serialize a map with field name.
+     *
+     * @param fieldName
+     * @param map
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public MapVSUF serializeMap(String fieldName, Map map, VersionedSerializationContext context) throws VSException {
+        return F.cast(serializeMap(Optional.of(fieldName), map, context));
+    }
+
+    /**
      * Serialize a map with optional field name.
      *
      * @param fieldName
      * @param map
      * @param context
      * @return
+     * @throws VSException
      */
-    public MapVSU serializeMap(Optional<String> fieldName, Map map, VersionedSerializationContext context) {
+    public MapVSU serializeMap(Optional<String> fieldName, Map map, VersionedSerializationContext context) throws VSException {
         MapVSU mapUnit = newMapUnit(fieldName);
         List<EntryVSU> entries = new ArrayList<>(map.size());
         Set<Map.Entry> entrySet = map.entrySet();
@@ -368,8 +448,35 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
      * @param array
      * @param context
      * @return
+     * @throws VSException
      */
-    public ArrayVSU serializeArray(Optional<String> fieldName, Object array, VersionedSerializationContext context) {
+    public ArrayVSU serializeArray(Object array, VersionedSerializationContext context) throws VSException {
+        return serializeArray(Optional.empty(), array, context);
+    }
+
+    /**
+     * Serialize array with field name.
+     *
+     * @param fieldName
+     * @param array
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public ArrayVSUF serializeArray(String fieldName, Object array, VersionedSerializationContext context) throws VSException {
+        return F.cast(serializeArray(Optional.of(fieldName), array, context));
+    }
+
+    /**
+     * Serialize array with optional field name.
+     *
+     * @param fieldName
+     * @param array
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public ArrayVSU serializeArray(Optional<String> fieldName, Object array, VersionedSerializationContext context) throws VSException {
         ArrayVSU arrayUnit = newArrayUnit(fieldName);
         int length = Array.getLength(array);
         List<VSUnit> values = new ArrayList<>(length);
@@ -392,8 +499,37 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
      * @param value
      * @param context
      * @return
+     * @throws VSException
      */
-    public VSUnit serializeAuto(Optional<String> fieldName, Object value, VersionedSerializationContext context) {
+    public VSUnit serializeAuto(Object value, VersionedSerializationContext context) throws VSException {
+        return serializeAuto(Optional.empty(), value, context);
+    }
+
+    /**
+     * Serialization default entry point that delegates to other methods by
+     * given object type.
+     *
+     * @param fieldName
+     * @param value
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public VSUField serializeAuto(String fieldName, Object value, VersionedSerializationContext context) throws VSException {
+        return F.cast(serializeAuto(Optional.of(fieldName), value, context));
+    }
+
+    /**
+     * Serialization default entry point that delegates to other methods by
+     * given object type.
+     *
+     * @param fieldName
+     * @param value
+     * @param context
+     * @return
+     * @throws VSException
+     */
+    public VSUnit serializeAuto(Optional<String> fieldName, Object value, VersionedSerializationContext context) throws VSException {
         if (value == null) {
             return newNullUnit(fieldName);
         }
@@ -480,6 +616,53 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
      */
     public ReferenceVSU newReference(Optional<String> fieldName, long id) {
         return fieldName.isPresent() ? new ReferenceVSUF(fieldName.get(), id) : new ReferenceVSU(id);
+    }
+
+    /**
+     * Create value holder with optional field name and ref id traits. Only use
+     * for mangling serialized VSU trees or deserializing custom types with
+     * concrete implementation.
+     *
+     * @param <T>
+     * @param fieldName
+     * @param refId
+     * @param value
+     * @return
+     */
+    public <T> HolderVSU<T> newHolder(Optional<String> fieldName, Optional<Long> refId, T value) {
+        HolderVSU<T> holder = fieldName.isPresent() ? new HolderVSUF<>(fieldName.get(), value) : new HolderVSU<>(value);
+        refId.ifPresent(holder::setRef);
+        return holder;
+    }
+
+    /**
+     * Create value holder with optional field name and ref id traits. Only use
+     * for mangling serialized VSU trees or deserializing custom types with
+     * concrete implementation.
+     *
+     * @param <T>
+     * @param fieldName
+     * @param refId
+     * @param value
+     * @return
+     */
+    public <T> HolderVSU<T> newHolder(T value) {
+        return newHolder(Optional.empty(), Optional.empty(), value);
+    }
+
+    /**
+     * Create value holder with optional field name and ref id traits. Only use
+     * for mangling serialized VSU trees or deserializing custom types with
+     * concrete implementation.
+     *
+     * @param <T>
+     * @param fieldName
+     * @param refId
+     * @param value
+     * @return
+     */
+    public <T> HolderVSUF<T> newHolder(String fieldName, T value) {
+        return F.cast(newHolder(Optional.of(fieldName), Optional.empty(), value));
     }
 
 }
