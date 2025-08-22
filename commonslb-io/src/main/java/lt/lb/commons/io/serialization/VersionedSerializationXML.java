@@ -17,6 +17,8 @@ import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.io.serialization.VersionedSerialization.*;
 import lt.lb.uncheckedutils.SafeOpt;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +85,9 @@ public class VersionedSerializationXML {
         @Override
         public void characters(char[] ch, int start, int length) throws SAXException {//can be called more than once per element
             if (valueOrBinaryElem == null) {
-                throw new SAXException("Unexpected characters value");
+                if (StringUtils.isNotBlank(String.valueOf(ch, start, length))) {
+                    throw new SAXException("Unexpected non-whitespace characters");
+                }
             } else {
                 valueOrBinaryElem.append(ch, start, length);
             }
