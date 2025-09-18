@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +32,15 @@ public class Fil {
     }
 
     public String getAbsolutePathWithSeparator() {
-        return StringUtils.appendIfMissing(absolutePath, File.separator);
+        return Strings.CS.appendIfMissing(absolutePath, File.separator);
     }
 
     public String getName() {
         return FilenameUtils.getName(absolutePath);
+    }
+
+    public String getExtension() {
+        return FilenameUtils.getExtension(absolutePath);
     }
 
     public Path getPath() {
