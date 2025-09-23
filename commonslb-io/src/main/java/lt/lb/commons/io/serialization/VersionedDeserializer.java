@@ -62,9 +62,11 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
      * @return
      */
     public Class getClass(String type) {
-        Class val = PRIMITIVES.getOrDefault(type, null);
-
-        return val != null ? val : classMap.computeIfAbsent(type, name -> {
+        return classMap.computeIfAbsent(type, name -> {
+            Class val = PRIMITIVES.getOrDefault(type, null);
+            if (val != null) {
+                return val;
+            }
             try {
                 return Class.forName(name);
             } catch (ClassNotFoundException ex) {
@@ -247,7 +249,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         Objects.requireNonNull(context);
         String type = custom.getType();
         Class clazz = getClass(custom.getType());
-        if (!customTypeVersions.containsKey(clazz)) {
+        if (!isCustomType(clazz)) {
             throw new IllegalArgumentException("Not registered root custom type:" + type);
         }
         return (T) deserializeComplex(true, custom, context);
@@ -337,7 +339,9 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             }
         }
         Class clazz = getClass(type);
-        if (beanAccessTypes.contains(clazz)) { // is a bean
+        ITypeEntry typeEntry = getComplexTypeEntry(clazz);
+        final boolean packet = typeEntry.isPacket();
+        if (typeEntry.isBean()) { // is a bean
 
             if (complex instanceof CustomVSU) {
                 object = instantiateCustom(type);
@@ -354,7 +358,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             PropertyDescriptor[] localFields = Refl.getBeanPropertyDescriptors(clazz).toArray(s -> new PropertyDescriptor[s]);
             //ignore non-property fields
             for (PropertyDescriptor property : localFields) {
-                if (excludedType(property.getPropertyType())) {
+                if (!packet && !includedType(property.getPropertyType())) {
                     continue;
                 }
 
@@ -382,7 +386,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         } else if (Refl.recordsSupported() && Refl.typeIsRecord(clazz)) { // cant set reference before, resolving all fields
             IRecordComponent[] recordComponents = Refl.getRecordComponents(clazz).toArray(s -> new IRecordComponent[s]);
             Map<String, WorkRecordComponent> recordFields = new LinkedHashMap<>();//preserve order for later
-            for (IRecordComponent field : recordComponents) { // cant ignore record fields
+            for (IRecordComponent field : recordComponents) { // can't ignore record fields
                 recordFields.put(field.getName(), new WorkRecordComponent(field));
             }
             for (VSUnit field : complex.fields) {
@@ -395,6 +399,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
                         continue;
                     }
                 }
+
                 // this is the culprit, no resolve stacking
                 recordComponent.value = deserializeAuto(field, context);
 
@@ -421,7 +426,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
 
             Map<String, IObjectField> fieldMap = new LinkedHashMap<>();
             for (IObjectField field : objectFields) {
-                if (excludedType(field.getType()) || (ignoreTransientFields.get() && field.isTransient())) {
+                if ((!packet && !includedType(field.getType())) || (ignoreTransientFields.get() && field.isTransient())) {
                     continue;
                 }
                 String name = field.getName();

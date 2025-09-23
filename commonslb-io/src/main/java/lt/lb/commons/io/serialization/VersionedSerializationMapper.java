@@ -13,6 +13,8 @@ import java.util.function.Function;
 import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.clone.CloneSupport;
+import lt.lb.commons.clone.Cloner;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.containers.values.LongValue;
 import org.apache.commons.lang3.Strings;
@@ -22,6 +24,95 @@ import org.apache.commons.lang3.Strings;
  * @author laim0nas100
  */
 public abstract class VersionedSerializationMapper<M extends VersionedSerializationMapper> {
+
+    public static interface ITypeEntry extends CloneSupport<ITypeEntry> {
+
+        /**
+         * If type is RefCounting, then the references are tracked and instances
+         * not duplicated.
+         *
+         * @return
+         */
+        public boolean isRefCounting();
+
+        /**
+         * If type is bean, then field serialization and deserialization is done
+         * via property methods
+         *
+         * @return
+         */
+        public boolean isBean();
+
+        /**
+         * If type is a packet, then all fields on that type are included,
+         * unless they are transient and transient field exclusion is used.
+         *
+         * @return
+         */
+        public boolean isPacket();
+
+        /**
+         * If type version is null, then it is not custom, but just a complex
+         * entry.
+         *
+         * @return
+         */
+        public Long getVersion();
+    }
+
+    public static class SimpleTypeEntry implements CloneSupport<ITypeEntry>, ITypeEntry {
+
+        public static final SimpleTypeEntry DEFAULT = new SimpleTypeEntry(false, false, false, null);
+
+        public final boolean refCounting;
+        public final boolean bean;
+        public final boolean packet;
+        public final Long version;
+
+        public SimpleTypeEntry(boolean refCounting, boolean bean, boolean packet, Long version) {
+            this.refCounting = refCounting;
+            this.bean = bean;
+            this.packet = packet;
+            this.version = version;
+        }
+
+        protected SimpleTypeEntry(Cloner cloner, SimpleTypeEntry old) {
+            this.bean = old.bean;
+            this.refCounting = old.refCounting;
+            this.packet = old.packet;
+            this.version = old.version;
+        }
+
+        @Override
+        public ITypeEntry clone() {
+            return clone(Cloner.DEFAULT);
+        }
+
+        @Override
+        public ITypeEntry clone(Cloner cloner) {
+            return new SimpleTypeEntry(cloner, this);
+        }
+
+        @Override
+        public boolean isRefCounting() {
+            return refCounting;
+        }
+
+        @Override
+        public boolean isBean() {
+            return bean;
+        }
+
+        @Override
+        public boolean isPacket() {
+            return packet;
+        }
+
+        @Override
+        public Long getVersion() {
+            return version;
+        }
+    }
 
     protected LongValue defaultVersion = new LongValue(0L);
     /**
@@ -44,16 +135,7 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected BooleanValue throwOnFieldNotFound = BooleanValue.TRUE();
     protected BooleanValue ignoreTransientFields = BooleanValue.TRUE();
 
-    /**
-     * These types must be loaded in classpath. Remove type entry from this map
-     * to downgrade from {@link VersionedSerialization.CustomVSU} to
-     * {@link VersionedSerialization.ComplexVSU}
-     */
-    protected Map<Class, Long> customTypeVersions = new HashMap<>();
-
-    protected Set<Class> refCountingTypes = new HashSet<>();
-    protected Set<Class> beanAccessTypes = new HashSet<>();
-    protected Set<Class> includedRegular = new HashSet<>();
+    protected Map<Class, ITypeEntry> includedComplexTypes = new HashMap<>();
 
     protected Set<Class> includedBases = new HashSet<>();
     protected Set<Class> excludedBases = new HashSet<>();
@@ -62,62 +144,69 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected abstract M me();
 
     public M includeCustomBean(Class type) {
-        return includeType(type, false, true, defaultVersion.get());
+        return includeType(type, false, true, false, defaultVersion.get());
     }
 
     public M includeCustomBeanRefCounting(Class type) {
-        return includeType(type, true, true, defaultVersion.get());
+        return includeType(type, true, true, false, defaultVersion.get());
     }
 
     public M includeCustom(Class type) {
-        return includeType(type, false, false, defaultVersion.get());
+        return includeType(type, false, false, false, defaultVersion.get());
     }
 
     public M includeCustom(Class type, long version) {
-        return includeType(type, false, false, version);
+        return includeType(type, false, false, false, version);
     }
 
     public M includeCustomRefCounting(Class type, long version) {
-        return includeType(type, true, false, version);
+        return includeType(type, true, false, false, version);
     }
 
     public M includeCustomRefCounting(Class type) {
-        return includeType(type, true, false, defaultVersion.get());
+        return includeType(type, true, false, false, defaultVersion.get());
     }
 
     public M includeComplexBean(Class type) {
-        return includeType(type, false, true, null);
+        return includeType(type, false, true, false, null);
     }
 
     public M includeComplexBeanRefCounting(Class type) {
-        return includeType(type, true, true, null);
+        return includeType(type, true, true, false, null);
     }
 
     public M includeComplexRefCounting(Class type) {
-        return includeType(type, true, false, null);
+        return includeType(type, true, false, false, null);
+    }
+
+    public M includeRefCountingBeanPacket(Class type) {
+        return includeType(type, true, true, true, null);
+    }
+
+    public M includeRefCountingPacket(Class type) {
+        return includeType(type, true, false, true, null);
+    }
+
+    public M includeBeanPacket(Class type) {
+        return includeType(type, false, true, true, null);
+    }
+
+    public M includePacket(Class type) {
+        return includeType(type, false, false, true, null);
     }
 
     public M includeComplex(Class type) {
-        return includeType(type, false, false, null);
+        return includeType(type, false, false, false, null);
     }
 
-    public M includeType(Class type, boolean refCounting, boolean bean, Long version) {
+    public M includeType(Class type, boolean refCounting, boolean bean, boolean packet, Long version) {
         Objects.requireNonNull(type);
-        if (version != null) {
-            if (customTypeVersions.containsKey(type)) {
-                throw new IllegalArgumentException(type.getSimpleName() + " is already registered");
+        includedComplexTypes.compute(type, (k, val) -> {
+            if (val != null) {
+                throw new IllegalArgumentException(k.getSimpleName() + " is already registered");
             }
-            customTypeVersions.put(type, version);
-        } else {// no version, repeated inclusion doesn't matter
-            includedRegular.add(type);
-        }
-        if (refCounting) {
-            refCountingTypes.add(type);
-        }
-        if (bean) {
-            beanAccessTypes.add(type);
-        }
-
+            return new SimpleTypeEntry(refCounting, bean, packet, version);
+        });
         return me();
 
     }
@@ -199,30 +288,80 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         return false;
     }
 
+    /**
+     * Excluded type is in explicitly excluded or subclass of excluded base.
+     *
+     * @param type
+     * @return
+     */
     public boolean excludedType(Class type) {
-        return explicitExlusion(type) && !includedTypeBasic(type);
+        return explicitExlusion(type);
     }
 
+    /**
+     * Included type is not explicitly excluded and in included types.
+     *
+     * @param type
+     * @return
+     */
     public boolean includedType(Class type) {
         return !explicitExlusion(type) && includedTypeBasic(type);
+    }
+
+    protected boolean isTypeFunc(Class type, Function<ITypeEntry, Boolean> mapper) {
+        if (type == null) {
+            return false;
+        }
+        ITypeEntry entry = includedComplexTypes.get(type);
+        if (entry != null) {
+            return mapper.apply(entry);
+        }
+        return false;
+    }
+
+    public ITypeEntry getComplexTypeEntry(Class type) {
+        return includedComplexTypes.getOrDefault(type, SimpleTypeEntry.DEFAULT);
+    }
+
+    public Long getCustomTypeVersion(Class type) {
+        if (type == null) {
+            return null;
+        }
+        ITypeEntry entry = includedComplexTypes.get(type);
+        if (entry != null) {
+            return entry.getVersion();
+        }
+        return null;
+    }
+
+    public boolean isParentType(Class type) {
+        return isTypeFunc(type, e -> e.isPacket());
+    }
+
+    public boolean isRefCountingType(Class type) {
+        return isTypeFunc(type, e -> e.isRefCounting());
+    }
+
+    public boolean isBeanType(Class type) {
+        return isTypeFunc(type, e -> e.isBean());
+    }
+
+    public boolean isCustomType(Class type) {
+        return isTypeFunc(type, e -> e.getVersion() != null);
     }
 
     public boolean isComplexType(Class type) {
         if (type == null) {
             return false;
         }
-        if (includedRegular.contains(type)
-                || refCountingTypes.contains(type)
-                || beanAccessTypes.contains(type)
-                || customTypeVersions.containsKey(type)
-                || isInBases(type, includedBases)) {
+        if (includedComplexTypes.containsKey(type) || isInBases(type, includedBases)) {
             return true;
         }
         return false;
     }
 
     protected boolean explicitExlusion(Class type) {
-        return isInBases(type, excludedBases) || excludedTypes.contains(type);
+        return excludedTypes.contains(type) || isInBases(type, excludedBases);
     }
 
     protected boolean includedTypeBasic(Class type) {
@@ -264,10 +403,8 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     }
 
     public M appendTypeData(VersionedSerializationMapper other) {
-        customTypeVersions.putAll(other.customTypeVersions);
-        refCountingTypes.addAll(other.refCountingTypes);
-        beanAccessTypes.addAll(other.beanAccessTypes);
-        includedRegular.addAll(other.includedRegular);
+        HashMap cloned = Cloner.DEFAULT.cloneMapImmutableSupported(other.includedComplexTypes, HashMap::new);
+        includedComplexTypes.putAll(cloned);
         includedBases.addAll(other.includedBases);
         excludedBases.addAll(other.excludedBases);
         excludedTypes.addAll(other.excludedTypes);
@@ -275,10 +412,7 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     }
 
     public M clearTypeData() {
-        customTypeVersions.clear();
-        refCountingTypes.clear();
-        beanAccessTypes.clear();
-        includedRegular.clear();
+        includedComplexTypes.clear();
         includedBases.clear();
         excludedBases.clear();
         excludedTypes.clear();
@@ -308,14 +442,11 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     }
 
     protected void bindTo(VersionedSerializationMapper mapper) {
-        mapper.beanAccessTypes = beanAccessTypes;
-        mapper.customTypeVersions = customTypeVersions;
+        mapper.includedComplexTypes = includedComplexTypes;
         mapper.customValueSerializers = customValueSerializers;
         mapper.excludedBases = excludedBases;
         mapper.excludedTypes = excludedTypes;
         mapper.includedBases = includedBases;
-        mapper.includedRegular = includedRegular;
-        mapper.refCountingTypes = refCountingTypes;
         mapper.stringifyTypes = stringifyTypes;
         mapper.throwOnBinaryError = throwOnBinaryError;
         mapper.throwOnFieldNotFound = throwOnFieldNotFound;

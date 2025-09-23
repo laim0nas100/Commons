@@ -169,7 +169,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
     public CustomVSU serializeRoot(Object value, VersionedSerializationContext context) throws VSException {
         Objects.requireNonNull(context);
         Class<? extends Object> type = value.getClass();
-        if (!customTypeVersions.containsKey(type)) {
+        if (!isCustomType(type)) {
             throw new IllegalArgumentException("Not registered root custom type:" + type);
         }
         return (CustomVSU) serializeComplex(Optional.empty(), value, context);
@@ -219,35 +219,31 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         }
         // not null
         Class type = value.getClass();
-        boolean refCounted = false;
-
-        if (refCountingTypes.contains(type)) {
-            refCounted = true;
-            if (context.refMap.containsKey(value)) {
-                VSUnit reference = context.refMap.get(value);
-                TraitReferenced referenced = F.cast(reference);
-                Long id = referenced.getRef();
-                if (id == null) {// not referenced before, set and increment
-                    id = context.refId++;
-                    referenced.setRef(id);
-                }
-
-                return newReference(fieldName, id);
+        ITypeEntry typeEntry = getComplexTypeEntry(type);
+        if (typeEntry.isRefCounting() && context.refMap.containsKey(value)) {
+            VSUnit reference = context.refMap.get(value);
+            TraitReferenced referenced = F.cast(reference);
+            Long id = referenced.getRef();
+            if (id == null) {// not referenced before, set and increment
+                id = context.refId++;
+                referenced.setRef(id);
             }
+            return newReference(fieldName, id);
         }
 
-        Long version = customTypeVersions.getOrDefault(type, null);
+        Long version = typeEntry.getVersion();
         final ComplexVSU unit = version == null ? newComplexUnit(fieldName) : newCustomUnit(fieldName, version);
         unit.setType(type.getName());
-        if (refCounted) {//store reference
+        if (typeEntry.isRefCounting()) {//store incomplete value reference
             context.refMap.put(value, unit);
         }
 
         List<VSUnit> fields = new ArrayList<>();
-        if (beanAccessTypes.contains(type)) { // do bean access
+        final boolean packet = typeEntry.isPacket();
+        if (typeEntry.isBean()) { // do bean access
             PropertyDescriptor[] localFields = Refl.getBeanPropertyDescriptors(type).toArray(s -> new PropertyDescriptor[s]);
             for (PropertyDescriptor field : localFields) {
-                if (excludedType(field.getPropertyType())) {
+                if (!packet && !includedType(field.getPropertyType())) {
                     continue;
                 }
 
@@ -265,7 +261,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 } else {//no error
                     fieldValue = safeGet.orNull();
                 }
-                VSUnit auto = serializeAuto(Optional.of(name), fieldValue, context);
+                VSUnit auto = serializeAutoChecked(true, Optional.of(name), fieldValue, context);
                 if (auto != null) { // null means not included
                     fields.add(auto);
                 }
@@ -273,10 +269,9 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         } else if (Refl.recordsSupported() && Refl.typeIsRecord(type)) {
             IRecordComponent[] recordComponents = Refl.getRecordComponents(type).toArray(s -> new IRecordComponent[s]);
             for (IRecordComponent field : recordComponents) {
-                if (excludedType(field.getType())) {//cant ignore so just add null value
+                if (!packet && !includedType(field.getType())) {//cant ignore so just add null value
                     fields.add(newNullUnit(Optional.of(field.getName())));
                     continue;
-
                 }
                 String name = field.getName();//shadowing doesn't makes sense in record context
                 SafeOpt safeGet = Refl.safeInvokeMethod(field.getAccessor(), value);
@@ -292,7 +287,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 } else {//no error
                     fieldValue = safeGet.orNull();
                 }
-                VSUnit auto = serializeAuto(Optional.of(name), fieldValue, context);
+                VSUnit auto = serializeAutoChecked(true, Optional.of(name), fieldValue, context);
                 if (auto != null) { // null means not included
                     fields.add(auto);
                 }
@@ -304,7 +299,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
 
             Map<String, IObjectField> fieldMap = new LinkedHashMap<>();
             for (IObjectField field : objectFields) {
-                if (excludedType(field.getType()) || (ignoreTransientFields.get() && field.isTransient())) {
+                if ((!packet && !includedType(field.getType())) || (ignoreTransientFields.get() && field.isTransient())) {
                     continue;
                 }
                 String name = field.getName();
@@ -325,7 +320,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
                 } else {//no error
                     fieldValue = safeGet.orNull();
                 }
-                VSUnit auto = serializeAuto(Optional.of(name), fieldValue, context);
+                VSUnit auto = serializeAutoChecked(true, Optional.of(name), fieldValue, context);
                 if (auto != null) { // null means not included
                     fields.add(auto);
                     fieldMap.put(name, field);
@@ -530,11 +525,27 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
      * @throws VSException
      */
     public VSUnit serializeAuto(Optional<String> fieldName, Object value, VersionedSerializationContext context) throws VSException {
+        return serializeAutoChecked(false, fieldName, value, context);
+    }
+
+    /**
+     * Serialization default entry point that delegates to other methods by
+     * given object type.
+     *
+     * @param checked to check excluded type
+     * @param fieldName
+     * @param value
+     * @param context
+     *
+     * @return
+     * @throws VSException
+     */
+    protected VSUnit serializeAutoChecked(boolean checked, Optional<String> fieldName, Object value, VersionedSerializationContext context) throws VSException {
         if (value == null) {
             return newNullUnit(fieldName);
         }
         Class<? extends Object> clazz = value.getClass();
-        if (excludedType(clazz)) {
+        if (!checked && excludedType(clazz)) {
             return null;
         }
         String type = clazz.getName();
