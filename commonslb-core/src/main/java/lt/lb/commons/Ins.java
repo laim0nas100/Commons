@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
@@ -23,7 +24,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class Ins<T> {
 
     static final Class[] NUMBER_TYPES = {Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class};
-    static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class};
+    static final Class[] DATE_TYPES = {LocalDate.class, LocalTime.class, LocalDateTime.class, ZonedDateTime.class};
     static final Class[] OTHER_IMMUTABLE_TYPES = {String.class, UUID.class, Pattern.class, BigDecimal.class, BigInteger.class};
     static final Class[] WRAPPER_TYPES = ArrayUtils.addAll(NUMBER_TYPES, Boolean.class, Character.class);
 
