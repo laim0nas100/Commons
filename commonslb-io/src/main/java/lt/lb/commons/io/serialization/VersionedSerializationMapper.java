@@ -45,7 +45,9 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
     protected BooleanValue ignoreTransientFields = BooleanValue.TRUE();
 
     /**
-     * These types must be loaded in classpath
+     * These types must be loaded in classpath. Remove type entry from this map
+     * to downgrade from {@link VersionedSerialization.CustomVSU} to
+     * {@link VersionedSerialization.ComplexVSU}
      */
     protected Map<Class, Long> customTypeVersions = new HashMap<>();
 
@@ -63,7 +65,7 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         return includeType(type, false, true, defaultVersion.get());
     }
 
-    public M includeCustomBeanRefcounting(Class type) {
+    public M includeCustomBeanRefCounting(Class type) {
         return includeType(type, true, true, defaultVersion.get());
     }
 
@@ -71,7 +73,7 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         return includeType(type, false, false, defaultVersion.get());
     }
 
-    public M includeCustom(Class type, Long version) {
+    public M includeCustom(Class type, long version) {
         return includeType(type, false, false, version);
     }
 
@@ -83,13 +85,31 @@ public abstract class VersionedSerializationMapper<M extends VersionedSerializat
         return includeType(type, true, false, defaultVersion.get());
     }
 
+    public M includeComplexBean(Class type) {
+        return includeType(type, false, true, null);
+    }
+
+    public M includeComplexBeanRefCounting(Class type) {
+        return includeType(type, true, true, null);
+    }
+
+    public M includeComplexRefCounting(Class type) {
+        return includeType(type, true, false, null);
+    }
+
+    public M includeComplex(Class type) {
+        return includeType(type, false, false, null);
+    }
+
     public M includeType(Class type, boolean refCounting, boolean bean, Long version) {
         Objects.requireNonNull(type);
         if (version != null) {
             if (customTypeVersions.containsKey(type)) {
-                throw new IllegalArgumentException(type + " is already registered");
+                throw new IllegalArgumentException(type.getSimpleName() + " is already registered");
             }
             customTypeVersions.put(type, version);
+        } else {// no version, repeated inclusion doesn't matter
+            includedRegular.add(type);
         }
         if (refCounting) {
             refCountingTypes.add(type);

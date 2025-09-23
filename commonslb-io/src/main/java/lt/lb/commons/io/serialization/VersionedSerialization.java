@@ -580,7 +580,7 @@ public class VersionedSerialization {
         public void replaceFields(Collection<VSUField> newFields) {
             fields = newFields.stream().map(f -> {
                 if (!(f instanceof VSUField)) {
-                    throw new IllegalArgumentException("All fields must be instance of VSField");
+                    throw new IllegalArgumentException("All fields must be instance of " + VSUField.class.getSimpleName());
                 }
                 return f;
             }).toArray(s -> new VSUField[s]);
