@@ -365,7 +365,8 @@ public class Refl {
     }
 
     /**
-     * Get object properties from bean method naming conventions except for {@link Object#getClass() }
+     * Get object properties from bean method naming conventions except for {@link Object#getClass()
+     * }
      *
      * @param sourceClass
      * @return
@@ -398,9 +399,6 @@ public class Refl {
 
         private static final Map<String, IObjectMethod> recordComponentGetterMethods = establishGetterMethods();
 
-        protected Map<String, Object> cachedResults = new HashMap<>();
-        protected Object recordComponent;
-
         private static Map<String, IObjectMethod> establishGetterMethods() {
             if (!recordsSupported()) {
                 return ImmutableCollections.UNMODIFIABLE_EMPTY_MAP;
@@ -409,6 +407,9 @@ public class Refl {
             return ReflMethods.getGetterMethods(recordComponentClass.get())
                     .toUnmodifiableMap(m -> m.getName(), m -> m);
         }
+
+        protected Map<String, Object> cachedResults = new HashMap<>();
+        protected final Object recordComponent;
 
         public BasicRecordComponent(Object recordComponent) {
             if (recordComponentClass.isEmpty()) {
