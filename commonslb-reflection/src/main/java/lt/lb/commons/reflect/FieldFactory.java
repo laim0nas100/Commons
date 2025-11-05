@@ -56,7 +56,7 @@ public abstract class FieldFactory {
 
                 System.arraycopy(sourceArray, 0, array, 0, length);
                 f.set(parentObject, array);
-                refCounter.computeIfAbsent(sourceArray, k->array);
+                refCounter.computeIfAbsent(sourceArray, k -> array);
             }
 
         };
@@ -136,7 +136,7 @@ public abstract class FieldFactory {
                 }
 
                 f.set(parentObject, newArray);
-                refCounter.computeIfAbsent(sourceArray, k->newArray);
+                refCounter.computeIfAbsent(sourceArray, k -> newArray);
             }
         };
     }
@@ -193,7 +193,7 @@ public abstract class FieldFactory {
                         realClass = sourceObject.getClass();
                     }
                     Object newInstance = createNewInstance(realClass);
-                    refCounter.computeIfAbsent(sourceInstance, k->newInstance);
+                    refCounter.computeIfAbsent(sourceInstance, k -> newInstance);
 //                    refCounter.registerIfAbsent(sourceInstance, newInstance);
 
                     IFieldResolver rr = recursiveResolver(realClass);
@@ -306,7 +306,7 @@ public abstract class FieldFactory {
 //            log.appendLine("Easy instantiation " + cls.getName());
             return (T) newInstance;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-        } 
+        }
 
         Constructor<?>[] declaredConstructors = cls.getDeclaredConstructors();
         // sort by lower parameter constructor first
@@ -457,7 +457,7 @@ public abstract class FieldFactory {
     protected Map<Class, IClassConstructor> predefinedClassConstructors = new HashMap<>();
     protected Set<Class> immutableTypes = new HashSet<>();
 
-    protected Function<Class, ?> unsafeAllocator = UnsafeProvider.getUnsafeAllocator();
+    protected Function<Class, ?> unsafeAllocator = cls -> UnsafeProvider.getReflUnsafe().allocateInstance(cls);
     protected Cache<Field, IFieldResolver> cacheOfFields = Caffeine.newBuilder().build();
     protected Cache<Class, FieldHolder> cacheOfFieldHolders = Caffeine.newBuilder().build();
     protected Cache<Class, IFieldResolver> cacheOfFieldResolvers = Caffeine.newBuilder().build();

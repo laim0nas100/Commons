@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.rits.cloning.Cloner;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+//import jdk.internal.misc.Unsafe;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.DLog;
@@ -19,9 +20,11 @@ import lt.lb.commons.reflect.pure.EField;
 import lt.lb.commons.reflect.pure.PureReflectNode;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
+import lt.lb.commons.reflect.UnsafeProvider;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import sun.misc.Unsafe;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -91,7 +94,7 @@ public class ReflectTest {
         public List<Integer> intList = Arrays.asList(ArrayOp.asArray(3, 2, 1, -1, -2, -3, -4, -5, -6, -7, -8, -9));
         private Map<String, Integer> intMap = new HashMap<>();
 
-        public CCls2Override(Integer value) {
+        private CCls2Override(Integer value) {
             if (value == null) {
                 throw new IllegalArgumentException("Value cannot by null");
             }
@@ -252,10 +255,20 @@ public class ReflectTest {
     }
 
     public static void main(String... strings) throws Exception {
-        new ReflectTest().bench();
-//        ReflectTest rt = new ReflectTest();
-//
+//        new ReflectTest().bench();
+        ReflectTest rt = new ReflectTest();
+
 //        rt.reflectionPrint();
+//        rt.ok();
+
+        Object allocateInstance = UnsafeProvider.getReflUnsafe().allocateInstance(CCls2Override.class);
+        
+        UnsafeProvider.ReflUnsafe reflUnsafe = UnsafeProvider.getReflUnsafe();
+        System.out.println(reflUnsafe.unsafeClass);
+//         UnsafeProvider._printMeta();
+        int addressSize = reflUnsafe.dataCacheLineFlushSize();
+        DLog.print(addressSize);
+         
 
         DLog.await(1, TimeUnit.MINUTES);
 
@@ -374,7 +387,7 @@ public class ReflectTest {
 //            buffer.add(i);
 //            clone.packageInt++;
 //            clone.next.packageInt--;
-////
+        ////
 //        }
         time = System.currentTimeMillis() - time;
 //        DLog.print(factory.newReflectNode(c2));
