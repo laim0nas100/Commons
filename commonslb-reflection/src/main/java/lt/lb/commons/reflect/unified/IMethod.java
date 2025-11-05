@@ -17,7 +17,7 @@ public interface IMethod<S, T> extends IMember, IAnnotatedElement, IMethodModifi
     public Method method();
 
     @Override
-    public default AnnotatedElement annotatedElement(){
+    public default AnnotatedElement annotatedElement() {
         return method();
     }
 
@@ -78,9 +78,9 @@ public interface IMethod<S, T> extends IMember, IAnnotatedElement, IMethodModifi
     public default AnnotatedType[] getAnnotatedExceptionTypes() {
         return method().getAnnotatedExceptionTypes();
     }
-    
+
     @Override
-    public default boolean isVarArgs(){
+    public default boolean isVarArgs() {
         return method().isVarArgs();
     }
 
@@ -100,6 +100,37 @@ public interface IMethod<S, T> extends IMember, IAnnotatedElement, IMethodModifi
         return method().getParameterCount();
     }
 
+    public default boolean hasNoParameters() {
+        return getParameterCount() == 0;
+    }
+
+    public default Class<?>[] getParameterTypes() {
+        return method().getParameterTypes();
+    }
+
+    public default boolean matchesParameters(Class... classes) {
+        if (getParameterCount() != classes.length) {
+            return false;
+        }
+        Class<?>[] parameterTypes = getParameterTypes();
+        for (int i = 0; i < parameterTypes.length; i++) {
+            if (!parameterTypes[i].equals(classes[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public default boolean matchesSignature(Class returnType, String name, Class... parameters) {
+        if (!getName().equals(name)) {
+            return false;
+        }
+        if (!getReturnType().equals(returnType)) {
+            return false;
+        }
+        return matchesParameters(parameters);
+    }
+
     public default Type[] getGenericParameterTypes() {
         return method().getGenericParameterTypes();
     }
@@ -111,26 +142,25 @@ public interface IMethod<S, T> extends IMember, IAnnotatedElement, IMethodModifi
     public default Type[] getGenericExceptionTypes() {
         return method().getGenericExceptionTypes();
     }
-    
+
     //custom methods
-    
-    
     /**
      * instanceof operator
+     *
      * @param cls
-     * @return 
+     * @return
      */
-    public default boolean isReturnTypeOf(Class cls){
+    public default boolean isReturnTypeOf(Class cls) {
         Objects.requireNonNull(cls);
         return cls.isAssignableFrom(getReturnType());
     }
-    
-    public default boolean isReturnTypeExactly(Class cls){
+
+    public default boolean isReturnTypeExactly(Class cls) {
         Objects.requireNonNull(cls);
         return Objects.equals(cls, getReturnType());
     }
-    
-    public default boolean isVoid(){
+
+    public default boolean isVoid() {
         return isReturnTypeOf(Void.TYPE);
     }
 

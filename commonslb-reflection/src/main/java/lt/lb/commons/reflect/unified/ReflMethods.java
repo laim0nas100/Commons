@@ -13,6 +13,75 @@ import lt.lb.commons.iteration.streams.SimpleStream;
  */
 public abstract class ReflMethods extends ReflBase {
 
+    /**
+     * Checks if method is {@link Object#getClass() }
+     *
+     * @param method
+     * @return
+     */
+    public static boolean isGetClassMethod(IMethod method) {
+        return method.matchesSignature(Class.class, "getClass");
+    }
+
+    /**
+     * Checks if method is {@link Object#hashCode() }
+     *
+     * @param method
+     * @return
+     */
+    public static boolean isHashCodeMethod(IMethod method) {
+        return method.matchesSignature(Integer.TYPE, "hashCode");
+    }
+
+    /**
+     * Checks if method is {@link Object#toString() }
+     *
+     * @param method
+     * @return
+     */
+    public static boolean isToStringMethod(IMethod method) {
+        return method.matchesSignature(String.class, "toString");
+    }
+
+    /**
+     * Checks if method is {@link Object#equals(java.lang.Object) }
+     *
+     * @param method
+     * @return
+     */
+    public static boolean isEqualsMethod(IMethod method) {
+        return method.matchesSignature(Boolean.TYPE, "equals", Object.class);
+    }
+
+    /**
+     * Checks if method is on of the following {@link Object#wait()  } ,
+     * {@link Object#wait()  },{@link Object#wait(long, int)   },{@link Object#notify()  }, {@link Object#notifyAll()
+     * }
+     *
+     * @param method
+     * @return
+     */
+    public static boolean isSyncronizationMethod(IMethod method) {
+
+        //must return void
+        if (!method.isVoid()) {
+            return false;
+        }
+        String name = method.getName();
+        if (method.hasNoParameters() && (name.equals("notify") || name.equals("notifyAll"))) {
+            return true;
+        }
+        if (name.equals("wait")) {
+            return method.matchesParameters(Long.TYPE) || method.matchesParameters(Long.TYPE, Integer.TYPE);
+        }
+
+        return false;
+    }
+
+    public static boolean isBaseObjectMethod(IMethod method) {
+        return isEqualsMethod(method) || isHashCodeMethod(method) || isGetClassMethod(method) || isToStringMethod(method) || isSyncronizationMethod(method);
+    }
+
     public static <S> SimpleStream<IMethod<S, Object>> getMethods(Class<S> sourceClass) {
         return getMethodsTyped(sourceClass);
     }
@@ -85,11 +154,9 @@ public abstract class ReflMethods extends ReflBase {
         return doClassInheritanceStream(sourceClass, n -> Stream.of(n.getDeclaredMethods()))
                 .map(m -> (IObjectMethod<S, T>) ReflBase.makeObjectMethod(m))
                 .filter(Nulls::nonNull)
-                .filter(m -> m.isPublic() && m.isNotStatic() && m.getParameterCount() == 0)
+                .filter(m -> m.isPublic() && m.isNotStatic() && m.hasNoParameters())
+                .remove(ReflMethods::isGetClassMethod)
                 .filter(m -> {
-                    if (m.nameIs("getClass")) {
-                        return false;
-                    }
                     if (m.isReturnTypeOf(Boolean.TYPE)) {
                         return m.nameMatches(IS_PATTERN);
                     }
