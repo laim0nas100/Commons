@@ -27,39 +27,33 @@ public class UnsafeProvider {
     public static final String OLD_UNSAFE_CLASS = "sun.misc.Unsafe";
 
     public static ReflUnsafe getReflUnsafe() {
-        return REFL_UNSAFE.get();
+        return THE_UNSAFE.get();
     }
 
     public static Object getUnsafe() {
         return getReflUnsafe().unsafe;
     }
 
-    private static final SafeOpt<ReflUnsafe> REFL_UNSAFE = SafeOpt.ofLazy(NEW_UNSAFE_CLASS)
+    private static final SafeOpt<ReflUnsafe> THE_UNSAFE = SafeOpt.ofLazy(0)
             .flatMap(s -> {
-                SafeOpt<ReflUnsafe> discoverNew = discover(s);
+                SafeOpt<ReflUnsafe> discoverNew = discoverNew();
                 if (discoverNew.isPresent()) {
                     return discoverNew;
                 }
-                return discover(OLD_UNSAFE_CLASS);
+                return discoverOld();
             });
 
-    private static SafeOpt<ReflUnsafe> discover(String clsName) {
-        SafeOpt<Class<?>> unsafeClass = SafeOpt.of(clsName).map(Class::forName);
-        SafeOpt<ReflUnsafe> staticMethod = unsafeClass.map(unsafeCls -> {
+    private static SafeOpt<ReflUnsafe> discoverNew() {
+        return SafeOpt.of(NEW_UNSAFE_CLASS).map(Class::forName).map(unsafeCls -> {
             return new ReflUnsafe(unsafeCls, unsafeCls.getMethod("getUnsafe").invoke(null));
         });
-        if (staticMethod.isPresent()) {
-            return staticMethod;
-        }
-        //old method hackery
-        return unsafeClass.map(unsafeCls -> {
-            java.lang.reflect.Field unsafeField = unsafeCls.getDeclaredField("theUnsafe");
-            unsafeField.setAccessible(true);
-            Object theUnsafe = unsafeField.get(null);
+    }
 
+    private static SafeOpt<ReflUnsafe> discoverOld() {
+        return SafeOpt.of(OLD_UNSAFE_CLASS).map(Class::forName).map(unsafeCls -> {
+            Object theUnsafe = Refl.fieldAccessableGet(unsafeCls.getDeclaredField("theUnsafe"), null);
             return new ReflUnsafe(unsafeCls, theUnsafe);
         });
-
     }
 
     public static class ReflUnsafe extends ReflUnsafeGenerated {
