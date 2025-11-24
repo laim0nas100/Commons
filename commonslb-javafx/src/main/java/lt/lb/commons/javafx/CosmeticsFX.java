@@ -1,6 +1,7 @@
 package lt.lb.commons.javafx;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javafx.beans.binding.*;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -9,9 +10,10 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.*;
-import lt.lb.commons.threads.sync.UninterruptibleReadWriteLock;
 
 /**
  *
@@ -21,23 +23,70 @@ public class CosmeticsFX {
 
     public static class ExtTableView {
 
-        private class TableCol {
+        private static class TableCol {
 
             SortType type;
             TableColumn col;
 
         }
 
+        private static class ScrollBarState {
+
+            double min;
+            double max;
+            double value;
+            double blockIncrement;
+            double unitIncrement;
+            double percentage;
+
+            ScrollBarState(ScrollBar bar) {
+                this(bar.getMin(), bar.getMax(), bar.getValue(), bar.getBlockIncrement(), bar.getUnitIncrement());
+            }
+
+            ScrollBarState(double min, double max, double value, double blockInc, double unitInc) {
+                this.min = min;
+                this.max = max;
+                this.value = value;
+                this.blockIncrement = blockInc;
+                this.unitIncrement = unitInc;
+                percentage = (value - min) / (max - min);
+            }
+
+            private void restoreScrollBarPositions(ScrollBar bar) {
+                // Set back the position values if they present
+                if (bar != null) {
+                    bar.setMin(min);
+                    bar.setMax(max);
+                    bar.setValue(value);
+                    bar.setUnitIncrement(unitIncrement);
+                    bar.setBlockIncrement(blockIncrement);
+                }
+            }
+
+            private void restoreRelativeValue(ScrollBar bar) {
+                // Set back the position values if they present
+                if (bar != null) {
+                    double newMax = bar.getMax();
+                    double newMin = bar.getMin();
+
+                    double relValue = (newMax - newMin) * percentage;
+                    bar.setValue(relValue);
+                }
+            }
+        }
+
         public final long resizeTimeout = 500;
         public SimpleBooleanProperty recentlyResized;
         public TimeoutTask resizeTask = new TimeoutTask(resizeTimeout, 10, () -> {
-                                                    recentlyResized.set(false);
-                                                });
+            recentlyResized.set(false);
+        });
         public ArrayList<TableCol> cols;
         public int sortByColumn;
         public boolean sortable = true;
         public TableView table;
-        private UninterruptibleReadWriteLock updateLock = new UninterruptibleReadWriteLock();
+        private Optional<ScrollBarState> verticalScroll = Optional.empty();
+        private Optional<ScrollBarState> horizontalScroll = Optional.empty();
+        private ReentrantReadWriteLock updateLock = new ReentrantReadWriteLock();
 
         public ExtTableView(TableView table) {
             this.table = table;
@@ -73,54 +122,111 @@ public class CosmeticsFX {
             });
         }
 
+        public void resetScrollData() {
+            this.verticalScroll = Optional.empty();
+            this.horizontalScroll = Optional.empty();
+            getScrollBar(table, Orientation.VERTICAL).ifPresent(m -> m.setValue(0d));
+            getScrollBar(table, Orientation.HORIZONTAL).ifPresent(m -> m.setValue(0d));
+        }
+
+        public void saveScrollState() {
+            this.updateLock.writeLock().lock();
+            try {
+                this.verticalScroll = getScrollBar(table, Orientation.VERTICAL).map(m -> new ScrollBarState(m));
+                this.horizontalScroll = getScrollBar(table, Orientation.HORIZONTAL).map(m -> new ScrollBarState(m));
+            } finally {
+                this.updateLock.writeLock().unlock();
+            }
+        }
+
+        public void restoreScrollState() {
+            this.updateLock.writeLock().lock();
+            try {
+                verticalScroll.ifPresent(state -> {
+                    getScrollBar(table, Orientation.VERTICAL).ifPresent(scroll -> {
+                        state.restoreRelativeValue(scroll);
+                    });
+                });
+
+                horizontalScroll.ifPresent(state -> {
+                    getScrollBar(table, Orientation.HORIZONTAL).ifPresent(scroll -> {
+                        state.restoreRelativeValue(scroll);
+                    });
+                });
+            } finally {
+                this.updateLock.writeLock().unlock();
+            }
+        }
+
         public void saveSortPrefereces() {
             if (!this.sortable) {
                 return;
             }
-            this.updateLock.lockWrite();
-            cols.clear();
-            if (!table.getSortOrder().isEmpty()) {
-                Iterator iterator = table.getSortOrder().iterator();
-                while (iterator.hasNext()) {
-                    TableColumn col = (TableColumn) iterator.next();
-                    TableCol coll = new TableCol();
-                    coll.col = col;
-                    coll.type = col.getSortType();
-                    cols.add(coll);
+            this.updateLock.writeLock().lock();
+            try {
+                cols.clear();
+                if (!table.getSortOrder().isEmpty()) {
+                    Iterator iterator = table.getSortOrder().iterator();
+                    while (iterator.hasNext()) {
+                        TableColumn col = (TableColumn) iterator.next();
+                        TableCol coll = new TableCol();
+                        coll.col = col;
+                        coll.type = col.getSortType();
+                        cols.add(coll);
+                    }
                 }
+            } finally {
+                this.updateLock.writeLock().unlock();
             }
-            this.updateLock.unlockWrite();
         }
 
         public void setSortPreferences() {
-            this.updateLock.lockWrite();
-            table.getSortOrder().clear();
-            ObservableList sortOrder = table.getSortOrder();
-            for (TableCol col : cols) {
-                sortOrder.add(col.col);
-                col.col.setSortType(col.type);
-                col.col.setSortable(true);
+            this.updateLock.writeLock().lock();
+            try {
+                table.getSortOrder().clear();
+                ObservableList sortOrder = table.getSortOrder();
+                for (TableCol col : cols) {
+                    sortOrder.add(col.col);
+                    col.col.setSortType(col.type);
+                    col.col.setSortable(true);
+                }
+            } finally {
+                this.updateLock.writeLock().unlock();
             }
-            this.updateLock.unlockWrite();
         }
 
-        public void updateContents(ObservableList collection) {
-//            this.updateLock.lockWrite();
-            table.setItems(collection);
-            //Work-around to update table
-            TableColumn get = (TableColumn) table.getColumns().get(0);
-            get.setVisible(false);
-            get.setVisible(true);
-//            this.updateLock.unlockWrite();
+        public void updateContents(ObservableList collection, boolean partial) {
+            this.updateLock.writeLock().lock();
+            try {
+
+                if (!partial) {
+                    saveScrollState();
+                }
+                table.setItems(collection);
+                //Work-around to update table
+                TableColumn get = (TableColumn) table.getColumns().get(0);
+                get.setVisible(false);
+                get.setVisible(true);
+                if (!partial) {
+                    restoreScrollState();
+                }
+
+            } finally {
+                this.updateLock.writeLock().unlock();
+            }
 
         }
 
         public void updateContentsAndSort(Collection collection) {
-
             saveSortPrefereces();
-            updateContents(FXCollections.observableArrayList(collection));
+            updateContents(FXCollections.observableArrayList(collection), false);
             setSortPreferences();
+        }
 
+        public void updateContentsAndSortPartial(Collection collection) {
+            saveSortPrefereces();
+            updateContents(FXCollections.observableArrayList(collection), true);
+            setSortPreferences();
         }
 
         public void selectInverted() {
@@ -129,7 +235,7 @@ public class CosmeticsFX {
 
         public ExtTask asynchronousSortTask(List backingList) {
             Runnable run = () -> {
-                updateContentsAndSort(backingList);
+                updateContentsAndSortPartial(backingList);
             };
             ExtTask task = new ExtTask() {
                 @Override
@@ -221,5 +327,18 @@ public class CosmeticsFX {
                 simpleMenuBindingWrap((Menu) item);
             }
         });
+    }
+
+    private static Optional<ScrollBar> getScrollBar(Node parent, Orientation orientation) {
+        // Get the ScrollBar with the given Orientation using lookupAll
+        for (Node n : parent.lookupAll(".scroll-bar")) {
+            if (n instanceof ScrollBar) {
+                ScrollBar bar = (ScrollBar) n;
+                if (bar.getOrientation().equals(orientation)) {
+                    return Optional.of(bar);
+                }
+            }
+        }
+        return Optional.empty();
     }
 }
