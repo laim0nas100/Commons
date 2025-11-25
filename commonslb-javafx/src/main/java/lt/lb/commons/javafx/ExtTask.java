@@ -52,13 +52,6 @@ public abstract class ExtTask<T> implements RunnableFuture {
                 child.handle(s);
             };
         }
-
-        public static InvokeChildTask assignOrCompose(InvokeChildTask parent, InvokeChildTask handle) {
-            if (parent == null) {
-                return handle;
-            }
-            return parent.compose(handle);
-        }
     }
 
     public ExtTask(int timesToRun) {
@@ -203,24 +196,23 @@ public abstract class ExtTask<T> implements RunnableFuture {
     protected abstract T call() throws Exception;
 
     public final void appendOnFailed(InvokeChildTask handle) {
-        onFailed = InvokeChildTask.assignOrCompose(onFailed, handle);
+        onFailed = onFailed == null ? handle : onFailed.compose(handle);
     }
 
     public final void appendOnSucceeded(InvokeChildTask handle) {
-        onSucceded = InvokeChildTask.assignOrCompose(onSucceded, handle);
+        onSucceded = onSucceded == null ? handle : onSucceded.compose(handle);
     }
 
     public final void appendOnCancelled(InvokeChildTask handle) {
-        onCanceled = InvokeChildTask.assignOrCompose(onCanceled, handle);
+        onCanceled = onCanceled == null ? handle : onCanceled.compose(handle);
     }
 
     public final void appendOnInterrupted(InvokeChildTask handle) {
-        onInterrupted = InvokeChildTask.assignOrCompose(onInterrupted, handle);
+        onInterrupted = onInterrupted == null ? handle : onInterrupted.compose(handle);
     }
 
     public final void appendOnDone(InvokeChildTask handle) {
-        onDone = InvokeChildTask.assignOrCompose(onDone, handle);
-
+        onDone = onDone == null ? handle : onDone.compose(handle);
     }
 
     public Thread toThread() {
