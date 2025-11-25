@@ -1,6 +1,9 @@
 package lt.lb.commons.javafx;
 
+import static java.lang.Thread.sleep;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javafx.beans.binding.*;
 import javafx.beans.property.BooleanProperty;
@@ -14,6 +17,8 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.*;
+import lt.lb.commons.threads.Futures;
+import lt.lb.commons.threads.sync.Awaiter;
 
 /**
  *
@@ -75,7 +80,8 @@ public class CosmeticsFX {
             }
         }
 
-        public final long resizeTimeout = 500;
+        private static final long resizeTimeout = 500;
+        private static final long sortTaskTimeout = 200;
         public SimpleBooleanProperty recentlyResized;
         public TimeoutTask resizeTask = new TimeoutTask(resizeTimeout, 10, () -> {
             recentlyResized.set(false);
@@ -237,20 +243,26 @@ public class CosmeticsFX {
             Runnable run = () -> {
                 updateContentsAndSortPartial(backingList);
             };
+            final CompletableFuture awaiter = new CompletableFuture<>();
             ExtTask task = new ExtTask() {
                 @Override
                 protected Object call() throws Exception {
                     try {
-                        do {
-                            FX.submit(run).get();
-                            Thread.sleep(10);
-                        } while (!this.canceled.get() && !this.done.get());
+                        FX.runAndWait(run);
+                        while (!this.canceled.get() && !this.done.get()) {
+                            Thread.sleep(sortTaskTimeout);
+
+                            FX.runAndWait(run);
+                        }
                     } catch (InterruptedException e) {
                     }
 
                     return 0;
                 }
             };
+            task.appendOnDone(h -> {
+                awaiter.complete(0);
+            });
             return task;
         }
     }

@@ -43,6 +43,22 @@ public abstract class ExtTask<T> implements RunnableFuture {
     public static interface InvokeChildTask {
 
         public void handle(Runnable r) throws Exception;
+
+        public default InvokeChildTask compose(InvokeChildTask child) {
+            Objects.requireNonNull(child);
+            InvokeChildTask me = this;
+            return s -> {
+                me.handle(s);
+                child.handle(s);
+            };
+        }
+
+        public static InvokeChildTask assignOrCompose(InvokeChildTask parent, InvokeChildTask handle) {
+            if (parent == null) {
+                return handle;
+            }
+            return parent.compose(handle);
+        }
     }
 
     public ExtTask(int timesToRun) {
@@ -59,20 +75,20 @@ public abstract class ExtTask<T> implements RunnableFuture {
         });
     }
 
+    public ExtTask() {
+        this(1);
+    }
+
     public boolean conditionalWaitOrExit() throws InterruptedException {
         while (paused.get()) {
             if (isCancelled()) {
                 return true;
             }
             synchronized (paused) {
-                paused.wait(1000);
+                paused.wait(500);
             }
         }
         return isCancelled();
-    }
-
-    public ExtTask() {
-        this(1);
     }
 
     private void setProperty(ReadOnlyBooleanProperty prop, boolean value) {
@@ -186,36 +202,25 @@ public abstract class ExtTask<T> implements RunnableFuture {
 
     protected abstract T call() throws Exception;
 
-    public final void setOnFailed(InvokeChildTask handle) {
-        onFailed = handle;
+    public final void appendOnFailed(InvokeChildTask handle) {
+        onFailed = InvokeChildTask.assignOrCompose(onFailed, handle);
     }
 
-    public final void setOnSucceeded(InvokeChildTask handle) {
-        onSucceded = handle;
+    public final void appendOnSucceeded(InvokeChildTask handle) {
+        onSucceded = InvokeChildTask.assignOrCompose(onSucceded, handle);
     }
 
-    public final void setOnCancelled(InvokeChildTask handle) {
-        onCanceled = handle;
+    public final void appendOnCancelled(InvokeChildTask handle) {
+        onCanceled = InvokeChildTask.assignOrCompose(onCanceled, handle);
     }
 
-    public final void setOnInterrupted(InvokeChildTask handle) {
-        onInterrupted = handle;
-    }
-
-    public final void setOnDone(InvokeChildTask handle) {
-        onDone = handle;
+    public final void appendOnInterrupted(InvokeChildTask handle) {
+        onInterrupted = InvokeChildTask.assignOrCompose(onInterrupted, handle);
     }
 
     public final void appendOnDone(InvokeChildTask handle) {
-        if (onDone == null) {
-            setOnDone(handle);
-        } else {
-            InvokeChildTask old = onDone;
-            onDone = s -> {
-                old.handle(childTask);
-                handle.handle(childTask);
-            };
-        }
+        onDone = InvokeChildTask.assignOrCompose(onDone, handle);
+
     }
 
     public Thread toThread() {

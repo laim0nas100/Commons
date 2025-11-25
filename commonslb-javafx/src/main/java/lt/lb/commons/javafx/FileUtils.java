@@ -148,7 +148,7 @@ public class FileUtils {
                     ExtTask subtask = FileUtils.copy(src, dst, options);
                     subtask.paused.bind(this.paused);
                     progress.bind(subtask.progress);
-                    subtask.setOnSucceeded(handle -> {
+                    subtask.appendOnSucceeded(handle -> {
                         Files.delete(src);
                     });
                     subtask.run();
