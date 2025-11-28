@@ -266,8 +266,6 @@ public class ReflectTest {
         UnsafeProvider.ReflUnsafe reflUnsafe = UnsafeProvider.getReflUnsafe();
         System.out.println(reflUnsafe.unsafeClass);
 //         UnsafeProvider._printMeta();
-        int addressSize = reflUnsafe.dataCacheLineFlushSize();
-        DLog.print(addressSize);
          
 
         DLog.await(1, TimeUnit.MINUTES);

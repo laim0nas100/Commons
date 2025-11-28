@@ -35,19 +35,35 @@ public class CopyOptions {
     }
 
     public CopyOptions with(CopyOption option) {
+        if (options.contains(option)) {
+            //no change
+            return this;
+        }
         return new CopyOptions(options, option, useStreams);
     }
 
     public CopyOptions without(CopyOption option) {
-        return new CopyOptions(MakeStream.from(options).without(option).toLinkedSet(), useStreams);
+        if (options.contains(option)) {
+            return new CopyOptions(MakeStream.from(options).without(option).toLinkedSet(), useStreams);
+        }
+        //no change
+        return this;
+    }
+
+    private CopyOptions usingStreams(boolean use) {
+        if (this.useStreams == use) {
+            //no change
+            return this;
+        }
+        return new CopyOptions(options, use);
     }
 
     public CopyOptions withStreams() {
-        return new CopyOptions(options, true);
+        return usingStreams(true);
     }
 
     public CopyOptions withoutStreams() {
-        return new CopyOptions(options, false);
+        return usingStreams(false);
     }
 
     public List<CopyOption> toList() {
@@ -58,10 +74,10 @@ public class CopyOptions {
         return options.stream().toArray(s -> new CopyOption[s]);
     }
 
-    public boolean isUsingStreams(){
+    public boolean isUsingStreams() {
         return useStreams;
     }
-    
+
     public boolean isAtomicMove() {
         return options.contains(StandardCopyOption.ATOMIC_MOVE);
     }

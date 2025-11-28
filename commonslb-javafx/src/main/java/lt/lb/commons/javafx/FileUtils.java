@@ -141,11 +141,11 @@ public class FileUtils {
                 progress.set(0);
                 FileSystemProvider providerSrc = src.getFileSystem().provider();
                 FileSystemProvider providerDest = dst.getFileSystem().provider();
-                if (options.isAtomicMove() || Files.isDirectory(src) || (providerSrc == providerDest)) {
+                if ((options.isAtomicMove() && providerSrc == providerDest) || Files.isDirectory(src) ) {
                     providerSrc.move(src, dst, options.toArray());
                     progress.set(1);
                 } else {
-                    ExtTask subtask = FileUtils.copy(src, dst, options);
+                    ExtTask subtask = FileUtils.copy(src, dst, options.without(StandardCopyOption.ATOMIC_MOVE));
                     subtask.paused.bind(this.paused);
                     progress.bind(subtask.progress);
                     subtask.appendOnSucceeded(handle -> {
