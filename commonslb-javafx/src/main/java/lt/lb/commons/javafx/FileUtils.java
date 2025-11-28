@@ -3,6 +3,7 @@ package lt.lb.commons.javafx;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -115,7 +116,7 @@ public class FileUtils {
                             }
                         }
                     }));
-                    if(opt.isReplaceExisting()){
+                    if (opt.isReplaceExisting()) {
                         Files.deleteIfExists(dst);
                     }
                     Files.copy(stream, dst);
@@ -123,7 +124,7 @@ public class FileUtils {
                         copyBasicAttributes(src, dst);
                     }
                 } else {
-                    Files.copy(src, dst,opt.toArray());
+                    Files.copy(src, dst, opt.toArray());
                 }
                 progress.set(1);
                 return null;
@@ -141,10 +142,18 @@ public class FileUtils {
                 progress.set(0);
                 FileSystemProvider providerSrc = src.getFileSystem().provider();
                 FileSystemProvider providerDest = dst.getFileSystem().provider();
-                if ((options.isAtomicMove() && providerSrc == providerDest) || Files.isDirectory(src) ) {
-                    providerSrc.move(src, dst, options.toArray());
-                    progress.set(1);
-                } else {
+                boolean moved = false;
+                try {
+                    if ((options.isAtomicMove() && providerSrc == providerDest) || Files.isDirectory(src)) {
+                        providerSrc.move(src, dst, options.toArray());
+                        moved = true;
+                        progress.set(1);
+                    }
+                } catch (AtomicMoveNotSupportedException err) {// expected error on Windows, if not the same disk, anything else is abort
+
+                }
+
+                if (!moved) {
                     ExtTask subtask = FileUtils.copy(src, dst, options.without(StandardCopyOption.ATOMIC_MOVE));
                     subtask.paused.bind(this.paused);
                     progress.bind(subtask.progress);
@@ -153,6 +162,7 @@ public class FileUtils {
                     });
                     subtask.run();
                 }
+
                 return null;
             }
         };
