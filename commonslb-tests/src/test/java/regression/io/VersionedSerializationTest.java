@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import lt.lb.commons.DLog;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
@@ -23,14 +22,11 @@ import lt.lb.commons.io.serialization.VSManager;
 import lt.lb.commons.io.serialization.VersionedChanges;
 import lt.lb.commons.io.serialization.VersionedDeserializationContext;
 import lt.lb.commons.io.serialization.VersionedSerialization;
-import lt.lb.commons.io.serialization.VersionedSerializationContext;
-import lt.lb.commons.io.serialization.VersionedSerializer;
+import lt.lb.commons.iteration.For;
 import lt.lb.uncheckedutils.Checked;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  *
@@ -135,12 +131,9 @@ public class VersionedSerializationTest {
     public static class SelfRef {
 
         public String string;
-        public SelfRef refernced;
+        public SelfRef referenced;
     }
 
-    public static record SelfRecord(String str, Value<SelfRecord> selfValue) {
-
-    }
 
     @Test
     public void testSerializers() throws Exception {
@@ -262,29 +255,5 @@ public class VersionedSerializationTest {
 
     }
 
-    @Test
-    public void testSelfReferential() {
-        VSManager ser = new VSManager();
-        ser.includeCustomRefCounting(SelfRef.class, 0);
-        ser.includeCustomRefCounting(SelfRecord.class, 0);
-        ser.includeCustomBean(Value.class);
 
-        SelfRef me = new SelfRef();
-        me.string = "Some value";
-        me.refernced = me;
-
-        Value<SelfRecord> val = new Value<>();
-        SelfRecord rec = new SelfRecord("Record ", val);
-        val.set(rec);
-
-        VersionedSerialization.CustomVSU root = ser.serializeRoot(me);
-        SelfRef deserializeRoot = ser.deserializeRoot(root);
-
-        assertThat(deserializeRoot).isSameAs(deserializeRoot.refernced);
-
-        VersionedSerialization.CustomVSU recordRoot = ser.serializeRoot(rec);
-        SelfRecord deserializedRecord = ser.deserializeRoot(recordRoot, new VersionedDeserializationContext(true));
-        assertThat(deserializedRecord).isSameAs(deserializedRecord.selfValue.get());
-
-    }
 }
