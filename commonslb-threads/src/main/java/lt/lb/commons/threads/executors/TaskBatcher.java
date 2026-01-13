@@ -1,7 +1,7 @@
 package lt.lb.commons.threads.executors;
 
 import java.util.ArrayDeque;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -61,7 +61,7 @@ public class TaskBatcher implements Executor {
         }
 
         public static BatchRunSummary empty() {
-            return new BatchRunSummary(0, 0, 0, 0, Arrays.asList());
+            return new BatchRunSummary(0, 0, 0, 0, new ArrayList<>(0));
         }
     }
 
@@ -108,7 +108,7 @@ public class TaskBatcher implements Executor {
                 int ok = 0;
                 int interrupted = 0;
                 int timeout = 0;
-                ArrayDeque<Throwable> failures = new ArrayDeque<>();
+                ArrayList<Throwable> failures = new ArrayList<>();
                 boolean waitGet = executionWait.time > 0;
                 while (!localDeque.isEmpty()) {
                     Future last = localDeque.pollLast();
@@ -140,6 +140,7 @@ public class TaskBatcher implements Executor {
                         }
 
                         if (failFast) {
+                            exe.cancelAll(true);
                             break;
                         }
                     }
