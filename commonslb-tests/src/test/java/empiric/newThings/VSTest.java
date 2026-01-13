@@ -2,7 +2,6 @@ package empiric.newThings;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.lang.reflect.Modifier;
 import lt.lb.commons.io.serialization.VSManager;
 import lt.lb.commons.io.serialization.VersionedChanges;
 import lt.lb.commons.io.serialization.VersionedSerialization;
@@ -11,15 +10,16 @@ import java.math.BigInteger;
 import java.math.MathContext;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.xml.parsers.ParserConfigurationException;
 import lt.lb.commons.DLog;
 import lt.lb.commons.F;
-import lt.lb.commons.Ins;
-import lt.lb.commons.io.serialization.VersionedSerialization.VSUnit;
+import lt.lb.commons.containers.collections.ArrayLinearMap;
 import lt.lb.commons.io.serialization.VersionedSerializationXML;
 import org.apache.commons.lang3.SerializationUtils;
 import org.xml.sax.InputSource;
@@ -154,14 +154,14 @@ public class VSTest {
         ser.withStringifyType(BigDecimal.class, s -> new BigDecimal(s));
 //        ser.withStringifyType(ZonedDateTime.class, s -> ZonedDateTime.parse(s));
 
-        VersionedSerialization.CustomVSUnit root = ser.serializeRoot(data);
+        VersionedSerialization.CustomVSU root = ser.serializeRoot(data);
 
         LoaderOptions loaderOptions = new LoaderOptions();
         loaderOptions.setTagInspector(tag -> true);
         Yaml yaml = new Yaml(loaderOptions);
 
         byte[] bytes = SerializationUtils.serialize(root);// write
-        VersionedSerialization.CustomVSUnit newRoot = SerializationUtils.deserialize(bytes);//read
+        VersionedSerialization.CustomVSU newRoot = SerializationUtils.deserialize(bytes);//read
         String dump = yaml.dump(newRoot);
         DLog.print(dump);
 
@@ -172,14 +172,14 @@ public class VSTest {
         ser.addVersionChanger(VersionedChanges.builderVerionInc(Data.class, 0)
                 .withTypeChange(Data2.class)
                 .withFieldRefactor("numbers", field -> {//change the list<Integer>  to int[] and  fieldName
-                    VersionedSerialization.ArrayFieldVSUnit array = F.cast(field);
+                    VersionedSerialization.ArrayVSUF array = F.cast(field);
                     array.setCollectionType(null);//removes trait
                     array.setType(Integer.TYPE.getName());
                     array.setFieldName("array");
                     return field;
                 })
                 .withFieldRefactor("compValMap", field -> {//change the collection type
-                    VersionedSerialization.MapFieldVSUnit array = F.cast(field);
+                    VersionedSerialization.MapVSUF array = F.cast(field);
                     array.setCollectionType(LinkedHashMap.class.getName());
                     return field;
                 })
@@ -200,7 +200,36 @@ public class VSTest {
 
         System.out.println(stringBuilder);
 
-       
+        Map<Integer, String> m = new ArrayLinearMap<>();
+        m.put(0, "zero");
+        m.put(1, "one");
+        m.put(2, "two");
+        DLog.printLines(m.entrySet());
+
+        m.values().remove("one");
+
+        DLog.printLines(m.entrySet());
+
+        m.entrySet().iterator().next().setValue("new zero");
+
+        DLog.printLines(m.entrySet());
+
+        m.keySet().clear();
+
+        DLog.printLines(m.entrySet());
+
+        for (int i = 0; i < 10; i++) {
+            m.put(i, "Str_" + i);
+        }
+
+        Iterator<Integer> iterator = m.keySet().iterator();
+        while (iterator.hasNext()) {
+            DLog.print(m.entrySet());
+            iterator.next();
+            iterator.remove();
+        }
+
 
     }
+
 }
