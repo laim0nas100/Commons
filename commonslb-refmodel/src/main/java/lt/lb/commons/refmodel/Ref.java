@@ -10,34 +10,34 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class Ref<Type> implements CloneSupport<Ref<Type>> {
 
-    String local;
-    String relative;
-    Class[] parameterTypes;
-    Ref memberContinuation;
-    String separator;
-    int compileLeft;
+    protected String local;
+    protected String relative;
+    protected Class[] parameterTypes = {};
+    protected Ref memberContinuation;
+    protected String separator;
+    protected int compileLeft;
 
-    public final Class[] getParameterTypes() {
+    public Class[] getParameterTypes() {
         return parameterTypes;
     }
-
-    public final String get() {
+    
+    public String get() {
         return getRelative();
     }
 
-    public final String getRelative() {
+    public String getRelative() {
         return relative;
     }
 
-    public final String getLocal() {
+    public String getLocal() {
         return local;
     }
 
-    public final String[] steps() {
-        return StringUtils.split(getRelative(), separator);
+    public String[] steps() {
+        return StringUtils.split(getRelative(), getSeparator());
     }
 
-    public final String getSeparator() {
+    public String getSeparator() {
         return separator;
     }
 

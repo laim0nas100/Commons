@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package lt.lb.commons.refmodel.maps;
 
 import java.util.List;
@@ -45,16 +41,16 @@ public class ObjectRef<T> extends Ref<T> {
 
     protected <T> SafeOpt readRemoveConvert(MapProvider provider, boolean remove) {
         SafeOpt<Object> readRemove = readRemove(provider, remove);
-        Class[] parameterTypes = getParameterTypes();
-        if (parameterTypes.length == 1 && !parameterTypes[0].equals(Double.class)) {
-            return readRemove.map(m -> provider.coerceFromRaw(m, parameterTypes[0]));
+        Class[] param = getParameterTypes();
+        if (param.length == 1) {
+            return readRemove.map(m -> provider.coerceFromRaw(m, param[0]));
         } else {
             return readRemove;
         }
     }
 
     protected <T> SafeOpt<T> readRemove(MapProvider provider, boolean remove) {
-        Map<String, Object> map = provider.getMap();
+        Map<String, Object> map = provider.delegate();
 
         String fullPath = getRelative();
         String[] steps = StringUtils.split(fullPath, getSeparator());
@@ -82,13 +78,11 @@ public class ObjectRef<T> extends Ref<T> {
                         Object get = parent.get(step);
                         if (get instanceof List) {
                             List list = F.cast(get);
-
-                            if (index <= list.size() && !list.isEmpty()) {
-                                if (index == -1) {
-                                    return (SafeOpt) SafeOpt.ofNullable(list.get(list.size() - 1));
-                                } else {
-                                    return (SafeOpt) SafeOpt.ofNullable(list.get(index));
-                                }
+                            if (index < 0) {
+                                index = list.size() - Math.abs(index);
+                            }
+                            if (index >= 0 && index < list.size()) {
+                                return (SafeOpt) SafeOpt.ofNullable(list.get(index));
                             }
                         } else {
                             return err("Failed to read:" + fullPath + " index out of bounds, failed at:" + pathBuilder.toString());
@@ -120,24 +114,26 @@ public class ObjectRef<T> extends Ref<T> {
                     Integer index = indexFromStep.get();
                     if (index <= list.size() && !list.isEmpty()) {
                         Object get;
-                        if (index == -1) {
-                            get = list.get(list.size() - 1);
-                        } else {
+                        if (index < 0) {
+                            index = list.size()  - Math.abs(index);
+                        }
+                        if (index >= 0 && index < list.size()) {
                             get = list.get(index);
-                        }
-                        if (get instanceof Map) {
-                            parent = F.cast(get);
+                            if (get instanceof Map) {
+                                parent = F.cast(get);
+                            } else {
+                                return err("Failed to read:" + fullPath + " expected a map, failed at:" + pathBuilder.toString());
+                            }
                         } else {
-                            return err("Failed to read:" + fullPath + " expected a map, failed at:" + pathBuilder.toString());
+                            return err("Failed to read:" + fullPath + " index out of bounds failed at:" + pathBuilder.toString());
                         }
+
                     } else {
                         return err("Failed to read:" + fullPath + " index out of bounds failed at:" + pathBuilder.toString());
                     }
                 } else {
                     return err("Failed to read:" + fullPath + " expected a list, failed at:" + pathBuilder.toString());
-
                 }
-
             } else {
                 Object get = parent.getOrDefault(step, null);
                 if (get instanceof Map) {
@@ -206,7 +202,7 @@ public class ObjectRef<T> extends Ref<T> {
      * @return SafeOpt of previous value or map traversal error
      */
     public SafeOpt<T> write(MapProvider provider, T value) {
-        Map<String, Object> map = provider.getMap();
+        Map<String, Object> map = provider.delegate();
 
         String fullPath = getRelative();
         String[] steps = StringUtils.split(fullPath, getSeparator());

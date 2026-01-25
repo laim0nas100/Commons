@@ -1,26 +1,25 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package lt.lb.commons.refmodel.maps;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 import lt.lb.commons.F;
+import lt.lb.commons.Ins;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.parsing.numbers.FastParse;
+import lt.lb.prebuiltcollections.DelegatingMap;
 import lt.lb.uncheckedutils.func.UncheckedSupplier;
 
 /**
  *
  * @author laim0nas100
  */
-public interface MapProvider {
+public interface MapProvider extends DelegatingMap<String, Object> {
 
-    public Map<String, Object> getMap();
+    @Override
+    public Map<String, Object> delegate();
 
     public Map<String, Object> createMap();
 
@@ -28,11 +27,15 @@ public interface MapProvider {
         return new ArrayList();
     }
 
+    public default void mergeWith(MapProvider other) {
+        MapProvider.deepMergeMaps(delegate(), other.delegate());
+    }
+
     public static MapProvider ofMap(Map<String, Object> current, Supplier<? extends Map<String, Object>> supplier) {
         Nulls.requireNonNulls(current, supplier);
         return new MapProvider() {
             @Override
-            public Map<String, Object> getMap() {
+            public Map<String, Object> delegate() {
                 return current;
             }
 
@@ -40,20 +43,42 @@ public interface MapProvider {
             public Map<String, Object> createMap() {
                 return supplier.get();
             }
+
+            @Override
+            public String toString() {
+                return delegate().toString();
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) {
+                    return true;
+                }
+                if (!(o instanceof MapProvider)) {
+                    return false;
+                }
+
+                MapProvider that = (MapProvider) o;
+                return delegate().equals(that.delegate());
+            }
+
+            @Override
+            public int hashCode() {
+                return delegate().hashCode();
+            }
         };
     }
 
     public static MapProvider hashMap(Map<String, Object> current) {
-        return ofMap(current, HashMap::new);
+        return ofMap(current, LinkedHashMap::new);
     }
 
     public static MapProvider ofDefault(Map<String, Object> map) {
-        Objects.requireNonNull(map);
+        Nulls.requireNonNull(map);
         UncheckedSupplier<Map<String, Object>> supplier = () -> {
             return map.getClass().getDeclaredConstructor().newInstance();
         };
         return ofMap(map, supplier);
-
     }
 
     /**
@@ -68,106 +93,116 @@ public interface MapProvider {
      * information
      */
     public default <T> T coerceFromRaw(Object raw, Class<T> targetType) {
+        Ins<Object> ins = Ins.ofNullablePrimitivePromotion(raw);
+        Ins.InsCl<T> target = Ins.of(targetType);
         if (raw == null) {
-            if (targetType.isPrimitive()) {
-                throw new IllegalArgumentException("Cannot convert null to primitive type: " + targetType.getName());
-            }
-            return null;  // allowed for reference types
+            return null;
         }
 
-        // Already correct type → no conversion needed
-        if (targetType.isInstance(raw)) {
-            return F.cast(targetType.cast(raw));
+        if (ins.instanceOf(targetType)) {
+            return F.cast(raw);
         }
 
-        // ───────────────────────────────────────────────────────────────
-        // Number → Number coercion (the most common Gson fix)
-        // ───────────────────────────────────────────────────────────────
-        if (raw instanceof Number) {
-            Number number = F.cast(raw);
-            if (targetType == Integer.class || targetType == int.class) {
-                return F.cast(number.intValue());
+        if (ins.instanceOf(Number.class)) {
+            Number n = F.cast(raw);
+            if (target.instanceOf(Integer.class)) {
+                return F.cast(n.intValue());
             }
-            if (targetType == Long.class || targetType == long.class) {
-                return F.cast(number.longValue());
+            if (target.instanceOf(Long.class)) {
+                return F.cast(n.longValue());
             }
-            if (targetType == Float.class || targetType == float.class) {
-                return F.cast(number.floatValue());
+            if (target.instanceOf(Float.class)) {
+                return F.cast(n.floatValue());
             }
-            if (targetType == Double.class || targetType == double.class) {
-                return F.cast(number.doubleValue());
+            if (target.instanceOf(Double.class)) {
+                return F.cast(n.doubleValue());
             }
-            if (targetType == Short.class || targetType == short.class) {
-                return F.cast(number.shortValue());
+            if (target.instanceOf(Short.class)) {
+                return F.cast(n.shortValue());
             }
-            if (targetType == Byte.class || targetType == byte.class) {
-                return F.cast(number.byteValue());
+            if (target.instanceOf(Byte.class)) {
+                return F.cast(n.byteValue());
+            }
+            if (target.instanceOf(Boolean.class)) {
+                return F.cast(n.intValue() != 0);
             }
         }
 
-        // ───────────────────────────────────────────────────────────────
-        // String → number (common when JSON had quoted numbers)
-        // ───────────────────────────────────────────────────────────────
-        if (raw instanceof String) {
+        if (ins.instanceOf(String.class)) {
             String str = F.cast(raw);
             str = str.trim();
             if (str.isEmpty()) {
                 throw new IllegalArgumentException("Empty string cannot be converted to " + targetType.getName());
             }
-
-            try {
-                if (targetType == Integer.class || targetType == int.class) {
-                    return (T) Integer.valueOf(str);
-                }
-                if (targetType == Long.class || targetType == long.class) {
-                    return (T) Long.valueOf(str);
-                }
-                if (targetType == Float.class || targetType == float.class) {
-                    return (T) Float.valueOf(str);
-                }
-                if (targetType == Double.class || targetType == double.class) {
-                    return (T) Double.valueOf(str);
-                }
-                if (targetType == Boolean.class || targetType == boolean.class) {
-                    return (T) Boolean.valueOf(str);
-                }
-                // You can add more (BigDecimal, BigInteger, etc.)
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("String '" + str + "' cannot be parsed as " + targetType.getName(), e);
+            if (target.instanceOf(Integer.class)) {
+                return F.cast(FastParse.parseInt(str));
             }
-        }
-
-        // ───────────────────────────────────────────────────────────────
-        // Boolean coercion
-        // ───────────────────────────────────────────────────────────────
-        if (targetType == Boolean.class || targetType == boolean.class) {
-            if (raw instanceof Boolean) {
-                return (T) raw;
+            if (target.instanceOf(Long.class)) {
+                return F.cast(FastParse.parseLong(str));
             }
-            if (raw instanceof String) {
-                String s = F.cast(raw);
-                String lower = s.trim().toLowerCase();
+            if (target.instanceOf(Float.class)) {
+                return F.cast(FastParse.parseFloat(str));
+            }
+            if (target.instanceOf(Double.class)) {
+                return F.cast(FastParse.parseDouble(str));
+            }
+            if (target.instanceOf(Short.class)) {
+                Integer parseInt = FastParse.parseInt(str);
+                if (parseInt != null) {
+                    return F.cast(parseInt.shortValue());
+                }
+                return null;
+            }
+            if (target.instanceOf(Byte.class)) {
+                Integer parseInt = FastParse.parseInt(str);
+                if (parseInt != null) {
+                    return F.cast(parseInt.byteValue());
+                }
+                return null;
+            }
+
+            if (target.instanceOf(Boolean.class)) {
+                String lower = str.trim().toLowerCase();
                 if ("true".equals(lower) || "1".equals(lower) || "yes".equals(lower)) {
-                    return (T) Boolean.TRUE;
+                    return F.cast(Boolean.TRUE);
                 }
                 if ("false".equals(lower) || "0".equals(lower) || "no".equals(lower)) {
-                    return (T) Boolean.FALSE;
+                    return F.cast(Boolean.FALSE);
                 }
-            }
-            if (raw instanceof Number) {
-                Number n = F.cast(raw);
-                return F.cast(n.intValue() != 0);
             }
         }
 
-        // Fallback: try simple cast (last resort)
+        // try simple cast
         try {
-            return (T) targetType.cast(raw);
+            return F.cast(targetType.cast(raw));
         } catch (ClassCastException e) {
             throw new IllegalArgumentException(
                     "Cannot coerce value of type " + raw.getClass().getName()
                     + " to expected type " + targetType.getName()
                     + " (value: " + raw + ")", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void deepMergeMaps(Map<String, Object> target, Map<String, Object> source) {
+        for (Map.Entry<String, Object> entry : source.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (!target.containsKey(key)) {
+                target.put(key, value);
+                continue;
+            }
+
+            Object targetVal = target.get(key);
+
+            if (value instanceof Map && targetVal instanceof Map) {
+                deepMergeMaps((Map<String, Object>) targetVal, (Map<String, Object>) value);
+            } else if (value instanceof List && targetVal instanceof List) {
+                ((List<Object>) targetVal).addAll((List<Object>) value);  // append
+            } else {
+                target.put(key, value);  // replace
+            }
         }
     }
 }

@@ -64,12 +64,16 @@ public class RefCompiler {
                 if (genericType instanceof ParameterizedType) {
                     ParameterizedType pt = F.cast(genericType);
                     Type[] typeArgs = pt.getActualTypeArguments();
-                    ref.parameterTypes = Stream.of(typeArgs).filter(t -> t instanceof Class).toArray(s -> new Class[s]);
+                    ref.parameterTypes = Stream.of(typeArgs)
+                            .filter(t -> t instanceof Class)
+                            .toArray(s -> new Class[s]);
                 }
                 boolean isList = RefList.class.isAssignableFrom(type);
                 boolean isModel = RefModel.class.isAssignableFrom(type);
                 if (isModel && isList) {
-                    throw new IllegalStateException(String.format("%s implements both %s %s", type.getName(), RefList.class.getName(), RefModel.class.getName()));
+                    throw new IllegalStateException(
+                            String.format("%s implements both %s %s", type.getName(), RefList.class.getName(), RefModel.class.getName())
+                    );
                 }
 
                 if (isList) {
@@ -87,13 +91,9 @@ public class RefCompiler {
                         member.compileLeft = limit - 1;
                         ref.memberContinuation = member;
                         compile(member, member.relative, limit - 1, separator);
-                    } else {
-                        return;
-                    }
+                    } 
 
-                    //end of line
-                }
-                if (isModel) {
+                } else if (isModel) {
                     compile(ref, ref.relative, limit - 1, separator);
                 }
             }

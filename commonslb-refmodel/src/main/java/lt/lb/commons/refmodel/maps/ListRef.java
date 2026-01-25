@@ -1,6 +1,7 @@
 package lt.lb.commons.refmodel.maps;
 
 import java.util.List;
+import lt.lb.commons.F;
 import lt.lb.commons.refmodel.Ref;
 import lt.lb.commons.refmodel.RefCompiler;
 import lt.lb.commons.refmodel.RefList;
@@ -16,29 +17,51 @@ public class ListRef<T extends Ref> extends ObjectRef<T> implements RefList {
     public T at(int index) {
 
         try {
-            Ref memberContinuation = getMemberContinuation().clone();
+            Ref continueation = getMemberContinuation().clone();
+            //only care about cloning the string fields, they will change in compile continuation, the rest can be the same
 
-            RefCompiler.compileContinuation(memberContinuation, index);
-            return (T) memberContinuation;
+            RefCompiler.compileContinuation(continueation, index);
+            return (T) continueation;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public int size(MapProvider provider) {
-        SafeOpt<List> map = readCast(provider);
-        return map.map(m -> m.size()).orElse(0);
+    /**
+     * Reads a List value at resolved path
+     *
+     * @param <T>
+     * @param provider map traverse information
+     * @return SafeOpt of read value or map traversal error
+     */
+    public <T> SafeOpt<List> readList(MapProvider provider) {
+        return F.cast(readRemove(provider, false));
     }
 
-    public int clear(MapProvider provider) {
-        SafeOpt<List> list = readCast(provider);
-        if (list.isPresent()) {
-            List get = list.get();
-            int size = get.size();
-            get.clear();
+    /**
+     * Reads a List value at measures it's size
+     *
+     * @param <T>
+     * @param provider map traverse information
+     * @return SafeOpt of read value or map traversal error
+     */
+    public SafeOpt<Integer> size(MapProvider provider) {
+        return readList(provider).map(m -> m.size());
+    }
+
+    /**
+     * Reads a List value at measures clears it
+     *
+     * @param <T>
+     * @param provider map traverse information
+     * @return SafeOpt of read value or map traversal error
+     */
+    public SafeOpt<Integer> clear(MapProvider provider) {
+        return readList(provider).map(m -> {
+            int size = m.size();
+            m.clear();
             return size;
-        }
-        return 0;
+        });
     }
 
 }
