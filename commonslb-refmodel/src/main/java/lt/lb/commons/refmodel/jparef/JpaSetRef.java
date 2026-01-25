@@ -6,14 +6,14 @@ import javax.persistence.criteria.*;
  *
  * @author laim0nas100
  */
-public class SetRef<T> extends JoinRef<T> {
+public class JpaSetRef<T> extends JpaJoinRef<T> {
     
     public <E,A> SetJoin<E, T> join(From<E,A> root) {
-        return this.join(root, JoinType.INNER);
+        return join(root, JoinType.INNER);
     }
 
     public <E,A> SetJoin<E, T> join(From<E,A> root, JoinType jt) {
-        return this.resolveJoin(root).joinSet(this.local, jt);
+        return resolveJoin(root).joinSet(getLocal(), jt);
     }
 
 }

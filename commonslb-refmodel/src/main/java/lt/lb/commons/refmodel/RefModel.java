@@ -4,7 +4,7 @@ package lt.lb.commons.refmodel;
 /**
  *
  * @author laim0nas100
- * Marker interface when Ref is composite
+ * Marker interface when Ref is composite and has fields
  */
 public interface RefModel {
     

@@ -6,15 +6,15 @@ import javax.persistence.criteria.*;
  *
  * @author laim0nas100
  */
-public class MapRef<K, T> extends JoinRef<T> {
+public class JpaMapRef<K, T> extends JpaJoinRef<T> {
 
     
     public <E,A> MapJoin<E, K, T> join(From<E,A> root) {
-        return this.join(root, JoinType.INNER);
+        return join(root, JoinType.INNER);
     }
 
     public <E,A> MapJoin<E, K, T> join(From<E,A> root, JoinType jt) {
-        return this.resolveJoin(root).joinMap(local, jt);
+        return resolveJoin(root).joinMap(getLocal(), jt);
     }
 
 }

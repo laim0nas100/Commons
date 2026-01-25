@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 public class SingularRef<T> extends Ref<T> {
     
     public Path<T> getPathFrom(Path p) {
-        String str = this.get();
+        String str = getRelative();
         String[] split = StringUtils.split(str, RefCompiler.DEFAULT_SEPARATOR);
         for (String path : split) {
             p = p.get(path);
@@ -21,10 +21,10 @@ public class SingularRef<T> extends Ref<T> {
     }
 
     public <A,B> Fetch<A,T> fetch(FetchParent<A,B> root, JoinType jt) {
-        return root.fetch(local, jt);
+        return root.fetch(getLocal(), jt);
     }
 
     public <A,B> Fetch<A,T> fetch(FetchParent<A,B> root) {
-        return this.fetch(root, JoinType.INNER);
+        return fetch(root, JoinType.INNER);
     }
 }
