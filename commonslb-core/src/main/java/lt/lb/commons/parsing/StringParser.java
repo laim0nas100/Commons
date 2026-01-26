@@ -158,7 +158,11 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
     default String[] parseArray(String string) {
         string = Strings.CS.remove(string, "[");
         string = Strings.CS.remove(string, "]");
-        return split(string, ", ").stream().toArray(s -> new String[s]);
+        return split(string, ",")
+                .stream()
+                .filter(StringUtils::isNotEmpty)
+                .map(m -> m.trim())
+                .toArray(s -> new String[s]);
     }
 
     default <O> SafeOpt<List<O>> parseOptAnyList(T p, Function<String, O> func) {
