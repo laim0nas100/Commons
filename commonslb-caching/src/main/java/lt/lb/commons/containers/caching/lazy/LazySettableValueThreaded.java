@@ -22,7 +22,7 @@ public class LazySettableValueThreaded<T> extends LazyValueThreaded<T> {
     }
     
     public LazySettableValueThreaded(T value) {
-        super(new ThreadLocalValue<T>(value));
+        super(new ThreadLocalValue<>(value));
         WrappedDep<T, ThreadLocalValue<T>> wrapped = F.cast(supply);
         this.settable = wrapped.implementation;
     }

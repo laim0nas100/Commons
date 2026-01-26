@@ -6,6 +6,7 @@ import java.util.Optional;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
+import lt.lb.commons.parsing.StringParser;
 import lt.lb.uncheckedutils.Checked;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,11 +16,11 @@ import org.apache.commons.lang3.StringUtils;
  * @author laim0nas100
  */
 public class FieldChain {
-
+    
     protected Field current;
     protected FieldChain next;
     protected String[] path;
-
+    
     public void doSet(Object ob, Object value) {
         Checked.uncheckedRun(() -> {
             Tuple<FieldChain, Object> last = getLast(ob);
@@ -27,7 +28,7 @@ public class FieldChain {
             Refl.fieldAccessableSet(fc.current, last.g2, value);
         });
     }
-
+    
     public Object doGet(Object ob) {
         return Checked.uncheckedCall(() -> {
             Tuple<FieldChain, Object> last = getLast(ob);
@@ -35,7 +36,7 @@ public class FieldChain {
             return Refl.fieldAccessableGet(fc.current, last.g2);
         });
     }
-
+    
     private Tuple<FieldChain, Object> getLast(Object ob) {
         return Checked.uncheckedCall(() -> {
             FieldChain chain = this;
@@ -47,7 +48,7 @@ public class FieldChain {
             return new Tuple<>(chain, currObject);
         });
     }
-
+    
     public Field getLastField() {
         FieldChain chain = this;
         while (chain.next != null) {
@@ -55,14 +56,14 @@ public class FieldChain {
         }
         return chain.current;
     }
-
+    
     public static FieldChain resolveChainOfClassParse(Class rootClass, String steps) throws Exception {
-        return resolveChainOfClass(rootClass, StringUtils.split(steps, "."));
+        return resolveChainOfClass(rootClass, StringParser.split(steps, ".").stream().toArray(s -> new String[s]));
     }
-
+    
     public static FieldChain resolveChainOfClass(Class rootClass, String... steps) throws NoSuchFieldException {
         Class cls = rootClass;
-
+        
         FieldChain root = new FieldChain();
         FieldChain chain = root;
         for (int i = 0; i < steps.length - 1; i++) {
@@ -84,10 +85,10 @@ public class FieldChain {
         }
         chain.current = findField.get();
         chain.path = ArrayOp.asArray(finalField);
-
+        
         return root;
     }
-
+    
     private static Optional<Field> findField(Class cls, String name) {
         Class current = cls;
         while (current != null) {
@@ -98,15 +99,15 @@ public class FieldChain {
             }
         }
         return Optional.empty();
-
+        
     }
-
+    
     public String getFieldPath() {
         StringBuilder sb = new StringBuilder();
         FieldChain chain = this;
         sb.append(chain.current.getName());
         while (chain.next != null) {
-
+            
             chain = chain.next;
             if (chain.current != null) {
                 sb.append(".");
@@ -115,23 +116,23 @@ public class FieldChain {
         }
         return sb.toString();
     }
-
+    
     public Field getCurrentField() {
         return current;
     }
-
+    
     public static class ObjectFieldChain {
-
+        
         protected ObjectFieldChain next;
         protected Field current;
         protected String fieldName;
-
+        
         public Field getCurrent(Object currObject) throws NoSuchFieldException {
             if (this.current == null) {// do init
 
                 Class cls = currObject.getClass();
                 Optional<Field> findField = findField(cls, this.fieldName);
-
+                
                 if (findField.isPresent()) {
                     this.current = findField.get();
                 } else {
@@ -140,13 +141,13 @@ public class FieldChain {
             }
             return this.current;
         }
-
+        
         private Tuple<ObjectFieldChain, Object> getLast(Object ob) {
             return Checked.uncheckedCall(() -> {
                 ObjectFieldChain chain = this;
                 Object currObject = ob;
                 while (chain.next != null) {
-
+                    
                     if (currObject == null) { // no class to get
                         throw new NullPointerException(chain.fieldName + " cant be accessed because parent object is null");
                     }
@@ -157,31 +158,31 @@ public class FieldChain {
                 return Tuples.create(chain, currObject);
             });
         }
-
+        
         public void doSet(Object ob, Object value) {
             Checked.uncheckedRun(() -> {
                 Tuple<ObjectFieldChain, Object> last = getLast(ob);
-
+                
                 ObjectFieldChain fc = last.g1;
                 Object resolvedObject = last.g2;
-
+                
                 Field currentField = fc.getCurrent(resolvedObject); // init on demand
                 Refl.fieldAccessableSet(currentField, resolvedObject, value);
             });
         }
-
+        
         public Object doGet(Object ob) {
             return Checked.uncheckedCall(() -> {
                 Tuple<ObjectFieldChain, Object> last = getLast(ob);
-
+                
                 ObjectFieldChain fc = last.g1;
                 Object resolvedObject = last.g2;
-
+                
                 Field currentField = fc.getCurrent(resolvedObject); // init on demand
                 return Refl.fieldAccessableGet(currentField, resolvedObject);
             });
         }
-
+        
         public String[] getPath() {
             ObjectFieldChain chain = this;
             LinkedList<String> path = new LinkedList<>();
@@ -191,7 +192,7 @@ public class FieldChain {
             }
             return path.stream().toArray(s -> new String[s]);
         }
-
+        
         public static ObjectFieldChain ofChain(String... steps) {
             ObjectFieldChain root = new ObjectFieldChain();
             ObjectFieldChain chain = root;
@@ -205,14 +206,14 @@ public class FieldChain {
             chain.fieldName = finalField;
             return root;
         }
-
+        
         public static ObjectFieldChain ofChainParse(String steps, String separator) {
-            return ofChain(StringUtils.split(steps, separator));
+            return ofChain(StringParser.split(steps, separator).stream().toArray(s -> new String[s]));
         }
-
+        
         public static ObjectFieldChain ofChainParse(String steps) {
             return ofChainParse(steps, ".");
         }
     }
-
+    
 }

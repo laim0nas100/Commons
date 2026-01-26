@@ -1,5 +1,6 @@
 package lt.lb.commons.parsing;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -8,6 +9,7 @@ import java.util.stream.Stream;
 import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.uncheckedutils.func.UncheckedFunction;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 /**
  *
@@ -18,6 +20,64 @@ import org.apache.commons.lang3.StringUtils;
  */
 @FunctionalInterface
 public interface StringParser<T> extends Function<T, SafeOpt<String>> {
+
+    /**
+     * Splits the string by occurrences of the given literal separator string.
+     * <p>
+     * This method behaves like {@link String#split(String)} with a literal
+     * separator, but preserves trailing empty strings and does not interpret
+     * the separator as a regex.
+     * <p>
+     * <b>Examples:</b>
+     * <pre>{@code
+     * split("a,b,c", ",")     → ["a", "b", "c"]
+     * split("a,,b,", ",")     → ["a", "", "b", ""]
+     * split("", ",")          → [""]
+     * split("hello", "xyz")   → ["hello"]
+     * split("a;b;c", ";")     → ["a", "b", "c"]
+     * }</pre>
+     *
+     * @param source the input string (must not be null)
+     * @param separator the literal delimiter (must not be null or empty)
+     * @return array of substrings (never null, may contain empty strings)
+     * @throws NullPointerException if source or separator is null
+     * @throws IllegalArgumentException if separator is empty
+     */
+    public static ArrayList<String> split(String source, String separator) {
+        Objects.requireNonNull(source, "source");
+        Objects.requireNonNull(separator, "separator");
+        if (separator.isEmpty()) {
+            throw new IllegalArgumentException("separator must not be empty");
+        }
+        ArrayList<String> parts = new ArrayList<>();
+        int index = 0;
+        int len = separator.length();
+        if (len == 1) {//split by char
+            char sep = separator.charAt(0);
+            for (;;) {
+                int next = source.indexOf(sep, index);
+                if (next < 0) {
+                    parts.add(source.substring(index));
+                    break;
+                }
+                parts.add(source.substring(index, next));
+                index = next + 1;
+            }
+        } else {
+            for (;;) {
+                int next = source.indexOf(separator, index);
+                if (next < 0) {
+                    parts.add(source.substring(index));
+                    break;
+                } else {
+                    parts.add(source.substring(index, next));
+                    index = next + len;
+                }
+            }
+        }
+        return parts;
+
+    }
 
     public static <V> StringParser<V> of(Function<V, String> func) {
         Objects.requireNonNull(func);
@@ -96,9 +156,9 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
     }
 
     default String[] parseArray(String string) {
-        string = StringUtils.remove(string, "[");
-        string = StringUtils.remove(string, "]");
-        return StringUtils.split(string, ", ");
+        string = Strings.CS.remove(string, "[");
+        string = Strings.CS.remove(string, "]");
+        return split(string, ", ").stream().toArray(s -> new String[s]);
     }
 
     default <O> SafeOpt<List<O>> parseOptAnyList(T p, Function<String, O> func) {

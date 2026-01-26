@@ -3,7 +3,8 @@ package empiric.refmodel;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
@@ -86,56 +87,66 @@ public class RefModelTest {
         public ObjectRef<String> name;
         public ObjectRef<String> last_name;
         public ObjectRef<Integer> age;
+        public ObjectRef<Boolean> active;
     }
 
     @Test
     public void refModelMapTest() throws Exception {
 
-        Group group = RefCompiler.compile(Group.class);
+        Group group = RefCompiler.compileRoot(5,Group.class, new RefNotation("..", "[[", "]]", "%d"));
 
         System.out.println(group.members.at(0).last_name.getRelative());
         System.out.println(group.members.at(10).get());
 
         System.out.println(group.nestedGroup.at(10).nestedGroup.at(1).get());
 
-        MapProvider hashMap = MapProvider.hashMap(new HashMap<>());
+        MapProvider hashMap = MapProvider.hashMap(new LinkedHashMap<>());
         group.groupLeader.name.write(hashMap, "Alex");
         group.members.at(0).name.write(hashMap, "Lemmin");
         group.members.at(0).age.write(hashMap, 30);
+        group.members.at(0).active.write(hashMap, true);
         group.members.at(1).name.write(hashMap, "Jake");
         group.members.at(1).age.write(hashMap, 20);
         group.members.at(2).name.write(hashMap, "Laura");
         group.members.at(2).age.write(hashMap, 25);
 
-        System.out.println(hashMap.getMap());
+        System.out.println(hashMap.delegate());
 
         Gson gson = new Gson();
 
         System.out.println(group.members.at(1).name.read(hashMap));
 
-        int size = group.members.size(hashMap);
-        System.out.println(size);
+        System.out.println(group.members.size(hashMap));
 
-        String toJson = gson.toJson(hashMap.getMap());
+        String toJson = gson.toJson(hashMap.delegate());
 
         System.out.println(toJson);
 
         group.members.at(2).age.remove(hashMap);
 
-        System.out.println(hashMap.getMap());
+        System.out.println(hashMap.delegate());
 
         group.members.clear(hashMap);
-        System.out.println(hashMap.getMap());
+        System.out.println(hashMap.delegate());
 
-        Map<String,Object> fromJson = gson.fromJson(toJson, new TypeToken<Map<String, Object>>() {
-        }.getType());
+        Map<String, Object> fromJson = gson.fromJson(toJson, Map.class);
 
         System.out.println(fromJson);
-        
+
         MapProvider ofDefault = MapProvider.ofDefault(fromJson);
-        SafeOpt<Integer> read = group.members.at(0).age.read(ofDefault);
-        int get = read.get();
-        System.out.println(get);
+        System.out.println(group.members.at(0).age.read(ofDefault));
+        System.out.println(group.members.at(0).active.read(ofDefault));
+        SafeOpt<Boolean> read = group.members.at(-4).active.read(ofDefault);
+        System.out.println(read);
+        
+        group.groupLeader.remove(ofDefault);
+        group.members.at(0).remove(ofDefault);
+        System.out.println(ofDefault.delegate());
+        ofDefault.mergeWith(hashMap);
+        System.out.println(ofDefault.delegate());
+        SafeOpt<List> members = group.members.readCast(ofDefault);
+
+        System.out.println(members);
 
     }
 

@@ -16,29 +16,17 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ObjectRef<T> extends Ref<T> {
 
-    private static <T> SafeOpt<T> err(String str) {
+    protected <T> SafeOpt<T> err(String str) {
         return SafeOpt.error(new PassableException(str));
     }
 
-    public static Optional<Integer> getIndexFromStep(String step) {
-        int index_0 = step.indexOf("[");
-        int index_1 = step.indexOf("]");
-
-        if (index_0 >= 0 && index_1 > index_0) {
-            return Optional.ofNullable(FastParse.parseInt(step.substring(index_0 + 1, index_1)));
-        }
-
-        return Optional.empty();
-    }
-
-    public static String getMemberWithoutIndex(String step) {
-        int index_0 = step.indexOf("[");
-        if (index_0 >= 0) {
-            return step.substring(0, index_0);
-        }
-        return step;
-    }
-
+    /**
+     * Read or remove member then conver
+     * @param <T>
+     * @param provider
+     * @param remove
+     * @return 
+     */
     protected <T> SafeOpt readRemoveConvert(MapProvider provider, boolean remove) {
         SafeOpt<Object> readRemove = readRemove(provider, remove);
         Class[] param = getParameterTypes();
@@ -53,18 +41,18 @@ public class ObjectRef<T> extends Ref<T> {
         Map<String, Object> map = provider.delegate();
 
         String fullPath = getRelative();
-        String[] steps = StringUtils.split(fullPath, getSeparator());
+        List<String> steps = steps();
         StringBuilder pathBuilder = new StringBuilder();
         Map parent = map;
-        for (int i = 0; i < steps.length; i++) {
-            String step = steps[i];
+        for (int i = 0; i < steps.size(); i++) {
+            String step = steps.get(i);
             pathBuilder.append(step);
-            Optional<Integer> indexFromStep = getIndexFromStep(step);
+            Optional<Integer> indexFromStep = notation.getIndexFromStep(step);
             boolean indexed = indexFromStep.isPresent();
             if (indexed) {
-                step = getMemberWithoutIndex(step);
+                step = notation.getMemberWithoutIndex(step);
             }
-            boolean last = i == steps.length - 1;
+            boolean last = i == steps.size() - 1;
             if (last) {
                 if (!parent.containsKey(step)) {
                     if (indexed) {
@@ -74,15 +62,17 @@ public class ObjectRef<T> extends Ref<T> {
                     }
                 } else { //contains key
                     if (indexed) {
-                        Integer index = indexFromStep.get();
+                        int index = indexFromStep.get();
                         Object get = parent.get(step);
                         if (get instanceof List) {
                             List list = F.cast(get);
-                            if (index < 0) {
-                                index = list.size() - Math.abs(index);
-                            }
+                            index = index < 0 ? index + list.size() + 1 : index;
                             if (index >= 0 && index < list.size()) {
-                                return (SafeOpt) SafeOpt.ofNullable(list.get(index));
+                                if (remove) {
+                                    return (SafeOpt) SafeOpt.ofNullable(list.remove(index));
+                                } else {
+                                    return (SafeOpt) SafeOpt.ofNullable(list.get(index));
+                                }
                             }
                         } else {
                             return err("Failed to read:" + fullPath + " index out of bounds, failed at:" + pathBuilder.toString());
@@ -111,12 +101,10 @@ public class ObjectRef<T> extends Ref<T> {
                 Object listRead = parent.get(step);
                 if (listRead instanceof List) {
                     List list = F.cast(listRead);
-                    Integer index = indexFromStep.get();
+                    int index = indexFromStep.get();
                     if (index <= list.size() && !list.isEmpty()) {
                         Object get;
-                        if (index < 0) {
-                            index = list.size()  - Math.abs(index);
-                        }
+                        index = index < 0 ? index + list.size() + 1 : index;
                         if (index >= 0 && index < list.size()) {
                             get = list.get(index);
                             if (get instanceof Map) {
@@ -205,19 +193,19 @@ public class ObjectRef<T> extends Ref<T> {
         Map<String, Object> map = provider.delegate();
 
         String fullPath = getRelative();
-        String[] steps = StringUtils.split(fullPath, getSeparator());
+        List<String> steps = steps();
         StringBuilder pathBuilder = new StringBuilder();
         Map parent = map;
-        for (int i = 0; i < steps.length; i++) {
-            String step = steps[i];
+        for (int i = 0; i < steps.size(); i++) {
+            String step = steps.get(i);
             pathBuilder.append(step);
 
-            Optional<Integer> indexFromStep = getIndexFromStep(step);
+            Optional<Integer> indexFromStep = notation.getIndexFromStep(step);
             boolean indexed = indexFromStep.isPresent();
             if (indexed) {
-                step = getMemberWithoutIndex(step);
+                step = notation.getMemberWithoutIndex(step);
             }
-            boolean last = i == steps.length - 1;
+            boolean last = i == steps.size() - 1;
 
             //last node can be null or another map or a list
             if (last) {
@@ -232,17 +220,15 @@ public class ObjectRef<T> extends Ref<T> {
                     }
                 } else { //contains key, rewrite
                     if (indexed) {
-                        Integer index = indexFromStep.get();
+                        int index = indexFromStep.get();
                         Object get = parent.get(step);
                         if (get instanceof List) {
                             List list = F.cast(get);
-
-                            if (index <= list.size()) {
-                                if (index == -1 || index == list.size()) {
-                                    list.add(value);
-                                } else {
-                                    replaced = list.set(index, value);
-                                }
+                            index = index < 0 ? index + list.size() + 1 : index;
+                            if (index >= 0 && index < list.size()) {
+                                replaced = list.set(index, value);
+                            } else if (index == -1 || index == list.size()) {
+                                list.add(value);
                             }
                         } else {
                             return err("Failed to write:" + fullPath + " not at list, failed at:" + pathBuilder.toString());
@@ -261,7 +247,9 @@ public class ObjectRef<T> extends Ref<T> {
                         int index = indexFromStep.get();
                         if (entry instanceof List) {
                             List list = F.cast(entry);
-                            if (index < list.size()) {
+                            index = index < 0 ? index + list.size() + 1 : index;
+
+                            if (index >= 0 && index < list.size()) {
                                 Object get = list.get(index);
                                 if (get instanceof Map) {
                                     parent = F.cast(get);

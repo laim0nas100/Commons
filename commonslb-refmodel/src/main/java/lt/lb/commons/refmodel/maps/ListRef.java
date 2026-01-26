@@ -13,15 +13,18 @@ import lt.lb.uncheckedutils.SafeOpt;
  */
 public class ListRef<T extends Ref> extends ObjectRef<T> implements RefList {
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     public T at(int index) {
 
         try {
-            Ref continueation = getMemberContinuation().clone();
+            Ref continuation = getMemberContinuation().clone();
             //only care about cloning the string fields, they will change in compile continuation, the rest can be the same
 
-            RefCompiler.compileContinuation(continueation, index);
-            return (T) continueation;
+            RefCompiler.compileContinuation(continuation, index);
+            return (T) continuation;
         } catch (Exception ex) {
             return null;
         }

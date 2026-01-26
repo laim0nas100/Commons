@@ -15,7 +15,9 @@ import lt.lb.uncheckedutils.SafeOpt;
 import lt.lb.commons.datasync.base.NodeValid;
 import lt.lb.commons.Equator;
 import lt.lb.commons.iteration.streams.MakeStream;
+import lt.lb.commons.parsing.StringParser;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 /**
  *
@@ -87,7 +89,7 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
         return valid;
     }
 
-    public static <T,N extends Node> FXValid<Collection<T>, N> valEnsureSelection() {
+    public static <T, N extends Node> FXValid<Collection<T>, N> valEnsureSelection() {
         FXValid<Collection<T>, N> valid = new FXValid<>();
         valid.errorSupl = t -> "Must make a selection";
         valid.isValid = t -> !t.isEmpty();
@@ -95,38 +97,35 @@ public class FXValid<T, N extends Node> extends NodeValid<T, N> {
     }
 
     public static Predicate<String> validatorSimplePath(boolean multiple) {
-       return validatorPath(multiple, false);
+        return validatorPath(multiple, false);
     }
 
     public static Predicate<String> validatorDirPath(boolean multiple) {
         return validatorPath(multiple, true);
     }
-    
+
     public static Predicate<String> validatorPath(boolean multiple, boolean dir) {
         return p -> SafeOpt.ofNullable(p)
-                .map(path ->{
-                    
-                    if(multiple && StringUtils.contains(path,"\n")){
-                        String[] split = StringUtils.split(path, "\n");
-                        return MakeStream.from(split);
+                .map(path -> {
+                    if (multiple && Strings.CS.contains(path, "\n")) {
+                        return MakeStream.from(StringParser.split(path, "\n"));
                     }
                     return MakeStream.fromValues(path);
                 })
                 .map(stream -> stream.map(String::trim).map(Paths::get))
-                .map(stream ->{
-                    if(dir){
+                .map(stream -> {
+                    if (dir) {
                         return stream.allMatch(Files::isDirectory);
-                    }else{
+                    } else {
                         return stream.allMatch(Files::exists);
                     }
                 })
                 .orElse(false);
     }
-    
-    
-    public static <T> List<T> newList(Collection<T> col, T... removed){
+
+    public static <T> List<T> newList(Collection<T> col, T... removed) {
         ArrayList<T> list = new ArrayList<>(col);
-        for(T t:removed){
+        for (T t : removed) {
             list.remove(t);
         }
         return list;

@@ -2,8 +2,6 @@ package lt.lb.commons.refmodel.jparef;
 
 import javax.persistence.criteria.*;
 import lt.lb.commons.refmodel.Ref;
-import lt.lb.commons.refmodel.RefCompiler;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -12,9 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 public class SingularRef<T> extends Ref<T> {
     
     public Path<T> getPathFrom(Path p) {
-        String str = getRelative();
-        String[] split = StringUtils.split(str, RefCompiler.DEFAULT_SEPARATOR);
-        for (String path : split) {
+        for (String path : steps()) {
             p = p.get(path);
         }
         return p;

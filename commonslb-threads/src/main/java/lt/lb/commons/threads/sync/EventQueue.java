@@ -2,6 +2,7 @@ package lt.lb.commons.threads.sync;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lt.lb.commons.misc.numbers.Atomic;
+import lt.lb.commons.parsing.StringParser;
 import lt.lb.commons.threads.ForwardingFuture;
 import lt.lb.commons.threads.executors.layers.NestedTaskSubmitionExecutorLayer;
 import lt.lb.uncheckedutils.Checked;
@@ -46,22 +48,22 @@ public class EventQueue {
 
     public static class Event implements Runnable, ForwardingFuture {
 
-        public final String[] tags;
+        public final List<String> tags;
         public final EventQueue queue;
         public final FutureTask<Void> task;
         private AtomicBoolean running = new AtomicBoolean(false);
 
-        public Event(EventQueue q, Callable call, String[] tag) {
+        public Event(EventQueue q, Callable call, List<String> tag) {
             this.queue = q;
             this.task = new FutureTask<>(call);
             this.tags = tag;
         }
 
-        public Event(EventQueue q, Runnable run, String[] tag) {
+        public Event(EventQueue q, Runnable run, List<String> tag) {
             this(q, Executors.callable(run), tag);
         }
 
-        public Event(EventQueue q, UncheckedRunnable run, String[] tag) {
+        public Event(EventQueue q, UncheckedRunnable run, List<String> tag) {
             this(q, Executors.callable(run), tag);
         }
 
@@ -91,7 +93,7 @@ public class EventQueue {
 
         @Override
         public String toString() {
-            return "Event " + Arrays.toString(tags);
+            return "Event " + tags;
         }
 
     }
@@ -113,15 +115,15 @@ public class EventQueue {
     }
 
     public Future add(String tag, UncheckedRunnable run) {
-        return add(new Event(this, run, StringUtils.split(tag, ",")));
+        return add(new Event(this, run, StringParser.split(tag, ",")));
     }
 
     public Future add(String tag, Runnable run) {
-        return add(new Event(this, run, StringUtils.split(tag, ",")));
+        return add(new Event(this, run, StringParser.split(tag, ",")));
     }
 
     public Future add(String tag, Callable run) {
-        return add(new Event(this, run, StringUtils.split(tag, ",")));
+        return add(new Event(this, run, StringParser.split(tag, ",")));
     }
 
     private AtomicInteger ai = new AtomicInteger(1);
@@ -146,14 +148,12 @@ public class EventQueue {
 
     private Predicate<Event> containsAny(String[] tags) {
         return event -> {
-            if (event.tags == null || event.tags.length == 0) {
+            if (event.tags == null || event.tags.isEmpty()) {
                 return false;
             }
             for (String tag : tags) {
-                for (String evTag : event.tags) {
-                    if (Objects.equals(tag, evTag)) {
-                        return true;
-                    }
+                if(event.tags.contains(tag)){
+                    return true;
                 }
             }
             return false;
