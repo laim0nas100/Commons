@@ -40,6 +40,23 @@ import lt.lb.uncheckedutils.Checked;
 public class CollectionOp {
 
     /**
+     * Contains operation but using identity instead of equals.
+     *
+     * @param <T>
+     * @param col
+     * @param item
+     * @return
+     */
+    public static boolean containsIdentity(Collection col, Object item) {
+        for (Object member : col) {
+            if (member == item) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Replace every item with new.Same as calling {@link Collection#clear()}
      * and {@link Collection#addAll(java.util.Collection)}
      *

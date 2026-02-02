@@ -93,14 +93,17 @@ public class RefModelTest {
     @Test
     public void refModelMapTest() throws Exception {
 
-        Group group = RefCompiler.compileRoot(5,Group.class, new RefNotation("..", "[[", "]]", "%d"));
+        Group group = RefCompiler.compileRoot(5, Group.class, new RefNotation(".", "[", "]", "%d"));
 
-        System.out.println(group.members.at(0).last_name.getRelative());
+        for(int i = 0; i < 10; i++){
+             System.out.println(group.members.at(i).last_name.getRelative());
+        }
+       
         System.out.println(group.members.at(10).get());
 
         System.out.println(group.nestedGroup.at(10).nestedGroup.at(1).get());
 
-        MapProvider hashMap = MapProvider.hashMap(new LinkedHashMap<>());
+        MapProvider hashMap = new MapProvider();
         group.groupLeader.name.write(hashMap, "Alex");
         group.members.at(0).name.write(hashMap, "Lemmin");
         group.members.at(0).age.write(hashMap, 30);
@@ -111,6 +114,7 @@ public class RefModelTest {
         group.members.at(2).age.write(hashMap, 25);
 
         System.out.println(hashMap.delegate());
+        System.out.println(hashMap.flatten(group.getNotation()));
 
         Gson gson = new Gson();
 
@@ -133,12 +137,12 @@ public class RefModelTest {
 
         System.out.println(fromJson);
 
-        MapProvider ofDefault = MapProvider.ofDefault(fromJson);
+        MapProvider ofDefault = new MapProvider(fromJson);
         System.out.println(group.members.at(0).age.read(ofDefault));
         System.out.println(group.members.at(0).active.read(ofDefault));
         SafeOpt<Boolean> read = group.members.at(-4).active.read(ofDefault);
         System.out.println(read);
-        
+
         group.groupLeader.remove(ofDefault);
         group.members.at(0).remove(ofDefault);
         System.out.println(ofDefault.delegate());
