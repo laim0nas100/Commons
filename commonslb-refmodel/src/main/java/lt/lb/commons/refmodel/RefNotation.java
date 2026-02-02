@@ -114,6 +114,18 @@ public class RefNotation {
     }
 
     /**
+     * Produces complete concrete index array access. For example
+     * {@code root.items[1]}
+     *
+     * @param listPath {@code root.items} object path
+     * @param index concrete index
+     * @return
+     */
+    public String produceArrayAccess(String listPath, int index) {
+        return listPath + getArrayIndexReplaced(getArrayIndexTemplate(), index);
+    }
+
+    /**
      * Array index template. For example {@code [%d]}
      *
      * @return array index template

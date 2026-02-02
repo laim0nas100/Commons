@@ -38,7 +38,7 @@ public class ListRef<T extends Ref> extends ObjectRef<T> implements RefList {
      * @return SafeOpt of read value or map traversal error
      */
     public <T> SafeOpt<List> readList(MapProvider provider) {
-        return F.cast(readRemove(provider, false));
+        return readCast(provider);
     }
 
     /**

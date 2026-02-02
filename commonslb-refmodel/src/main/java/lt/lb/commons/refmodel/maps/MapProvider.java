@@ -4,81 +4,320 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.Objects;
+import java.util.Optional;
 import lt.lb.commons.F;
 import lt.lb.commons.Ins;
-import lt.lb.commons.Nulls;
 import lt.lb.commons.parsing.numbers.FastParse;
+import lt.lb.commons.refmodel.RefNotation;
 import lt.lb.prebuiltcollections.DelegatingMap;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import lt.lb.uncheckedutils.PassableException;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
  * @author laim0nas100
  */
-public interface MapProvider extends DelegatingMap<String, Object> {
+public class MapProvider implements DelegatingMap<String, Object> {
 
-    @Override
-    public Map<String, Object> delegate();
+    protected Map<String, Object> mainMap;
 
-    public Map<String, Object> createMap();
-
-    public default List createList() {
-        return new ArrayList();
+    public MapProvider() {
+        this(new LinkedHashMap<>());
     }
 
-    public default void mergeWith(MapProvider other) {
+    public MapProvider(Map<String, Object> mainMap) {
+        this.mainMap = Objects.requireNonNull(mainMap);
+    }
+
+    @Override
+    public Map<String, Object> delegate() {
+        return mainMap;
+    }
+
+    public Map<String, Object> createMap() {
+        return new LinkedHashMap<>();
+    }
+
+    public List createList() {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public String toString() {
+        return delegate().toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MapProvider)) {
+            return false;
+        }
+
+        MapProvider that = (MapProvider) o;
+        return delegate().equals(that.delegate());
+    }
+
+    @Override
+    public int hashCode() {
+        return delegate().hashCode();
+    }
+
+    public void mergeWith(MapProvider other) {
         MapProvider.deepMergeMaps(delegate(), other.delegate());
     }
 
-    public static MapProvider ofMap(Map<String, Object> current, Supplier<? extends Map<String, Object>> supplier) {
-        Nulls.requireNonNulls(current, supplier);
-        return new MapProvider() {
-            @Override
-            public Map<String, Object> delegate() {
-                return current;
-            }
-
-            @Override
-            public Map<String, Object> createMap() {
-                return supplier.get();
-            }
-
-            @Override
-            public String toString() {
-                return delegate().toString();
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (!(o instanceof MapProvider)) {
-                    return false;
-                }
-
-                MapProvider that = (MapProvider) o;
-                return delegate().equals(that.delegate());
-            }
-
-            @Override
-            public int hashCode() {
-                return delegate().hashCode();
-            }
-        };
+    public <T> SafeOpt<T> read(ObjectRef<T> ref) {
+        return readRemoveConvert(ref, false);
     }
 
-    public static MapProvider hashMap(Map<String, Object> current) {
-        return ofMap(current, LinkedHashMap::new);
+    public SafeOpt read(RefNotation notation, String fullPath) {
+        return readRemove(notation, fullPath, false);
     }
 
-    public static MapProvider ofDefault(Map<String, Object> map) {
-        Nulls.requireNonNull(map);
-        UncheckedSupplier<Map<String, Object>> supplier = () -> {
-            return map.getClass().getDeclaredConstructor().newInstance();
-        };
-        return ofMap(map, supplier);
+    public <T> SafeOpt<T> remove(ObjectRef<T> ref) {
+        return readRemove(ref.getNotation(), ref.getRelative(), true);
+    }
+
+    public SafeOpt remove(RefNotation notation, String fullPath) {
+        return readRemove(notation, fullPath, true);
+    }
+
+    /**
+     * Read or remove member then convert
+     *
+     * @param <T>
+     * @param provider
+     * @param remove
+     * @return
+     */
+    protected <T> SafeOpt readRemoveConvert(ObjectRef<T> ref, boolean remove) {
+        SafeOpt<Object> readRemove = readRemove(ref.getNotation(), ref.getRelative(), remove);
+        Class[] param = ref.getParameterTypes();
+        if (param.length == 1) {
+            return readRemove.map(m -> coerceFromRaw(m, param[0]));
+        } else {
+            return readRemove;
+        }
+    }
+
+    protected <T> SafeOpt<T> readRemove(RefNotation notation, String fullPath, boolean remove) {
+        Map<String, Object> map = delegate();
+
+        List<String> steps = notation.steps(fullPath);
+        StringBuilder pathBuilder = new StringBuilder();
+        Map parent = map;
+        for (int i = 0; i < steps.size(); i++) {
+            String step = steps.get(i);
+            pathBuilder.append(step);
+            Optional<Integer> indexFromStep = notation.getIndexFromStep(step);
+            boolean indexed = indexFromStep.isPresent();
+            if (indexed) {
+                step = notation.getMemberWithoutIndex(step);
+            }
+            boolean last = i == steps.size() - 1;
+            if (last) {
+                if (!parent.containsKey(step)) {
+                    if (indexed) {
+                        return err("Failed to read:" + fullPath + "no list, failed at:" + pathBuilder.toString());
+                    } else {
+                        return SafeOpt.empty();
+                    }
+                } else { //contains key
+                    if (indexed) {
+                        int index = indexFromStep.get();
+                        Object get = parent.get(step);
+                        if (get instanceof List) {
+                            List list = F.cast(get);
+                            index = index < 0 ? index + list.size() + 1 : index;
+                            if (index >= 0 && index < list.size()) {
+                                if (remove) {
+                                    return (SafeOpt) SafeOpt.ofNullable(list.remove(index));
+                                } else {
+                                    return (SafeOpt) SafeOpt.ofNullable(list.get(index));
+                                }
+                            }
+                        } else {
+                            return err("Failed to read:" + fullPath + " index out of bounds, failed at:" + pathBuilder.toString());
+                        }
+                    } else {
+                        if (remove) {
+                            return (SafeOpt) SafeOpt.ofNullable(parent.remove(step));
+                        } else {
+                            return (SafeOpt) SafeOpt.ofNullable(parent.get(step));
+                        }
+
+                    }
+                }
+            }// not last
+
+            if (!parent.containsKey(step)) {
+                if (indexed) {
+                    return err("Failed to read:" + fullPath + " expected a list, failed at:" + pathBuilder.toString());
+                } else {
+                    return err("Failed to read:" + fullPath + " expected a map, failed at:" + pathBuilder.toString());
+                }
+
+            }
+            if (indexed) {
+
+                Object listRead = parent.get(step);
+                if (listRead instanceof List) {
+                    List list = F.cast(listRead);
+                    int index = indexFromStep.get();
+                    if (index <= list.size() && !list.isEmpty()) {
+                        Object get;
+                        index = index < 0 ? index + list.size() + 1 : index;
+                        if (index >= 0 && index < list.size()) {
+                            get = list.get(index);
+                            if (get instanceof Map) {
+                                parent = F.cast(get);
+                            } else {
+                                return err("Failed to read:" + fullPath + " expected a map, failed at:" + pathBuilder.toString());
+                            }
+                        } else {
+                            return err("Failed to read:" + fullPath + " index out of bounds failed at:" + pathBuilder.toString());
+                        }
+
+                    } else {
+                        return err("Failed to read:" + fullPath + " index out of bounds failed at:" + pathBuilder.toString());
+                    }
+                } else {
+                    return err("Failed to read:" + fullPath + " expected a list, failed at:" + pathBuilder.toString());
+                }
+            } else {
+                Object get = parent.getOrDefault(step, null);
+                if (get instanceof Map) {
+                    parent = F.cast(get);
+                } else {
+                    return err("Failed to read:" + fullPath + " expected a map, failed at:" + pathBuilder.toString());
+                }
+
+            }
+
+        }
+        return err("Failed to read:" + fullPath);
+    }
+
+    public <T> SafeOpt<T> write(ObjectRef<T> ref, T value) {
+        return write(ref.getNotation(), ref.getRelative(), value);
+    }
+
+    /**
+     * Writes a value at resolved path, creating a map object if the entry is
+     * nested
+     *
+     * @return SafeOpt of previous value or map traversal error
+     */
+    public <T> SafeOpt<T> write(RefNotation notation, String fullPath, T value) {
+        Map<String, Object> map = delegate();
+
+        List<String> steps = notation.steps(fullPath);
+        StringBuilder pathBuilder = new StringBuilder();
+        Map parent = map;
+        for (int i = 0; i < steps.size(); i++) {
+            String step = steps.get(i);
+            pathBuilder.append(step);
+
+            Optional<Integer> indexFromStep = notation.getIndexFromStep(step);
+            boolean indexed = indexFromStep.isPresent();
+            if (indexed) {
+                step = notation.getMemberWithoutIndex(step);
+            }
+            boolean last = i == steps.size() - 1;
+
+            //last node can be null or another map or a list
+            if (last) {
+                Object replaced = null;
+                if (!parent.containsKey(step)) {
+                    if (indexed) {
+                        List createList = createList();
+                        createList.add(value);
+                        parent.put(step, createList);
+                    } else {
+                        parent.put(step, value);
+                    }
+                } else { //contains key, rewrite
+                    if (indexed) {
+                        int index = indexFromStep.get();
+                        Object get = parent.get(step);
+                        if (get instanceof List) {
+                            List list = F.cast(get);
+                            index = index < 0 ? index + list.size() + 1 : index;
+                            if (index >= 0 && index < list.size()) {
+                                replaced = list.set(index, value);
+                            } else if (index == -1 || index == list.size()) {
+                                list.add(value);
+                            }
+                        } else {
+                            return err("Failed to write:" + fullPath + " not at list, failed at:" + pathBuilder.toString());
+                        }
+                    } else {
+                        replaced = parent.put(step, value);
+                    }
+
+                }
+                return SafeOpt.ofNullable(F.cast(replaced));
+                // not last
+            } else {
+                if (parent.containsKey(step)) { //has structure
+                    Object entry = parent.get(step);
+                    if (indexed) {
+                        int index = indexFromStep.get();
+                        if (entry instanceof List) {
+                            List list = F.cast(entry);
+                            index = index < 0 ? index + list.size() + 1 : index;
+
+                            if (index >= 0 && index < list.size()) {
+                                Object get = list.get(index);
+                                if (get instanceof Map) {
+                                    parent = F.cast(get);
+                                } else {
+                                    return err("Failed to write:" + fullPath + " not a map, failed at:" + pathBuilder.toString());
+                                }
+                            } else if (index == -1 || index == list.size()) { //append new
+                                parent = createMap();
+                                list.add(parent);
+
+                            } else {
+                                return err("Failed to write:" + fullPath + " index out of bound failed at:" + pathBuilder.toString());
+
+                            }
+                        } else {
+                            return err("Failed to write:" + fullPath + " expected list failed at:" + pathBuilder.toString());
+
+                        }
+                    } else {//not indexed
+                        if (entry instanceof Map) {
+                            parent = F.cast(entry);
+                        } else {
+                            return err("Failed to write:" + fullPath + " expected map failed at:" + pathBuilder.toString());
+
+                        }
+                    }
+                } else { //no structure and not last
+                    Map<String, Object> newParent = createMap();
+                    if (indexed) {
+                        List list = createList();
+                        int index = indexFromStep.get();
+                        if (index == 0 || index == -1) {
+                            list.add(newParent);
+                            parent.put(step, list);
+                        } else {
+                            return err("Failed to write:" + fullPath + " expected new list indexed at the end failed at:" + pathBuilder.toString());
+                        }
+                    } else {
+                        parent.put(step, newParent);
+                    }
+                    parent = newParent;
+                }
+            }
+        }
+
+        return err("Failed to write:" + fullPath);
     }
 
     /**
@@ -92,7 +331,7 @@ public interface MapProvider extends DelegatingMap<String, Object> {
      * @throws IllegalArgumentException if conversion is not possible or loses
      * information
      */
-    public default <T> T coerceFromRaw(Object raw, Class<T> targetType) {
+    protected <T> T coerceFromRaw(Object raw, Class<T> targetType) {
         Ins<Object> ins = Ins.ofNullablePrimitivePromotion(raw);
         Ins.InsCl<T> target = Ins.of(targetType);
         if (raw == null) {
@@ -204,5 +443,51 @@ public interface MapProvider extends DelegatingMap<String, Object> {
                 target.put(key, value);  // replace
             }
         }
+    }
+
+    public LinkedHashMap<String, Object> flatten(RefNotation notation) {
+        return flatten("", notation);
+    }
+
+    public LinkedHashMap<String, Object> flatten(String parentPath, RefNotation notation) {
+        Map<String, Object> delegate = delegate();
+        LinkedHashMap<String, Object> flat = new LinkedHashMap<>();
+        recursiveFlatten(flat, delegate, parentPath, notation);
+        return flat;
+    }
+
+    public static void recursiveFlatten(Map<String, Object> flat, Map<String, Object> map, String parentPath, RefNotation notation) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object val = entry.getValue();
+            if (val == null) {
+                continue;
+            }
+            String relation = notation.produceRelation(parentPath, key);
+            if (val instanceof List) {
+                List list = F.cast(val);
+                for (int i = 0; i < list.size(); i++) {
+                    Object item = list.get(i);
+                    String arrayAccess = notation.produceArrayAccess(relation, i);
+                    if (item instanceof Map) {
+                        recursiveFlatten(flat, F.cast(item), arrayAccess, notation);
+                    } else if (item instanceof List) {
+                        throw new IllegalStateException("List inside a list is not supported, at:" + arrayAccess);
+                    } else {
+                        flat.put(arrayAccess, val);
+                    }
+                }
+
+            } else if (val instanceof Map) {
+                recursiveFlatten(flat, F.cast(val), relation, notation);
+
+            } else {//just a simple member
+                flat.put(relation, val);
+            }
+        }
+    }
+
+    private static <T> SafeOpt<T> err(String str) {
+        return SafeOpt.error(new PassableException(str));
     }
 }
