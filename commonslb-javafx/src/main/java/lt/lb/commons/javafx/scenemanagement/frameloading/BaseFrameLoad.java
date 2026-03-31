@@ -11,6 +11,7 @@ import javafx.event.EventType;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.javafx.events.CombinedEventHandler;

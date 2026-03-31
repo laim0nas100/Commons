@@ -84,15 +84,19 @@ public interface FrameManager {
     }
 
     public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
+        return newStageFrame(title, title, constructor, onExit);
+    }
+
+    public default Future<StageFrame> newStageFrame(String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
         try {
-            return newStageFrame(getAvailableId(), title, constructor, onExit);
+            return newStageFrame(getAvailableId(), type, title, constructor, onExit);
         } catch (FrameException ex) {
             throw new IllegalArgumentException(ex);
         }
     }
 
-    public default Future<StageFrame> newStageFrame(String ID, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException {
-        return Util.newStageFrame(getFrameMap(), this, ID, title, constructor, onExit);
+    public default Future<StageFrame> newStageFrame(String ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException {
+        return Util.newStageFrame(getFrameMap(), this, ID, type, title, constructor, onExit);
     }
 
     public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title) throws FrameException {

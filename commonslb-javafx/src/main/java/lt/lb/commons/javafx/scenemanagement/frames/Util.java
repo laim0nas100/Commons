@@ -106,7 +106,7 @@ public abstract class Util {
 
     }
 
-    public static Future<StageFrame> newStageFrame(Map<String, Frame> frameMap, FrameManager manager, String ID, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException {
+    public static Future<StageFrame> newStageFrame(Map<String, Frame> frameMap, FrameManager manager, String ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException {
         Objects.requireNonNull(onExit);
         Objects.requireNonNull(constructor);
         Objects.requireNonNull(ID);
@@ -121,7 +121,7 @@ public abstract class Util {
         load.addStageEvent(WindowEvent.WINDOW_HIDDEN, ev -> manager.hideFrame(ID));
         load.addStageEvent(WindowEvent.WINDOW_SHOWN, ev -> manager.showFrame(ID));
 
-        return newFrame(frameMap, manager, load, ID, title);
+        return newFrame(frameMap, manager, load, ID, type);
     }
 
     public static Future<Dialog> newFormDialog(String title, FXDrows rows, Runnable onAccept) {
@@ -158,13 +158,13 @@ public abstract class Util {
         return task;
     }
 
-    public static Future<StageFrame> newForm(Map<String, Frame> frameMap, FrameManager manager, String title, FXDrows rows, Runnable onAccept) {
+    public static Future<StageFrame> newForm(Map<String, Frame> frameMap, FrameManager manager, String type, String title, FXDrows rows, Runnable onAccept) {
 
         FutureTask<StageFrame> task = Futures.ofCallable(() -> {
             ScrollPane scroll = new ScrollPane(rows.grid);
             scroll.setFitToHeight(true);
             scroll.setFitToWidth(true);
-            StageFrame frame = manager.newStageFrame(title, () -> scroll, d -> d.close()).get();
+            StageFrame frame = manager.newStageFrame(type, title, () -> scroll, d -> d.close()).get();
             rows.getNew()
                     .addButton("Apply", eh -> {
                         rows.syncManagedFromDisplay();
@@ -187,14 +187,15 @@ public abstract class Util {
         FX.submit(task);
         return task;
     }
-    
-    public static Future<StageFrame> newFxrowsFrame(Map<String, Frame> frameMap, FrameManager manager, String title, FXDrows rows) {
+
+    public static Future<StageFrame> newFxrowsFrame(Map<String, Frame> frameMap, FrameManager manager, String type, String title, FXDrows rows) {
 
         FutureTask<StageFrame> task = Futures.ofCallable(() -> {
             ScrollPane scroll = new ScrollPane(rows.grid);
             scroll.setFitToHeight(true);
             scroll.setFitToWidth(true);
-            StageFrame frame = manager.newStageFrame(title, () -> scroll, d -> d.close()).get();
+            Future<StageFrame> newStageFrame = newStageFrame(frameMap, manager, manager.getAvailableId(), type, title, () -> scroll, d -> d.close());
+            StageFrame frame = newStageFrame.get();
 
             rows.syncManagedFromPersist();
             rows.viewUpdate();

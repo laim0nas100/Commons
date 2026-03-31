@@ -34,11 +34,19 @@ public interface FrameManagerCL extends FrameManager {
         return Util.newFormDialog(title, rows, onAccept);
     }
 
-    public default Future<StageFrame> newFormFrame(String title, FXDrows rows, Runnable onAccept) {
-        return Util.newForm(getFrameMap(), this, title, rows, onAccept);
+    public default Future<StageFrame> newFormFrame(String type, String title, FXDrows rows, Runnable onAccept) {
+        return Util.newForm(getFrameMap(), this, type, title, rows, onAccept);
     }
-    
+
+    public default Future<StageFrame> newFormFrame(String title, FXDrows rows, Runnable onAccept) {
+        return Util.newForm(getFrameMap(), this, title, title, rows, onAccept);
+    }
+
+    public default Future<StageFrame> newFxrowsFrame(String type, String title, FXDrows rows) {
+        return Util.newFxrowsFrame(getFrameMap(), this, type, title, rows);
+    }
+
     public default Future<StageFrame> newFxrowsFrame(String title, FXDrows rows) {
-        return Util.newFxrowsFrame(getFrameMap(), this, title, rows);
+        return Util.newFxrowsFrame(getFrameMap(), this, title, title, rows);
     }
 }
