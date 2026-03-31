@@ -11,18 +11,43 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ExplicitFutureTask<T> extends FutureTask<T> implements FailableRunnableFuture<T> {
 
     protected AtomicBoolean NEW = new AtomicBoolean(true);
+    protected final FutureTask innerFuture;
 
     public ExplicitFutureTask(Callable<T> callable) {
         super(callable);
+        if (callable instanceof FutureTask) {
+            innerFuture = (FutureTask) callable;
+        } else {
+            innerFuture = null;
+        }
     }
 
     public ExplicitFutureTask(Runnable runnable, T result) {
         super(runnable, result);
+        if (runnable instanceof FutureTask) {
+            innerFuture = (FutureTask) runnable;
+        } else {
+            innerFuture = null;
+        }
     }
 
     @Override
     public void setException(Throwable t) {
-        super.setException(t);
+        if (NEW.compareAndSet(true, false)) {
+            super.setException(t);
+            if (innerFuture != null) {
+                innerFuture.cancel(false);
+            }
+        }
+
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        if (innerFuture != null) {
+            innerFuture.cancel(mayInterruptIfRunning);
+        }
+        return super.cancel(mayInterruptIfRunning);
     }
 
     @Override
@@ -30,7 +55,6 @@ public class ExplicitFutureTask<T> extends FutureTask<T> implements FailableRunn
         if (NEW.compareAndSet(true, false)) {
             super.run();
         }
-
     }
 
     public boolean isNew() {
