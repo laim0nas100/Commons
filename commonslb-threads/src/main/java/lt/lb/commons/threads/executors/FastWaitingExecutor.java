@@ -2,7 +2,7 @@ package lt.lb.commons.threads.executors;
 
 import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
-import lt.lb.commons.threads.SourcedThreadPool;
+import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentArena;
 import lt.lb.commons.threads.sync.WaitTime;
 
@@ -23,10 +23,10 @@ public class FastWaitingExecutor extends FastExecutor {
     }
 
     public FastWaitingExecutor(int maxThreads, WaitTime time) {
-        this(maxThreads, time, new SourcedThreadPool(FastWaitingExecutor.class));
+        this(maxThreads, time,createDefaultThreadPool(FastWaitingExecutor.class));
     }
 
-    protected FastWaitingExecutor(int maxThreads, WaitTime time, SourcedThreadPool pool) {
+    protected FastWaitingExecutor(int maxThreads, WaitTime time, ThreadPool pool) {
         super(maxThreads, pool);
         this.tasks = makeQueue();
         this.wt = Objects.requireNonNull(time);

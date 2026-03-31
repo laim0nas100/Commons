@@ -10,11 +10,13 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lt.lb.commons.F;
+import lt.lb.commons.threads.ExplicitFutureTask;
+import lt.lb.commons.threads.ThreadPool;
+import lt.lb.commons.threads.TrackedThreadPool;
 
 /**
  *
@@ -27,6 +29,13 @@ public abstract class BaseExecutor extends AbstractExecutorService implements Cl
     @Override
     public boolean isShutdown() {
         return !open;
+    }
+
+    protected static ThreadPool createDefaultThreadPool(Class cls) {
+        TrackedThreadPool trackedPool = new TrackedThreadPool(cls.getSimpleName());
+        trackedPool.setThreadsStarting(true);
+        trackedPool.setThreadsPrefix(cls.getSimpleName() + "-");
+        return trackedPool;
     }
 
     public abstract int parallelism();
@@ -64,19 +73,19 @@ public abstract class BaseExecutor extends AbstractExecutorService implements Cl
 
     @Override
     protected <T> RunnableFuture<T> newTaskFor(Callable<T> task) {
-        if (task instanceof RunnableFuture) {
+        if (task instanceof ExplicitFutureTask) {
             return F.cast(task);
         } else {
-            return new FutureTask<>(task);
+            return new ExplicitFutureTask<>(task);
         }
     }
 
     @Override
     protected <T> RunnableFuture<T> newTaskFor(Runnable task, T res) {
-        if (task instanceof RunnableFuture) {
+        if (task instanceof ExplicitFutureTask) {
             return F.cast(task);
         } else {
-            return new FutureTask<>(task, res);
+            return new ExplicitFutureTask<>(task, res);
         }
     }
 

@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.misc.numbers.Atomic;
-import lt.lb.commons.threads.SourcedThreadPool;
 import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentConsume;
 
@@ -39,14 +38,21 @@ import lt.lb.commons.threads.sync.ConcurrentConsume;
  */
 public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
 
-    protected static class BurstBatch extends ConcurrentConsume<Runnable> {
+    public static class BurstBatch extends ConcurrentConsume<Runnable> {
+
+        public final int batching;
 
         public BurstBatch() {
-            super(128);
+            this(128);
         }
 
         public BurstBatch(int size) {
+            this(size, 1);
+        }
+
+        public BurstBatch(int size, int batch) {
             super(size);
+            this.batching = Math.max(batch, 1);
         }
 
         public List<Runnable> consumeAllAtOnce() {
@@ -56,6 +62,28 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
                 return new ArrayList<>();
             }
             return new ArrayList<>(array.subList(starting, size));
+        }
+
+        public Runnable[] consumeBatch() {
+            int i = Atomic.getAndIncrement(consume, batching);
+            if (i >= array.size()) {
+                return null;
+            }
+
+            int limit = Math.min(array.size(), i + batching);
+            int size = limit - i;
+            Runnable[] runnables = new Runnable[size];
+
+            for (int j = 0; j < size;) {
+                runnables[j++] = array.get(i++);
+
+            }
+            return runnables;
+        }
+
+        @Override
+        public Runnable consume() {
+            return super.consume();
         }
 
         public List<Runnable> consumeAll() {
@@ -71,16 +99,30 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
     }
 
     protected ConcurrentLinkedQueue<BurstBatch> bursts = new ConcurrentLinkedQueue<>();
-    protected BurstBatch currentBurst = new BurstBatch();
+    protected BurstBatch currentBurst;
 
     protected ThreadPool pool;
 
     protected final int maxThreads;
+    protected final int batching;
     protected AtomicInteger occupiedThreads = new AtomicInteger(0);
     protected CompletableFuture awaitTermination = new CompletableFuture();
 
     protected Consumer<Throwable> errorChannel = (err) -> {
     };
+    
+    
+    /**
+     *
+     * @param maxThreads positive limited threads negative unlimited threads
+     * zero no threads, execute during update
+     * @param batching how many tasks to consume at once per worker. Relevant to
+     * minimize CAS congestion if tasks are small.
+     *
+     */
+    public BurstExecutor(int maxThreads, int batching) {
+        this(maxThreads, batching, createDefaultThreadPool(BurstExecutor.class));
+    }
 
     /**
      *
@@ -89,13 +131,19 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
      *
      */
     public BurstExecutor(int maxThreads) {
-        this(maxThreads, new SourcedThreadPool(BurstExecutor.class));
+        this(maxThreads, 1);
     }
 
-    protected BurstExecutor(int maxThreads, ThreadPool threadPool) {
+    protected BurstExecutor(int maxThreads, int batching, ThreadPool threadPool) {
         this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
         this.maxThreads = maxThreads;
-        pool.setStarting(true);
+        this.batching = Math.max(batching, 1);
+        pool.setThreadsStarting(true);
+        this.currentBurst = createNewBurst();
+    }
+
+    protected BurstBatch createNewBurst() {
+        return new BurstBatch(128, batching);
     }
 
     public void setErrorChannel(Consumer<Throwable> channel) {
@@ -103,8 +151,8 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
         errorChannel = channel;
     }
 
-    public boolean isDeamon() {
-        return pool.isDaemon();
+    public boolean isDaemon() {
+        return pool.isThreadsDaemon();
     }
 
     /**
@@ -113,8 +161,8 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
      *
      * @param deamon
      */
-    public void setDeamon(boolean deamon) {
-        pool.setDaemon(deamon);
+    public void setDaemon(boolean deamon) {
+        pool.setThreadsDaemon(deamon);
     }
 
     public Consumer<Throwable> getErrorChannel() {
@@ -154,7 +202,7 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
     protected void burst(BurstBatch burst) {
         if (burst == null) {
             burst = currentBurst;
-            currentBurst = new BurstBatch();
+            currentBurst = createNewBurst();
         }
         burst.readOnly();
         bursts.add(burst);
@@ -183,15 +231,33 @@ public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
     }
 
     protected boolean polling(BurstBatch burst) {
+        if (burst.batching > 1) {
+            for (;;) {
+                Runnable[] batch = burst.consumeBatch();
+                if (batch.length == 0) {
+                    return Thread.interrupted();
+                }
+                for (Runnable run : batch) {
+                    if (run == null) {
+                        return Thread.interrupted();
+                    } else {
+                        executeSingle(run);
+                    }
+                }
 
-        for (;;) {
-            Runnable run = burst.consume();
-            if (run == null) {
-                return Thread.interrupted();
-            } else {
-                executeSingle(run);
+            }
+        } else {
+            for (;;) {
+
+                Runnable run = burst.consume();
+                if (run == null) {
+                    return Thread.interrupted();
+                } else {
+                    executeSingle(run);
+                }
             }
         }
+
     }
 
     protected final void executeSingle(Runnable run) {

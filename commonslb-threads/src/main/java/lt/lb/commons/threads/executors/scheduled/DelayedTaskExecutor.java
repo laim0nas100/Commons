@@ -19,7 +19,6 @@ import lt.lb.commons.Java;
 import lt.lb.commons.containers.values.LongValue;
 import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.ExplicitFutureTask;
-import lt.lb.commons.threads.SourcedThreadPool;
 import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.executors.BaseExecutor;
 import lt.lb.commons.threads.executors.CloseableExecutor;
@@ -79,7 +78,7 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
     }
 
     public DelayedTaskExecutor(int maxSchedulingThreads, ExecutorService realExe) {
-        this(maxSchedulingThreads, realExe, new SourcedThreadPool(DelayedTaskExecutor.class));
+        this(maxSchedulingThreads, realExe, createDefaultThreadPool(DelayedTaskExecutor.class));
     }
 
     private static int assertScheduling(int threads) {
@@ -93,7 +92,7 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         this.realExe = Objects.requireNonNull(realExe);
         this.maxSchedulingThreads = assertScheduling(maxSchedulingThreads);
         this.pool = Objects.requireNonNull(pool);
-        pool.setStarting(true);
+        pool.setThreadsStarting(true);
     }
 
     boolean cleanUpOneShots() {

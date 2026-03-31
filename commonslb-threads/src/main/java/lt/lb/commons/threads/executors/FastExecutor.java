@@ -16,7 +16,7 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.misc.numbers.Atomic;
-import lt.lb.commons.threads.SourcedThreadPool;
+import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.sync.ConcurrentArena;
 
 /**
@@ -39,7 +39,7 @@ public class FastExecutor extends BaseExecutor {
 
     protected ConcurrentArena<Runnable> tasks;
 
-    protected SourcedThreadPool pool;
+    protected ThreadPool pool;
 
     protected int maxThreads;
     protected AtomicInteger occupiedThreads = new AtomicInteger(0);
@@ -56,7 +56,7 @@ public class FastExecutor extends BaseExecutor {
      *
      */
     private FastExecutor(int maxThreads, int spec) {
-        this(maxThreads, new SourcedThreadPool(FastExecutor.class));
+        this(maxThreads, createDefaultThreadPool(FastExecutor.class));
         this.spec = spec;
         tasks = makeQueue(spec);
     }
@@ -72,13 +72,13 @@ public class FastExecutor extends BaseExecutor {
      *
      */
     public FastExecutor(int maxThreads) {
-        this(maxThreads, new SourcedThreadPool(FastExecutor.class));
+        this(maxThreads, createDefaultThreadPool(FastExecutor.class));
     }
 
-    protected FastExecutor(int maxThreads, SourcedThreadPool threadPool) {
+    protected FastExecutor(int maxThreads, ThreadPool threadPool) {
         this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
         this.maxThreads = maxThreads;
-        pool.setStarting(true);
+        pool.setThreadsStarting(true);
 
         tasks = makeQueue();
     }
@@ -112,8 +112,8 @@ public class FastExecutor extends BaseExecutor {
         errorChannel = channel;
     }
 
-    public boolean isDeamon() {
-        return pool.isDaemon();
+    public boolean isDaemon() {
+        return pool.isThreadsDaemon();
     }
 
     /**
@@ -122,8 +122,8 @@ public class FastExecutor extends BaseExecutor {
      *
      * @param deamon
      */
-    public void setDeamon(boolean deamon) {
-        pool.setDaemon(deamon);
+    public void setDaemon(boolean deamon) {
+        pool.setThreadsDaemon(deamon);
     }
 
     public Consumer<Throwable> getErrorChannel() {

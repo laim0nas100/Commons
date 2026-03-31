@@ -65,27 +65,27 @@ public interface ThreadPool extends ThreadFactory {
      *
      * @return
      */
-    public int getPriority();
+    public int getThreadsPriority();
 
-    public void setPriority(int priority);
+    public void setThreadsPriority(int priority);
 
     /**
      * wether ThreadPool creates daemon threads
      *
      * @return
      */
-    public boolean isDaemon();
+    public boolean isThreadsDaemon();
 
-    public void setDaemon(boolean daemon);
+    public void setThreadsDaemon(boolean daemon);
 
     /**
      * ThreadPool creates threads that are started
      *
      * @return
      */
-    public boolean isStarting();
+    public boolean isThreadsStarting();
 
-    public void setStarting(boolean start);
+    public void setThreadsStarting(boolean start);
 
     public ClassLoader getContextClassLoader();
 
