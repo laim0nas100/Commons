@@ -19,6 +19,9 @@ import lt.lb.uncheckedutils.Checked;
 /**
  * Simple logger oriented to debugging, not intended to replace a serious
  * logging framework such as log4j.
+ * 
+ * Very easy to write to File and STD:OUT;
+ * Async by default, so doesn't stop the execution, prints in order.
  *
  * Debugging using print statements, yes. Sometimes the easiest way is the most
  * efficient one.
@@ -52,6 +55,10 @@ public class DLog {
     public boolean inactive() {
         return closed || disable;
     }
+    
+    /**
+     * Override this DLog, if you want to redirect all the output somewhere.
+     */
     public Optional<Consumer<Supplier<String>>> override = Optional.empty();
 
     /**
@@ -107,6 +114,12 @@ public class DLog {
      */
     public Lambda.L3R<Throwable, Integer, Integer, Supplier<String>> printStackDecorator = DefaultDLogDecorators.stackTraceFullSupplier();
 
+    /**
+     * If using redirection, override this {@link DLog#stackTraceSupplier} with
+     * correct function count increment. If you print with your custom function
+     * that calls DLog, just add 1 to the stackTraceSupplier decorator, to get
+     * the correct code location.
+     */
     public Lambda.L2R<Throwable, Integer, Supplier<String>> stackTraceSupplier = DefaultDLogDecorators.stackTraceSupplier();
     public DateTimeFormatter timeStringFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     public ExecutorService exe = defaultExecutor();
@@ -158,7 +171,7 @@ public class DLog {
     public static void assignStream(DLog log, PrintStream stream, boolean closeable) {
         close(log);
         log.closed = false;
-        log.exe = log.defaultExecutor();
+        log.exe = DLog.defaultExecutor();
         log.closeable = closeable;
         log.printStream = stream;
     }
@@ -194,6 +207,7 @@ public class DLog {
                 log.printStream.println(string);
             }
         }
+        log.printStream.flush();
     }
 
     public static void close() {

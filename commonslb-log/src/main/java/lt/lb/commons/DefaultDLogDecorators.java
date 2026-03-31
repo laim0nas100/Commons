@@ -98,7 +98,11 @@ public class DefaultDLogDecorators {
     }
 
     public static Lambda.L2R<Throwable, Integer, Supplier<String>> stackTraceSupplier() {
-        return (th, i) -> () -> th.getStackTrace()[i].toString().replace(".java", "");
+        return (th, counter) -> () -> resolveStackTraceCodeLine(th, counter);
+    }
+    
+    public static String resolveStackTraceCodeLine(Throwable th, int stackCounter){
+        return th.getStackTrace()[stackCounter].toString().replace(".java", "");
     }
 
     public static Lambda.L3R<Throwable, Integer, Integer, Supplier<String>> stackTraceFullSupplier() {
