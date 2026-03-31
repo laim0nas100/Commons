@@ -20,6 +20,20 @@ import lt.lb.commons.threads.ThreadPool;
  */
 public class InPlaceExecutor extends BaseExecutor {
 
+    public static class Running {
+
+        public static final Running EMPTY = new Running(null, null);
+
+        public final Thread thread;
+        public volatile Runnable runnable;
+        public boolean canceled = false;
+
+        public Running(Thread thread, Runnable runnable) {
+            this.thread = thread;
+            this.runnable = runnable;
+        }
+    }
+
     protected CompletableFuture terminated = new CompletableFuture();
     protected AtomicReference<Running> running = new AtomicReference<>(null);
 
