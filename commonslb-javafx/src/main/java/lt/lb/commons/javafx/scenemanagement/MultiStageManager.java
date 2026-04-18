@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,10 +35,10 @@ public class MultiStageManager implements FrameManagerCL {
         return this;
     }
     
-    protected HashMap<String, Frame> frames = new HashMap<>();
+    protected HashMap<Serializable, Frame> frames = new HashMap<>();
     
     @Override
-    public Map<String, Frame> getFrameMap() {
+    public Map<Serializable, Frame> getFrameMap() {
         return frames;
     }
     

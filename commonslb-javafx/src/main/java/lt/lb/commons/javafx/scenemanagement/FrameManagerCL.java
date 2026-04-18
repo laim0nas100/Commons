@@ -35,18 +35,18 @@ public interface FrameManagerCL extends FrameManager {
     }
 
     public default Future<StageFrame> newFormFrame(String type, String title, FXDrows rows, Runnable onAccept) {
-        return Util.newForm(getFrameMap(), this, type, title, rows, onAccept);
+        return Util.newForm(this, FrameInit.of(getAvailableId(), type, title), rows, onAccept);
     }
 
     public default Future<StageFrame> newFormFrame(String title, FXDrows rows, Runnable onAccept) {
-        return Util.newForm(getFrameMap(), this, title, title, rows, onAccept);
+        return newFormFrame(title, title, rows, onAccept);
     }
 
     public default Future<StageFrame> newFxrowsFrame(String type, String title, FXDrows rows) {
-        return Util.newFxrowsFrame(getFrameMap(), this, type, title, rows);
+        return Util.newFxrowsFrame(this, FrameInit.of(getAvailableId(), type, title), rows);
     }
 
     public default Future<StageFrame> newFxrowsFrame(String title, FXDrows rows) {
-        return Util.newFxrowsFrame(getFrameMap(), this, title, title, rows);
+        return newFxrowsFrame(title, title, rows);
     }
 }

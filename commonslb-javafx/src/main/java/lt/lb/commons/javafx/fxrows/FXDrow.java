@@ -48,6 +48,14 @@ public class FXDrow extends SyncDrow<FXCell, Node, FXLine, FXUpdates, FXDrowConf
         return add(sync.getNode());
     }
     
+    public FXDrow withRowStyleClass(String style){
+        return withRowDecorator(row->{
+            row.cells.forEach(cell->{
+                cell.getNodes().forEach(n->n.getStyleClass().add(0, style));
+            });
+        });
+    }
+    
     @Override
     public FXDrow display() {
         return display(false);

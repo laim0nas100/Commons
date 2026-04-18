@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import lt.lb.commons.containers.collections.Props;
 import lt.lb.commons.javafx.scenemanagement.Frame;
@@ -10,7 +11,7 @@ import lt.lb.commons.javafx.scenemanagement.Frame;
  */
 public class WithFrameTypeMemoryPositionAndSize extends FrameDecorateProps {
 
-    public HashMap<String, Props<String>> typeMap = new HashMap<>();
+    public HashMap<Serializable, Props<String>> typeMap = new HashMap<>();
 
     public WithFrameTypeMemoryPosition positionDecorate = new WithFrameTypeMemoryPosition();
     public WithFrameTypeMemorySize sizeDecorate = new WithFrameTypeMemorySize();

@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 public class WithDefaultStageProperties extends FrameDecorate {
     
     public WithDefaultStageProperties(Consumer<Stage> stageCons) {
-        this.addFrameDecorator(FrameState.FrameStateOpen.instance, fd -> {
+        addFrameDecorator(FrameState.FrameStateOpen.instance, fd -> {
             stageCons.accept(fd.getStage());
         });
     }

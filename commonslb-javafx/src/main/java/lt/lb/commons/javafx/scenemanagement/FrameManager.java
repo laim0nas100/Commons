@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +27,7 @@ public interface FrameManager {
 
     public static final FastIDGen FRAME_ID_GEN = FastID.getNewGenerator();
 
-    public default boolean closeFrame(String ID) {
+    public default boolean closeFrame(Serializable ID) {
         Frame frame = getFrameMap().remove(ID);
 
         if (frame == null) {
@@ -41,7 +42,7 @@ public interface FrameManager {
 
     }
 
-    public default boolean hideFrame(String ID) {
+    public default boolean hideFrame(Serializable ID) {
         Frame frame = getFrameMap().get(ID);
 
         if (frame == null) {
@@ -56,7 +57,7 @@ public interface FrameManager {
 
     }
 
-    public default boolean showFrame(String ID) {
+    public default boolean showFrame(Serializable ID) {
         Frame frame = getFrameMap().get(ID);
 
         if (frame == null) {
@@ -80,7 +81,7 @@ public interface FrameManager {
     }
 
     public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor) {
-        return newStageFrame(title, constructor, Util.emptyConsumer);
+        return newStageFrame(title, title, constructor, Util.emptyConsumer);
     }
 
     public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
@@ -88,26 +89,22 @@ public interface FrameManager {
     }
 
     public default Future<StageFrame> newStageFrame(String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
-        try {
-            return newStageFrame(getAvailableId(), type, title, constructor, onExit);
-        } catch (FrameException ex) {
-            throw new IllegalArgumentException(ex);
-        }
+        return newStageFrame(getAvailableId(), type, title, constructor, onExit);
     }
 
-    public default Future<StageFrame> newStageFrame(String ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException {
-        return Util.newStageFrame(getFrameMap(), this, ID, type, title, constructor, onExit);
+    public default Future<StageFrame> newStageFrame(String ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
+        return Util.newStageFrame(this, FrameInit.of(ID, type, title), constructor, onExit);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title) throws FrameException {
-        return Util.newFxmlFrame(getFrameMap(), this, resource, ID, title, Util.emptyConsumer);
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title) {
+        return newFxmlFrame(resource, ID, title, Util.emptyConsumer);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title, Consumer<T> decorator) throws FrameException {
-        return Util.newFxmlFrame(getFrameMap(), this, resource, ID, title, decorator);
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title, Consumer<T> decorator) {
+        return Util.newFxmlFrame(this, FrameInit.of(resource, ID, title, title), decorator);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title, Consumer<T> decorator) throws FrameException {
+    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title, Consumer<T> decorator) {
         return newFxmlFrame(resource, title, title, decorator);
     }
 
@@ -116,11 +113,7 @@ public interface FrameManager {
     }
 
     public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String title, Consumer<T> decorator) {
-        try {
-            return newFxmlFrame(resource, getAvailableId(), title, decorator);
-        } catch (FrameException ex) {
-            throw new IllegalArgumentException(ex);
-        }
+        return newFxmlFrame(resource, getAvailableId(), title, decorator);
     }
 
     public default <T extends BaseController<T>> Stream<T> getAllControllers(Class<T> clazz) {
@@ -135,9 +128,9 @@ public interface FrameManager {
 
     public List<FrameDecorator> getFrameDecorators(FrameState state);
 
-    public Map<String, Frame> getFrameMap();
+    public Map<Serializable, Frame> getFrameMap();
 
-    public default List<String> getFrameIds() {
+    public default List<Serializable> getFrameIds() {
         return new ArrayList<>(getFrameMap().keySet());
     }
 
@@ -145,7 +138,7 @@ public interface FrameManager {
         return new ArrayList<>(getFrameMap().values());
     }
 
-    public default Optional<Frame> getFrame(String ID) {
+    public default Optional<Frame> getFrame(Serializable ID) {
         return Optional.ofNullable(getFrameMap().get(ID));
     }
 

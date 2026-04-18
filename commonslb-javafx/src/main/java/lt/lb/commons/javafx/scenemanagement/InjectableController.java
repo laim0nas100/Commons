@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -15,11 +16,11 @@ public interface InjectableController<T extends InjectableController> extends Ba
 
     public Frame getFrame();
     
-    public default String getFrameID(){
+    public default Serializable getFrameID(){
         return getFrame().getID();
     }
     
-    public default String getFrameType(){
+    public default Serializable getFrameType(){
         return getFrame().getType();
     }
     
@@ -46,7 +47,5 @@ public interface InjectableController<T extends InjectableController> extends Ba
     public default void hide() {
         getFrame().hide();
     }
-    
-    
 
 }

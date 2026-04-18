@@ -8,6 +8,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import lt.lb.commons.javafx.scenemanagement.BaseController;
 import lt.lb.commons.javafx.scenemanagement.FXMLFrame;
+import lt.lb.commons.javafx.scenemanagement.FrameInit;
+import lt.lb.commons.javafx.scenemanagement.FrameInit.FrameInitUrl;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;
 import lt.lb.uncheckedutils.SafeOpt;
 
@@ -48,8 +50,8 @@ public class FXMLFrameLoad<T extends BaseController> extends BaseFrameLoad<FXMLF
     }
 
     @Override
-    protected FXMLFrame generateFrame(FrameManager manager, String ID, String type) throws Exception {
-        return new FXMLFrame(manager, getStage(), getController(), getResource(), type, ID);
+    protected FXMLFrame generateFrame(FrameManager manager, FrameInit fInit) throws Exception {
+        return new FXMLFrame(manager, getStage(), getController(), (FrameInitUrl) fInit);
     }
 
     public T getController() throws Exception {
@@ -81,5 +83,6 @@ public class FXMLFrameLoad<T extends BaseController> extends BaseFrameLoad<FXMLF
     public void decorateAfter() throws Exception {
         super.decorateAfter();
     }
+
 
 }

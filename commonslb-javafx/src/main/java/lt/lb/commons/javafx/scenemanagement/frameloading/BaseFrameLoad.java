@@ -11,12 +11,12 @@ import javafx.event.EventType;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.javafx.events.CombinedEventHandler;
 import lt.lb.commons.javafx.events.FXEvents;
 import lt.lb.commons.javafx.scenemanagement.Frame;
+import lt.lb.commons.javafx.scenemanagement.FrameInit;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;
 
 /**
@@ -42,9 +42,9 @@ public abstract class BaseFrameLoad<T extends Frame> implements FrameLoad<T> {
     }
 
     @Override
-    public T getFrame(FrameManager manager, String ID, String type) throws Exception {
+    public T getFrame(FrameManager manager, FrameInit fInit) throws Exception {
         if (frame == null) {
-            frame = generateFrame(manager, ID, type);
+            frame = generateFrame(manager, fInit);
         }
         return frame;
     }
@@ -56,7 +56,7 @@ public abstract class BaseFrameLoad<T extends Frame> implements FrameLoad<T> {
 
     protected abstract Parent generateRoot() throws Exception;
 
-    protected abstract T generateFrame(FrameManager manager, String ID, String type) throws Exception;
+    protected abstract T generateFrame(FrameManager manager, FrameInit fInit) throws Exception;
 
     @Override
     public Stage getStage() throws Exception {

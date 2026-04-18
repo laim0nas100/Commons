@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import lt.lb.commons.containers.collections.Props;
 import lt.lb.commons.javafx.scenemanagement.Frame;
@@ -10,7 +11,7 @@ import lt.lb.commons.javafx.scenemanagement.Frame;
  */
 public class FrameDecorateProps extends FrameDecorate {
 
-    protected HashMap<String, Props<String>> frameProps = new HashMap<>();
+    protected HashMap<Serializable, Props<String>> frameProps = new HashMap<>();
 
     /**
      * Get or create Props object for given frame.

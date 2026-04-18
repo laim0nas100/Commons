@@ -1,7 +1,5 @@
 package lt.lb.commons.javafx;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -9,7 +7,6 @@ import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.control.Alert;
-import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.threads.Futures;
 import lt.lb.uncheckedutils.Checked;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;

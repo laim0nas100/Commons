@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
@@ -25,6 +26,8 @@ import lt.lb.commons.javafx.scenemanagement.BaseController;
 import lt.lb.commons.javafx.scenemanagement.FXMLFrame;
 import lt.lb.commons.javafx.scenemanagement.Frame;
 import lt.lb.commons.javafx.scenemanagement.FrameException;
+import lt.lb.commons.javafx.scenemanagement.FrameInit;
+import lt.lb.commons.javafx.scenemanagement.FrameInit.FrameInitUrl;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;
 import lt.lb.commons.javafx.scenemanagement.InjectableController;
 import lt.lb.commons.javafx.scenemanagement.StageFrame;
@@ -51,15 +54,12 @@ public abstract class Util {
         };
     }
 
-    public static <FR extends Frame> Future<FR> newFrame(Map<String, Frame> frameMap, FrameManager manager, FrameLoad<FR> frameLoader, String ID, String type) throws FrameException {
-        Objects.requireNonNull(ID);
-        if (frameMap.containsKey(ID)) {
-            throw new FrameException("Frame:" + ID + " Allready exists");
-        }
-//        final String finalID = ID;
+    public static <FR extends Frame> Future<FR> newFrame(FrameManager manager, FrameLoad<FR> frameLoader, FrameInit init) {
 
-        FutureTask<FR> task = Futures.ofCallable(() -> {
-            FR frame = frameLoader.getFrame(manager, ID, type);
+        FutureTask<FR> task = new FutureTask(() -> {
+            Serializable ID = init.getID();
+            FR frame = frameLoader.getFrame(manager, init);
+            Map<Serializable, Frame> frameMap = manager.getFrameMap();
             if (frameMap.containsKey(ID)) {
                 throw new FrameException("Frame:" + ID + " Allready exists");
             }
@@ -77,17 +77,18 @@ public abstract class Util {
 
     }
 
-    public static <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(Map<String, Frame> frameMap, FrameManager manager, URL resource, String ID, String title, Consumer<T> cons) throws FrameException {
-        Objects.requireNonNull(resource);
+    public static <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(FrameManager manager, FrameInitUrl init, Consumer<T> cons) {
+        Serializable ID = init.getID();
         Objects.requireNonNull(ID);
         Objects.requireNonNull(cons);
+        Map<Serializable, Frame> frameMap = manager.getFrameMap();
         if (frameMap.containsKey(ID)) {
-            throw new FrameException("Frame:" + ID + " Allready exists");
+            return Futures.exceptional(() -> new FrameException("Frame:" + ID + " Allready exists"));
         }
 
-        FXMLFrameLoad<T> load = new FXMLFrameLoad<>(resource);
+        FXMLFrameLoad<T> load = new FXMLFrameLoad<>(init.getResource());
 
-        load.addDecorator(f -> f.getStage().setTitle(title));
+        load.addDecorator(f -> f.getStage().setTitle(init.getTitle()));
         load.addDecorator(f -> {
             T controller = f.getController();
             if (controller instanceof InjectableController) {
@@ -102,26 +103,27 @@ public abstract class Util {
         load.addStageEvent(WindowEvent.WINDOW_HIDDEN, ev -> load.getControllerSafe().ifPresent(c -> c.hide()));
         load.addStageEvent(WindowEvent.WINDOW_SHOWN, ev -> load.getControllerSafe().ifPresent(c -> c.show()));
 
-        return newFrame(frameMap, manager, load, ID, resource.toString());
+        return newFrame(manager, load, init);
 
     }
 
-    public static Future<StageFrame> newStageFrame(Map<String, Frame> frameMap, FrameManager manager, String ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) throws FrameException {
+    public static Future<StageFrame> newStageFrame(FrameManager manager, FrameInit fInit, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
         Objects.requireNonNull(onExit);
         Objects.requireNonNull(constructor);
-        Objects.requireNonNull(ID);
+        Serializable ID = fInit.getID();
+        Map<Serializable, Frame> frameMap = manager.getFrameMap();
         if (frameMap.containsKey(ID)) {
-            throw new FrameException("Frame:" + ID + " Allready exists");
+            return Futures.exceptional(() -> new FrameException("Frame:" + ID + " Allready exists"));
         }
 
         StageFrameLoad load = StageFrameLoad.of(constructor);
-        load.addDecorator(f -> f.getStage().setTitle(title));
+        load.addDecorator(f -> f.getStage().setTitle(fInit.getTitle()));
         load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> onExit.accept(load.getLoadedFrameOrNull()));
         load.addStageEvent(WindowEvent.WINDOW_CLOSE_REQUEST, ev -> manager.closeFrame(ID));
         load.addStageEvent(WindowEvent.WINDOW_HIDDEN, ev -> manager.hideFrame(ID));
         load.addStageEvent(WindowEvent.WINDOW_SHOWN, ev -> manager.showFrame(ID));
 
-        return newFrame(frameMap, manager, load, ID, type);
+        return newFrame(manager, load, fInit);
     }
 
     public static Future<Dialog> newFormDialog(String title, FXDrows rows, Runnable onAccept) {
@@ -158,13 +160,16 @@ public abstract class Util {
         return task;
     }
 
-    public static Future<StageFrame> newForm(Map<String, Frame> frameMap, FrameManager manager, String type, String title, FXDrows rows, Runnable onAccept) {
+    public static Future<StageFrame> newForm(FrameManager manager, FrameInit init, FXDrows rows, Runnable onAccept) {
 
         FutureTask<StageFrame> task = Futures.ofCallable(() -> {
-            ScrollPane scroll = new ScrollPane(rows.grid);
-            scroll.setFitToHeight(true);
-            scroll.setFitToWidth(true);
-            StageFrame frame = manager.newStageFrame(type, title, () -> scroll, d -> d.close()).get();
+
+            StageFrame frame = newStageFrame(manager, init, () -> {
+                ScrollPane scroll = new ScrollPane(rows.grid);
+                scroll.setFitToHeight(true);
+                scroll.setFitToWidth(true);
+                return scroll;
+            }, d -> d.close()).get();
             rows.getNew()
                     .addButton("Apply", eh -> {
                         rows.syncManagedFromDisplay();
@@ -188,14 +193,15 @@ public abstract class Util {
         return task;
     }
 
-    public static Future<StageFrame> newFxrowsFrame(Map<String, Frame> frameMap, FrameManager manager, String type, String title, FXDrows rows) {
+    public static Future<StageFrame> newFxrowsFrame(FrameManager manager, FrameInit init, FXDrows rows) {
 
         FutureTask<StageFrame> task = Futures.ofCallable(() -> {
-            ScrollPane scroll = new ScrollPane(rows.grid);
-            scroll.setFitToHeight(true);
-            scroll.setFitToWidth(true);
-            Future<StageFrame> newStageFrame = newStageFrame(frameMap, manager, manager.getAvailableId(), type, title, () -> scroll, d -> d.close());
-            StageFrame frame = newStageFrame.get();
+            StageFrame frame = newStageFrame(manager, init, () -> {
+                ScrollPane scroll = new ScrollPane(rows.grid);
+                scroll.setFitToHeight(true);
+                scroll.setFitToWidth(true);
+                return scroll;
+            }, d -> d.close()).get();
 
             rows.syncManagedFromPersist();
             rows.viewUpdate();

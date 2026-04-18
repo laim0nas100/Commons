@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import lt.lb.commons.javafx.scenemanagement.Frame;
+import lt.lb.commons.javafx.scenemanagement.FrameInit;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;
 
 /**
@@ -15,7 +16,7 @@ import lt.lb.commons.javafx.scenemanagement.FrameManager;
  */
 public interface FrameLoad<T extends Frame> {
 
-    public T getFrame(FrameManager manager, String ID, String type) throws Exception;
+    public T getFrame(FrameManager manager, FrameInit fInit) throws Exception;
     
     public T getLoadedFrameOrNull();
 

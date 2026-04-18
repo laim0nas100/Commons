@@ -3,6 +3,7 @@ package lt.lb.commons.javafx.scenemanagement.frameloading;
 import java.util.Objects;
 import java.util.function.Supplier;
 import javafx.scene.Parent;
+import lt.lb.commons.javafx.scenemanagement.FrameInit;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;
 import lt.lb.commons.javafx.scenemanagement.StageFrame;
 
@@ -32,8 +33,8 @@ public class StageFrameLoad extends BaseFrameLoad<StageFrame> {
     }
 
     @Override
-    protected StageFrame generateFrame(FrameManager manager, String ID, String type) throws Exception {
-        return new StageFrame(manager, getStage(), ID, type);
+    protected StageFrame generateFrame(FrameManager manager, FrameInit init) throws Exception {
+        return new StageFrame(manager, getStage(), init);
     }
 
 }

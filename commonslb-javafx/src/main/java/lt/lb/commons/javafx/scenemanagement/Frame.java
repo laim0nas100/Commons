@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement;
 
+import java.io.Serializable;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -9,13 +10,9 @@ import lt.lb.commons.javafx.FX;
  *
  * @author laim0nas100
  */
-public interface Frame {
+public interface Frame extends FrameInit {
 
     public Stage getStage();
-
-    public String getID();
-
-    public String getType();
 
     public FrameManager getManager();
 
@@ -27,6 +24,7 @@ public interface Frame {
         return getScene().getWindow();
     }
 
+    @Override
     public default String getTitle() {
         return getStage().getTitle();
     }

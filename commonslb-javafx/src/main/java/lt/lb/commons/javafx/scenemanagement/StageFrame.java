@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement;
 
+import java.io.Serializable;
 import javafx.stage.Stage;
 
 /**
@@ -10,14 +11,12 @@ public class StageFrame implements Frame {
 
     protected final FrameManager manager;
     protected final Stage stage;
-    protected final String ID;
-    protected final String type;
+    protected final FrameInit init;
 
-    public StageFrame(FrameManager manager, Stage stage, String ID, String type) {
+    public StageFrame(FrameManager manager, Stage stage, FrameInit init) {
         this.manager = manager;
         this.stage = stage;
-        this.ID = ID;
-        this.type = type;
+        this.init = init;
     }
 
     @Override
@@ -26,13 +25,13 @@ public class StageFrame implements Frame {
     }
 
     @Override
-    public String getID() {
-        return ID;
+    public Serializable getID() {
+        return init.getID();
     }
 
     @Override
-    public String getType() {
-        return type;
+    public Serializable getType() {
+        return init.getType();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import javafx.beans.value.ChangeListener;
 import javafx.stage.Stage;
@@ -13,7 +14,7 @@ import lt.lb.commons.javafx.scenemanagement.Frame;
  */
 public class WithFrameTypeMemorySize extends FrameDecorateProps {
 
-    public HashMap<String, Props<String>> typeMap = new HashMap<>();
+    public HashMap<Serializable, Props<String>> typeMap = new HashMap<>();
 
     public static final PropGet<String, Double> prop_height = PropGet.of("h");
     public static final PropGet<String, Double> prop_width = PropGet.of("w");
@@ -26,7 +27,7 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
     }
 
     public void decorateOpen(Frame frame) {
-        String type = frame.getType();
+        Serializable type = frame.getType();
         Stage stage = frame.getStage();
 
         Props<String> memoryProp = typeMap.computeIfAbsent(type, k -> new Props<>());
