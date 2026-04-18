@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -18,6 +17,7 @@ import lt.lb.commons.javafx.scenemanagement.frames.FrameState;
 import lt.lb.commons.javafx.scenemanagement.frames.Util;
 import lt.lb.fastid.FastID;
 import lt.lb.fastid.FastIDGen;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -80,39 +80,39 @@ public interface FrameManager {
         return "F-" + FRAME_ID_GEN.getAndIncrement().toString();
     }
 
-    public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor) {
+    public default SafeOpt<StageFrame> newStageFrame(String title, Supplier<Parent> constructor) {
         return newStageFrame(title, title, constructor, Util.emptyConsumer);
     }
 
-    public default Future<StageFrame> newStageFrame(String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
+    public default SafeOpt<StageFrame> newStageFrame(String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
         return newStageFrame(title, title, constructor, onExit);
     }
 
-    public default Future<StageFrame> newStageFrame(String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
+    public default SafeOpt<StageFrame> newStageFrame(String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
         return newStageFrame(getAvailableId(), type, title, constructor, onExit);
     }
 
-    public default Future<StageFrame> newStageFrame(String ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
+    public default SafeOpt<StageFrame> newStageFrame(String ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
         return Util.newStageFrame(this, FrameInit.of(ID, type, title), constructor, onExit);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title) {
+    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title) {
         return newFxmlFrame(resource, ID, title, Util.emptyConsumer);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title, Consumer<T> decorator) {
+    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title, Consumer<T> decorator) {
         return Util.newFxmlFrame(this, FrameInit.of(resource, ID, title, title), decorator);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title, Consumer<T> decorator) {
+    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title, Consumer<T> decorator) {
         return newFxmlFrame(resource, title, title, decorator);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title) throws FrameException {
+    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrameSingleton(URL resource, String title) throws FrameException {
         return newFxmlFrame(resource, title, title, Util.emptyConsumer);
     }
 
-    public default <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(URL resource, String title, Consumer<T> decorator) {
+    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(URL resource, String title, Consumer<T> decorator) {
         return newFxmlFrame(resource, getAvailableId(), title, decorator);
     }
 

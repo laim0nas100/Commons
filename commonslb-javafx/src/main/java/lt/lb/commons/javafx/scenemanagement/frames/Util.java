@@ -1,11 +1,8 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
 import java.io.Serializable;
-import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javafx.beans.value.ChangeListener;
@@ -34,7 +31,7 @@ import lt.lb.commons.javafx.scenemanagement.StageFrame;
 import lt.lb.commons.javafx.scenemanagement.frameloading.FXMLFrameLoad;
 import lt.lb.commons.javafx.scenemanagement.frameloading.FrameLoad;
 import lt.lb.commons.javafx.scenemanagement.frameloading.StageFrameLoad;
-import lt.lb.commons.threads.Futures;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -54,9 +51,9 @@ public abstract class Util {
         };
     }
 
-    public static <FR extends Frame> Future<FR> newFrame(FrameManager manager, FrameLoad<FR> frameLoader, FrameInit init) {
+    public static <FR extends Frame> SafeOpt<FR> newFrame(FrameManager manager, FrameLoad<FR> frameLoader, FrameInit init) {
 
-        FutureTask<FR> task = new FutureTask(() -> {
+        return FX.asyncFxStarter().map(m -> {
             Serializable ID = init.getID();
             FR frame = frameLoader.getFrame(manager, init);
             Map<Serializable, Frame> frameMap = manager.getFrameMap();
@@ -72,18 +69,16 @@ public abstract class Util {
 
             return frame;
         });
-        FX.submit(task);
-        return task;
 
     }
 
-    public static <T extends BaseController> Future<FXMLFrame<T>> newFxmlFrame(FrameManager manager, FrameInitUrl init, Consumer<T> cons) {
+    public static <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(FrameManager manager, FrameInitUrl init, Consumer<T> cons) {
         Serializable ID = init.getID();
         Objects.requireNonNull(ID);
         Objects.requireNonNull(cons);
         Map<Serializable, Frame> frameMap = manager.getFrameMap();
         if (frameMap.containsKey(ID)) {
-            return Futures.exceptional(() -> new FrameException("Frame:" + ID + " Allready exists"));
+            return SafeOpt.error(new FrameException("Frame:" + ID + " Allready exists"));
         }
 
         FXMLFrameLoad<T> load = new FXMLFrameLoad<>(init.getResource());
@@ -107,13 +102,13 @@ public abstract class Util {
 
     }
 
-    public static Future<StageFrame> newStageFrame(FrameManager manager, FrameInit fInit, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
+    public static SafeOpt<StageFrame> newStageFrame(FrameManager manager, FrameInit fInit, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
         Objects.requireNonNull(onExit);
         Objects.requireNonNull(constructor);
         Serializable ID = fInit.getID();
         Map<Serializable, Frame> frameMap = manager.getFrameMap();
         if (frameMap.containsKey(ID)) {
-            return Futures.exceptional(() -> new FrameException("Frame:" + ID + " Allready exists"));
+            return SafeOpt.error(new FrameException("Frame:" + ID + " Allready exists"));
         }
 
         StageFrameLoad load = StageFrameLoad.of(constructor);
@@ -126,9 +121,9 @@ public abstract class Util {
         return newFrame(manager, load, fInit);
     }
 
-    public static Future<Dialog> newFormDialog(String title, FXDrows rows, Runnable onAccept) {
+    public static SafeOpt<Dialog> newFormDialog(String title, FXDrows rows, Runnable onAccept) {
 
-        FutureTask<Dialog> task = Futures.ofCallable(() -> {
+        return FX.asyncFxStarter().map(m -> {
             Dialog dialog = new Dialog();
 
             ButtonType ok = new ButtonType("Apply", ButtonBar.ButtonData.APPLY);
@@ -155,60 +150,52 @@ public abstract class Util {
             rows.syncDisplay();
             return dialog;
         });
-        FX.submit(task);
-
-        return task;
     }
 
-    public static Future<StageFrame> newForm(FrameManager manager, FrameInit init, FXDrows rows, Runnable onAccept) {
+    public static SafeOpt<StageFrame> newForm(FrameManager manager, FrameInit init, FXDrows rows, Runnable onAccept) {
 
-        FutureTask<StageFrame> task = Futures.ofCallable(() -> {
+        return newStageFrame(manager, init, () -> {
+            ScrollPane scroll = new ScrollPane(rows.grid);
+            scroll.setFitToHeight(true);
+            scroll.setFitToWidth(true);
+            return scroll;
+        }, d -> d.close())
+                .map(frame -> {
+                    rows.getNew()
+                            .addButton("Apply", eh -> {
+                                rows.syncManagedFromDisplay();
+                                if (rows.invalidPersist()) {
+                                    return;
+                                }
+                                rows.syncPersist();
+                                onAccept.run();
+                                frame.close();
+                            })
+                            .addButton("Cancel", eh -> {
+                                frame.close();
+                            })
+                            .display();
 
-            StageFrame frame = newStageFrame(manager, init, () -> {
-                ScrollPane scroll = new ScrollPane(rows.grid);
-                scroll.setFitToHeight(true);
-                scroll.setFitToWidth(true);
-                return scroll;
-            }, d -> d.close()).get();
-            rows.getNew()
-                    .addButton("Apply", eh -> {
-                        rows.syncManagedFromDisplay();
-                        if (rows.invalidPersist()) {
-                            return;
-                        }
-                        rows.syncPersist();
-                        onAccept.run();
-                        frame.close();
-                    })
-                    .addButton("Cancel", eh -> {
-                        frame.close();
-                    })
-                    .display();
+                    rows.syncManagedFromPersist();
+                    rows.viewUpdate();
+                    return frame;
+                });
 
-            rows.syncManagedFromPersist();
-            rows.viewUpdate();
-            return frame;
-        });
-        FX.submit(task);
-        return task;
     }
 
-    public static Future<StageFrame> newFxrowsFrame(FrameManager manager, FrameInit init, FXDrows rows) {
+    public static SafeOpt<StageFrame> newFxrowsFrame(FrameManager manager, FrameInit init, FXDrows rows) {
 
-        FutureTask<StageFrame> task = Futures.ofCallable(() -> {
-            StageFrame frame = newStageFrame(manager, init, () -> {
-                ScrollPane scroll = new ScrollPane(rows.grid);
-                scroll.setFitToHeight(true);
-                scroll.setFitToWidth(true);
-                return scroll;
-            }, d -> d.close()).get();
-
-            rows.syncManagedFromPersist();
-            rows.viewUpdate();
-            return frame;
-        });
-        FX.submit(task);
-        return task;
+        return newStageFrame(manager, init, () -> {
+            ScrollPane scroll = new ScrollPane(rows.grid);
+            scroll.setFitToHeight(true);
+            scroll.setFitToWidth(true);
+            return scroll;
+        }, d -> d.close())
+                .map(frame -> {
+                    rows.syncManagedFromPersist();
+                    rows.viewUpdate();
+                    return frame;
+                });
     }
 
 }

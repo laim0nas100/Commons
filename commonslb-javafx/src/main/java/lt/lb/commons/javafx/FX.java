@@ -9,6 +9,9 @@ import javafx.embed.swing.JFXPanel;
 import javafx.scene.control.Alert;
 import lt.lb.commons.threads.Futures;
 import lt.lb.uncheckedutils.Checked;
+import lt.lb.uncheckedutils.SafeOpt;
+import lt.lb.uncheckedutils.concurrent.SafeOptAsync;
+import lt.lb.uncheckedutils.concurrent.Submitter;
 import lt.lb.uncheckedutils.func.UncheckedRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +44,7 @@ public class FX {
         return Platform.isFxApplicationThread();
     }
 
-    private final static Executor platformExecutor = (Runnable r) -> {
+    public final static Executor platformExecutor = (Runnable r) -> {
         if (isFXthread()) {
             r.run();
         } else {
@@ -88,6 +91,31 @@ public class FX {
             });
         });
 
+    }
+
+    public static final Submitter FX_SUBMITTER = new Submitter() {
+        @Override
+        public boolean continueInPlace(SafeOptAsync.AsyncWork task) {
+            return FX.isFXthread();
+        }
+
+        /**
+         * Work only happens in as single FX platform thread.
+         */
+        @Override
+        public void submit(SafeOptAsync.AsyncWork task) {
+            FX.platformExecutor.execute(task);
+        }
+    };
+
+    private static final SafeOpt dummy = SafeOpt.of(0);
+
+    public static SafeOpt asyncFxStarter() {
+        return new SafeOptAsync(FX_SUBMITTER, dummy);
+    }
+
+    public static <T> SafeOpt<T> asyncFxStarter(T val) {
+        return SafeOpt.ofAsync(FX_SUBMITTER, val);
     }
 
 }
