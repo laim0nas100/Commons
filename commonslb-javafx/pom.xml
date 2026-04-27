@@ -24,7 +24,7 @@
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-misc</artifactId>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>lt.lb.commons</groupId>
             <artifactId>commonslb-io</artifactId>
         </dependency>
@@ -98,6 +98,13 @@
             <version>${javafx.compat.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
+        </dependency>
+        
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-platform-jpms</artifactId>
+            <version>5.17.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

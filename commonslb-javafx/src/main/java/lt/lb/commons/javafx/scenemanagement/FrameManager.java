@@ -38,6 +38,7 @@ public interface FrameManager {
         }
         Stage stage = frame.getStage();
         stage.close();
+
         return true;
 
     }
@@ -48,11 +49,12 @@ public interface FrameManager {
         if (frame == null) {
             return false;
         }
+
+        Stage stage = frame.getStage();
+        stage.hide();
         for (FrameDecorator fdec : getFrameDecorators(FrameState.FrameStateHide.instance)) {
             fdec.accept(frame);
         }
-        Stage stage = frame.getStage();
-        stage.hide();
         return true;
 
     }
@@ -63,11 +65,12 @@ public interface FrameManager {
         if (frame == null) {
             return false;
         }
+
+        Stage stage = frame.getStage();
+        stage.show();
         for (FrameDecorator fdec : getFrameDecorators(FrameState.FrameStateShow.instance)) {
             fdec.accept(frame);
         }
-        Stage stage = frame.getStage();
-        stage.show();
         return true;
 
     }

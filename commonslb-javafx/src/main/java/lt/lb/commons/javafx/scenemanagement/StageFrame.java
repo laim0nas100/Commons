@@ -2,6 +2,7 @@ package lt.lb.commons.javafx.scenemanagement;
 
 import java.io.Serializable;
 import javafx.stage.Stage;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -12,6 +13,8 @@ public class StageFrame implements Frame {
     protected final FrameManager manager;
     protected final Stage stage;
     protected final FrameInit init;
+
+    protected SafeOpt nativeHandle;
 
     public StageFrame(FrameManager manager, Stage stage, FrameInit init) {
         this.manager = manager;
@@ -37,6 +40,20 @@ public class StageFrame implements Frame {
     @Override
     public FrameManager getManager() {
         return manager;
+    }
+
+    @Override
+    public SafeOpt getNativeHandle() {
+        if (nativeHandle != null) {
+            return nativeHandle;
+        }
+        if (FXWinUtil.isWindows()) {
+            nativeHandle = FXWinUtil.getNativeHandle(this);
+        } else {
+            nativeHandle = SafeOpt.empty();//implemented only Windows version
+        }
+        
+        return nativeHandle;
     }
 
 }
