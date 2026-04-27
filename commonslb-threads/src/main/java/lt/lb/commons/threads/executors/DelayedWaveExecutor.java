@@ -6,10 +6,12 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import lt.lb.commons.threads.executors.scheduled.DelayedTaskExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
 
 /**
+ * Collects tasks, and executes all of them every period. Period can be defined.
+ * If any tasks are submitted during the execution, they are delayd until the
+ * next period.
  *
  * @author laim0nas100
  */
@@ -51,11 +53,6 @@ public class DelayedWaveExecutor implements Executor {
         this.service = Objects.requireNonNull(service);
         this.wt = wt;
         this.inPlace = false;
-    }
-
-    public DelayedWaveExecutor(Executor executor) {
-        this(executor, new DelayedTaskExecutor(1, new InPlaceExecutor()), WaitTime.ofMillis(1));
-        inPlace = true;
     }
 
     protected void schedule() {

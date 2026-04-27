@@ -44,14 +44,4 @@ public class FastWaitingExecutor extends FastExecutor {
     protected Runnable getNext() throws InterruptedException{
         return tasks.poll(wt.time, wt.unit);
     }
-    
-    /**
-     * {@inheritDoc} Additionally interrupts threads in wait state.
-     */
-    @Override
-    public void close() {
-        super.close();
-        pool.interruptWaiting();
-    }
-
 }
