@@ -1,6 +1,7 @@
 package lt.lb.commons.javafx;
 
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiPredicate;
@@ -20,8 +21,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Dragboard;
@@ -31,7 +30,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-import lt.lb.commons.F;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.containers.values.StringValue;
@@ -50,6 +48,8 @@ import org.slf4j.LoggerFactory;
  * @author laim0nas100
  */
 public abstract class FXDefs {
+
+    public static final SafeOpt<URL> DARK_THEME_CSS = SafeOpt.ofLazy("css/dark_theme.css").map(m -> FXDefs.class.getClassLoader().getResource(m));
 
     public static void closeTab(Tab tab) {
         EventHandler<Event> handler = tab.getOnClosed();

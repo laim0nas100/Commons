@@ -51,7 +51,9 @@ public class FXMLFrameLoad<T extends BaseController> extends BaseFrameLoad<FXMLF
 
     @Override
     protected FXMLFrame generateFrame(FrameManager manager, FrameInit fInit) throws Exception {
-        return new FXMLFrame(manager, getStage(), getController(), (FrameInitUrl) fInit);
+        FXMLFrame fxmlFrame = new FXMLFrame(manager, getStage(), getController(), (FrameInitUrl) fInit);
+        fxmlFrame.getStage().setTitle(fInit.getTitle());
+        return fxmlFrame;
     }
 
     public T getController() throws Exception {
@@ -83,6 +85,5 @@ public class FXMLFrameLoad<T extends BaseController> extends BaseFrameLoad<FXMLF
     public void decorateAfter() throws Exception {
         super.decorateAfter();
     }
-
 
 }

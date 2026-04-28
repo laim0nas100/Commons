@@ -34,7 +34,9 @@ public class StageFrameLoad extends BaseFrameLoad<StageFrame> {
 
     @Override
     protected StageFrame generateFrame(FrameManager manager, FrameInit init) throws Exception {
-        return new StageFrame(manager, getStage(), init);
+        StageFrame stageFrame = new StageFrame(manager, getStage(), init);
+        stageFrame.getStage().setTitle(init.getTitle());
+        return stageFrame;
     }
 
 }

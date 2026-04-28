@@ -2,6 +2,7 @@ package lt.lb.commons.javafx.scenemanagement;
 
 import java.io.Serializable;
 import javafx.stage.Stage;
+import lt.lb.commons.javafx.FX;
 import lt.lb.uncheckedutils.SafeOpt;
 
 /**
@@ -48,11 +49,11 @@ public class StageFrame implements Frame {
             return nativeHandle;
         }
         if (FXWinUtil.isWindows()) {
-            nativeHandle = FXWinUtil.getNativeHandle(this);
+            nativeHandle = FX.asyncFxStarter().flatMap(ignore -> FXWinUtil.getNativeHandle(getStage()));// ensure FX platform thread
         } else {
             nativeHandle = SafeOpt.empty();//implemented only Windows version
         }
-        
+
         return nativeHandle;
     }
 

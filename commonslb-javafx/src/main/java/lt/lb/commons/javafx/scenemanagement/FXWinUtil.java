@@ -9,8 +9,9 @@ import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.IntByReference;
 import java.lang.reflect.Method;
+import java.net.URL;
+import javafx.stage.Stage;
 import javafx.stage.Window;
-import lt.lb.commons.F;
 import lt.lb.commons.Java;
 import lt.lb.commons.reflect.unified.ReflMethods;
 import lt.lb.fastid.FastIDGen;
@@ -31,7 +32,7 @@ public class FXWinUtil {
         SafeOpt<WinDef.HWND> handle = frame.getNativeHandle();//implicit cast
         return handle.map(hwnd -> {
             boolean[] darkMode = new boolean[]{dark};
-            
+
             WinNT.HRESULT result = Dwmapi.INSTANCE.DwmSetWindowAttribute(
                     hwnd,
                     DWMWA_USE_IMMERSIVE_DARK_MODE,
@@ -58,15 +59,15 @@ public class FXWinUtil {
 
     private static FastIDGen TITLE_GEN = new FastIDGen(); // ensure unique
 
-    public static SafeOpt<WinDef.HWND> getNativeHandle(Frame frame) {
-        SafeOpt<WinDef.HWND> nativeHandleUsingInternals = getNativeHandleUsingInternals(frame.getWindow());
+    public static SafeOpt<WinDef.HWND> getNativeHandle(Stage frame) {
+        SafeOpt<WinDef.HWND> nativeHandleUsingInternals = getNativeHandleUsingInternals(frame);
         if (nativeHandleUsingInternals.isPresent()) {
             return nativeHandleUsingInternals;
         }
         return getNativeHandleUsingJNA(frame);
     }
 
-    public static SafeOpt<WinDef.HWND> getNativeHandleUsingJNA(Frame frame) {// assume javaFX platform thread
+    public static SafeOpt<WinDef.HWND> getNativeHandleUsingJNA(Stage frame) {// assume javaFX platform thread
         try {
 
             int currentPid = Kernel32.INSTANCE.GetCurrentProcessId();
@@ -76,7 +77,7 @@ public class FXWinUtil {
             final boolean useTitleSwap = true;
             String tempTitle = currentPid + "_" + TITLE_GEN.getAndIncrement().toString();
             if (useTitleSwap) {
-                frame.getStage().setTitle(tempTitle);
+                frame.setTitle(tempTitle);
             }
 
             User32.INSTANCE.EnumWindows((hWnd, data) -> {
@@ -108,7 +109,7 @@ public class FXWinUtil {
             }, Pointer.NULL);
 
             if (useTitleSwap) {
-                frame.getStage().setTitle(title);
+                frame.setTitle(title);
             }
 
             return SafeOpt.ofNullable(result)

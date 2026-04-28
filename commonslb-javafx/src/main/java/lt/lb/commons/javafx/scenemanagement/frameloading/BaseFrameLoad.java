@@ -56,6 +56,14 @@ public abstract class BaseFrameLoad<T extends Frame> implements FrameLoad<T> {
 
     protected abstract Parent generateRoot() throws Exception;
 
+    /**
+     * Called once. Decorate the stage/scene using the FrameInit information.
+     *
+     * @param manager
+     * @param fInit
+     * @return
+     * @throws Exception
+     */
     protected abstract T generateFrame(FrameManager manager, FrameInit fInit) throws Exception;
 
     @Override

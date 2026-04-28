@@ -62,10 +62,11 @@ public abstract class Util {
             }
             frameMap.put(ID, frame);
             frameLoader.hookStageEvents();
+            frameLoader.decorateAfter();
             for (FrameDecorator fdec : manager.getFrameDecorators(FrameState.FrameStateOpen.instance)) {
                 fdec.accept(frame);
             }
-            frameLoader.decorateAfter();
+            
 
             return frame;
         });
@@ -83,7 +84,6 @@ public abstract class Util {
 
         FXMLFrameLoad<T> load = new FXMLFrameLoad<>(init.getResource());
 
-        load.addDecorator(f -> f.getStage().setTitle(init.getTitle()));
         load.addDecorator(f -> {
             T controller = f.getController();
             if (controller instanceof InjectableController) {
