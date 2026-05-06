@@ -18,19 +18,19 @@ public class TrackedThreadPool extends ThreadGroup implements ThreadPool {
      */
     public static class TrackedThread extends Thread {
 
-        protected final Runnable task;
+        protected Runnable currentTask;
         protected final TrackedThreadPool pool;
 
         public TrackedThread(TrackedThreadPool group, Runnable target, String name) {
             super(group, target, name);
             this.pool = Objects.requireNonNull(group);
-            this.task = target;
+            this.currentTask = target;
         }
 
         public TrackedThread(TrackedThreadPool group, Runnable target, String name, boolean deamon, int priority, ClassLoader clLoader) {
             super(group, target, name);
             this.pool = Objects.requireNonNull(group);
-            this.task = target;
+            this.currentTask = target;
             setDaemon(deamon);
             setPriority(priority);
             if (clLoader != null) {
@@ -38,8 +38,22 @@ public class TrackedThreadPool extends ThreadGroup implements ThreadPool {
             }
         }
 
-        public Runnable getTask() {
-            return task;
+        /**
+         * Used by threads that executes tasks. Set only inside current thread.
+         *
+         * @return
+         */
+        public Runnable getCurrentTask() {
+            return currentTask;
+        }
+
+        /**
+         * Used by threads that executes tasks. Set only inside current thread.
+         *
+         * @return
+         */
+        public void setCurrentTask(Runnable task) {
+            this.currentTask = task;
         }
 
         public TrackedThreadPool getPool() {
@@ -48,12 +62,9 @@ public class TrackedThreadPool extends ThreadGroup implements ThreadPool {
 
         @Override
         public void run() {
-            if (task == null) {//short lived, don't bother with counter
-                return;
-            }
             try {
                 pool.threadsAliveCount.incrementAndGet();
-                task.run();
+                super.run();
             } finally {
                 pool.threadsAliveCount.decrementAndGet();
             }

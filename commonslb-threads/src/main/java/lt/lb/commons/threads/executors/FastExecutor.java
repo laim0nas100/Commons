@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -15,8 +16,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import lt.lb.commons.Nulls;
+import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.threads.ThreadPool;
+import lt.lb.commons.threads.TrackedThreadPool.TrackedThread;
 import lt.lb.commons.threads.sync.ConcurrentArena;
 
 /**
@@ -36,16 +39,16 @@ import lt.lb.commons.threads.sync.ConcurrentArena;
  * @author laim0nas100
  */
 public class FastExecutor extends BaseExecutor {
-
+    
     protected ConcurrentArena<Runnable> tasks;
-
+    
     protected ThreadPool pool;
-
+    
     protected int maxThreads;
     protected AtomicInteger occupiedThreads = new AtomicInteger(0);
     protected CompletableFuture awaitTermination = new CompletableFuture();
     protected int spec = -1;
-
+    
     protected Consumer<Throwable> errorChannel = (err) -> {
     };
 
@@ -60,7 +63,7 @@ public class FastExecutor extends BaseExecutor {
         this.spec = spec;
         tasks = makeQueue(spec);
     }
-
+    
     public static FastExecutor _spec(int maxThreads, int spec) {
         return new FastExecutor(maxThreads, spec);
     }
@@ -74,15 +77,15 @@ public class FastExecutor extends BaseExecutor {
     public FastExecutor(int maxThreads) {
         this(maxThreads, createDefaultThreadPool(FastExecutor.class));
     }
-
+    
     protected FastExecutor(int maxThreads, ThreadPool threadPool) {
         this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
         this.maxThreads = maxThreads;
         pool.setThreadsStarting(true);
-
+        
         tasks = makeQueue();
     }
-
+    
     protected ConcurrentArena<Runnable> makeQueue(int spec) {
         if (maxThreads == 0) {
             return null;
@@ -98,20 +101,20 @@ public class FastExecutor extends BaseExecutor {
         }
         return ConcurrentArena.fromConcurrent(new ConcurrentLinkedQueue<>());
     }
-
+    
     protected ConcurrentArena<Runnable> makeQueue() {
         return makeQueue(spec);
     }
-
+    
     public void setMaxThreads(int maxThreads) {
         this.maxThreads = maxThreads;
     }
-
+    
     public void setErrorChannel(Consumer<Throwable> channel) {
         Nulls.requireNonNull(channel, "Error channel must not be null");
         errorChannel = channel;
     }
-
+    
     public boolean isDaemon() {
         return pool.isThreadsDaemon();
     }
@@ -125,11 +128,11 @@ public class FastExecutor extends BaseExecutor {
     public void setDaemon(boolean deamon) {
         pool.setThreadsDaemon(deamon);
     }
-
+    
     public Consumer<Throwable> getErrorChannel() {
         return errorChannel;
     }
-
+    
     @Override
     public void execute(Runnable command) {
         if (!open) {
@@ -144,9 +147,9 @@ public class FastExecutor extends BaseExecutor {
                 throw new IllegalStateException("Failed to submit runnable, queue overflow");
             }
         }
-
+        
     }
-
+    
     @Override
     public void executeAll(Collection<Runnable> all) {
         if (maxThreads == 0) {
@@ -155,14 +158,14 @@ public class FastExecutor extends BaseExecutor {
             }
         } else {
             tasks.addAll(all);
-
+            
             int howMany = maxThreads < 0 ? all.size() : Math.min(maxThreads, all.size());
             for (int i = occupiedThreads.get(); i < howMany; i++) {
                 maybeStartThread(maxThreads, null);
             }
         }
     }
-
+    
     protected Runnable getNext() throws InterruptedException {
         int tries = 3;
         while (--tries >= 0) {
@@ -174,12 +177,16 @@ public class FastExecutor extends BaseExecutor {
         }
         return null;
     }
-
-    protected void polling(Runnable run) {
+    
+    protected void polling(TrackedThread me, Runnable run) {
         try {
-
+            
             for (;;) {
+                if (me != null) {
+                    me.setCurrentTask(run);
+                }
                 executeSingle(run);// null check inside
+                
                 run = getNext();
                 if (run == null) {
                     return;
@@ -188,14 +195,14 @@ public class FastExecutor extends BaseExecutor {
         } catch (InterruptedException ex) {
         }
     }
-
+    
     protected final void executeSingle(Runnable run) {
         if (run == null) {
             return;
         }
         try {
             run.run();
-
+            
         } catch (Throwable th) {
             try {
                 getErrorChannel().accept(th);
@@ -204,12 +211,18 @@ public class FastExecutor extends BaseExecutor {
             }
         }
     }
-
+    
     protected final Runnable threadBody(final int bakedMax, Runnable first) {
         return () -> {
-
+            
             try {
-                polling(first);
+                Thread me = Thread.currentThread();
+                if (me instanceof TrackedThread) {
+                    polling((TrackedThread) me, first);
+                } else {
+                    polling(null, first);
+                }
+                
             } finally {
                 int leftRunning = Atomic.decrementAndGet(occupiedThreads); //thread no longer running (not really)
                 int get = tasks.size();
@@ -218,21 +231,21 @@ public class FastExecutor extends BaseExecutor {
                 } else if (get > 0) {
                     maybeStartThread(bakedMax, null);
                 }
-
+                
             }
         };
     }
-
+    
     protected void maybeTerminate(int leftRunning) {
         if (!open && leftRunning == 0) {
             awaitTermination.complete(0);
         }
     }
-
+    
     protected Thread startThread(final int maxT, Runnable first) {
         return pool.newThread(threadBody(maxT, first));//pool should start the thread
     }
-
+    
     protected boolean maybeStartThread(final int maxT, Runnable first) {
         if (maxT > 0) { // limitedThreads
             if (occupiedThreads.get() >= maxT) {//fast exit
@@ -253,43 +266,56 @@ public class FastExecutor extends BaseExecutor {
             return true;
         }
     }
-
+    
     public List<Runnable> cancelAll(boolean interrupting) {
-
+        
         ArrayList<Runnable> unfinished = new ArrayList<>(tasks.size());
         Iterator<Runnable> iterator = tasks.iterator();
         while (iterator.hasNext()) {
             Runnable next = iterator.next();
+            if (next instanceof Future) {
+                Future future = (Future) next;
+                future.cancel(interrupting);
+            }
             iterator.remove();
             if (next != null) {
                 unfinished.add(next);
             }
         }
-        if (interrupting) {
-            pool.interruptAlive();
-        }
-
+        MakeStream.from(pool.enumerate(true))
+                .select(TrackedThread.class)
+                .forEach(tracked -> {
+                    Runnable task = tracked.getCurrentTask();
+                    if (task instanceof Future) {
+                        Future future = (Future) task;
+                        future.cancel(interrupting);
+                    }
+                    if (interrupting) {
+                        tracked.interrupt();
+                    }
+                });
+        
         return unfinished;
     }
-
+    
     @Override
     public List<Runnable> shutdownNow() {
         shutdown();
         List<Runnable> unfinished = cancelAll(true);
         maybeTerminate(occupiedThreads.get());
-
+        
         return unfinished;
     }
-
+    
     public boolean isBusy() {
         return occupiedThreads.get() > 0;
     }
-
+    
     @Override
     public boolean isTerminated() {
         return awaitTermination.isDone();
     }
-
+    
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         try {
@@ -302,7 +328,7 @@ public class FastExecutor extends BaseExecutor {
         } catch (ExecutionException | TimeoutException ex) {
             return false; // too late
         }
-
+        
     }
 
     /**
@@ -315,10 +341,10 @@ public class FastExecutor extends BaseExecutor {
         this.open = false;
         maybeTerminate(occupiedThreads.get());
     }
-
+    
     @Override
     public int parallelism() {
         return maxThreads;
     }
-
+    
 }

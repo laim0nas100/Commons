@@ -1,6 +1,7 @@
 package lt.lb.commons.threads;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -11,12 +12,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ExplicitFutureTask<T> extends FutureTask<T> implements FailableRunnableFuture<T> {
 
     protected AtomicBoolean NEW = new AtomicBoolean(true);
-    protected final FutureTask innerFuture;
+    protected final Future innerFuture;
 
     public ExplicitFutureTask(Callable<T> callable) {
         super(callable);
-        if (callable instanceof FutureTask) {
-            innerFuture = (FutureTask) callable;
+        if (callable instanceof Future) {
+            innerFuture = (Future) callable;
         } else {
             innerFuture = null;
         }
@@ -24,8 +25,8 @@ public class ExplicitFutureTask<T> extends FutureTask<T> implements FailableRunn
 
     public ExplicitFutureTask(Runnable runnable, T result) {
         super(runnable, result);
-        if (runnable instanceof FutureTask) {
-            innerFuture = (FutureTask) runnable;
+        if (runnable instanceof Future) {
+            innerFuture = (Future) runnable;
         } else {
             innerFuture = null;
         }
@@ -45,7 +46,11 @@ public class ExplicitFutureTask<T> extends FutureTask<T> implements FailableRunn
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         if (innerFuture != null) {
-            innerFuture.cancel(mayInterruptIfRunning);
+            boolean ret = innerFuture.cancel(mayInterruptIfRunning);
+            if (ret) {
+                super.cancel(mayInterruptIfRunning);
+                return ret;
+            }
         }
         return super.cancel(mayInterruptIfRunning);
     }
