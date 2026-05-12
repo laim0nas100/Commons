@@ -24,7 +24,7 @@ import lt.lb.fastid.FastIDGen;
  */
 public class BunchingTreeTest {
 
-    public static class XY implements Comparable<XY>{
+    public static class XY implements Comparable<XY> {
 
         static FastIDGen gen = new FastIDGen();
         public final String id;
@@ -92,7 +92,6 @@ public class BunchingTreeTest {
             super(maxPossibleDistance, distanceFunc);
         }
 
-
         @Override
         public Double distance(XY one, XY two) {
             return XY.distance(one, two);
@@ -114,40 +113,36 @@ public class BunchingTreeTest {
         DLog.print("maxDistance", maxDistance);
 
         XYTree tree = new XYTree(maxDistance, XY::distance);
-        
+
         XY test = new XY(rng.nextInt((int) range), rng.nextInt((int) range));
         Set<XY> skip = new HashSet<>();
         int slices = 3;
-        
-        double slice = range / (slices+1);
-        for(int i = 1; i < slices+1; i++){
-            for(int j=1; j < slices+1; j++){
-                XY findNearest = findNearest(list, new XY(slice*i,slice*j));
+
+        double slice = range / (slices + 1);
+        for (int i = 1; i < slices + 1; i++) {
+            for (int j = 1; j < slices + 1; j++) {
+                XY findNearest = findNearest(list, new XY(slice * i, slice * j));
                 tree.add(findNearest);
 //                tree.addRootNode(findNearest);
                 skip.add(findNearest);
 //                test = findNearest;
             }
-            
+
         }
-        
-        
 
         int progress = 0;
         for (XY xy : list) {
-            if(!skip.contains(xy)){
+            if (!skip.contains(xy)) {
                 tree.add(xy);
             }
-            
+
             progress++;
-            if(progress % 1000 == 0){
-                DLog.print("tree progress",progress);
+            if (progress % 1000 == 0) {
+                DLog.print("tree progress", progress);
             }
         }
         DLog.print("Tree building", XY.counter.getAndSet(0));
-        test= new XY(range/2, range/2);
-        
-        
+        test = new XY(range / 2, range / 2);
 
         final int count = 10;
 
@@ -171,7 +166,6 @@ public class BunchingTreeTest {
 //            XY xy = new XY(rng.nextInt((int) range), rng.nextInt((int) range));
 //            tree.findNearest(count, xy);
 //        }).print(DLog::print);
-
         DLog.print(test);
         DLog.printLines(top10);
         DLog.printLines(findNearest);
@@ -181,7 +175,7 @@ public class BunchingTreeTest {
 //            return false;
 //        }).BFS(tree.getRoot());
 //         DLog.print("DFS");
-////         
+        ////         
 //         tree.visitor(f->{
 //            DLog.print(f.getDepth(),f.getValue());
 //            return false;
@@ -190,18 +184,18 @@ public class BunchingTreeTest {
 
     }
 
-    public static XY findNearest(List<XY> list, XY test){
+    public static XY findNearest(List<XY> list, XY test) {
         return MakeStream.from(list).map(m -> Tuples.create(m, XY.distance(m, test))).sorted((a, b) -> {
             return Double.compare(a.g2, b.g2);
         }).map(m -> m.g1).findFirst().get();
     }
-    
-    public static List<XY> findNearest(List<XY> list, XY test, int count){
+
+    public static List<XY> findNearest(List<XY> list, XY test, int count) {
         return MakeStream.from(list).map(m -> Tuples.create(m, XY.distance(m, test))).sorted((a, b) -> {
             return Double.compare(a.g2, b.g2);
         }).map(m -> m.g1).limit(count).toList();
     }
-    
+
     /*
      *  coordiante calculation
     ACOS(COS(RADIANS(90-Lat1)) *COS(RADIANS(90-Lat2)) +SIN(RADIANS(90-Lat1)) *SIN(RADIANS(90-Lat2)) *COS(RADIANS(Long1-Long2))) *6371
@@ -211,9 +205,10 @@ public class BunchingTreeTest {
     public static double WSGdistance(double lat1, double lon1, double lat2, double lon2) {
         counter.incrementAndGet();
 
-        double val = Math.cos(Math.toRadians(90 - lat1)) * Math.cos(Math.toRadians(90 - lat2));
-
-        double val2 = Math.sin(Math.toRadians(90 - lat1)) * Math.sin(Math.toRadians(90 - lat2)) * Math.cos(Math.toRadians(lon1 - lon2));
+        double rad1 = Math.toRadians(90 - lat1);
+        double rad2 = Math.toRadians(90 - lat2);
+        double val = Math.cos(rad1) * Math.cos(rad2);
+        double val2 = Math.sin(rad1) * Math.sin(rad2) * Math.cos(Math.toRadians(lon1 - lon2));
 
         return Math.acos(val + val2) * 6371;
 
