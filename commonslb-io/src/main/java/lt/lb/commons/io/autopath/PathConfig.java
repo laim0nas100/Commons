@@ -2,6 +2,7 @@ package lt.lb.commons.io.autopath;
 
 import java.io.File;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 /**
  *
@@ -38,7 +39,7 @@ public interface PathConfig {
 
         @Override
         public String name(String fullPath) {
-            int lastIndexOf = StringUtils.lastIndexOf(fullPath, currentSep());
+            int lastIndexOf = Strings.CS.lastIndexOf(fullPath, currentSep());
             if (lastIndexOf >= 0) {
                 return StringUtils.substring(fullPath, 1 + lastIndexOf);
             }
@@ -49,7 +50,7 @@ public interface PathConfig {
         public String baseName(String fullPath) {
             String name = name(fullPath);
 
-            int lastIndexOf = StringUtils.lastIndexOf(name, ".");
+            int lastIndexOf = Strings.CS.lastIndexOf(name, ".");
             if (lastIndexOf >= 0) {
                 return StringUtils.substring(name, 0, lastIndexOf);
             }
@@ -68,7 +69,7 @@ public interface PathConfig {
 
         @Override
         public String parent(String fullPath) {
-            int lastIndexOf = StringUtils.lastIndexOf(fullPath, currentSep());
+            int lastIndexOf = Strings.CS.lastIndexOf(fullPath, currentSep());
             if (lastIndexOf >= 0) {
                 return StringUtils.substring(fullPath, 0, lastIndexOf);
             }
@@ -90,8 +91,8 @@ public interface PathConfig {
 
         @Override
         public String parent(String fullPath) {
-            int protocolSep = StringUtils.lastIndexOf(fullPath, "//");
-            int lastIndexOf = StringUtils.lastIndexOf(fullPath, currentSep());
+            int protocolSep = Strings.CS.lastIndexOf(fullPath, "//");
+            int lastIndexOf = Strings.CS.lastIndexOf(fullPath, currentSep());
             if (protocolSep < 0) {
                 if (lastIndexOf >= 0) {
                     return StringUtils.substring(fullPath, 0, lastIndexOf);
@@ -101,7 +102,6 @@ public interface PathConfig {
                     if (protocolSep + 1 > lastIndexOf) { // do not return part of the port scheme
                         return StringUtils.substring(fullPath, 0, lastIndexOf);
                     }
-
                 }
             }
 

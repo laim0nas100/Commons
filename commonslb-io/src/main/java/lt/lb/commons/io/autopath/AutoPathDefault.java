@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 import lt.lb.commons.Nulls;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 /**
  *
@@ -13,15 +14,15 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class AutoPathDefault implements AutoPath {
 
-    private final String stringPath;
-    private final PathConfig pathConfig;
+    protected final String stringPath;
+    protected final PathConfig pathConfig;
 
     // computed
-    private Path path = null;
-    private String parent = null;
-    private String name = null;
-    private String baseName = null;
-    private String extension = null;
+    protected Path path = null;
+    protected String parent = null;
+    protected String name = null;
+    protected String baseName = null;
+    protected String extension = null;
 
     protected String currentSep() {
         return pathConfig.currentSep();
@@ -32,9 +33,9 @@ public class AutoPathDefault implements AutoPath {
     }
 
     protected String fixSeparators(String pathPart) {
-        if (StringUtils.containsAny(pathPart, fixableSeperators())) {
+        if (Strings.CS.containsAny(pathPart, fixableSeperators())) {
             for (String fixable : fixableSeperators()) {
-                pathPart = StringUtils.replace(pathPart, fixable, currentSep());
+                pathPart = Strings.CS.replace(pathPart, fixable, currentSep());
             }
         }
         return pathPart;
@@ -42,16 +43,16 @@ public class AutoPathDefault implements AutoPath {
 
     protected String removeSeparatorEnding(String pathPart) {
         String p = pathPart;
-        while (StringUtils.endsWith(p, currentSep())) {
-            p = StringUtils.removeEnd(p, currentSep());
+        while (Strings.CS.endsWith(p, currentSep())) {
+            p = Strings.CS.removeEnd(p, currentSep());
         }
         return p;
     }
 
     protected String removeSeparatorStart(String pathPart) {
         String p = pathPart;
-        while (StringUtils.startsWith(p, currentSep())) {
-            p = StringUtils.removeStart(p, currentSep());
+        while (Strings.CS.startsWith(p, currentSep())) {
+            p = Strings.CS.removeStart(p, currentSep());
         }
         return p;
     }
