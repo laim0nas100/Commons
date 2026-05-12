@@ -126,7 +126,7 @@ public class MapEntries {
 
     }
 
-    public static class MapEntrySet<K, V> extends AbstractSet<Map.Entry<K, V>> {
+    public static class IndexedMapEntrySet<K, V> extends AbstractSet<Map.Entry<K, V>> {
 
         protected final Map<K, V> map;
         protected Function<Integer, Optional<Map.Entry<K, V>>> entryGenerator;
@@ -135,7 +135,7 @@ public class MapEntries {
         protected Collection<V> values;
         protected Set<K> keySet;
 
-        public MapEntrySet(boolean mutable, Map<K, V> map, Function<Integer, Optional<Map.Entry<K, V>>> entryGenerator) {
+        public IndexedMapEntrySet(boolean mutable, Map<K, V> map, Function<Integer, Optional<Map.Entry<K, V>>> entryGenerator) {
             this.mutable = mutable;
             this.map = map;
             this.entryGenerator = entryGenerator;
@@ -223,17 +223,17 @@ public class MapEntries {
 
                     @Override
                     public int size() {
-                        return MapEntrySet.this.size();
+                        return IndexedMapEntrySet.this.size();
                     }
 
                     @Override
                     public boolean isEmpty() {
-                        return MapEntrySet.this.isEmpty();
+                        return IndexedMapEntrySet.this.isEmpty();
                     }
 
                     @Override
                     public void clear() {
-                        MapEntrySet.this.clear();
+                        IndexedMapEntrySet.this.clear();
                     }
 
                     @Override
@@ -257,17 +257,17 @@ public class MapEntries {
 
                     @Override
                     public int size() {
-                        return MapEntrySet.this.size();
+                        return IndexedMapEntrySet.this.size();
                     }
 
                     @Override
                     public boolean isEmpty() {
-                        return MapEntrySet.this.isEmpty();
+                        return IndexedMapEntrySet.this.isEmpty();
                     }
 
                     @Override
                     public void clear() {
-                        MapEntrySet.this.clear();
+                        IndexedMapEntrySet.this.clear();
                     }
 
                     @Override

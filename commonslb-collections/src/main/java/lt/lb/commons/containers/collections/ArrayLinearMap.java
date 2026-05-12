@@ -1,15 +1,22 @@
 package lt.lb.commons.containers.collections;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import lt.lb.commons.containers.collections.MapEntries.MapEntrySet;
+import lt.lb.commons.containers.collections.MapEntries.IndexedMapEntrySet;
 
 /**
+ * [key:val, key:val... ] array structure always the minimum size. Every write
+ * operation resizes it.
+ *
+ * Basically, a mutable version of MapN from the standard JDK9.
  *
  * @author laim0nas100
  */
@@ -18,16 +25,10 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
     private static final Object[] EMPTY_DATA = new Object[0];
     protected Object[] data;
 
-    protected transient MapEntrySet<K, V> entrySet;
-    protected transient final boolean allowNulls;
+    protected transient IndexedMapEntrySet<K, V> entrySet;
 
-    public ArrayLinearMap(boolean allowNulls) {
-        this.allowNulls = allowNulls;
-        this.data = EMPTY_DATA;
-    }
-    
     public ArrayLinearMap() {
-        this(false);
+        this.data = EMPTY_DATA;
     }
 
     @Override
@@ -40,10 +41,10 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
         return data.length == 0;
     }
 
-    protected int find(int offset, Object value) {
+    protected int find(int offset, Object what) {
         for (int i = 0; i < data.length; i += 2) {
             int index = i + offset;
-            if (Objects.equals(value, data[index])) {
+            if (Objects.equals(what, data[index])) {
                 return index;
             }
         }
@@ -71,13 +72,9 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
 
     @Override
     public V put(K key, V value) {
-        if(!allowNulls){
-            Objects.requireNonNull(key);
-            Objects.requireNonNull(value);
-        }
         int find = find(0, key);
         V oldValue = null;
-        int index = -1;
+        int index;
         if (find >= 0) {// value replace
             index = find + 1;
             oldValue = (V) data[index];
@@ -99,6 +96,7 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
         if (keyIndex < 0) {//not found
             return null;
         } else {
+            //populate new arrays, without the removed value
             V oldValue = (V) data[keyIndex + 1];
             Object[] newData = new Object[data.length - 2];
             boolean found = false;
@@ -118,9 +116,28 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
+        List<Entry<? extends K, ? extends V>> newEntries = new ArrayList<>();
         for (Entry<? extends K, ? extends V> entry : m.entrySet()) {
-            put(entry.getKey(), entry.getValue());
+            int find = find(0, entry.getKey());
+            if (find >= 0) {//existing entry
+                data[find + 1] = entry.getValue();
+            } else {
+                newEntries.add(entry);
+            }
         }
+
+        if (newEntries.isEmpty()) {
+            return;
+        }
+        
+        Object[] newData = Arrays.copyOf(data, data.length + newEntries.size() * 2); // pad newData array
+        for (int i = data.length, j = 0; i < newData.length; i += 2, j++) { // append new entries at the end
+            Entry<? extends K, ? extends V> entry = newEntries.get(j);
+            newData[i] = entry.getKey();
+            newData[i + 1] = entry.getValue();
+        }
+
+        data = newData;
     }
 
     @Override
@@ -128,7 +145,7 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
         data = EMPTY_DATA;
     }
 
-    private Optional<Map.Entry<K, V>> entryGenerator(int index) {
+    protected Optional<Map.Entry<K, V>> entryGenerator(int index) {
         if (index < 0 || index >= size()) {
             return Optional.empty();
         }
@@ -154,9 +171,13 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
         });
     }
 
+    protected IndexedMapEntrySet<K, V> entries() {
+        return entrySet == null ? entrySet = new IndexedMapEntrySet<>(true, this, this::entryGenerator) : entrySet;
+    }
+
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
-        return entrySet == null ? entrySet = new MapEntrySet<>(true, this, this::entryGenerator) : entrySet;
+        return entries();
     }
 
     @Override
@@ -171,12 +192,12 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
 
     @Override
     public Set<K> keySet() {
-        return entrySet.keySet();
+        return entries().keySet();
     }
 
     @Override
     public Collection<V> values() {
-        return entrySet.values();
+        return entries().values();
     }
 
 }
