@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -129,7 +128,7 @@ public class ArrayLinearMap<K, V> implements Map<K, V>, Cloneable, Serializable 
         if (newEntries.isEmpty()) {
             return;
         }
-        
+
         Object[] newData = Arrays.copyOf(data, data.length + newEntries.size() * 2); // pad newData array
         for (int i = data.length, j = 0; i < newData.length; i += 2, j++) { // append new entries at the end
             Entry<? extends K, ? extends V> entry = newEntries.get(j);
