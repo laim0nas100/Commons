@@ -19,23 +19,33 @@ public class TrackedThreadPool extends ThreadGroup implements ThreadPool {
     public static class TrackedThread extends Thread {
 
         protected Runnable currentTask;
+        protected final Runnable target;
         protected final TrackedThreadPool pool;
 
         public TrackedThread(TrackedThreadPool group, Runnable target, String name) {
             super(group, target, name);
+            this.target = target;
             this.pool = Objects.requireNonNull(group);
-            this.currentTask = target;
         }
 
         public TrackedThread(TrackedThreadPool group, Runnable target, String name, boolean deamon, int priority, ClassLoader clLoader) {
             super(group, target, name);
             this.pool = Objects.requireNonNull(group);
-            this.currentTask = target;
+            this.target = target;
             setDaemon(deamon);
             setPriority(priority);
             if (clLoader != null) {
                 setContextClassLoader(clLoader);
             }
+        }
+
+        /**
+         * The initial task that was submitted by thread creation, unchanging.
+         *
+         * @return
+         */
+        public Runnable getTarget() {
+            return target;
         }
 
         /**

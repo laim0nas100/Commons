@@ -178,7 +178,7 @@ public class FastExecutor extends BaseExecutor {
         return null;
     }
     
-    protected void polling(TrackedThread me, Runnable run) {
+    protected void polling(final TrackedThread me, Runnable run) {
         try {
             
             for (;;) {
@@ -224,7 +224,7 @@ public class FastExecutor extends BaseExecutor {
                 }
                 
             } finally {
-                int leftRunning = Atomic.decrementAndGet(occupiedThreads); //thread no longer running (not really)
+                int leftRunning = Atomic.decrementAndGet(occupiedThreads); //thread no longer running (not really, just finalizing)
                 int get = tasks.size();
                 if (!open && get == 0) {
                     maybeTerminate(leftRunning);

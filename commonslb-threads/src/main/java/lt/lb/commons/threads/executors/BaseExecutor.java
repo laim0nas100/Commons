@@ -31,7 +31,7 @@ public abstract class BaseExecutor extends AbstractExecutorService implements Cl
         return !open;
     }
 
-    protected static ThreadPool createDefaultThreadPool(Class cls) {
+    protected static TrackedThreadPool createDefaultThreadPool(Class cls) {
         TrackedThreadPool trackedPool = new TrackedThreadPool(cls.getSimpleName());
         trackedPool.setThreadsStarting(true);
         trackedPool.setThreadsPrefix(cls.getSimpleName() + "-");
