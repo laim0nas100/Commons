@@ -137,6 +137,11 @@ public interface FrameManager {
         return new ArrayList<>(getFrameMap().keySet());
     }
 
+    /**
+     * Returns copy list of frames
+     *
+     * @return
+     */
     public default List<Frame> getFrames() {
         return new ArrayList<>(getFrameMap().values());
     }
