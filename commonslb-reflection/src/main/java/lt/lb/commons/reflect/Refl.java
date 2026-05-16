@@ -24,6 +24,7 @@ import lt.lb.commons.misc.NestedCallDetection;
 import lt.lb.commons.reflect.unified.IObjectField;
 import lt.lb.commons.reflect.unified.IObjectMethod;
 import lt.lb.commons.reflect.unified.IRecordComponent;
+import lt.lb.commons.reflect.unified.ReflBase.LazyMethod;
 import lt.lb.commons.reflect.unified.ReflFields;
 import lt.lb.commons.reflect.unified.ReflMethods;
 import lt.lb.uncheckedutils.NestedException;
@@ -470,8 +471,8 @@ public class Refl {
 
     }
 
-    private static final SafeOpt<Method> isRecord = SafeOpt.ofLazy(Class.class).map(m -> m.getDeclaredMethod("isRecord"));
-    private static final SafeOpt<Method> getRecordComponents = SafeOpt.ofLazy(Class.class).map(m -> m.getDeclaredMethod("getRecordComponents"));
+    private static final LazyMethod<Boolean> isRecord = SafeOpt.ofLazy(Class.class).map(m -> m.getDeclaredMethod("isRecord")).chain(LazyMethod::new);
+    private static final LazyMethod<Object[]> getRecordComponents = SafeOpt.ofLazy(Class.class).map(m -> m.getDeclaredMethod("getRecordComponents")).chain(LazyMethod::new);
     private static final SafeOpt<Class<?>> recordComponentClass = SafeOpt.ofLazy("java.lang.reflect.RecordComponent")
             .map(s -> Class.forName(s));
 
@@ -483,20 +484,17 @@ public class Refl {
         if (isRecord.isEmpty()) {
             throw new IllegalStateException("Records are not defined in this version");
         }
-        return isRecord.map(m -> m.invoke(type)).map(m -> (boolean) m).throwAnyGet();
+        return isRecord.safeInvoke(type).throwAnyGet();
     }
 
-    public static SimpleStream<IRecordComponent> getRecordComponents(Class recordClass) {
+    public static SimpleStream< ? extends IRecordComponent> getRecordComponents(Class recordClass) {
         if (getRecordComponents.isEmpty()) {
             throw new IllegalStateException("Records are not defined in this version");
         }
 
-        Object[] components = (Object[]) getRecordComponents.map(m -> m.invoke(recordClass)).throwAnyOrNull();
-        if (components == null) {
-            throw new IllegalArgumentException(recordClass + " is not a record");
-        }
-
-        return MakeStream.from(components).map(ob -> new BasicRecordComponent(ob));
+        return getRecordComponents.safeInvoke(recordClass).map(components -> {
+            return MakeStream.from(components).map(ob -> new BasicRecordComponent(ob));
+        }).orElseThrow(() -> new IllegalArgumentException(recordClass + " is not a record"));
     }
 
     /**

@@ -1,6 +1,7 @@
 package lt.lb.commons.reflect.unified;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
+import lt.lb.uncheckedutils.SafeOpt;
 
 /**
  *
@@ -162,7 +164,6 @@ public abstract class ReflBase {
             final ReflStaticMethod<?, ?> other = (ReflStaticMethod<?, ?>) obj;
             return Objects.equals(this.method, other.method);
         }
-
     }
 
     public static class ReflObjectMethod<S, T> implements IObjectMethod<S, T> {
@@ -198,6 +199,44 @@ public abstract class ReflBase {
             }
             final ReflObjectMethod<?, ?> other = (ReflObjectMethod<?, ?>) obj;
             return Objects.equals(this.method, other.method);
+        }
+    }
+
+    public static class LazyMethod<T> implements IMethod<Object, T> {
+
+        public final SafeOpt<Method> lazyMethod;
+
+        public LazyMethod(SafeOpt<Method> lazyMethod) {
+            this.lazyMethod = Objects.requireNonNull(lazyMethod);
+        }
+
+        @Override
+        public Method method() {
+            return lazyMethod.get();
+        }
+
+        public boolean isPresent() {
+            return lazyMethod.isPresent();
+        }
+
+        public boolean isEmpty() {
+            return lazyMethod.isEmpty();
+        }
+
+        public T invoke(Object source, Object... args) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+            return (T) method().invoke(source, args);
+        }
+
+        public SafeOpt<T> safeInvoke(Object source, Object... args) {
+            return SafeOpt.ofGet(() -> invoke(source, args));
+        }
+
+        public T invokeStatic(Object... args) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+            return (T) method().invoke(null, args);
+        }
+
+        public SafeOpt<T> safeInvokeStatic(Object... args) {
+            return SafeOpt.ofGet(() -> invokeStatic(args));
         }
 
     }

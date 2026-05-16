@@ -8,11 +8,10 @@ import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.IntByReference;
-import java.lang.reflect.Method;
-import java.net.URL;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import lt.lb.commons.Java;
+import lt.lb.commons.reflect.unified.ReflBase.LazyMethod;
 import lt.lb.commons.reflect.unified.ReflMethods;
 import lt.lb.fastid.FastIDGen;
 import lt.lb.uncheckedutils.PassableException;
@@ -119,17 +118,22 @@ public class FXWinUtil {
         }
     }
 
-    private static final SafeOpt<Method> getPeerMethod = SafeOpt.ofLazy("com.sun.javafx.stage.WindowHelper")
+    private static final LazyMethod getPeerMethod = SafeOpt.ofLazy("com.sun.javafx.stage.WindowHelper")
             .map(Class::forName)
             .flatMapOpt(
                     cls -> ReflMethods.getMethods(cls)
-                            .filter(m -> m.isStatic() && m.nameIs("getPeer") && m.getParameterCount() == 1).findAny())
+                            .filter(
+                                    m -> m.isStatic()
+                                    && m.nameIs("getPeer")
+                                    && m.getParameterCount() == 1)
+                            .toUniqueOrEmpty())
             .map(method -> {
                 method.setAccessible(true);
                 return method.method();
-            });
+            })
+            .chain(LazyMethod::new);
 
-    private static final SafeOpt<Method> getRawHandle = SafeOpt.ofLazy("com.sun.javafx.tk.TKStage")
+    private static final LazyMethod<Long> getRawHandle = SafeOpt.ofLazy("com.sun.javafx.tk.TKStage")
             .map(Class::forName)
             .flatMapOpt(
                     cls -> ReflMethods.getMethods(cls)
@@ -137,11 +141,13 @@ public class FXWinUtil {
                                     m -> !m.isStatic()
                                     && m.nameIs("getRawHandle")
                                     && m.hasNoParameters()
-                                    && m.isReturnTypeExactly(Long.TYPE)).findAny())
+                                    && m.isReturnTypeExactly(Long.TYPE))
+                            .toUniqueOrEmpty())
             .map(method -> {
                 method.setAccessible(true);
                 return method.method();
-            });
+            })
+            .chain(LazyMethod::new);
 
     /**
      * Using internal javaFX WindowHelper api. Using reflection to compile under
@@ -156,10 +162,10 @@ public class FXWinUtil {
             if (getPeerMethod.isPresent() && getRawHandle.isPresent()) {
                 return SafeOpt.ofNullable(window)
                         .map(win -> {
-                            return getPeerMethod.get().invoke(null, win); //WindowHelper.getPeer(win)
+                            return getPeerMethod.invokeStatic( win); //WindowHelper.getPeer(win)
                         })
                         .map(tkstage -> {
-                            return (Long) getRawHandle.get().invoke(tkstage);// tkstage.getRawHandle()
+                            return getRawHandle.invoke(tkstage);// tkstage.getRawHandle()
                         })
                         .map(handle -> new Pointer(handle))
                         .map(pointer -> new WinDef.HWND(pointer));
