@@ -238,33 +238,6 @@ public class CosmeticsFX {
         public void selectInverted() {
             CosmeticsFX.selectInverted(table.getSelectionModel());
         }
-
-        public ExtTask asynchronousSortTask(List backingList) {
-            Runnable run = () -> {
-                updateContentsAndSortPartial(backingList);
-            };
-            final CompletableFuture awaiter = new CompletableFuture<>();
-            ExtTask task = new ExtTask() {
-                @Override
-                protected Object call() throws Exception {
-                    try {
-                        FX.runAndWait(run);
-                        while (!this.canceled.get() && !this.done.get()) {
-                            Thread.sleep(sortTaskTimeout);
-
-                            FX.runAndWait(run);
-                        }
-                    } catch (InterruptedException e) {
-                    }
-
-                    return 0;
-                }
-            };
-            task.appendOnDone(h -> {
-                awaiter.complete(0);
-            });
-            return task;
-        }
     }
 
     public static MenuItem wrapSelectContextMenu(MultipleSelectionModel model) {
