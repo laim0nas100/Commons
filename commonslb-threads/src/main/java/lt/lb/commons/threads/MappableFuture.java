@@ -10,12 +10,12 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.NestedException;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedSupplier;
 
 /**
  * Mappable future. Easier and less cluttered version of CompletableFuture.
@@ -71,7 +71,7 @@ public interface MappableFuture<T> extends Future<T> {
 
     /**
      * Await and get result masking exceptions in
-     * {@link lt.lb.uncheckedutils.NestedException}
+     * {@link com.github.laim0nas100.uncheckedutils.NestedException}
      *
      * @return
      */

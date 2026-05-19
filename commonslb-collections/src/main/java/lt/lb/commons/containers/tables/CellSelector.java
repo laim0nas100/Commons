@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import lt.lb.commons.misc.IntRange;
-import lt.lb.fastid.FastID;
+import com.github.laim0nas100.fastid.FastID;
 
 /**
  *

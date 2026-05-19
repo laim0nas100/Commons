@@ -11,7 +11,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lt.lb.commons.Java;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

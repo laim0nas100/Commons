@@ -3,7 +3,7 @@ package lt.lb.commons.threads.executors.layers;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import lt.lb.commons.threads.executors.ForwardingExecutorService;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

@@ -5,7 +5,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.refmodel.Ref;
 import lt.lb.commons.refmodel.RefCompiler;
 import lt.lb.commons.refmodel.RefList;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

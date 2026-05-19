@@ -1,6 +1,6 @@
 package lt.lb.commons.javafx.scenemanagement.frames;
 
-import lt.lb.uncheckedutils.func.UncheckedConsumer;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedConsumer;
 import lt.lb.commons.javafx.scenemanagement.Frame;
 
 /**

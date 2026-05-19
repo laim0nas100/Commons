@@ -18,7 +18,7 @@ import lt.lb.commons.refmodel.maps.ListRef;
 import lt.lb.commons.refmodel.maps.MapProvider;
 import lt.lb.commons.refmodel.maps.MapRef;
 import lt.lb.commons.refmodel.maps.ObjectRef;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.junit.*;
 
 /**

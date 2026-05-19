@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import lt.lb.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.NestedException;
 
 /**
  *

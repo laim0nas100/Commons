@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.iteration.streams.SimpleStream;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

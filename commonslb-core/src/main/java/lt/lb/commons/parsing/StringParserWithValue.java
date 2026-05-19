@@ -3,8 +3,8 @@ package lt.lb.commons.parsing;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
 
 /**
  *

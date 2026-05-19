@@ -14,7 +14,7 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  * Simple logger oriented to debugging, not intended to replace a serious

@@ -7,7 +7,7 @@ import java.util.Set;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Ins;
 import lt.lb.commons.reflect.FieldChain;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zul.Checkbox;

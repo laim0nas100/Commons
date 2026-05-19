@@ -4,7 +4,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import lt.lb.commons.javafx.FX;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

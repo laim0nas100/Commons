@@ -8,9 +8,9 @@ import java.util.concurrent.TimeoutException;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.DLog;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.junit.Test;
-import lt.lb.uncheckedutils.func.UncheckedBiFunction;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedBiFunction;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

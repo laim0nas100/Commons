@@ -8,7 +8,7 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.misc.Timer;
 import lt.lb.commons.threads.Promise;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

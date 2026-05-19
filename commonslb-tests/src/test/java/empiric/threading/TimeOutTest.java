@@ -15,7 +15,7 @@ import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.RunnableDecorators;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 import org.junit.Test;
 
 /**

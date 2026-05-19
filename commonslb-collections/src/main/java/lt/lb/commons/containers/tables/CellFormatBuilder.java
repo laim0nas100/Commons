@@ -1,5 +1,6 @@
 package lt.lb.commons.containers.tables;
 
+import com.github.laim0nas100.fastid.FastID;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,8 +10,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
 import lt.lb.commons.misc.IntRange;
-import lt.lb.fastid.FastID;
-import lt.lb.uncheckedutils.func.UncheckedConsumer;
+//import com.github.laim0nas100.fastid.FastID;  com.github.laim0nas100.fastid.FastID
+
+import com.github.laim0nas100.uncheckedutils.func.UncheckedConsumer;
 
 /**
  *

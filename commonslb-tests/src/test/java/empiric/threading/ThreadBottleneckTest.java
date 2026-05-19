@@ -12,7 +12,7 @@ import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.values.LongValue;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
 import org.junit.Test;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

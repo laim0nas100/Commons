@@ -23,7 +23,7 @@ import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.reflect.UnsafeProvider;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 import sun.misc.Unsafe;
 
 /*

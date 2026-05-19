@@ -18,7 +18,7 @@ import lt.lb.commons.misc.rng.FastRandom;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import lt.lb.commons.misc.rng.XorShiftRNG;
 import org.junit.Test;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100

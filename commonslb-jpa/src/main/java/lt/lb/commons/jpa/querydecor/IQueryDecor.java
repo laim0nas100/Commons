@@ -41,8 +41,8 @@ import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Query;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.Phase3Subquery;
 import lt.lb.commons.jpa.querydecor.DecoratorPhases.WithContext;
 import lt.lb.commons.jpa.tuple.TupleProjection;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
 
 /**
  * @param <T_ROOT> Root Class type

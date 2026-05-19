@@ -8,8 +8,8 @@ import lt.lb.commons.containers.caching.Condition;
 import lt.lb.commons.containers.caching.Dependency;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.containers.values.ValueProxy;
-import lt.lb.uncheckedutils.func.UncheckedBiFunction;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedBiFunction;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
 
 /**
  *

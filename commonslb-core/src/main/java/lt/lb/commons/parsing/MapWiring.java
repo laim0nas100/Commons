@@ -17,8 +17,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.Ins;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

@@ -22,7 +22,7 @@ import lt.lb.commons.reflect.Refl;
 import lt.lb.commons.reflect.unified.IObjectField;
 import lt.lb.commons.reflect.unified.IRecordComponent;
 import lt.lb.commons.reflect.unified.ReflFields;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

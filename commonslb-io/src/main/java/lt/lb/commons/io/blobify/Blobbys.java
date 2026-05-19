@@ -23,7 +23,7 @@ import lt.lb.commons.io.blobify.bytes.ChunkyBytes;
 import lt.lb.commons.io.blobify.bytes.ReadableSeekBytes;
 import lt.lb.commons.io.blobify.bytes.WriteableBytes;
 import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.NestedException;
 import lt.lb.commons.misc.compare.ComparatorBuilder;
 import org.apache.commons.lang3.StringUtils;
 

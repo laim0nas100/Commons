@@ -1,6 +1,6 @@
 package lt.lb.zk.builder;
 
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 import org.zkoss.zk.ui.Component;
 
 /**

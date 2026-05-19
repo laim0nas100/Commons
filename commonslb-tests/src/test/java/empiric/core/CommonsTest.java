@@ -26,7 +26,7 @@ import lt.lb.commons.iteration.streams.SimpleStream;
 import lt.lb.commons.misc.ArrayBasedCounter;
 import lt.lb.commons.threads.executors.FastExecutor;
 import org.junit.*;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

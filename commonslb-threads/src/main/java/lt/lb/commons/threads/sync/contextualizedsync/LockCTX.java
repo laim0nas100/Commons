@@ -6,8 +6,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lt.lb.commons.Java;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.fastid.FastID;
-import lt.lb.fastid.FastIDGen;
+import com.github.laim0nas100.fastid.FastID;
+import com.github.laim0nas100.fastid.FastIDGen;
 
 /**
  *

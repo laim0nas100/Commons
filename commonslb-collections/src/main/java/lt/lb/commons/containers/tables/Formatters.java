@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import lt.lb.commons.Nulls;
 import lt.lb.commons.iteration.For;
-import lt.lb.fastid.FastID;
+import com.github.laim0nas100.fastid.FastID;
 import lt.lb.prebuiltcollections.DelegatingMap;
 
 /**

@@ -15,8 +15,8 @@ import lt.lb.commons.benchmarking.BenchmarkResult;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.Checked;
 import org.magicwerk.brownies.collections.GapList;
 
 /*

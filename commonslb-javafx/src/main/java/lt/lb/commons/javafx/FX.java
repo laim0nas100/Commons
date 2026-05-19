@@ -8,11 +8,11 @@ import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.control.Alert;
 import lt.lb.commons.threads.Futures;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.concurrent.SafeOptAsync;
-import lt.lb.uncheckedutils.concurrent.Submitter;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.concurrent.SafeOptAsync;
+import com.github.laim0nas100.uncheckedutils.concurrent.Submitter;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

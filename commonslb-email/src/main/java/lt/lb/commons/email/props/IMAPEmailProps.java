@@ -5,7 +5,7 @@ import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import java.util.List;
 import java.util.function.Consumer;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

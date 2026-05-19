@@ -18,7 +18,7 @@ import lt.lb.commons.reflect.nodes.ReflectNode;
 import lt.lb.commons.reflect.nodes.RepeatedReflectNode;
 import lt.lb.commons.reflect.unified.IObjectField;
 import lt.lb.commons.reflect.unified.ReflFields;
-import lt.lb.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.NestedException;
 
 /**
  *

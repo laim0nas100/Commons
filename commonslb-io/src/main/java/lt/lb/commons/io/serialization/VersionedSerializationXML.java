@@ -16,7 +16,7 @@ import javax.xml.parsers.SAXParserFactory;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.io.serialization.VersionedSerialization.*;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.text.StringEscapeUtils;

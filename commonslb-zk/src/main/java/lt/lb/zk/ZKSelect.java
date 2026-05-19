@@ -9,7 +9,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.Ins;
 import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.iteration.TreeVisitor;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.util.Composer;
 

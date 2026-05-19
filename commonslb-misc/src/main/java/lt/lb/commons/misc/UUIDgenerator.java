@@ -1,6 +1,6 @@
 package lt.lb.commons.misc;
 
-import lt.lb.fastid.FastID;
+import com.github.laim0nas100.fastid.FastID;
 
 
 /**

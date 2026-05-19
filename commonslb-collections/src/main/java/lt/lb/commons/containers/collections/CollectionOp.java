@@ -31,7 +31,7 @@ import lt.lb.commons.containers.tuples.PairRight;
 import lt.lb.commons.iteration.EmptyImmutableList;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.misc.Range;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

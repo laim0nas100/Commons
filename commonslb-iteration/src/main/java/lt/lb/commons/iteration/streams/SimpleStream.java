@@ -7,7 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import lt.lb.commons.F;
 import lt.lb.commons.iteration.streams.StreamExtension.StreamExtensionsAll;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

@@ -3,8 +3,8 @@ package lt.lb.commons.iteration.general.accessors.unchecked;
 import lt.lb.commons.iteration.general.accessors.*;
 import lt.lb.commons.iteration.general.cons.IterMapCons;
 import lt.lb.commons.iteration.general.result.IterMapResult;
-import lt.lb.uncheckedutils.NestedException;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

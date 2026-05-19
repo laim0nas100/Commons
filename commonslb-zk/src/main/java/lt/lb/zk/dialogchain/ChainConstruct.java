@@ -1,7 +1,7 @@
 package lt.lb.zk.dialogchain;
 
-import lt.lb.uncheckedutils.func.UncheckedConsumer;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedConsumer;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 
 /**

@@ -2,7 +2,7 @@ package lt.lb.commons.iteration.general.cons.unchecked;
 
 import lt.lb.commons.iteration.general.cons.*;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
-import lt.lb.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.NestedException;
 
 /**
  *

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.event.Event;
 import javafx.event.EventHandler;
-import lt.lb.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.NestedException;
 
 /**
  *

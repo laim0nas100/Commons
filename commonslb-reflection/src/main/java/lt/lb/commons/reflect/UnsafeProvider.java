@@ -11,7 +11,7 @@ import lt.lb.commons.containers.collections.ImmutableCollections;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.reflect.unified.IObjectMethod;
 import lt.lb.commons.reflect.unified.ReflMethods;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 

@@ -2,7 +2,7 @@ package lt.lb.zk.builder;
 
 import lt.lb.commons.containers.collections.Props;
 import lt.lb.commons.parsing.StringParserWithDefaultValue;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

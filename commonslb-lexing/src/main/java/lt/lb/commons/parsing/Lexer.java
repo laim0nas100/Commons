@@ -16,8 +16,8 @@ import lt.lb.commons.parsing.token.Comment;
 import lt.lb.commons.parsing.token.Token;
 import lt.lb.commons.parsing.token.TokenPos;
 import lt.lb.commons.parsing.token.TokenProducer;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.apache.commons.lang3.StringUtils;
 
 /**

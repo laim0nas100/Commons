@@ -1,7 +1,7 @@
 package lt.lb.commons.reflect.unified;
 
 import java.lang.reflect.InvocationTargetException;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

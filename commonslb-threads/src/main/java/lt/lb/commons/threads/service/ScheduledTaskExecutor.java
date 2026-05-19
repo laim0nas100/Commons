@@ -8,9 +8,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import lt.lb.commons.threads.Futures;
 import lt.lb.commons.threads.sync.AtomicMap;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.PassableException;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.PassableException;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

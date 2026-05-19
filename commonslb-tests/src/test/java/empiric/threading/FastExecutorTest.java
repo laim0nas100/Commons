@@ -14,7 +14,7 @@ import lt.lb.commons.misc.Range;
 import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.PriorityFastWaitingExecutor;
 import lt.lb.commons.threads.sync.ThreadBottleneck;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *
@@ -61,7 +61,7 @@ public class FastExecutorTest {
         Range<Integer> of = Range.of(0, 2);
         DLog.print(of.inRangeExcInc(0));
         DLog.print(of.inRangeExcInc(2));
-        int threads = 4;
+        int threads = 1;
         ExecutorService exe = new FastExecutor(threads); //98678
 //        ExecutorService exe = new FastExecutorOld(threads); //98674
 

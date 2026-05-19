@@ -11,10 +11,10 @@ import lt.lb.commons.datasync.base.SimpleDataSyncPersist;
 import lt.lb.commons.reflect.FieldChain;
 import lt.lb.commons.reflect.Refl;
 import lt.lb.commons.reflect.beans.BasicBeanPropertyAccess;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.func.UncheckedConsumer;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedConsumer;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedSupplier;
 
 /**
  *

@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.threads.executors.FastExecutor;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100

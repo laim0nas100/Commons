@@ -6,8 +6,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 import lt.lb.commons.F;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

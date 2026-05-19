@@ -27,7 +27,7 @@ import lt.lb.commons.io.blobify.bytes.WriteableBytes;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.ReadOnlyIterator;
 import org.junit.Test;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 /**
  *
  * @author Laimonas Beniušis

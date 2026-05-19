@@ -3,7 +3,7 @@ package lt.lb.commons.javafx.scenemanagement;
 import java.io.Serializable;
 import javafx.stage.Stage;
 import lt.lb.commons.javafx.FX;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

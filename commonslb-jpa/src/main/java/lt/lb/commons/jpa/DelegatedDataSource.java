@@ -8,10 +8,10 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.sql.DataSource;
-import lt.lb.uncheckedutils.PassableException;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import com.github.laim0nas100.uncheckedutils.PassableException;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

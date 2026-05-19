@@ -1,6 +1,6 @@
 package lt.lb.commons.iteration.general.accessors.unchecked;
 
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import lt.lb.commons.iteration.general.accessors.*;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;

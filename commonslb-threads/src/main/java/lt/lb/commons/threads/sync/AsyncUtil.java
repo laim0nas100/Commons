@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedSupplier;
 
 /**
  *

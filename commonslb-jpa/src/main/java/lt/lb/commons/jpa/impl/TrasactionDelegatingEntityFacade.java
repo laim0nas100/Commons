@@ -5,13 +5,13 @@ import java.util.stream.Stream;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import lt.lb.commons.jpa.EntityFacade;
 import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.decorators.IQueryDecorator;
 
 /**
- * Every method is wrapped in {@link EntityFacade#executeTransaction(lt.lb.uncheckedutils.func.UncheckedSupplier)
+ * Every method is wrapped in {@link EntityFacade#executeTransaction(com.github.laim0nas100.uncheckedutils.func.UncheckedSupplier)
  * }, so the implementation of this method is important to establish a
  * transaction.
  *

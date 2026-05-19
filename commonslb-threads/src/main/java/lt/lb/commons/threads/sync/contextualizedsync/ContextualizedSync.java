@@ -13,10 +13,10 @@ import lt.lb.commons.containers.values.BooleanValue;
 import lt.lb.commons.threads.sync.AtomicMap;
 import lt.lb.commons.threads.sync.AtomicMapDefault;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedSupplier;
 
 /**
  *

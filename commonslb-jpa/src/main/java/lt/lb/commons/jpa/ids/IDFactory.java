@@ -9,7 +9,7 @@ import lt.lb.commons.reflect.unified.IObjectField;
 import lt.lb.commons.reflect.unified.IObjectMethod;
 import lt.lb.commons.reflect.unified.ReflFields;
 import lt.lb.commons.reflect.unified.ReflMethods;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
 
 /**
  *

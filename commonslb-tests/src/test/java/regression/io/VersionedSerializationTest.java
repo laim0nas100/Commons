@@ -23,7 +23,7 @@ import lt.lb.commons.io.serialization.VersionedChanges;
 import lt.lb.commons.io.serialization.VersionedDeserializationContext;
 import lt.lb.commons.io.serialization.VersionedSerialization;
 import lt.lb.commons.iteration.For;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;

@@ -11,7 +11,7 @@ import lt.lb.commons.javafx.scenemanagement.FXMLFrame;
 import lt.lb.commons.javafx.scenemanagement.FrameInit;
 import lt.lb.commons.javafx.scenemanagement.FrameInit.FrameInitUrl;
 import lt.lb.commons.javafx.scenemanagement.FrameManager;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

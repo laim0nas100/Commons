@@ -11,8 +11,8 @@ import lt.lb.commons.Ins;
 import lt.lb.commons.parsing.numbers.FastParse;
 import lt.lb.commons.refmodel.RefNotation;
 import lt.lb.prebuiltcollections.DelegatingMap;
-import lt.lb.uncheckedutils.PassableException;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.PassableException;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

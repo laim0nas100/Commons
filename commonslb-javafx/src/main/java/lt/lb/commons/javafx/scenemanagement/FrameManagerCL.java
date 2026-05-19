@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import javafx.scene.control.Dialog;
 import lt.lb.commons.javafx.fxrows.FXDrows;
 import lt.lb.commons.javafx.scenemanagement.frames.Util;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

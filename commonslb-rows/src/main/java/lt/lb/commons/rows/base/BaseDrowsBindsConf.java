@@ -6,7 +6,7 @@ import lt.lb.commons.rows.Drow;
 import lt.lb.commons.rows.Drows;
 import lt.lb.commons.rows.DrowsConf;
 import lt.lb.commons.rows.Updates;
-import lt.lb.fastid.FastIDGen;
+import com.github.laim0nas100.fastid.FastIDGen;
 
 /**
  *

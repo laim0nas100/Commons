@@ -38,8 +38,8 @@ import lt.lb.commons.javafx.fxrows.FXDrows;
 import lt.lb.commons.javafx.fxrows.FXDrowsConf;
 import lt.lb.commons.misc.Range;
 import lt.lb.commons.parsing.NumberParsing;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

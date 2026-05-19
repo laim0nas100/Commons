@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import lt.lb.commons.containers.tables.CellTable.TableCellMerge;
-import lt.lb.fastid.FastID;
-import lt.lb.fastid.FastIDGen;
+import com.github.laim0nas100.fastid.FastID;
+import com.github.laim0nas100.fastid.FastIDGen;
 
 /**
  *

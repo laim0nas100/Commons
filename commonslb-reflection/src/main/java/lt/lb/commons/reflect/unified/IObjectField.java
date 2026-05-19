@@ -2,7 +2,7 @@ package lt.lb.commons.reflect.unified;
 
 import java.util.Objects;
 import lt.lb.commons.reflect.Refl;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

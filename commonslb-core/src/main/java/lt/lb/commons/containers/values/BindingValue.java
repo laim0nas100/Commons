@@ -10,9 +10,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lt.lb.commons.func.BiConverter;
-import lt.lb.fastid.FastIDGen;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.NestedException;
+import com.github.laim0nas100.fastid.FastIDGen;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.NestedException;
 
 /**
  *

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.misc.compare.ComparatorBuilder;
 import lt.lb.commons.parsing.token.Token;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

@@ -19,8 +19,8 @@ import lt.lb.commons.containers.values.NumberValue;
 import lt.lb.commons.containers.collections.PrefillArrayMap;
 import lt.lb.commons.containers.values.IntegerValue;
 import lt.lb.commons.misc.rng.FastRandom;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.F;
 import lt.lb.commons.datafill.NumberFill;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import lt.lb.commons.clone.CloneSupport;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.iteration.PagedIteration;

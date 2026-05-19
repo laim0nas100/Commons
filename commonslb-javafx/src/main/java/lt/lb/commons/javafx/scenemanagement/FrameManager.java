@@ -15,9 +15,9 @@ import lt.lb.commons.Ins;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameDecorator;
 import lt.lb.commons.javafx.scenemanagement.frames.FrameState;
 import lt.lb.commons.javafx.scenemanagement.frames.Util;
-import lt.lb.fastid.FastID;
-import lt.lb.fastid.FastIDGen;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.fastid.FastID;
+import com.github.laim0nas100.fastid.FastIDGen;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

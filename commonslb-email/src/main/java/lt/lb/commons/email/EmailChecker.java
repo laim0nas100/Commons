@@ -10,7 +10,7 @@ import lt.lb.commons.email.props.IMAPOrPOP3Props;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.threads.executors.ScheduledDispatchExecutor;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

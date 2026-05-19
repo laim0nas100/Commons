@@ -6,11 +6,11 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import lt.lb.commons.jpa.ids.ID;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedConsumer;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedConsumer;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedSupplier;
 
 /**
  *

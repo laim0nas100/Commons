@@ -4,7 +4,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import lt.lb.commons.rows.DrowsConf;
 import lt.lb.commons.rows.SyncDrows;
-import lt.lb.fastid.FastIDGen;
+import com.github.laim0nas100.fastid.FastIDGen;
 
 /**
  *

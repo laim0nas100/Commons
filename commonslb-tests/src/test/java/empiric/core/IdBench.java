@@ -9,8 +9,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.fastid.FastID;
-import lt.lb.fastid.FastIDGen;
+import com.github.laim0nas100.fastid.FastID;
+import com.github.laim0nas100.fastid.FastIDGen;
 
 /**
  *

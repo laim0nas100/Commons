@@ -16,7 +16,7 @@ import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.misc.rng.FastRandom;
 import lt.lb.commons.misc.rng.RandomDistribution;
-import lt.lb.fastid.FastIDGen;
+import com.github.laim0nas100.fastid.FastIDGen;
 
 /**
  *

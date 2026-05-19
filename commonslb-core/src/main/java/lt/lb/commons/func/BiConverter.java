@@ -2,8 +2,8 @@ package lt.lb.commons.func;
 
 import java.util.Objects;
 import java.util.function.Function;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
 
 /**
  *

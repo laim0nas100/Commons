@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import lt.lb.commons.containers.values.Value;
-import lt.lb.uncheckedutils.NestedException;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
 
 /**
  *

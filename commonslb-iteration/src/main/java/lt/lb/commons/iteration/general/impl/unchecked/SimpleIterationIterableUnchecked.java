@@ -8,7 +8,7 @@ import lt.lb.commons.iteration.general.accessors.unchecked.DefaultAccessorResolv
 import lt.lb.commons.iteration.general.cons.unchecked.IterIterableConsUnchecked;
 import lt.lb.commons.iteration.general.impl.*;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

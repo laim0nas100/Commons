@@ -14,7 +14,7 @@ import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**

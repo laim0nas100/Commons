@@ -13,7 +13,7 @@ import lt.lb.commons.Ins;
 import lt.lb.commons.datasync.Valid;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.rows.base.BaseDrowSyncConf;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import lt.lb.zk.ZKComponents;
 import org.apache.commons.lang3.StringUtils;
 import org.zkoss.zk.ui.Component;

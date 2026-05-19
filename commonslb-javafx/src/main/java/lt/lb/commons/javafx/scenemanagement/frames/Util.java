@@ -31,7 +31,7 @@ import lt.lb.commons.javafx.scenemanagement.StageFrame;
 import lt.lb.commons.javafx.scenemanagement.frameloading.FXMLFrameLoad;
 import lt.lb.commons.javafx.scenemanagement.frameloading.FrameLoad;
 import lt.lb.commons.javafx.scenemanagement.frameloading.StageFrameLoad;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

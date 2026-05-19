@@ -10,7 +10,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import lt.lb.commons.threads.NPhaseActionAggregator;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

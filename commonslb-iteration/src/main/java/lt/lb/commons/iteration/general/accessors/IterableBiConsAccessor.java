@@ -4,7 +4,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
 import lt.lb.commons.iteration.general.cons.IterIterableCons;
 import lt.lb.commons.iteration.general.result.IterIterableResult;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

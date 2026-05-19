@@ -16,8 +16,8 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.streams.MakeStream;
 import lt.lb.commons.misc.RecursiveRedirection;
 import static lt.lb.commons.rows.BasicUpdates.*;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.NestedException;
 
 /**
  *

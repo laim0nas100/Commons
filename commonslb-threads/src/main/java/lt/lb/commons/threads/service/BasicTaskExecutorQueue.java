@@ -12,7 +12,7 @@ import lt.lb.commons.threads.service.BasicTaskExecutorQueue.BasicRunInfo;
 import lt.lb.commons.threads.service.TaskExecutorQueue.RunInfo;
 import lt.lb.commons.threads.sync.AtomicMap;
 import lt.lb.commons.threads.sync.AtomicMapDefault;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

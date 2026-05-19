@@ -1,6 +1,6 @@
 package lt.lb.commons.parsing;
 
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
  *

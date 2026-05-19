@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.EnumSet;
 import lt.lb.commons.F;
 import lt.lb.commons.containers.values.Value;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

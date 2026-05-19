@@ -9,7 +9,7 @@ import lt.lb.commons.F;
 import lt.lb.commons.Java;
 import lt.lb.commons.DLog;
 import lt.lb.commons.containers.values.IntegerValue;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 /**
  *
  * @author laim0nas100

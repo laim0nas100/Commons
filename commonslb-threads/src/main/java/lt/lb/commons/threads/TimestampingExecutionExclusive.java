@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import lt.lb.commons.F;
 import lt.lb.commons.Java;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.Thrower;
+import com.github.laim0nas100.uncheckedutils.Thrower;
 
 /**
  *

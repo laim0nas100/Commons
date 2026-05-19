@@ -10,7 +10,7 @@ import lt.lb.commons.reflect.FieldHolder;
 import lt.lb.commons.reflect.FieldHolder.FieldMap;
 import lt.lb.commons.reflect.FullFieldHolder;
 import lt.lb.commons.reflect.ReferenceCounter;
-import lt.lb.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.NestedException;
 
 /**
  *

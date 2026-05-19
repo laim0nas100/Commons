@@ -25,8 +25,8 @@ import lt.lb.commons.threads.executors.CloseableExecutor;
 import lt.lb.commons.threads.sync.Awaiter;
 import lt.lb.commons.threads.sync.Awaiter.AwaiterTime;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 import lt.lb.commons.threads.FailableRunnableFuture;
 
 /**

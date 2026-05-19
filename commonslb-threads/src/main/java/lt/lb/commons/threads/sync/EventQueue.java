@@ -18,8 +18,8 @@ import lt.lb.commons.misc.numbers.Atomic;
 import lt.lb.commons.parsing.StringParser;
 import lt.lb.commons.threads.ForwardingFuture;
 import lt.lb.commons.threads.executors.layers.NestedTaskSubmitionExecutorLayer;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 import org.apache.commons.lang3.StringUtils;
 
 /**

@@ -18,11 +18,11 @@ import lt.lb.commons.jpa.ExtQuery;
 import lt.lb.commons.jpa.JPACommands;
 import lt.lb.commons.jpa.decorators.IQueryDecorator;
 import lt.lb.commons.jpa.ids.IDFactory;
-import lt.lb.uncheckedutils.Checked;
-import lt.lb.uncheckedutils.NestedException;
-import lt.lb.uncheckedutils.SafeOpt;
-import lt.lb.uncheckedutils.func.UncheckedFunction;
-import lt.lb.uncheckedutils.func.UncheckedSupplier;
+import com.github.laim0nas100.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.NestedException;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedFunction;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedSupplier;
 
 public interface AbstractPersistenceAware extends JPACommands, EntityManagerAware {
 

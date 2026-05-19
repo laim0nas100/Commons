@@ -14,7 +14,7 @@ import lt.lb.commons.Ins;
 import lt.lb.commons.containers.values.Value;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.wekaparsing.WekaDefaultParsers.WekaTransformer;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 import org.apache.commons.lang3.StringUtils;
 
 /**

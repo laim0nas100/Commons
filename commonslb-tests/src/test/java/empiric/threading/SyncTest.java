@@ -11,7 +11,7 @@ import lt.lb.commons.threads.executors.scheduled.DelayedTaskExecutor;
 import lt.lb.commons.threads.service.BasicTaskExecutorQueue;
 import lt.lb.commons.threads.service.BasicTaskExecutorQueue.BasicRunInfo;
 import lt.lb.commons.threads.service.SimpleTaskExecutorQueue;
-import lt.lb.uncheckedutils.func.UncheckedRunnable;
+import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 /**
  *

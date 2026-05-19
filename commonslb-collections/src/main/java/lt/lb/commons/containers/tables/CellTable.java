@@ -7,14 +7,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import lt.lb.commons.containers.tables.CellFormatBuilder.CellFormatIndexCollector;
 import lt.lb.commons.containers.tuples.Pair;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.iteration.For;
 import lt.lb.commons.misc.IntRange;
-import lt.lb.fastid.FastID;
+import com.github.laim0nas100.fastid.FastID;
 
 /**
  * Easy formatting table generator with cell merges and optional content.

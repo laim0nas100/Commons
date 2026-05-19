@@ -13,9 +13,9 @@ import javafx.stage.Window;
 import lt.lb.commons.Java;
 import lt.lb.commons.reflect.unified.ReflBase.LazyMethod;
 import lt.lb.commons.reflect.unified.ReflMethods;
-import lt.lb.fastid.FastIDGen;
-import lt.lb.uncheckedutils.PassableException;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.fastid.FastIDGen;
+import com.github.laim0nas100.uncheckedutils.PassableException;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 public class FXWinUtil {
 

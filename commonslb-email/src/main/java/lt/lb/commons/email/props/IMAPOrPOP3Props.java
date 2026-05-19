@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import lt.lb.commons.ArrayOp;
 import lt.lb.commons.PosEq;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *

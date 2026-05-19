@@ -31,7 +31,7 @@ import lt.lb.commons.datasync.extractors.Extractors;
 import lt.lb.commons.func.BiConverter;
 import lt.lb.commons.javafx.FXDefs;
 import lt.lb.commons.misc.compare.ComparatorBuilder;
-import lt.lb.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.FuzzyScore;
 
