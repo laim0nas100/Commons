@@ -79,8 +79,8 @@ public interface FrameManager {
         return getFrameMap().size();
     }
 
-    public default String getAvailableId() {
-        return "F-" + FRAME_ID_GEN.getAndIncrement().toString();
+    public default Serializable getNextID() {
+        return FRAME_ID_GEN.getAndIncrement();
     }
 
     public default SafeOpt<StageFrame> newStageFrame(String title, Supplier<Parent> constructor) {
@@ -92,18 +92,18 @@ public interface FrameManager {
     }
 
     public default SafeOpt<StageFrame> newStageFrame(String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
-        return newStageFrame(getAvailableId(), type, title, constructor, onExit);
+        return newStageFrame(getNextID(), type, title, constructor, onExit);
     }
 
-    public default SafeOpt<StageFrame> newStageFrame(String ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
+    public default SafeOpt<StageFrame> newStageFrame(Serializable ID, String type, String title, Supplier<Parent> constructor, Consumer<StageFrame> onExit) {
         return Util.newStageFrame(this, FrameInit.of(ID, type, title), constructor, onExit);
     }
 
-    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title) {
+    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(URL resource, Serializable ID, String title) {
         return newFxmlFrame(resource, ID, title, Util.emptyConsumer);
     }
 
-    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(URL resource, String ID, String title, Consumer<T> decorator) {
+    public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(URL resource, Serializable ID, String title, Consumer<T> decorator) {
         return Util.newFxmlFrame(this, FrameInit.of(resource, ID, title, title), decorator);
     }
 
@@ -116,7 +116,7 @@ public interface FrameManager {
     }
 
     public default <T extends BaseController> SafeOpt<FXMLFrame<T>> newFxmlFrame(URL resource, String title, Consumer<T> decorator) {
-        return newFxmlFrame(resource, getAvailableId(), title, decorator);
+        return newFxmlFrame(resource, getNextID(), title, decorator);
     }
 
     public default <T extends BaseController<T>> Stream<T> getAllControllers(Class<T> clazz) {

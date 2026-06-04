@@ -35,7 +35,7 @@ public interface FrameManagerCL extends FrameManager {
     }
 
     public default SafeOpt<StageFrame> newFormFrame(String type, String title, FXDrows rows, Runnable onAccept) {
-        return Util.newForm(this, FrameInit.of(getAvailableId(), type, title), rows, onAccept);
+        return Util.newForm(this, FrameInit.of(getNextID(), type, title), rows, onAccept);
     }
 
     public default SafeOpt<StageFrame> newFormFrame(String title, FXDrows rows, Runnable onAccept) {
@@ -43,7 +43,7 @@ public interface FrameManagerCL extends FrameManager {
     }
 
     public default SafeOpt<StageFrame> newFxrowsFrame(String type, String title, FXDrows rows) {
-        return Util.newFxrowsFrame(this, FrameInit.of(getAvailableId(), type, title), rows);
+        return Util.newFxrowsFrame(this, FrameInit.of(getNextID(), type, title), rows);
     }
 
     public default SafeOpt<StageFrame> newFxrowsFrame(String title, FXDrows rows) {
