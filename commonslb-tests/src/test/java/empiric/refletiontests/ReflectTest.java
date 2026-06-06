@@ -11,7 +11,6 @@ import lt.lb.commons.ArrayOp;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.collections.ObjectBuffer;
 import lt.lb.commons.interfaces.StringBuilderActions.ILineAppender;
 import lt.lb.commons.reflect.DefaultFieldFactory;
 import lt.lb.commons.reflect.FieldChain;
@@ -317,11 +316,6 @@ public class ReflectTest {
 
         Cloner cloner = new Cloner();
 
-        DLog.print("CLONE ############ BUFFER");
-        ObjectBuffer<Integer> buffer = new ObjectBuffer<>(new BlackHole(), 100);
-        for (int i = 0; i < 100; i++) {
-            factory.reflectionClone(buffer);
-        }
         DLog.print("CLONE ############ CCLS");
         for (int i = 0; i < 100; i++) {
             clone = factory.reflectionClone(clone);
