@@ -57,4 +57,12 @@ public class StageFrame implements Frame {
         return nativeHandle;
     }
 
+    @Override
+    public void hide() {
+        nativeHandle = null; // will recieve a new handle upon showing
+        Frame.super.hide(); 
+    }
+    
+    
+
 }
