@@ -9,7 +9,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -161,21 +160,21 @@ public class Futures {
 
     public static <T> SafeOpt<T> await(Future<T> future, boolean interruptable) {
         Objects.requireNonNull(future);
-        while (true) {
-            try {
-                return SafeOpt.ofNullable(future.get());
-            } catch (InterruptedException ex) {
-                if (interruptable) {
-                    Thread.currentThread().interrupt();
-                    return SafeOpt.error(ex);
-                }
-            } catch (ExecutionException ex) {
-                if (ex.getCause() != null) {
-                    return SafeOpt.error(ex.getCause());
-                } else {
-                    return SafeOpt.error(ex);
-                }
+        try {
+            return SafeOpt.ofNullable(future.get());
+        } catch (InterruptedException ex) {
+            if (interruptable) { // expected interrupt
+                Thread.currentThread().interrupt();
             }
+            return SafeOpt.error(ex);
+        } catch (ExecutionException ex) {
+            if (ex.getCause() != null) {
+                return SafeOpt.error(ex.getCause());
+            } else {
+                return SafeOpt.error(ex);
+            }
+        } catch (Throwable th) {
+            return SafeOpt.error(th);
         }
     }
 
@@ -204,11 +203,10 @@ public class Futures {
         return ofCallable(() -> null);
     }
 
-     public static <V> FutureTask<V> chainForward(Callable<V> base, Future... next) {
+    public static <V> FutureTask<V> chainForward(Callable<V> base, Future... next) {
         return chainForward(base, Arrays.asList(next));
     }
 
-    
     public static <V> FutureTask<V> chainForward(Callable<V> base, Collection<Future> next) {
         Objects.requireNonNull(base);
         return ofCallable(() -> {
