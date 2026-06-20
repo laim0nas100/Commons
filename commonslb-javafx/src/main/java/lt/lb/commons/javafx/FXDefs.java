@@ -48,9 +48,9 @@ import org.slf4j.LoggerFactory;
  * @author laim0nas100
  */
 public abstract class FXDefs {
-
+    
     public static final SafeOpt<URL> DARK_THEME_CSS = SafeOpt.ofLazy("css/dark_theme.css").map(m -> FXDefs.class.getClassLoader().getResource(m));
-
+    
     public static void closeTab(Tab tab) {
         EventHandler<Event> handler = tab.getOnClosed();
         if (null != handler) {
@@ -58,53 +58,53 @@ public abstract class FXDefs {
         }
         tab.getTabPane().getTabs().remove(tab);
     }
-
+    
     public static abstract class TextFormatters {
-
+        
         public static <T> TextFormatter<T> ofSafeConversion(T def, Function<String, SafeOpt<T>> func) {
             StringConverter<T> stringConverter = new StringConverter<T>() {
                 @Override
                 public String toString(T t) {
                     return String.valueOf(t);
                 }
-
+                
                 @Override
                 public T fromString(String string) {
                     return func.apply(string).orElse(def);
                 }
             };
-
+            
             UnaryOperator<TextFormatter.Change> filter = change -> {
                 SafeOpt<T> apply = func.apply(change.getControlNewText());
                 return apply.isPresent() ? change : null;
-
+                
             };
-
+            
             return new TextFormatter<>(stringConverter, def, filter);
-
+            
         }
-
+        
         public static TextFormatter<Long> wholeNumberFormat(long min, long max) {
             Range<Long> range = Range.of(min, max);
             return ofSafeConversion(0L, t -> {
                 return NumberParsing.parseLong(t).filter(val -> range.inRangeInclusive(val));
             });
         }
-
+        
         public static TextFormatter<Integer> wholeNumberFormat(int min, int max) {
             Range<Integer> range = Range.of(min, max);
             return ofSafeConversion(0, t -> {
                 return NumberParsing.parseInt(t).filter(val -> range.inRangeInclusive(val));
             });
         }
-
+        
         public static TextFormatter<Double> floatNumberFormat(double min, double max) {
             Range<Double> range = Range.of(min, max);
             return ofSafeConversion(0D, t -> {
                 return NumberParsing.parseDouble(t).filter(val -> range.inRangeInclusive(val));
             });
         }
-
+        
         public static TextFormatter<Float> floatNumberFormat(float min, float max) {
             Range<Float> range = Range.of(min, max);
             return ofSafeConversion(0F, t -> {
@@ -112,27 +112,27 @@ public abstract class FXDefs {
             });
         }
     }
-
+    
     public static void applyOnTextChangeOrEnter(TextInputControl tf, Consumer<TextInputControl> consumer) {
         StringValue value = new StringValue();
         tf.textProperty().addListener((FXDefs.SimpleChangeListener<String>) s -> {
             value.set(tf.getText());
             consumer.accept(tf);
         });
-
+        
         tf.setOnKeyPressed(kh -> {
             if (kh.getCode() == KeyCode.ENTER) {
                 consumer.accept(tf);
             }
         });
     }
-
+    
     public static <T extends TextInputControl> void applyOnFocusChange(T tf, Consumer<T> consumer) {
         BooleanValue hasChanges = BooleanValue.FALSE();
         tf.textProperty().addListener((FXDefs.SimpleChangeListener<String>) s -> {
             hasChanges.setTrue();
         });
-
+        
         tf.setOnKeyPressed(kh -> {
             if (kh.getCode() == KeyCode.ENTER) {
                 hasChanges.setFalse();
@@ -151,14 +151,14 @@ public abstract class FXDefs {
             }
         });
     }
-
+    
     public static FXDrows fxrows() {
         FXDrowsConf fxDrowsConf = new FXDrowsConf();
         GridPane gridPane = new GridPane();
         FXDrows fxDrows = new FXDrows(gridPane, fxDrowsConf, 100);
         return fxDrows;
     }
-
+    
     public static <T> void updateContents(TableView<T> table, ObservableList<T> collection) {
 //            this.updateLock.lockWrite();
         table.setItems(collection);
@@ -169,20 +169,20 @@ public abstract class FXDefs {
 //            this.updateLock.unlockWrite();
 
     }
-
+    
     public static interface SimpleListViewCallback<P> extends Callback<ListView<P>, ListCell<P>> {
-
+        
     }
-
+    
     public static class SimpleListViewCell<P> extends ListCell<P> {
-
+        
         public static Logger logger = LoggerFactory.getLogger(SimpleListViewCell.class);
         Lambda.L3<ListCell<P>, P, Boolean> decorator;
-
+        
         public SimpleListViewCell(Lambda.L3<ListCell<P>, P, Boolean> decorator) {
             this.decorator = decorator;
         }
-
+        
         @Override
         protected void updateItem(P item, boolean empty) {
             Checked.checkedRun(() -> {
@@ -192,11 +192,11 @@ public abstract class FXDefs {
                 super.updateItem(item, empty);
                 decorator.apply(this, item, empty);
             }).ifPresent(t -> logger.error("Error in item update", t));
-
+            
         }
-
+        
     }
-
+    
     public static <N extends Node> void configureDoubleClick(N node, Predicate<N> when, Consumer<N> cons) {
         node.setOnMousePressed((MouseEvent event) -> {
             if (when.test(node) && event.isPrimaryButtonDown()) {
@@ -207,7 +207,7 @@ public abstract class FXDefs {
             }
         });
     }
-
+    
     public static void configureDragNDrop(Node root, Predicate<Dragboard> when, Consumer<Dragboard> consumer) {
         root.setOnDragOver(event -> {
             Dragboard dragboard = event.getDragboard();
@@ -216,7 +216,7 @@ public abstract class FXDefs {
             }
             event.consume();
         });
-
+        
         root.setOnDragDropped(event -> {
             Dragboard dragboard = event.getDragboard();
             boolean success = false;
@@ -228,7 +228,7 @@ public abstract class FXDefs {
             event.consume();
         });
     }
-
+    
     public static void configureDragNDropFiles(Node root, Predicate<File> when, Consumer<List<File>> consumer) {
         configureDragNDrop(root, d -> {
             if (!d.hasFiles()) {
@@ -247,34 +247,34 @@ public abstract class FXDefs {
             consumer.accept(collect);
         });
     }
-
+    
     public static <P> SimpleListViewCallback<P> cellFactory(Lambda.L3<ListCell<P>, P, Boolean> decorator) {
         return (ListView<P> param) -> {
             return new SimpleListViewCell<>(decorator);
         };
     }
-
+    
     public static <P> SimpleListViewCallback<P> cellFactoryString(String emptyCase, Function<P, String> textExtract) {
         return cellFactory((c, p, empty) -> {
             c.setText(empty || p == null ? emptyCase : textExtract.apply(p));
         });
     }
-
+    
     public static <P> SimpleListViewCallback<P> cellFactoryString(Function<P, String> textExtract) {
         return cellFactoryString(null, textExtract);
     }
-
+    
     public static <N extends Number> SimpleChangeListener<N> numberDiffListener(final double diff, Consumer<? super N> consumer) {
         return diffListener((a, b) -> diff < Math.abs(a.doubleValue() - b.doubleValue()), consumer);
     }
-
+    
     public static <N> SimpleChangeListener<N> diffListener(BiPredicate<N, N> change, Consumer<? super N> consumer) {
         Objects.requireNonNull(change);
         Objects.requireNonNull(consumer);
         return new SimpleChangeListener<N>() {
-
+            
             N lastAccepted;
-
+            
             @Override
             public void accept(N newValue) {
                 if (lastAccepted == newValue) {
@@ -287,26 +287,26 @@ public abstract class FXDefs {
             }
         };
     }
-
+    
     public static <N> SimpleChangeListener<N> onChange(Consumer<N> newValue) {
-        return diffListener(Objects::equals, newValue);
+        return diffListener((a, b) -> !Objects.equals(a, b), newValue);
     }
-
+    
     public static interface SimpleChangeListener<P> extends ChangeListener<P>, Consumer<P> {
-
+        
         @Override
         public default void changed(ObservableValue<? extends P> ov, P t, P t1) {
             accept(t1);
         }
-
+        
         @Override
         public void accept(P newValue);
-
+        
         public static <P> SimpleChangeListener<P> of(Consumer<? super P> val) {
             Objects.requireNonNull(val);
             return val::accept;
         }
-
+        
     }
-
+    
 }
