@@ -20,13 +20,13 @@ import java.util.stream.Stream;
 import lt.lb.commons.ArrayOp;
 import com.github.laim0nas100.fastid.FastIDGen;
 import com.github.laim0nas100.fastid.FastID;
+import com.github.laim0nas100.fastid.FastUUID;
 import lt.lb.commons.LineStringBuilder;
 import lt.lb.commons.DLog;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.containers.tuples.Tuple;
 import lt.lb.commons.containers.tuples.Tuples;
 import lt.lb.commons.containers.values.LongValue;
-import lt.lb.commons.misc.UUIDgenerator;
 import lt.lb.commons.misc.rng.RandomDistribution;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -339,7 +339,7 @@ public class DataGen {
         }).print(DLog::print);
         bench.executeBenchParallel(benchTime, "My UUID", () -> {
             for (int i = 0; i < times; i++) {
-                UUIDgenerator.nextUUID();
+                FastUUID.randomUUIDString();
             }
         }).print(DLog::print);
         
