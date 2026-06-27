@@ -95,7 +95,7 @@ public class FX {
 
     public static final Submitter FX_SUBMITTER = new Submitter() {
         @Override
-        public boolean continueInPlace(SafeOptAsync.AsyncWork task) {
+        public boolean continueInPlace(Runnable task) {
             return FX.isFXthread();
         }
 
@@ -103,15 +103,13 @@ public class FX {
          * Work only happens in as single FX platform thread.
          */
         @Override
-        public void submit(SafeOptAsync.AsyncWork task) {
+        public void submit(Runnable task) {
             FX.platformExecutor.execute(task);
         }
     };
 
-    private static final SafeOpt dummy = SafeOpt.of(0);
-
     public static SafeOpt asyncFxStarter() {
-        return new SafeOptAsync(FX_SUBMITTER, dummy);
+        return new SafeOptAsync(FX_SUBMITTER, SafeOpt.DUMMY);
     }
 
     public static <T> SafeOpt<T> asyncFxStarter(T val) {
