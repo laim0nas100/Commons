@@ -1,9 +1,7 @@
 package lt.lb.commons.javafx;
 
-import static java.lang.Thread.sleep;
+import lt.lb.commons.threads.sync.TimeoutTask;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javafx.beans.binding.*;
 import javafx.beans.property.BooleanProperty;
@@ -17,8 +15,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.*;
-import lt.lb.commons.threads.Futures;
-import lt.lb.commons.threads.sync.Awaiter;
+import lt.lb.commons.threads.sync.WaitTime;
 
 /**
  *
@@ -80,10 +77,8 @@ public class CosmeticsFX {
             }
         }
 
-        private static final long resizeTimeout = 500;
-        private static final long sortTaskTimeout = 200;
         public SimpleBooleanProperty recentlyResized;
-        public TimeoutTask resizeTask = new TimeoutTask(resizeTimeout, 10, () -> {
+        public TimeoutTask resizeTask = new TimeoutTask(WaitTime.ofMillis(500), WaitTime.ofMillis(100), () -> {
             recentlyResized.set(false);
         });
         public ArrayList<TableCol> cols;
@@ -119,12 +114,9 @@ public class CosmeticsFX {
         }
 
         private void changeListener(final TableColumn listerColumn) {
-            listerColumn.widthProperty().addListener(new ChangeListener<Number>() {
-                @Override
-                public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
-                    recentlyResized.set(true);
-                    resizeTask.update();
-                }
+            listerColumn.widthProperty().addListener((ObservableValue<? extends Number> ov, Number t, Number t1) -> {
+                recentlyResized.set(true);
+                resizeTask.update();
             });
         }
 
