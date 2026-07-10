@@ -39,11 +39,12 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
      *
      * @param source the input string (must not be null)
      * @param separator the literal delimiter (must not be null or empty)
+     * @param trimWhiteSpace to trim the trailing/leading whitespace
      * @return array of substrings (never null, may contain empty strings)
      * @throws NullPointerException if source or separator is null
      * @throws IllegalArgumentException if separator is empty
      */
-    public static ArrayList<String> split(String source, String separator) {
+    public static ArrayList<String> split(String source, String separator, boolean trimWhiteSpace) {
         Objects.requireNonNull(source, "source");
         Objects.requireNonNull(separator, "separator");
         if (separator.isEmpty()) {
@@ -57,26 +58,64 @@ public interface StringParser<T> extends Function<T, SafeOpt<String>> {
             for (;;) {
                 int next = source.indexOf(sep, index);
                 if (next < 0) {
-                    parts.add(source.substring(index));
+                    String part = source.substring(index);
+                    if (trimWhiteSpace) {
+                        part = part.trim();
+                    }
+                    parts.add(part);
                     break;
                 }
-                parts.add(source.substring(index, next));
+                String part = source.substring(index, next);
+                if (trimWhiteSpace) {
+                    part = part.trim();
+                }
+                parts.add(part);
                 index = next + 1;
             }
         } else {
             for (;;) {
                 int next = source.indexOf(separator, index);
                 if (next < 0) {
-                    parts.add(source.substring(index));
+                    String part = source.substring(index);
+                    if (trimWhiteSpace) {
+                        part = part.trim();
+                    }
+                    parts.add(part);
                     break;
                 } else {
-                    parts.add(source.substring(index, next));
+                    String part = source.substring(index, next);
+                    if (trimWhiteSpace) {
+                        part = part.trim();
+                    }
+                    parts.add(part);
                     index = next + len;
                 }
             }
         }
         return parts;
+    }
 
+    /**
+     * Delegates to {@link split(java.lang.String, java.lang.String) {
+     *
+     * @param source
+     * @param separator
+     * @return
+     */
+    public static String[] splitArray(String source, String separator, boolean trimWhiteSpace) {
+        return split(source, separator, trimWhiteSpace).stream().toArray(s -> new String[s]);
+    }
+
+    /**
+     * Delegates to {@link split(java.lang.String, java.lang.String, java.lang.Boolean) {
+     * without trimming whitespace.
+     *
+     * @param source
+     * @param separator
+     * @return
+     */
+    public static ArrayList<String> split(String source, String separator) {
+        return split(source, separator, false);
     }
 
     public static <V> StringParser<V> of(Function<V, String> func) {
