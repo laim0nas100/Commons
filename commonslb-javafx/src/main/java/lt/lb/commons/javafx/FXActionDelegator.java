@@ -61,7 +61,7 @@ public class FXActionDelegator extends NPhaseActionAggregator<Object, Runnable> 
         public final Object signature;
 
         public Removable(Object signature) {
-            this.signature = signature;
+            this.signature = signature == null ? new Object() : signature;
         }
 
         @Override
