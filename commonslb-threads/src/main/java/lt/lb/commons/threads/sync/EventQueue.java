@@ -1,9 +1,7 @@
 package lt.lb.commons.threads.sync;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
@@ -20,7 +18,6 @@ import lt.lb.commons.threads.ForwardingFuture;
 import lt.lb.commons.threads.executors.layers.NestedTaskSubmitionExecutorLayer;
 import com.github.laim0nas100.uncheckedutils.Checked;
 import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *
