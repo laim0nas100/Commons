@@ -1,9 +1,10 @@
 package lt.lb.commons.misc;
 
 import java.util.Comparator;
+import java.util.Objects;
+import lt.lb.readablecompare.Bound;
 import lt.lb.readablecompare.Compare;
 import lt.lb.readablecompare.CompareNull;
-import lt.lb.readablecompare.CompareOperator;
 import lt.lb.readablecompare.SimpleCompare;
 
 /**
@@ -14,21 +15,28 @@ public class Range<T> extends MinMax<T> {
 
     protected SimpleCompare<T> simpleCmp;
 
-    public Range(T min, T max, Comparator<T> cmp) {
+    public Range(T min, T max, SimpleCompare<T> cmp) {
         super(min, max);
-        this.simpleCmp = Compare.of(CompareNull.NULL_THROW, cmp);
+        this.simpleCmp = Objects.requireNonNull(cmp);
+    }
+
+    public Range(T min, T max, Comparator<T> cmp) {
+        this(min, max, Compare.of(CompareNull.NULL_THROW, cmp));
     }
 
     public static <T extends Comparable> Range<T> of(T min, T max) {
         return new Range(min, max, Comparator.naturalOrder());
     }
 
-    public boolean inRange(T val, boolean minInclusive, boolean maxInclusive) {
-        CompareOperator maxOp = maxInclusive ? CompareOperator.LESS_EQ : CompareOperator.LESS;
-        CompareOperator minOp = minInclusive ? CompareOperator.GREATER_EQ : CompareOperator.GREATER;
-
-        return simpleCmp.compare(val, maxOp, max) // val < max or val <= max
-                && simpleCmp.compare(val, minOp, min);  // val > min or val >= min
+    /**
+     * inside range, given the concrete bound
+     *
+     * @param bound
+     * @param val
+     * @return
+     */
+    public boolean inRange(Bound bound, T val) {
+        return simpleCmp.inside(bound, min, val, max);
     }
 
     /**
@@ -38,7 +46,7 @@ public class Range<T> extends MinMax<T> {
      * @return
      */
     public boolean inRangeExclusive(T val) {
-        return this.inRange(val, false, false);
+        return inRange(Bound.EXC_EXC, val);
     }
 
     /**
@@ -48,7 +56,8 @@ public class Range<T> extends MinMax<T> {
      * @return
      */
     public boolean inRangeInclusive(T val) {
-        return this.inRange(val, true, true);
+        return inRange(Bound.INC_INC, val);
+
     }
 
     /**
@@ -58,7 +67,8 @@ public class Range<T> extends MinMax<T> {
      * @return
      */
     public boolean inRangeIncExc(T val) {
-        return this.inRange(val, true, false);
+        return inRange(Bound.INC_EXC, val);
+
     }
 
     /**
@@ -68,7 +78,7 @@ public class Range<T> extends MinMax<T> {
      * @return
      */
     public boolean inRangeExcInc(T val) {
-        return this.inRange(val, false, true);
+        return inRange(Bound.EXC_INC, val);
     }
 
     /**
@@ -78,7 +88,7 @@ public class Range<T> extends MinMax<T> {
      * @return
      */
     public T clamp(T val) {
-        return simpleCmp.min(simpleCmp.max(val, min), max);
+        return simpleCmp.clamp(min, val, max);
     }
 
     /**

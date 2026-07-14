@@ -1,18 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package empiric.core;
 
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
-import lt.lb.commons.F;
 import lt.lb.commons.DLog;
-import lt.lb.commons.misc.ReflectionUtils;
 import lt.lb.commons.benchmarking.Benchmark;
 import lt.lb.commons.graphtheory.GNode;
 import lt.lb.commons.graphtheory.Orgraph;
@@ -21,7 +13,6 @@ import lt.lb.commons.iteration.ReadOnlyIterator;
 import lt.lb.commons.iteration.TreeVisitor;
 import lt.lb.commons.iteration.impl.TreeVisitorImpl;
 import lt.lb.commons.misc.rng.RandomDistribution;
-import org.junit.Test;
 import com.github.laim0nas100.uncheckedutils.Checked;
 /**
  *
@@ -42,7 +33,6 @@ public class TreeIterationTest {
         DLog.printLines(comp.iterator());
 
         DLog.print("ok");
-        DLog.print("Stack depth:", ReflectionUtils.getMaximumStackDepth());
 
         Checked.uncheckedRun(() -> DLog.close());
 

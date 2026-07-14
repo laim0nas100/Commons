@@ -1,6 +1,7 @@
 package lt.lb.commons.misc;
 
 import java.util.Arrays;
+import lt.lb.commons.ArrayOp;
 
 /**
  *
@@ -9,48 +10,49 @@ import java.util.Arrays;
  */
 public class Pos {
 
-    private final Double[] vector;
+    private final double[] vector;
 
     public Pos(Number... coordinates) {
-        vector = new Double[coordinates.length];
+        vector = new double[coordinates.length];
         for (int i = 0; i < coordinates.length; i++) {
             vector[i] = coordinates[i].doubleValue();
         }
     }
 
-    public Double[] normalized(MinMax<Double>[] minmax) {
-        Double[] res = new Double[vector.length];
+    public double[] normalized(MinMax<Double>[] minmax) {
+        double[] res = new double[vector.length];
         for (int i = 0; i < vector.length; i++) {
-            Double min = minmax[i].min;
-            Double max = minmax[i].max;
+            double min = minmax[i].min;
+            double max = minmax[i].max;
             res[i] = (vector[i] - min) / (max - min);
         }
         return res;
     }
 
-    public Double[] normalized(MinMax<Double>[] minmax, Number rangeStart, Number rangeEnd) {
-        Double[] res = this.normalized(minmax);
+    public double[] normalized(MinMax<Double>[] minmax, Number rangeStart, Number rangeEnd) {
+        double[] res = this.normalized(minmax);
         for (int i = 0; i < res.length; i++) {
             res[i] = res[i] * (rangeEnd.doubleValue() - rangeStart.doubleValue()) + rangeStart.doubleValue();
         }
         return res;
     }
 
-    public Double[] get() {
+    public double[] get() {
         return Arrays.copyOf(vector, vector.length);
     }
 
-    public Integer dim() {
+    public int dimension() {
         return vector.length;
     }
 
     @Override
     public String toString() {
-        return Arrays.asList(vector).toString();
+        ;
+        return Arrays.asList(ArrayOp.mapDouble(vector)).toString();
     }
 
-    public Double manhattanDistance(Pos to) {
-        Double dis = 0d;
+    public double manhattanDistance(Pos to) {
+        double dis = 0d;
         int len = Math.min(to.vector.length, this.vector.length);
 
         for (int i = 0; i < len; i++) {
@@ -61,8 +63,8 @@ public class Pos {
 
     }
 
-    public Double euclidianDistance(Pos to) {
-        Double sum = 0d;
+    public double euclidianDistance(Pos to) {
+        double sum = 0d;
 
         int len = Math.min(to.vector.length, this.vector.length);
         for (int i = 0; i < len; i++) {

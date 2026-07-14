@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
- * Extension of @{link org.apache.commons.lang3.ArrayUtils}
+ * Extension of {@link org.apache.commons.lang3.ArrayUtils}
  *
  * @author laim0nas100
  */
