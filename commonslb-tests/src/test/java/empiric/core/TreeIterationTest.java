@@ -182,12 +182,16 @@ public class TreeIterationTest {
                 TreeVisitorImpl.DFSIterative(it, root, Optional.empty());
             }).print(DLog::print);
             
-            bench.executeBench(times, "Pos rec", () -> {
+            bench.executeBench(times, "POST rec", () -> {
                 TreeVisitorImpl.PostOrder(it, root, Optional.empty());
             }).print(DLog::print);
 
-            bench.executeBench(times, "Pos it", () -> {
+            bench.executeBench(times, "POST it", () -> {
                 TreeVisitorImpl.PostOrderIterative(it, root, Optional.empty());
+            }).print(DLog::print);
+            
+            bench.executeBench(times, "BFS", () -> {
+                TreeVisitorImpl.BFS(it, root, Optional.empty());
             }).print(DLog::print);
             
         }
@@ -196,7 +200,7 @@ public class TreeIterationTest {
 
     public static void main(String... args) throws InterruptedException, TimeoutException {
 
-        benchMe(30, 10000, 5000);
+        benchMe(300, 10000, 5000);
         DLog.await(1, TimeUnit.MINUTES);
     }
 }
