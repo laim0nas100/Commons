@@ -47,7 +47,7 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
 
         @Override
         protected void done() {
-            Atomic.decrementAndGet(executing);
+            Atomic.decrementAndGet(executingOneShots);
             super.done();
         }
 
@@ -56,17 +56,25 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
     protected ThreadPool pool;
     protected DelayQueue<DTEScheduledFuture> dq = new DelayQueue<>();
     protected AtomicInteger executing = new AtomicInteger(0);
+    protected AtomicInteger executingOneShots = new AtomicInteger(0);
     protected ExecutorService realExe;
     protected final int maxSchedulingThreads;
     protected final AtomicInteger schedulingThreadCount = new AtomicInteger(0);
     protected ReentrantLock lock = new ReentrantLock(true);
-    protected Condition oneShotCondition = lock.newCondition();
-    protected Condition fullCompletiontCondition = lock.newCondition();
-
-    protected WaitTime pollTime = WaitTime.ofMillis(777);// fun number
+    protected Condition oneShotCond = lock.newCondition();
+    protected Condition fullCompletionCond = lock.newCondition();
+    /**
+     * initial number, but can grow. Doesn't matter really, just a time until
+     * scheduling thread awaits new tasks to pass to main executor or signal any
+     * awaiters. To not spin wait, we back-off exponentially up to
+     * {@link DelayedTaskExecutor#MAX_POLL_TIME}. More scheduling threads will
+     * more often signal any awaiters for one shot completion.
+     */
+    public static final long INITIAL_POLL_TIME = WaitTime.ofMillis(10).toNanos();
+    public static final long MAX_POLL_TIME = WaitTime.ofSeconds(8).toNanos();
 
     public DelayedTaskExecutor() {
-        this(Checked.createDefaultExecutorService());
+        this(1, Checked.createDefaultExecutorService());
     }
 
     public DelayedTaskExecutor(int maxSchedulingThreads) {
@@ -95,36 +103,42 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         pool.setThreadsStarting(true);
     }
 
-    boolean cleanUpOneShots() {
+    boolean cleanOneShotSignal() {
         lock.lock();
 
         try {
-            if (!lock.hasWaiters(oneShotCondition)) {
+            if (!lock.hasWaiters(oneShotCond)) {
+                return false;
+            }
+            if (executingOneShots.get() > 0) {
                 return false;
             }
             for (DTEScheduledFuture future : dq) {
                 if (future != null) {
                     if (future.isOneShot()) {
-                        return false; // found unfinished oneshot, abort future completion
+                        return false; // found unsubmitted oneshot, abort future completion
                     }
                 }
             }
-            oneShotCondition.signalAll();
+            oneShotCond.signalAll();
         } finally {
             lock.unlock();
         }
         return true;
     }
 
-    boolean cleanUp() {
+    boolean cleanSignal() {
         lock.lock();
         try {
 
-            if (executing.get() > 0 || !dq.isEmpty()) {
+            if (!lock.hasWaiters(fullCompletionCond)) {
+                return false;
+            }
+            if (hasExecuting() || !dq.isEmpty()) {
                 return false;
             }
 
-            fullCompletiontCondition.signalAll();
+            fullCompletionCond.signalAll();
         } finally {
             lock.unlock();
         }
@@ -157,29 +171,39 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         executeWithIncrement(realExe, command);
     }
 
-    protected void executeSched(DTEScheduledFuture command) {
+    protected void executeFromSched(DTEScheduledFuture command) {
         assertShutdown();
         executeWithIncrement(command.taskExecutor, command);
     }
 
     protected void executeWithIncrement(Executor exe, Runnable command) {
-        boolean maybeCompensate = true;
-        Atomic.incrementAndGet(executing);
+
+        boolean decrementOnRejection = false;
+        boolean oneShot = false;
         FailableRunnableFuture ff;
         if (command instanceof DTEScheduledFuture) {
-            ff = F.cast(command);
+            DTEScheduledFuture dte = F.cast(command);
+            ff = dte;
+            // book-keeping is done inside the run method, so rejected tasks do not decrement
+            decrementOnRejection = true;
+            oneShot = dte.isOneShot();
+            Atomic.incrementAndGet(oneShot ? executingOneShots : executing);
         } else {
-            maybeCompensate = false;// setting exception invokes done anyway
+
+            //decremented by done method regardless if it was rejected.
             ff = F.cast(newTaskFor(command, null));// type check inside
+            Atomic.incrementAndGet(executingOneShots);
         }
         try {
+
             exe.execute(ff);
 
         } catch (Throwable th) {
-            if (maybeCompensate) {
-                Atomic.decrementAndGet(executing);
-            }
+            //rejected or internal executor error
             ff.setException(th);
+            if (decrementOnRejection) {
+                Atomic.decrementAndGet(oneShot ? executingOneShots : executing);
+            }
 
         }
     }
@@ -200,78 +224,90 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         future.nanoScheduled.set(Java.getNanoTime());
         dq.add(future);
 
-        maybestartSchedulingThread(false);
+        maybeStartSchedulingThread(false);
         return future;
     }
 
-    protected void maybestartSchedulingThread(boolean onlyClean) {
+    protected boolean hasExecuting() {
+        return executingOneShots.get() > 0 || executing.get() > 0;
+    }
+
+    protected int executingTotal() {
+        return executing.get() + executingOneShots.get();
+    }
+
+    protected void maybeStartSchedulingThread(boolean onlyClean) {
         if (schedulingThreadCount.get() >= maxSchedulingThreads) {
             return; // fast exit
         }
-        if (schedulingThreadCount.incrementAndGet() > maxSchedulingThreads) {
-            schedulingThreadCount.decrementAndGet();
+        if (Atomic.incrementAndGet(schedulingThreadCount) > maxSchedulingThreads) {
+            Atomic.decrementAndGet(schedulingThreadCount);
         } else {
             startSchedulingThread(onlyClean);
         }
     }
 
-    protected void startSchedulingThread(final boolean onlyClean) {
-        //we need to start thread
+    protected void schedulingLoop(boolean onlyClean) {
+        try {
+            if (!onlyClean) {
+                long nanosTimeout = INITIAL_POLL_TIME;
+                while (!dq.isEmpty() || hasExecuting()) {
 
-        Runnable handle = () -> {
-            try {
-                if (!onlyClean) {
-                    while (!dq.isEmpty() || executing.get() != 0) {
-
-                        if (!open) {
-                            dq.clear();
-                        } else {
-                            DTEScheduledFuture take = dq.poll(pollTime.time, pollTime.unit);
-                            if (open && take != null && !take.isDone()) {
-                                executeSched(take);
-                            }
+                    if (!open) {
+                        dq.clear();
+                    } else {
+                        DTEScheduledFuture take = dq.poll(nanosTimeout, TimeUnit.NANOSECONDS);
+                        if (open && take != null && !take.isDone()) {
+                            executeFromSched(take);
+                            //reset poll time
+                            nanosTimeout = INITIAL_POLL_TIME;
+                        } else if (take == null && nanosTimeout != MAX_POLL_TIME) { // increase poll time
+                            nanosTimeout = Math.min(nanosTimeout * 2, MAX_POLL_TIME);
                         }
-                        cleanUp();
-                        cleanUpOneShots();
-
                     }
-                }
+                    cleanOneShotSignal();
+                    cleanSignal();
 
-            } catch (Throwable th) {//could be interrupted, or task executor failed to execute
-
-            } finally {
-
-                try {
-                    lock.lock();
-                    // always signal
-                    schedulingThreadCount.decrementAndGet();
-                    cleanUpOneShots();
-                    cleanUp();
-
-                    if (onlyClean || !open) {//only clean up mode
-
-                    } else if (!dq.isEmpty() || executing.get() != 0) {
-                        startSchedulingThread(false);
-                    }
-                } finally {
-                    lock.unlock();
                 }
             }
-        };
-        pool.newThread(handle);
 
+        } catch (Throwable ignore) {//could be interrupted or shutdown already after awaiting, so just exit in case the thing is closed
+
+        } finally {
+
+            try {
+                lock.lock();
+                // always signal
+                Atomic.decrementAndGet(schedulingThreadCount);
+                cleanOneShotSignal();
+                cleanSignal();
+
+                if (onlyClean || !open) {//only clean signal mode or time to exit
+
+                } else if (!dq.isEmpty() || executingTotal() != 0) {
+                    maybeStartSchedulingThread(false); // maybe restart itselt
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    protected void startSchedulingThread(final boolean onlyClean) {
+        //we need to start thread
+        pool.newThread(() -> schedulingLoop(onlyClean));
     }
 
     protected boolean fastExit() {
-        return executing.get() == 0 && dq.isEmpty();
+        return !hasExecuting() && dq.isEmpty();
     }
 
     public AwaiterTime awaitOneShotCompletion() {
-        return Awaiter.fromLockCondition(this::fastExit, lock, oneShotCondition);
+        return Awaiter.fromLockCondition(this::fastExit, lock, oneShotCond);
     }
 
     public AwaiterTime awaitFullCompletion() {
-        return Awaiter.fromLockCondition(this::fastExit, lock, fullCompletiontCondition);
+        return Awaiter.fromLockCondition(this::fastExit, lock, fullCompletionCond);
     }
 
     @Override
@@ -284,10 +320,16 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         dq.clear();
         pool.interruptWaiting();
         realExe.shutdown();
-        cleanUp();
-        cleanUpOneShots();
+        cleanSignal();
+        cleanOneShotSignal();
     }
 
+    /**
+     * Shuts down the passed real executor also, doesn't return the scheduled
+     * tasks, only the ones passed to the real executor. {@inheritDoc }
+     *
+     * @return
+     */
     @Override
     public List<Runnable> shutdownNow() {
         shutdown();
@@ -299,6 +341,14 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
         return realExe.isTerminated() && fastExit();
     }
 
+    /**
+     * Real executor must also be terminated sometime in the future or this
+     * method will always timeout. If real executor gets terminated before all
+     * scheduled tasks are submitted, then these never will be executed and will
+     * terminate as cancelled because the real executor rejection.
+     * {@inheritDoc }
+     *
+     */
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         return Awaiter.compositeTime(this::isTerminated, realExe::awaitTermination, awaitFullCompletion())
@@ -405,7 +455,6 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
                 persFuture.setException(exception);
                 return null;
             }
-//            command.run();
             //self cancel on throw
             if (persFuture.isCancelled()) {
                 return null;

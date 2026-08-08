@@ -111,7 +111,11 @@ public class DTEScheduledFuture<T> implements ScheduledFuture<T>, FailableRunnab
         try {
             logic();
         } finally {
-            int decrementAndGet = Atomic.decrementAndGet(exe.executing);
+            if (oneShot) {
+                Atomic.decrementAndGet(exe.executingOneShots);
+            } else {
+                Atomic.decrementAndGet(exe.executing);
+            }
         }
     }
 
