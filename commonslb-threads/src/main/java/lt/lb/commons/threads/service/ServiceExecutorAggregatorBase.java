@@ -22,8 +22,6 @@ import java.util.function.Supplier;
 public class ServiceExecutorAggregatorBase extends AbstractExecutorService implements ScheduledExecutorService, ServiceExecutorAggregator {
 
     protected ConcurrentHashMap<String, ExecutorService> servMap = new ConcurrentHashMap<>();
-    protected Supplier<ExecutorService> defaultSupplier = () -> createExecutor(1);
-    protected Supplier<ScheduledExecutorService> defaultSchedulerSupplier = () -> createScheduledExecutor(1);
     protected HashMap<String, Supplier<? extends ExecutorService>> serviceSupplier = new HashMap<>();
     protected volatile boolean shutdown;
     protected volatile String mainServiceName = "main";
@@ -33,8 +31,16 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
         setService(name, () -> createExecutor(threads));
     }
 
+    protected ExecutorService createExecutor() {
+        return createExecutor(1);
+    }
+
     protected ExecutorService createExecutor(int threads) {
         return Executors.newFixedThreadPool(threads);
+    }
+
+    protected ScheduledExecutorService createScheduledExecutor() {
+        return createScheduledExecutor(1);
     }
 
     protected ScheduledExecutorService createScheduledExecutor(int threads) {
@@ -69,9 +75,9 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
 
     protected ExecutorService getOrCreate(String name, Supplier<? extends ExecutorService> supplier) {
         return servMap.compute(name, (k, current) -> {
-            if(current == null){
-                if(isShutdown()){
-                    throw new IllegalStateException("Shutdown has been called, cannot create new service by name:"+name);
+            if (current == null) {
+                if (isShutdown()) {
+                    throw new IllegalStateException("Shutdown has been called, cannot create new service by name:" + name);
                 }
                 return serviceSupplier.getOrDefault(k, supplier).get();
             }
@@ -80,11 +86,11 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
     }
 
     public ExecutorService service(String servName) {
-        return getOrCreate(servName, defaultSupplier);
+        return getOrCreate(servName, () -> createExecutor(0));
     }
 
     public ScheduledExecutorService scheduledService(String servName) {
-        ExecutorService service = getOrCreate(servName, defaultSchedulerSupplier);
+        ExecutorService service = getOrCreate(servName, this::createExecutor);
         if (service instanceof ScheduledExecutorService) {
             return (ScheduledExecutorService) service;
         }
