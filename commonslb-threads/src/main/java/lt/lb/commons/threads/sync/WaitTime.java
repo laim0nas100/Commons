@@ -1,19 +1,26 @@
 package lt.lb.commons.threads.sync;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
+import java.time.temporal.UnsupportedTemporalTypeException;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
+import lt.lb.commons.iteration.streams.MakeStream;
 
 /**
- * Convenient class to group TimeUnit and long for concurrent waiting. Similar
- * to Duration, but support conversion overflow checking and only allows
- * non-negative values.
+ * Convenient immutable class to group {@link TimeUnit} and long for concurrent
+ * waiting. Similar to {@link Duration}, but supports conversion overflow
+ * checking and only allows non-negative values. Can
  *
  * @author laim0nas100
  */
-public class WaitTime implements Comparable<WaitTime> {
+public class WaitTime implements Comparable<WaitTime>, TemporalAmount, Serializable {
 
     public static final WaitTime MAX_NANOS = WaitTime.ofNanos(Long.MAX_VALUE);
 
@@ -406,9 +413,8 @@ public class WaitTime implements Comparable<WaitTime> {
                 return 5;
             case DAYS:
                 return 6;
-            default:
-                throw new IllegalArgumentException("Unrecognized TimeUnit " + tu);
         }
+        throw new IllegalArgumentException("Unrecognized TimeUnit " + tu);
     }
 
     /**
@@ -452,7 +458,7 @@ public class WaitTime implements Comparable<WaitTime> {
         TimeUnit smallerUnit = a.unit;
         if (aOrder > bOrder) {
             smallerUnit = b.unit;
-        } 
+        }
         sum = Math.subtractExact(smallerUnit.convert(a.time, a.unit), smallerUnit.convert(b.time, b.unit));
         return new WaitTime(Math.max(0, sum), smallerUnit);
     }
@@ -479,9 +485,8 @@ public class WaitTime implements Comparable<WaitTime> {
                 return ChronoUnit.HOURS;
             case DAYS:
                 return ChronoUnit.DAYS;
-            default:
-                throw new IllegalArgumentException("No ChronoUnit equivalent for " + timeUnit);
         }
+        throw new IllegalArgumentException("No ChronoUnit equivalent for " + timeUnit);
     }
 
     /**
@@ -547,5 +552,38 @@ public class WaitTime implements Comparable<WaitTime> {
             return Long.compare(a.time, a.unit.convert(b.time, b.unit));
         }
     }
+
+    @Override
+    public long get(TemporalUnit unit) {
+        if (unit instanceof ChronoUnit) {
+            TimeUnit timeUnit = toTimeUnit((ChronoUnit) unit);
+            if (this.unit.equals(timeUnit)) {
+                return this.time;
+            }
+            return 0L;
+
+        }
+        throw new UnsupportedTemporalTypeException("Unsupported unit: " + unit);
+    }
+
+    @Override
+    public List<TemporalUnit> getUnits() {
+        return SUPPORTED_UNITS;
+    }
+
+    @Override
+    public Temporal addTo(Temporal temporal) {
+        return temporal.plus(time, toChronoUnit(unit));
+    }
+
+    @Override
+    public Temporal subtractFrom(Temporal temporal) {
+        return temporal.minus(time, toChronoUnit(unit));
+    }
+
+    public static List<TemporalUnit> SUPPORTED_UNITS = MakeStream.from(TimeUnit.values())
+            .map(WaitTime::toChronoUnit)
+            .map(m -> (TemporalUnit) m)
+            .toUnmodifiableList();
 
 }
