@@ -90,7 +90,7 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
     }
 
     public ScheduledExecutorService scheduledService(String servName) {
-        ExecutorService service = getOrCreate(servName, this::createExecutor);
+        ExecutorService service = getOrCreate(servName, this::createScheduledExecutor);
         if (service instanceof ScheduledExecutorService) {
             return (ScheduledExecutorService) service;
         }
