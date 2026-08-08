@@ -110,7 +110,7 @@ public class FXActionDelegator extends NPhaseActionAggregator<Object, Runnable> 
 
     @Override
     protected void submitLogic() {
-        Platform.runLater(this);
+        FX.submit(this);
     }
 
     @Override
