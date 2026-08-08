@@ -26,21 +26,29 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
     protected volatile boolean shutdown;
     protected volatile String mainServiceName = "main";
     protected volatile String mainSchedulerServiceName = "main-scheduler";
+    protected volatile int defaultThreadCount = 1;
 
-    public void setService(String name, final int threads) {
-        setService(name, () -> createExecutor(threads));
-    }
 
+    /**
+     * Create executor with default amount of threads
+     *
+     * @return
+     */
     protected ExecutorService createExecutor() {
-        return createExecutor(1);
+        return createExecutor(defaultThreadCount);
     }
 
     protected ExecutorService createExecutor(int threads) {
         return Executors.newFixedThreadPool(threads);
     }
 
+    /**
+     * Create scheduled executor with default amount of threads
+     *
+     * @return
+     */
     protected ScheduledExecutorService createScheduledExecutor() {
-        return createScheduledExecutor(1);
+        return createScheduledExecutor(defaultThreadCount);
     }
 
     protected ScheduledExecutorService createScheduledExecutor(int threads) {
@@ -55,6 +63,9 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
 
     public void setScheduledService(String name, Supplier<? extends ScheduledExecutorService> serviceSupl) {
         setService(name, serviceSupl);
+    }
+    public void setService(String name, final int threads) {
+        setService(name, () -> createExecutor(threads));
     }
 
     public void setScheduledService(String name, final int threads) {
@@ -86,7 +97,7 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
     }
 
     public ExecutorService service(String servName) {
-        return getOrCreate(servName, () -> createExecutor(0));
+        return getOrCreate(servName, this::createExecutor);
     }
 
     public ScheduledExecutorService scheduledService(String servName) {
