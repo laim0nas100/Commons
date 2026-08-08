@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import lt.lb.commons.F;
 import lt.lb.commons.threads.ExplicitFutureTask;
-import lt.lb.commons.threads.ThreadPool;
 import lt.lb.commons.threads.TrackedThreadPool;
 
 /**
@@ -34,6 +33,7 @@ public abstract class BaseExecutor extends AbstractExecutorService implements Cl
     protected static TrackedThreadPool createDefaultThreadPool(Class cls) {
         TrackedThreadPool trackedPool = new TrackedThreadPool(cls.getSimpleName());
         trackedPool.setThreadsStarting(true);
+        trackedPool.setThreadsDaemon(false);
         trackedPool.setThreadsPrefix(cls.getSimpleName() + "-");
         return trackedPool;
     }

@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import lt.lb.commons.misc.numbers.Atomic;
 
 /**
  *
@@ -73,16 +74,16 @@ public class TrackedThreadPool extends ThreadGroup implements ThreadPool {
         @Override
         public void run() {
             try {
-                pool.threadsAliveCount.incrementAndGet();
+                Atomic.incrementAndGet(pool.threadsAliveCount);
                 super.run();
             } finally {
-                pool.threadsAliveCount.decrementAndGet();
+                Atomic.decrementAndGet(pool.threadsAliveCount);
             }
         }
 
     }
 
-    protected boolean threadsDaemon = true;
+    protected boolean threadsDaemon = false;
     protected int threadsPriority = Thread.NORM_PRIORITY;
     protected boolean threadsStarting = false;
     protected String threadsPrefix = "";
