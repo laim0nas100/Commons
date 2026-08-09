@@ -2,10 +2,10 @@ package lt.lb.commons.misc;
 
 import java.util.Comparator;
 import java.util.Objects;
-import lt.lb.readablecompare.Bound;
-import lt.lb.readablecompare.Compare;
-import lt.lb.readablecompare.CompareNull;
-import lt.lb.readablecompare.SimpleCompare;
+import com.github.laim0nas100.compare.Bound;
+import com.github.laim0nas100.compare.Compare;
+import com.github.laim0nas100.compare.CompareNull;
+import com.github.laim0nas100.compare.SimpleCompare;
 
 /**
  *

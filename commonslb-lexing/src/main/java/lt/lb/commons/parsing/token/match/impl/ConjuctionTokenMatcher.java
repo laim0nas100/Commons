@@ -3,8 +3,8 @@ package lt.lb.commons.parsing.token.match.impl;
 import lt.lb.commons.Ins;
 import lt.lb.commons.parsing.token.Token;
 import lt.lb.commons.parsing.token.match.TokenMatcher;
-import lt.lb.readablecompare.Compare;
-import lt.lb.readablecompare.SimpleCompare;
+import com.github.laim0nas100.compare.Compare;
+import com.github.laim0nas100.compare.SimpleCompare;
 
 /**
  *

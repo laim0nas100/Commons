@@ -2,10 +2,10 @@ package lt.lb.commons.containers.caching;
 
 import java.util.Objects;
 import java.util.function.Supplier;
-import lt.lb.readablecompare.Compare;
-import lt.lb.readablecompare.CompareNull;
-import lt.lb.readablecompare.CompareOperator;
-import lt.lb.readablecompare.SimpleCompare;
+import com.github.laim0nas100.compare.Compare;
+import com.github.laim0nas100.compare.CompareNull;
+import com.github.laim0nas100.compare.CompareOperator;
+import com.github.laim0nas100.compare.SimpleCompare;
 
 /**
  *
