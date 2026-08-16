@@ -28,7 +28,6 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
     protected volatile String mainSchedulerServiceName = "main-scheduler";
     protected volatile int defaultThreadCount = 1;
 
-
     /**
      * Create executor with default amount of threads
      *
@@ -64,6 +63,7 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
     public void setScheduledService(String name, Supplier<? extends ScheduledExecutorService> serviceSupl) {
         setService(name, serviceSupl);
     }
+
     public void setService(String name, final int threads) {
         setService(name, () -> createExecutor(threads));
     }
@@ -128,6 +128,10 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
     @Override
     public ExecutorService getMain() {
         return service(mainServiceName);
+    }
+
+    public ScheduledExecutorService getMainScheduled() {
+        return scheduledService(mainSchedulerServiceName);
     }
 
     @Override

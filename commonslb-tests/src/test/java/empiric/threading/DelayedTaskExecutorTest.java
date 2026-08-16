@@ -14,7 +14,7 @@ import lt.lb.commons.threads.sync.WaitTime;
 public class DelayedTaskExecutorTest {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException {
-
+        DLog.main().async = false;
         if (false) {
             Long time = WaitTime.ofDays(400).convert(TimeUnit.NANOSECONDS).time;
             Long minutes = WaitTime.ofMinutes(1).convert(TimeUnit.NANOSECONDS).time;
@@ -33,8 +33,7 @@ public class DelayedTaskExecutorTest {
             return;
         }
 
-        DLog.main().async = false;
-        try (DelayedTaskExecutor exe = new DelayedTaskExecutor(1)) {
+        try (DelayedTaskExecutor exe = new DelayedTaskExecutor(3)) {
 //            exe.schedule(WaitTime.ofSeconds(1), () -> {
 //                DLog.print("Hi 1");
 //            });
@@ -86,17 +85,20 @@ public class DelayedTaskExecutorTest {
 
             exe.awaitFullCompletion().await();
             DLog.print("END");
-             exe.awaitFullCompletion().await();
+            exe.awaitFullCompletion().await();
             DLog.print("Another await");
-            
+
             exe.awaitOneShotCompletion().await();
             DLog.print("Another one shot await");
-            exe.schedule(WaitTime.ofSeconds(2), ()->{
+            exe.schedule(WaitTime.ofSeconds(2), () -> {
+                Thread.sleep(1000);
                 DLog.print("Last one shot");
             });
             exe.awaitOneShotCompletion().await();
             DLog.print("Last one shot await");
             exe.shutdown();
+            exe.awaitTermination(1, TimeUnit.MINUTES);
+            DLog.print("Awaited termination");
 
         }
 
