@@ -474,8 +474,8 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
 
     public ScheduledFuture<?> scheduleAtFixedRate(Executor taskExe, Runnable command, long initialDelay, long period, TimeUnit unit) {
         assertShutdown();
-        if (initialDelay <= 0) {
-            throw new IllegalArgumentException("initial delay must be posivite");
+        if (initialDelay < 0) {
+            throw new IllegalArgumentException("initial delay must be non-negative");
         }
         if (period <= 0) {
             throw new IllegalArgumentException("period must be positive");
@@ -509,8 +509,8 @@ public class DelayedTaskExecutor extends BaseExecutor implements CloseableExecut
 
     public ScheduledFuture<?> scheduleWithFixedDelay(Executor taskExe, Runnable command, long initialDelay, long delay, TimeUnit unit) {
         assertShutdown();
-        if (initialDelay <= 0) {
-            throw new IllegalArgumentException("initial delay must be posivite");
+        if (initialDelay < 0) {
+            throw new IllegalArgumentException("initial delay must be non-negative");
         }
         if (delay <= 0) {
             throw new IllegalArgumentException("delay must be positive");
