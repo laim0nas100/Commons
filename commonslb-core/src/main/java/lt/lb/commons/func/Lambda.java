@@ -19,7 +19,7 @@ public abstract class Lambda {
 
     public static L0 of(L0... l) {
         return () -> {
-            Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply();
             });
         };
@@ -27,7 +27,7 @@ public abstract class Lambda {
 
     public static <T> L1<T> of(L1<T>... l) {
         return (p) -> {
-             Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p);
             });
         };
@@ -35,7 +35,7 @@ public abstract class Lambda {
 
     public static <T1, T2> L2<T1, T2> of(L2<T1, T2>... l) {
         return (p1, p2) -> {
-             Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p1, p2);
             });
         };
@@ -43,7 +43,7 @@ public abstract class Lambda {
 
     public static <T1, T2, T3> L3<T1, T2, T3> of(L3<T1, T2, T3>... l) {
         return (p1, p2, p3) -> {
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p1, p2, p3);
             });
         };
@@ -51,7 +51,7 @@ public abstract class Lambda {
 
     public static <T1, T2, T3, T4> L4<T1, T2, T3, T4> of(L4<T1, T2, T3, T4>... l) {
         return (p1, p2, p3, p4) -> {
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p1, p2, p3, p4);
             });
         };
@@ -59,7 +59,7 @@ public abstract class Lambda {
 
     public static <T1, T2, T3, T4, T5> L5<T1, T2, T3, T4, T5> of(L5<T1, T2, T3, T4, T5>... l) {
         return (p1, p2, p3, p4, p5) -> {
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p1, p2, p3, p4, p5);
             });
         };
@@ -67,7 +67,7 @@ public abstract class Lambda {
 
     public static <T1, T2, T3, T4, T5, T6> L6<T1, T2, T3, T4, T5, T6> of(L6<T1, T2, T3, T4, T5, T6>... l) {
         return (p1, p2, p3, p4, p5, p6) -> {
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p1, p2, p3, p4, p5, p6);
             });
         };
@@ -75,7 +75,7 @@ public abstract class Lambda {
 
     public static <T1, T2, T3, T4, T5, T6, T7> L7<T1, T2, T3, T4, T5, T6, T7> of(L7<T1, T2, T3, T4, T5, T6, T7>... l) {
         return (p1, p2, p3, p4, p5, p6, p7) -> {
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p1, p2, p3, p4, p5, p6, p7);
             });
         };
@@ -83,7 +83,7 @@ public abstract class Lambda {
 
     public static <T1, T2, T3, T4, T5, T6, T7, T8> L8<T1, T2, T3, T4, T5, T6, T7, T8> of(L8<T1, T2, T3, T4, T5, T6, T7, T8>... l) {
         return (p1, p2, p3, p4, p5, p6, p7, p8) -> {
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p1, p2, p3, p4, p5, p6, p7, p8);
             });
         };
@@ -91,7 +91,7 @@ public abstract class Lambda {
 
     public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> L9<T1, T2, T3, T4, T5, T6, T7, T8, T9> of(L9<T1, T2, T3, T4, T5, T6, T7, T8, T9>... l) {
         return (p1, p2, p3, p4, p5, p6, p7, p8, p9) -> {
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 lam.apply(p1, p2, p3, p4, p5, p6, p7, p8, p9);
             });
         };
@@ -100,7 +100,7 @@ public abstract class Lambda {
     public static <R1> L0R<R1> of(L0R<R1>... l) {
         return () -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply());
             });
             return val.get();
@@ -110,7 +110,7 @@ public abstract class Lambda {
     public static <T1, R1> L1R<T1, R1> of(L1R<T1, R1>... l) {
         return (p1) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1));
             });
             return val.get();
@@ -120,7 +120,7 @@ public abstract class Lambda {
     public static <T1, T2, R1> L2R<T1, T2, R1> of(L2R<T1, T2, R1>... l) {
         return (p1, p2) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1, p2));
             });
             return val.get();
@@ -130,7 +130,7 @@ public abstract class Lambda {
     public static <T1, T2, T3, R1> L3R<T1, T2, T3, R1> of(L3R<T1, T2, T3, R1>... l) {
         return (p1, p2, p3) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1, p2, p3));
             });
             return val.get();
@@ -140,7 +140,7 @@ public abstract class Lambda {
     public static <T1, T2, T3, T4, R1> L4R<T1, T2, T3, T4, R1> of(L4R<T1, T2, T3, T4, R1>... l) {
         return (p1, p2, p3, p4) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1, p2, p3, p4));
             });
             return val.get();
@@ -150,7 +150,7 @@ public abstract class Lambda {
     public static <T1, T2, T3, T4, T5, R1> L5R<T1, T2, T3, T4, T5, R1> of(L5R<T1, T2, T3, T4, T5, R1>... l) {
         return (p1, p2, p3, p4, p5) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1, p2, p3, p4, p5));
             });
             return val.get();
@@ -160,7 +160,7 @@ public abstract class Lambda {
     public static <T1, T2, T3, T4, T5, T6, R1> L6R<T1, T2, T3, T4, T5, T6, R1> of(L6R<T1, T2, T3, T4, T5, T6, R1>... l) {
         return (p1, p2, p3, p4, p5, p6) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1, p2, p3, p4, p5, p6));
             });
             return val.get();
@@ -170,7 +170,7 @@ public abstract class Lambda {
     public static <T1, T2, T3, T4, T5, T6, T7, R1> L7R<T1, T2, T3, T4, T5, T6, T7, R1> of(L7R<T1, T2, T3, T4, T5, T6, T7, R1>... l) {
         return (p1, p2, p3, p4, p5, p6, p7) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1, p2, p3, p4, p5, p6, p7));
             });
             return val.get();
@@ -180,7 +180,7 @@ public abstract class Lambda {
     public static <T1, T2, T3, T4, T5, T6, T7, T8, R1> L8R<T1, T2, T3, T4, T5, T6, T7, T8, R1> of(L8R<T1, T2, T3, T4, T5, T6, T7, T8, R1>... l) {
         return (p1, p2, p3, p4, p5, p6, p7, p8) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1, p2, p3, p4, p5, p6, p7, p8));
             });
             return val.get();
@@ -190,7 +190,7 @@ public abstract class Lambda {
     public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, R1> L9R<T1, T2, T3, T4, T5, T6, T7, T8, T9, R1> of(L9R<T1, T2, T3, T4, T5, T6, T7, T8, T9, R1>... l) {
         return (p1, p2, p3, p4, p5, p6, p7, p8, p9) -> {
             Value<R1> val = new Value<>();
-           Stream.of(l).forEach(lam ->{
+            Stream.of(l).forEach(lam -> {
                 val.set(lam.apply(p1, p2, p3, p4, p5, p6, p7, p8, p9));
             });
             return val.get();
@@ -449,7 +449,7 @@ public abstract class Lambda {
     public interface L6<P1, P2, P3, P4, P5, P6> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
-        
+
         public static <P1, P2, P3, P4, P5, P6> L6<P1, P2, P3, P4, P5, P6> empty() {
             return (p1, p2, p3, p4, p5, p6) -> {
             };
@@ -474,7 +474,7 @@ public abstract class Lambda {
     public interface L7<P1, P2, P3, P4, P5, P6, P7> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7);
-        
+
         public static <P1, P2, P3, P4, P5, P6, P7> L7<P1, P2, P3, P4, P5, P6, P7> empty() {
             return (p1, p2, p3, p4, p5, p6, p7) -> {
             };
@@ -499,7 +499,7 @@ public abstract class Lambda {
     public interface L8<P1, P2, P3, P4, P5, P6, P7, P8> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8);
-        
+
         public static <P1, P2, P3, P4, P5, P6, P7, P8> L8<P1, P2, P3, P4, P5, P6, P7, P8> empty() {
             return (p1, p2, p3, p4, p5, p6, p7, p8) -> {
             };
@@ -525,7 +525,7 @@ public abstract class Lambda {
     public interface L9<P1, P2, P3, P4, P5, P6, P7, P8, P9> {
 
         public void apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9);
-        
+
         public static <P1, P2, P3, P4, P5, P6, P7, P8, P9> L9<P1, P2, P3, P4, P5, P6, P7, P8, P9> empty() {
             return (p1, p2, p3, p4, p5, p6, p7, p8, p9) -> {
             };
