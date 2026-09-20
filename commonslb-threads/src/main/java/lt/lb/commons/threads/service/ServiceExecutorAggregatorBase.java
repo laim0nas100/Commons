@@ -28,6 +28,9 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
     protected volatile String mainSchedulerServiceName = "main-scheduler";
     protected volatile int defaultThreadCount = 1;
 
+    protected ExecutorService mainService;
+    protected ScheduledExecutorService mainScheduledService;
+
     /**
      * Create executor with default amount of threads
      *
@@ -74,10 +77,12 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
 
     public void setMainService(String name) {
         this.mainServiceName = Objects.requireNonNull(name);
+        this.mainService = null;
     }
 
     public void setMainSchedulerService(String name) {
         this.mainSchedulerServiceName = Objects.requireNonNull(name);
+        this.mainScheduledService = null;
     }
 
     public boolean containsService(String name) {
@@ -127,11 +132,22 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
 
     @Override
     public ExecutorService getMain() {
-        return service(mainServiceName);
+        if (mainService == null) {
+            ExecutorService service = service(mainServiceName);
+            mainService = service;
+            return service;
+        }
+        return mainService;
     }
 
     public ScheduledExecutorService getMainScheduled() {
-        return scheduledService(mainSchedulerServiceName);
+
+        if (mainScheduledService == null) {
+            ScheduledExecutorService service = scheduledService(mainSchedulerServiceName);
+            mainScheduledService = service;
+            return service;
+        }
+        return mainScheduledService;
     }
 
     @Override

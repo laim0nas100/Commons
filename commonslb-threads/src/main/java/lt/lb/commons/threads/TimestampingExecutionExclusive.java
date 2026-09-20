@@ -63,7 +63,7 @@ public class TimestampingExecutionExclusive<T> extends TimestampingExecution<T> 
         final long firstNow = Java.getNanoTime();
         lock.readLock().lock();
 
-        TimestampedFutureEx<T> last = F.cast(reference.getLastAdded());
+        TimestampedFutureEx<T> last = F.cast(buffer.getLastAdded());
         if (last == null) {
             lock.readLock().unlock();// no lock upgrading
             lock.writeLock().lock();
@@ -89,7 +89,7 @@ public class TimestampingExecutionExclusive<T> extends TimestampingExecution<T> 
 
         lock.readLock().lock();
 
-        TimestampedFutureEx<T> newLast = F.cast(reference.getLastAdded());
+        TimestampedFutureEx<T> newLast = F.cast(buffer.getLastAdded());
         if (!auto && (newLast.started.get() + tolerance.toNanos() >= firstNow)) {
             lock.readLock().unlock();
             return last;
@@ -113,7 +113,7 @@ public class TimestampingExecutionExclusive<T> extends TimestampingExecution<T> 
         try {
             future = new TimestampedFutureEx<>(now, task, executionLock);
             executor.execute(future);
-            reference.add(future);
+            buffer.add(future);
             return future;
         } catch (Throwable failedToSubmit) {
             if (future != null) {

@@ -26,7 +26,7 @@ public class TimestampingExecution<T> {
     }
 
     protected Executor executor;
-    protected CyclicBuffer<TimestampedFuture<T>> reference;
+    protected CyclicBuffer<TimestampedFuture<T>> buffer;
 
     protected WaitTime toleranceNanos;
     protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(false);
@@ -38,14 +38,14 @@ public class TimestampingExecution<T> {
     public TimestampingExecution(Executor executor, WaitTime tolerance, int cycle) {
         this.executor = Nulls.requireNonNull(executor);
         this.toleranceNanos = WaitTime.ofNanos(Nulls.requireNonNull(tolerance).toNanosAssert());
-        this.reference = new CyclicBuffer<>(cycle);
+        this.buffer = new CyclicBuffer<>(cycle);
     }
 
     protected TimestampedFuture<T> cyclicAdd(long now, Callable<T> task) {
         //assume we have the lock
         TimestampedFuture<T> future = new TimestampedFuture<>(now, task);
         executor.execute(future);
-        reference.add(future);
+        buffer.add(future);
         return future;
     }
 
@@ -61,7 +61,7 @@ public class TimestampingExecution<T> {
         final long now = Java.getNanoTime();
         try {
             lock.readLock().lock();
-            TimestampedFuture<T> last = reference.getLastAdded();
+            TimestampedFuture<T> last = buffer.getLastAdded();
             if (!auto && last != null && last.created + tolerance.toNanos() >= now) { // within tolerance
                 return last;
             } else {
