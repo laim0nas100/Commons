@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import lt.lb.commons.threads.NPhaseActionAggregator;

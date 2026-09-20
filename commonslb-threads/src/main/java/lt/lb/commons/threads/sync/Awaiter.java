@@ -44,7 +44,7 @@ public interface Awaiter {
             await(time.time, time.unit);
         }
         
-        public default boolean awaitBool(WaitTime time) throws InterruptedException, TimeoutException {
+        public default boolean awaitBool(WaitTime time) throws InterruptedException {
             return awaitBool(time.time, time.unit);
         }
         
