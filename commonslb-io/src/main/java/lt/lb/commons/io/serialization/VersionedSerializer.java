@@ -75,7 +75,7 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
      *
      * @param fieldName
      * @param value
-     * @param context
+     * @param context unused here
      * @return
      * @throws VSException
      */
@@ -220,21 +220,28 @@ public class VersionedSerializer extends VersionedSerializationMapper<VersionedS
         // not null
         Class type = value.getClass();
         ITypeEntry typeEntry = getComplexTypeEntry(type);
-        if (typeEntry.isRefCounting() && context.refMap.containsKey(value)) {
-            VSUnit reference = context.refMap.get(value);
-            TraitReferenced referenced = F.cast(reference);
-            Long id = referenced.getRef();
-            if (id == null) {// not referenced before, set and increment
-                id = context.refId++;
-                referenced.setRef(id);
+        if (typeEntry.isRefCounting()) {
+            if (context == null) {
+                throw new VSException("No VersionedSerializationContext provided, can't check a reference of a refCounting type:" + type);
+            } else if (context.refMap.containsKey(value)) {
+                VSUnit reference = context.refMap.get(value);
+                TraitReferenced referenced = F.cast(reference);
+                Long id = referenced.getRef();
+                if (id == null) {// not referenced before, set and increment
+                    id = context.refId++;
+                    referenced.setRef(id);
+                }
+                return newReference(fieldName, id);
             }
-            return newReference(fieldName, id);
         }
 
         Long version = typeEntry.getVersion();
         final ComplexVSU unit = version == null ? newComplexUnit(fieldName) : newCustomUnit(fieldName, version);
         unit.setType(type.getName());
         if (typeEntry.isRefCounting()) {//store incomplete value reference
+            if (context == null) {
+                throw new VSException("No VersionedSerializationContext provided, can't store a reference of a refCounting type:" + type);
+            }
             context.refMap.put(value, unit);
         }
 

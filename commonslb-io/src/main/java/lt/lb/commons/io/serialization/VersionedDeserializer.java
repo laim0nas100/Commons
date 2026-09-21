@@ -290,7 +290,7 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
      * @param consumer
      */
     protected void stackOrResolveCycle(VersionedDeserializationContext context, VSUnit unit, Consumer consumer) {
-        if (context.resolvedCyclicRecords) { // look inside
+        if (contextResolveCyclic(context)) { // look inside
             if (unit instanceof ReferenceVSU) {
                 ReferenceVSU ref = F.cast(unit);
                 Long r = ref.getRef();
@@ -331,6 +331,9 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         if (refCheck) {
             Long referenced = complex.getRef();
             if (referenced != null) {
+                if (!contextPresent(context)) {
+                    throw new VSException("No VersionedDeserializationContext provided, can't resolve referenced complex object:" + referenced);
+                }
                 if (context.refMap.containsKey(referenced)) {
                     throw new VSException("Duplicate refId in refMap is not allowed");
                 }
@@ -477,10 +480,13 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
         }
         if (unit instanceof HolderVSU) {
             HolderVSU holder = F.cast(unit);
-            Long ref = holder.getRef();
+            Long referenced = holder.getRef();
             Object value = holder.getValue();
-            if (ref != null) {
-                Resolving resolving = context.refMap.computeIfAbsent(ref, k -> new Resolving());
+            if (referenced != null) {
+                if (!contextPresent(context)) {
+                    throw new VSException("No VersionedDeserializationContext provided, can't resolve referenced complex object:" + referenced);
+                }
+                Resolving resolving = context.refMap.computeIfAbsent(referenced, k -> new Resolving());
                 if (resolving.isUnresolved()) {
                     resolving.set(value);
                 }
@@ -599,6 +605,14 @@ public class VersionedDeserializer extends VersionedSerializationMapper<Versione
             return cast.getValue();
         }
         throw VSException.unrecognized(unit);
+    }
+
+    public static boolean contextPresent(VersionedDeserializationContext context) {
+        return context != null;
+    }
+
+    public static boolean contextResolveCyclic(VersionedDeserializationContext context) {
+        return context != null && context.resolvedCyclicRecords;
     }
 
 }
