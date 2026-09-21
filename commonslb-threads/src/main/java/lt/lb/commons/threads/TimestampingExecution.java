@@ -32,9 +32,15 @@ public class TimestampingExecution<T> {
     protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(false);
 
     public TimestampingExecution(Executor executor, WaitTime tolerance) {
-        this(executor, tolerance, 16);
+        this(executor, tolerance, 128);
     }
 
+    /**
+     * 
+     * @param executor
+     * @param tolerance
+     * @param cycle CyclicBuffer size. If unfinished tasks loop around, deadlock happens. Don't pick too small
+     */
     public TimestampingExecution(Executor executor, WaitTime tolerance, int cycle) {
         this.executor = Nulls.requireNonNull(executor);
         this.toleranceNanos = WaitTime.ofNanos(Nulls.requireNonNull(tolerance).toNanosAssert());
