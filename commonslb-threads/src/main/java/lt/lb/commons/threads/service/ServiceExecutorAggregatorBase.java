@@ -89,7 +89,7 @@ public class ServiceExecutorAggregatorBase extends AbstractExecutorService imple
         return servMap.containsKey(name);
     }
 
-    protected ExecutorService getOrCreate(String name, Supplier<? extends ExecutorService> supplier) {
+    public ExecutorService getOrCreate(String name, Supplier<? extends ExecutorService> supplier) {
         return servMap.compute(name, (k, current) -> {
             if (current == null) {
                 if (isShutdown()) {

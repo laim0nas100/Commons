@@ -505,9 +505,9 @@ public class Refl {
      */
     public static abstract class SelfIDBean {
 
-        protected final NestedCallDetection inside_hash = NestedCallDetection.threadLocal();
-        protected final NestedCallDetection inside_equals = NestedCallDetection.threadLocal();
-        protected final NestedCallDetection inside_string = NestedCallDetection.threadLocal();
+        protected final transient NestedCallDetection inside_hash = NestedCallDetection.threadLocal();
+        protected final transient NestedCallDetection inside_equals = NestedCallDetection.threadLocal();
+        protected final transient NestedCallDetection inside_string = NestedCallDetection.threadLocal();
 
         @Override
         public int hashCode() {
