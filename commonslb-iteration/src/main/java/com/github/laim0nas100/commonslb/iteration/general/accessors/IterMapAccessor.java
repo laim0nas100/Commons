@@ -1,0 +1,14 @@
+package com.github.laim0nas100.commonslb.iteration.general.accessors;
+
+import com.github.laim0nas100.commonslb.iteration.general.cons.IterMapCons;
+import com.github.laim0nas100.commonslb.iteration.general.result.IterMapResult;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public interface IterMapAccessor {
+
+    public <K, V> SafeOpt<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter);
+}

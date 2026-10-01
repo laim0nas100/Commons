@@ -11,9 +11,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import lt.lb.commons.DLog;
-import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.misc.compare.ComparatorBuilder;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.iteration.ReadOnlyIterator;
+import com.github.laim0nas100.commonslb.misc.compare.ComparatorBuilder;
 
 /**
  *

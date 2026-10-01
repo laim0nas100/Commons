@@ -8,17 +8,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import javax.persistence.metamodel.SingularAttribute;
-import lt.lb.commons.containers.collections.ImmutableCollections;
-import lt.lb.commons.jpa.EntityFacade;
-import lt.lb.commons.jpa.EntityManagerAware;
-import lt.lb.commons.jpa.ids.GenericIDFactory;
-import lt.lb.commons.jpa.ids.IDFactory;
+import com.github.laim0nas100.commonslb.containers.collections.ImmutableCollections;
+import com.github.laim0nas100.commonslb.jpa.EntityFacade;
+import com.github.laim0nas100.commonslb.jpa.EntityManagerAware;
+import com.github.laim0nas100.commonslb.jpa.ids.GenericIDFactory;
+import com.github.laim0nas100.commonslb.jpa.ids.IDFactory;
 import experimental.jpa.lazy.LazyLoadContext;
 import experimental.jpa.lazy.LazyLoadResult;
 import experimental.jpa.lazy.LazyLoadType;
 import experimental.jpa.lazy.LazyLoaderIds;
 import experimental.jpa.lazy.LazySearcher;
-import lt.lb.commons.jpa.querydecor.JpaQueryDecor;
+import com.github.laim0nas100.commonslb.jpa.querydecor.JpaQueryDecor;
 
 /**
  *

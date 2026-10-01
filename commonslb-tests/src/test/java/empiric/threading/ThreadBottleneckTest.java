@@ -7,10 +7,10 @@ package empiric.threading;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.values.LongValue;
-import lt.lb.commons.threads.sync.ThreadBottleneck;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.containers.values.LongValue;
+import com.github.laim0nas100.commonslb.threads.sync.ThreadBottleneck;
 import org.junit.Test;
 import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 

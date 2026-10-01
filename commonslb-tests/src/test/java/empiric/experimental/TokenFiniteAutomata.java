@@ -9,12 +9,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.parsing.Lexer;
-import lt.lb.commons.parsing.token.Token;
-import lt.lb.commons.parsing.token.match.DefaultMatchedTokenProducer;
-import lt.lb.commons.parsing.token.match.TokenMatcher;
-import lt.lb.commons.parsing.token.match.TokenMatchers;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.parsing.Lexer;
+import com.github.laim0nas100.commonslb.parsing.token.Token;
+import com.github.laim0nas100.commonslb.parsing.token.match.DefaultMatchedTokenProducer;
+import com.github.laim0nas100.commonslb.parsing.token.match.TokenMatcher;
+import com.github.laim0nas100.commonslb.parsing.token.match.TokenMatchers;
 
 /**
  *

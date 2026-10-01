@@ -1,7 +1,7 @@
 package empiric.core;
 
 
-import lt.lb.commons.containers.collections.PagedList;
+import com.github.laim0nas100.commonslb.containers.collections.PagedList;
 
 
 // comment me out lol

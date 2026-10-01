@@ -10,11 +10,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.misc.rng.RandomDistribution;
-import lt.lb.commons.threads.Futures;
-import lt.lb.commons.threads.RunnableDecorators;
-import lt.lb.commons.threads.sync.WaitTime;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.misc.rng.RandomDistribution;
+import com.github.laim0nas100.commonslb.threads.Futures;
+import com.github.laim0nas100.commonslb.threads.RunnableDecorators;
+import com.github.laim0nas100.commonslb.threads.sync.WaitTime;
 import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 import org.junit.Test;
 

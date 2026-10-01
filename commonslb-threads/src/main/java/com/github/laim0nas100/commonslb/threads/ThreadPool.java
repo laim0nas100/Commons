@@ -1,0 +1,94 @@
+package com.github.laim0nas100.commonslb.threads;
+
+import java.util.concurrent.ThreadFactory;
+import java.util.stream.Stream;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public interface ThreadPool extends ThreadFactory {
+
+    public Stream<Thread> enumerate(boolean recurse);
+
+    /**
+     * True only if thread sate is TIMED_WAITING, WAITING or BLOCKED.
+     *
+     * @param thread
+     * @return
+     */
+    public static boolean threadIsWaiting(Thread thread) {
+        if (thread == null) {
+            return false;
+        }
+        switch (thread.getState()) {
+            case TIMED_WAITING:
+            case WAITING:
+            case BLOCKED:
+                return true;
+            default:
+                return false;
+        }
+
+    }
+
+    /**
+     * Interrupts thread which are of state
+     * {@code TIMED_WAITING, WAITING or BLOCKED}
+     */
+    public default void interruptWaiting() {
+        enumerate(true).filter(t -> threadIsWaiting(t)).forEach(Thread::interrupt);
+    }
+
+    /**
+     * Interrupts thread which are of alive
+     */
+    public default void interruptAlive() {
+        enumerate(true).filter(t -> t != null && t.isAlive()).forEach(Thread::interrupt);
+    }
+
+    /**
+     * @{inheritDoc}
+     */
+    @Override
+    public Thread newThread(Runnable r);
+
+    /**
+     * The {@link threadGroup} that this ThreadPool uses when creating threads.
+     *
+     * @return
+     */
+    public ThreadGroup getThreadGroup();
+
+    /**
+     * threads has this priority when created by ThreadPool
+     *
+     * @return
+     */
+    public int getThreadsPriority();
+
+    public void setThreadsPriority(int priority);
+
+    /**
+     * wether ThreadPool creates daemon threads
+     *
+     * @return
+     */
+    public boolean isThreadsDaemon();
+
+    public void setThreadsDaemon(boolean daemon);
+
+    /**
+     * ThreadPool creates threads that are started
+     *
+     * @return
+     */
+    public boolean isThreadsStarting();
+
+    public void setThreadsStarting(boolean start);
+
+    public ClassLoader getContextClassLoader();
+
+    public void setContextClassLoader(ClassLoader loader);
+
+}

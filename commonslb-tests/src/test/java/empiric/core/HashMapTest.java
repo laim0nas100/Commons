@@ -14,12 +14,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.collections.ImmutableCollections;
-import lt.lb.commons.containers.collections.ImmutableLinearSet;
-import lt.lb.commons.containers.collections.ImmutableLinearSetHashed;
-import lt.lb.commons.iteration.streams.MakeStream;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.containers.collections.ImmutableCollections;
+import com.github.laim0nas100.commonslb.containers.collections.ImmutableLinearSet;
+import com.github.laim0nas100.commonslb.containers.collections.ImmutableLinearSetHashed;
+import com.github.laim0nas100.commonslb.iteration.streams.MakeStream;
 
 /**
  *

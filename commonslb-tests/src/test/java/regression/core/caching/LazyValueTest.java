@@ -2,8 +2,8 @@ package regression.core.caching;
 
 import java.util.HashMap;
 import java.util.Map;
-import lt.lb.commons.containers.caching.lazy.LazyProxy;
-import lt.lb.commons.containers.caching.lazy.LazyValue;
+import com.github.laim0nas100.commonslb.containers.caching.lazy.LazyProxy;
+import com.github.laim0nas100.commonslb.containers.caching.lazy.LazyValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 

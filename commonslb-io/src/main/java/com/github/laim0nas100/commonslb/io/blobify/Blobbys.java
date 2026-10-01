@@ -1,0 +1,285 @@
+package com.github.laim0nas100.commonslb.io.blobify;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import com.github.laim0nas100.commonslb.io.DirectoryTreeVisitor;
+import com.github.laim0nas100.commonslb.io.blobify.bytes.Bytes;
+import com.github.laim0nas100.commonslb.io.blobify.bytes.ChunkyBytes;
+import com.github.laim0nas100.commonslb.io.blobify.bytes.ReadableSeekBytes;
+import com.github.laim0nas100.commonslb.io.blobify.bytes.WriteableBytes;
+import com.github.laim0nas100.commonslb.iteration.ReadOnlyIterator;
+import com.github.laim0nas100.uncheckedutils.NestedException;
+import com.github.laim0nas100.commonslb.misc.compare.ComparatorBuilder;
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public class Blobbys {
+    
+    public long nextOffset = 0;
+    public static final int KB = 1024;
+    public static final int MB = KB * KB;
+    
+    public static final int CHUNK_SIZE = 16 * MB;
+    
+    public static Blobbys loadFromConfig(ReadOnlyIterator<String> config) {
+        
+        Blobbys objs = new Blobbys();
+        
+        for (String line : config) {
+            
+            objs.add(Blobby.fromSerializableString(line));
+            
+        }
+        return objs;
+    }
+    
+    public static Blobbys loadFromDirectory(Path rootDirectory) throws IOException {
+        
+        Blobbys objs = new Blobbys();
+        DirectoryTreeVisitor visitor = new DirectoryTreeVisitor() {
+            
+            long offset = 0;
+            
+            @Override
+            public Boolean find(Path item) {
+                String relative = StringUtils.replace(rootDirectory.relativize(item).toString(), "\\", "/");
+                if (StringUtils.isAllBlank(relative)) { //just skip
+                    return false;
+                }
+                if (StringUtils.contains(relative, Blobby.sep)) {
+                    throw NestedException.of(new IOException(relative + " contains reserved custom separator: " + Blobby.sep));
+                }
+                if (!Files.isDirectory(item)) {
+                    try (SeekableByteChannel channel = Files.newByteChannel(item)) {
+                        
+                        long length = channel.size();
+                        
+                        ChunkyBytes chunky = ChunkyBytes.chunky(CHUNK_SIZE);
+                        ReadableSeekBytes readFromSeekableByteChannel = Bytes.readFromSeekableByteChannel(channel);
+                        chunky.readIn(length, readFromSeekableByteChannel);
+                        Blobby fromArgsFileBytes = Blobby.fromArgsFileBytes(relative, length, offset, chunky);
+                        objs.add(fromArgsFileBytes);
+                        
+                        offset += length;
+                        
+                    } catch (IOException e) {
+                        throw NestedException.of(e);
+                    }
+                    
+                } else {
+                    objs.add(Blobby.fromArgsDirectory(relative));
+                }
+                
+                return false;
+            }
+        };
+        
+        try {
+            visitor.BFS(rootDirectory);
+            return objs;
+        } catch (Throwable e) {
+            NestedException.unwrappedThrowIf(e, IOException.class);
+            throw NestedException.of(e);
+            
+        }
+        
+    }
+    
+    public void unload(String relative) {
+        this.get(relative).filter(p -> p.isLoadedFile()).ifPresent(p -> p.nullBytes());
+    }
+    
+    public void unloadAll() {
+        this.getKeys().forEach(k -> unload(k));
+    }
+    
+    public void loadAll(ReadableSeekBytes channel) throws IOException {
+        Blobby[] array = objects.values().stream().filter(f -> f.isUnloadedFile()).toArray(s -> new Blobby[s]);
+        for (Blobby obj : array) {
+            obj.tryLoad(channel);
+        }
+    }
+    
+    private HashMap<String, Blobby> objects = new HashMap<>();
+    
+    public ReadOnlyIterator<Blobby> getLoadedInOrder() {
+        return ReadOnlyIterator.of(getInOrder().filter(f -> f.isLoaded()));
+    }
+    
+    private static final Comparator<Blobby> blobbyCmp = new ComparatorBuilder<Blobby>()
+                .thenComparingValue(v -> v.getOffset())
+                .thenComparingValue(v -> v.getLength())
+                .thenComparingValue(v -> v.getRelativePath())
+                .build();
+    
+    public Stream<Blobby> getInOrder() {
+        return objects.values().stream().sorted(blobbyCmp);
+    }
+    
+    public Stream<String> getKeys() {
+        return objects.keySet().stream();
+    }
+    
+    public List<String> getKeysList() {
+        return getKeys().collect(Collectors.toList());
+    }
+    
+    public Blobbys add(Blobby obj) {
+        
+        if (objects.containsKey(obj.getRelativePath())) {
+            throw new IllegalArgumentException(obj.getRelativePath() + " is allready in this collection");
+        }
+        if (obj.isFile()) {
+            if (obj.getOffset() != getNextOffset()) {
+                throw new IllegalArgumentException("Last offset missmatch expected:" + getNextOffset() + " got:" + obj.getOffset());
+            }
+            nextOffset += obj.getLength();
+            
+        }
+        objects.put(obj.getRelativePath(), obj);
+        
+        return this;
+    }
+    
+    public int count() {
+        return objects.size();
+    }
+    
+    public int loadedCount() {
+        return (int) objects.values().stream().filter(f -> f.isLoaded()).count();
+    }
+    
+    public long loadedSize() {
+        return objects.values().stream().filter(f -> f.isLoadedFile()).mapToLong(m -> m.getLength()).sum();
+    }
+    
+    public boolean isAllLoaded() {
+        return count() == loadedCount();
+    }
+    
+    public long getNextOffset() {
+        return nextOffset;
+    }
+    
+    private long calculateNextOffset() {
+        return objects.values().stream()
+                .max(Comparator.comparing(v -> v.getOffset()))
+                .map(m -> m.getLength() + m.getOffset()).orElse(0L);
+    }
+    
+    public ArrayList<Blobby> getInOrderFiltered(Predicate<? super Blobby> filter) {
+        return this.getInOrder().filter(filter).collect(Collectors.toCollection(ArrayList::new));
+    }
+    
+    public void exportFiles(String exportFolder, BiConsumer<ChunkyBytes, Path> onFileExists) throws IOException {
+        Files.createDirectories(Paths.get(exportFolder));
+        
+        for (Blobby obj : getLoadedInOrder()) {
+            Path path = Paths.get(exportFolder, obj.getRelativePath());
+            
+            if (obj.isLoadedFile()) {
+                try (OutputStream newOutputStream = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
+                    obj.getBytes().writeOutFull(Bytes.writeToOutputStream(newOutputStream));
+                } catch (FileAlreadyExistsException ex) {
+                    onFileExists.accept(obj.getBytes(), path);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    NestedException.nestedThrow(e);
+                }
+            } else {
+                Files.createDirectories(path);
+            }
+        }
+    }
+    
+    public void exportFilesLoadOnDemand(String exportFolder, ReadableSeekBytes readableBytes, BiConsumer<ChunkyBytes, Path> onFileExists) throws IOException {
+        Files.createDirectories(Paths.get(exportFolder));
+        
+        for (Blobby obj : ReadOnlyIterator.of(getInOrder())) {
+            Path path = Paths.get(exportFolder, obj.getRelativePath());
+            if (obj.isUnloadedFile()) {
+                obj.tryLoad(readableBytes);
+            }
+            if (obj.isLoadedFile()) {
+                try (OutputStream newOutputStream = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW)) {
+                    obj.getBytes().writeOutFull(Bytes.writeToOutputStream(newOutputStream));
+                    obj.getBytes().nullBytes();
+                } catch (FileAlreadyExistsException ex) {
+                    onFileExists.accept(obj.getBytes(), path);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    NestedException.nestedThrow(e);
+                }
+            } else {
+                Files.createDirectories(path);
+            }
+        }
+    }
+    
+    public Blobbys copyWithOnlyLoaded() throws IOException {
+        Blobbys blob = new Blobbys();
+        long offset = 0;
+        for (Blobby obj : getLoadedInOrder()) {
+            
+            if (obj.isLoadedFile()) {
+                blob.add(Blobby.fromArgsFileBytes(obj.getRelativePath(), obj.getLength(), offset, obj.getBytes()));
+                offset += obj.getLength();
+            } else {
+                blob.add(Blobby.fromArgsDirectory(obj.getRelativePath()));
+                
+            }
+        }
+        return blob;
+    }
+    
+    public ArrayList<String> exportBlob(WriteableBytes output) throws IOException {
+        ArrayList<String> config = new ArrayList<>(this.loadedCount());
+        for (Blobby b : this.getLoadedInOrder()) {
+            config.add(b.toSerializable());
+            
+            if (b.isLoadedFile()) {
+                b.getBytes().writeOutFull(output);
+            }
+        }
+        return config;
+    }
+    
+    public Optional<Blobby> get(String relativePath) {
+        return Optional.ofNullable(objects.get(relativePath));
+    }
+    
+    public Optional<Blobby> getAndLoad(ReadableSeekBytes channel, String relativePath) throws IOException {
+        
+        Optional<Blobby> get = this.get(relativePath);
+        
+        if (!get.isPresent()) {
+            return get;
+        }
+        Blobby blobby = get.get();
+        if (!blobby.isLoaded()) {
+            blobby.tryLoad(channel);
+        }
+        
+        return get;
+        
+    }
+    
+}

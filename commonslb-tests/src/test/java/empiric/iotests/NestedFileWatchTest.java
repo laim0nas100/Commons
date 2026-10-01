@@ -8,8 +8,8 @@ package empiric.iotests;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.io.filewatch.NestedFileWatch;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.io.filewatch.NestedFileWatch;
 
 /**
  *

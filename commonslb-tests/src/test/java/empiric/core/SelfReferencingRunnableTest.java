@@ -3,9 +3,9 @@ package empiric.core;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import lt.lb.commons.F;
-import lt.lb.commons.containers.values.Value;
-import lt.lb.commons.threads.executors.FastExecutor;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.containers.values.Value;
+import com.github.laim0nas100.commonslb.threads.executors.FastExecutor;
 import com.github.laim0nas100.uncheckedutils.Checked;
 /**
  *

@@ -5,11 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import lt.lb.commons.parsing.Param;
+import com.github.laim0nas100.commonslb.parsing.Param;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import lt.lb.commons.parsing.MapWiring;
-import lt.lb.commons.parsing.MapWiring.SimpleStringMapWiring;
+import com.github.laim0nas100.commonslb.parsing.MapWiring;
+import com.github.laim0nas100.commonslb.parsing.MapWiring.SimpleStringMapWiring;
 
 /**
  *

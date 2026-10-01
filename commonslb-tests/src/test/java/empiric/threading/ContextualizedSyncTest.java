@@ -5,10 +5,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import lt.lb.commons.DLog;
-import lt.lb.commons.threads.executors.FastWaitingExecutor;
-import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.commons.threads.sync.contextualizedsync.ContextualizedSync;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.threads.executors.FastWaitingExecutor;
+import com.github.laim0nas100.commonslb.threads.sync.WaitTime;
+import com.github.laim0nas100.commonslb.threads.sync.contextualizedsync.ContextualizedSync;
 import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 import org.junit.Test;
 

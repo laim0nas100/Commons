@@ -3,9 +3,9 @@ package empiric.threading;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.threads.executors.scheduled.DelayedTaskExecutor;
-import lt.lb.commons.threads.sync.WaitTime;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.threads.executors.scheduled.DelayedTaskExecutor;
+import com.github.laim0nas100.commonslb.threads.sync.WaitTime;
 
 /**
  *

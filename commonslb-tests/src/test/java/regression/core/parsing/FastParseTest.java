@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lt.lb.commons.parsing.numbers.FastParse;
+import com.github.laim0nas100.commonslb.parsing.numbers.FastParse;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 

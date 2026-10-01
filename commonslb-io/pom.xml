@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>lt.lb.commons</groupId>
+    <groupId>com.github.laim0nas100.commonslb</groupId>
     <artifactId>commonslb-io</artifactId>
     <packaging>jar</packaging>
     
     <parent>
-        <groupId>lt.lb.commons</groupId>
-        <artifactId>commons-root</artifactId>
+        <groupId>com.github.laim0nas100.commonslb</groupId>
+        <artifactId>commonslb-root</artifactId>
         <version>local-jar</version>
     </parent>
     <name>CommonsLB IO</name>
     
     <dependencies>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-threads</artifactId>
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-reflection</artifactId>
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-misc</artifactId>
         </dependency>
         
@@ -31,7 +31,7 @@
             <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-iteration</artifactId>
         </dependency>
         <dependency>

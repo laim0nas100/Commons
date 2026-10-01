@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>lt.lb.commons</groupId>
-    <artifactId>commons-root</artifactId>
+    <groupId>com.github.laim0nas100.commonslb</groupId>
+    <artifactId>commonslb-root</artifactId>
     <version>local-jar</version>
     <packaging>pom</packaging>
     <properties>
@@ -47,98 +47,98 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-core</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-iteration</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-misc</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-datasync</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-rows</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-collections</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-lexing</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-io</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-threads</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-jpa</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-refmodel</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-javafx</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-reflection</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-email</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-tests</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-log</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-jobs</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-caching</artifactId>
                 <version>${project.production.version}</version>
             </dependency>
             
             <dependency>
-                <groupId>lt.lb.commons</groupId>
+                <groupId>com.github.laim0nas100.commonslb</groupId>
                 <artifactId>commonslb-graphtheory</artifactId>
                 <version>${project.production.version}</version>
             </dependency>

@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>lt.lb.commons</groupId>
+    <groupId>com.github.laim0nas100.commonslb</groupId>
     <artifactId>commonslb-graphtheory</artifactId>
     <packaging>jar</packaging>
     <name>CommonsLB Graph Theory</name>
     <parent>
-        <groupId>lt.lb.commons</groupId>
-        <artifactId>commons-root</artifactId>
+        <groupId>com.github.laim0nas100.commonslb</groupId>
+        <artifactId>commonslb-root</artifactId>
         <version>local-jar</version>
     </parent>
     <dependencies>
         
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-core</artifactId>
         </dependency>     
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-log</artifactId>
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-iteration</artifactId>
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-collections</artifactId>
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-misc</artifactId>
         </dependency>
         <dependency>

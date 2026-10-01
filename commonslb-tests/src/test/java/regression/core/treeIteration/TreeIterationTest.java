@@ -6,11 +6,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import lt.lb.commons.graphtheory.GNode;
-import lt.lb.commons.graphtheory.Orgraph;
-import lt.lb.commons.iteration.ChildrenIteratorProvider;
-import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.iteration.TreeVisitor;
+import com.github.laim0nas100.commonslb.graphtheory.GNode;
+import com.github.laim0nas100.commonslb.graphtheory.Orgraph;
+import com.github.laim0nas100.commonslb.iteration.ChildrenIteratorProvider;
+import com.github.laim0nas100.commonslb.iteration.ReadOnlyIterator;
+import com.github.laim0nas100.commonslb.iteration.TreeVisitor;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 

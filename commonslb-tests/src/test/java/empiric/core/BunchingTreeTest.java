@@ -1,6 +1,6 @@
 package empiric.core;
 
-import lt.lb.commons.containers.collections.BunchingTree;
+import com.github.laim0nas100.commonslb.containers.collections.BunchingTree;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -10,12 +10,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.tuples.Tuples;
-import lt.lb.commons.iteration.streams.MakeStream;
-import lt.lb.commons.misc.rng.FastRandom;
-import lt.lb.commons.misc.rng.RandomDistribution;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.containers.tuples.Tuples;
+import com.github.laim0nas100.commonslb.iteration.streams.MakeStream;
+import com.github.laim0nas100.commonslb.misc.rng.FastRandom;
+import com.github.laim0nas100.commonslb.misc.rng.RandomDistribution;
 import com.github.laim0nas100.fastid.FastIDGen;
 
 /**

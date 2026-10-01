@@ -1,0 +1,47 @@
+package com.github.laim0nas100.commonslb.threads.executors;
+
+import java.util.Objects;
+import java.util.concurrent.LinkedBlockingQueue;
+import com.github.laim0nas100.commonslb.threads.ThreadPool;
+import com.github.laim0nas100.commonslb.threads.sync.ConcurrentArena;
+import com.github.laim0nas100.commonslb.threads.sync.WaitTime;
+
+/**
+ *
+ * Similar to @see FastExecutor, but spawns new Threads sparingly. Simply
+ * waiting set time for new tasks become available before exiting. Default wait
+ * time is 1 second.
+ *
+ * @author laim0nas100
+ */
+public class FastWaitingExecutor extends FastExecutor {
+
+    protected WaitTime wt;
+
+    public FastWaitingExecutor(int maxThreads) {
+        this(maxThreads, WaitTime.ofSeconds(1));
+    }
+
+    public FastWaitingExecutor(int maxThreads, WaitTime time) {
+        this(maxThreads, time,createDefaultThreadPool(FastWaitingExecutor.class));
+    }
+
+    protected FastWaitingExecutor(int maxThreads, WaitTime time, ThreadPool pool) {
+        super(maxThreads, pool);
+        this.tasks = makeQueue();
+        this.wt = Objects.requireNonNull(time);
+    }
+
+    @Override
+    protected ConcurrentArena<Runnable> makeQueue() {
+        if (maxThreads == 0) {
+            return null;
+        }
+        return ConcurrentArena.fromBlocking(new LinkedBlockingQueue<>());
+    }
+
+    @Override
+    protected Runnable getNext() throws InterruptedException{
+        return tasks.poll(wt.time, wt.unit);
+    }
+}

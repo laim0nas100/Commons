@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import lt.lb.commons.DLog;
-import lt.lb.commons.Ins;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.clone.CloneSupport;
-import lt.lb.commons.clone.Cloner;
-import lt.lb.commons.clone.RefCountingCloner;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.Ins;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.clone.CloneSupport;
+import com.github.laim0nas100.commonslb.clone.Cloner;
+import com.github.laim0nas100.commonslb.clone.RefCountingCloner;
 
 /**
  *

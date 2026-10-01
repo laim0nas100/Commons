@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.misc.Range;
-import lt.lb.commons.threads.executors.FastExecutor;
-import lt.lb.commons.threads.executors.PriorityFastWaitingExecutor;
-import lt.lb.commons.threads.sync.ThreadBottleneck;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.misc.Range;
+import com.github.laim0nas100.commonslb.threads.executors.FastExecutor;
+import com.github.laim0nas100.commonslb.threads.executors.PriorityFastWaitingExecutor;
+import com.github.laim0nas100.commonslb.threads.sync.ThreadBottleneck;
 import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**

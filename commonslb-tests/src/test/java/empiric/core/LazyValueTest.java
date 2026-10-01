@@ -3,9 +3,9 @@ package empiric.core;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.containers.caching.lazy.LazyProxy;
-import lt.lb.commons.containers.caching.lazy.LazyValue;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.containers.caching.lazy.LazyProxy;
+import com.github.laim0nas100.commonslb.containers.caching.lazy.LazyValue;
 import org.junit.Test;
 
 /**

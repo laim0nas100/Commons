@@ -1,9 +1,9 @@
 package empiric.core.tables.test;
 
 import java.util.ArrayList;
-import lt.lb.commons.containers.tables.CellPrep;
-import lt.lb.commons.containers.tables.CellTable;
-import lt.lb.commons.containers.tables.Formatters;
+import com.github.laim0nas100.commonslb.containers.tables.CellPrep;
+import com.github.laim0nas100.commonslb.containers.tables.CellTable;
+import com.github.laim0nas100.commonslb.containers.tables.Formatters;
 
 /**
  *

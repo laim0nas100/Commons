@@ -3,9 +3,9 @@ package experimental.trait;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import lt.lb.commons.DLog;
-import lt.lb.commons.containers.traits.Trait;
-import lt.lb.commons.containers.traits.TraitStorageGlobal;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.containers.traits.Trait;
+import com.github.laim0nas100.commonslb.containers.traits.TraitStorageGlobal;
 
 /**
  *

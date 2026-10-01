@@ -1,6 +1,6 @@
 package regression.datasync;
 
-import lt.lb.commons.reflect.beans.BasicBeanPropertyAccess;
+import com.github.laim0nas100.commonslb.reflect.beans.BasicBeanPropertyAccess;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 

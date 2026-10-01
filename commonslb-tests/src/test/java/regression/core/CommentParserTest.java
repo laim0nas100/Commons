@@ -5,10 +5,10 @@ import java.io.FileInputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import lt.lb.commons.DLog;
-import lt.lb.commons.io.text.TextFileIO;
-import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.io.text.CommentParser;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.io.text.TextFileIO;
+import com.github.laim0nas100.commonslb.iteration.ReadOnlyIterator;
+import com.github.laim0nas100.commonslb.io.text.CommentParser;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 

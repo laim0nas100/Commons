@@ -14,16 +14,16 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Random;
-import lt.lb.commons.ArrayOp;
-import lt.lb.commons.F;
-import lt.lb.commons.Java;
-import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.DLog;
-import lt.lb.commons.containers.collections.ListDeque;
-import lt.lb.commons.containers.collections.PagedHashList;
-import lt.lb.commons.containers.collections.PagedList;
-import lt.lb.commons.containers.collections.PrefillArrayList;
-import lt.lb.commons.misc.rng.RandomDistribution;
+import com.github.laim0nas100.commonslb.ArrayOp;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.Java;
+import com.github.laim0nas100.commonslb.LineStringBuilder;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.containers.collections.ListDeque;
+import com.github.laim0nas100.commonslb.containers.collections.PagedHashList;
+import com.github.laim0nas100.commonslb.containers.collections.PagedList;
+import com.github.laim0nas100.commonslb.containers.collections.PrefillArrayList;
+import com.github.laim0nas100.commonslb.misc.rng.RandomDistribution;
 import org.junit.Test;
 
 /**

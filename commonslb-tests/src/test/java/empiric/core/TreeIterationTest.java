@@ -4,15 +4,15 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.graphtheory.GNode;
-import lt.lb.commons.graphtheory.Orgraph;
-import lt.lb.commons.iteration.ReadOnlyBidirectionalIterator;
-import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.iteration.TreeVisitor;
-import lt.lb.commons.iteration.impl.TreeVisitorImpl;
-import lt.lb.commons.misc.rng.RandomDistribution;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.graphtheory.GNode;
+import com.github.laim0nas100.commonslb.graphtheory.Orgraph;
+import com.github.laim0nas100.commonslb.iteration.ReadOnlyBidirectionalIterator;
+import com.github.laim0nas100.commonslb.iteration.ReadOnlyIterator;
+import com.github.laim0nas100.commonslb.iteration.TreeVisitor;
+import com.github.laim0nas100.commonslb.iteration.impl.TreeVisitorImpl;
+import com.github.laim0nas100.commonslb.misc.rng.RandomDistribution;
 import com.github.laim0nas100.uncheckedutils.Checked;
 /**
  *

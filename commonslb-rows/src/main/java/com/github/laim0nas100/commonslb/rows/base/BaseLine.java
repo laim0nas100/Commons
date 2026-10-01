@@ -1,0 +1,126 @@
+package com.github.laim0nas100.commonslb.rows.base;
+
+import java.util.ArrayList;
+import java.util.List;
+import com.github.laim0nas100.commonslb.rows.Drows;
+
+/**
+ *
+ * @author laim0nas100
+ * @param <DR> Drows
+ * @param <C> BaseCell
+ * @param <N> Node
+ */
+public class BaseLine<DR extends Drows<?, ?, DR, ?>, C extends BaseCell<N, ?>, N> {
+
+    protected DR originalRows;
+    protected List<C> cells = new ArrayList<>();
+    protected List<N> renderedNodes = new ArrayList<>();
+    protected int lastVisibleIndex = -1;
+
+    protected Runnable derender = null;
+
+    public BaseLine(DR originalRows) {
+        this.originalRows = originalRows;
+    }
+
+    /**
+     * Gets the original Drows object when this line was created.
+     *
+     * @return
+     */
+    public DR getOriginalRows() {
+        return originalRows;
+    }
+
+    /**
+     * Gets relevant Drows object. Only different from getOriginalRows when
+     * composition is used.
+     *
+     * @return
+     */
+    public DR getRows() {
+        return originalRows.getLastParentOrMe();
+    }
+
+    /**
+     * Drows object at the time of creation this line
+     *
+     * @param originalRows
+     */
+    public void setOriginalRows(DR originalRows) {
+        this.originalRows = originalRows;
+    }
+
+    /**
+     * Cells submitted to render.
+     *
+     * @return
+     */
+    public List<C> getCells() {
+        return cells;
+    }
+
+    public void setCells(List<C> cells) {
+        this.cells = cells;
+    }
+
+    /**
+     * Actual nodes that has been rendered.
+     *
+     * @return
+     */
+    public List<N> getRenderedNodes() {
+        return renderedNodes;
+    }
+
+    public void setRenderedNodes(List<N> renderedNodes) {
+        this.renderedNodes = renderedNodes;
+    }
+
+    /**
+     * Routine to remove drawn things
+     * 
+     * @return
+     */
+    public Runnable getDerender() {
+        return derender;
+    }
+
+    /**
+     * Run derender routine and replace with empty runnable
+     */
+    public void derender() {
+        Runnable derend = getDerender();
+        if (derend == null) {
+            return;
+        }
+        derend.run();
+        setDerender(null);
+    }
+
+    /**
+     * Set derender routine
+     *
+     * @param derender
+     */
+    public void setDerender(Runnable derender) {
+        this.derender = derender;
+    }
+
+    /**
+     *
+     * Last index this line was rendered at relative to configured {@link Drows}
+     * -1 if was not visible before
+     *
+     * @return
+     */
+    public int getLastVisibleIndex() {
+        return lastVisibleIndex;
+    }
+
+    public void setLastVisibleIndex(int lastVisibleIndex) {
+        this.lastVisibleIndex = lastVisibleIndex;
+    }
+
+}

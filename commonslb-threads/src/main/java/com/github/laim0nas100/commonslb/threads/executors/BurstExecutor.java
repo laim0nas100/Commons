@@ -1,0 +1,610 @@
+package com.github.laim0nas100.commonslb.threads.executors;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.Nulls;
+import com.github.laim0nas100.commonslb.misc.numbers.Atomic;
+import com.github.laim0nas100.commonslb.threads.ThreadPool;
+import com.github.laim0nas100.commonslb.threads.sync.ConcurrentConsume;
+
+/**
+ *
+ * Spawns new threads on demand. If all tasks are exhausted, thread terminates
+ * immediately.
+ *
+ * Max threads parameter:<br> negative = unlimited threads;<br> 0 - no threads,
+ * execution in the same thread;<br> positive - bounded threads.
+ *
+ * Must call {@code Burst} to actually begin executing
+ *
+ * @author laim0nas100
+ */
+public class BurstExecutor extends BaseExecutor implements CloseableExecutor {
+
+    public static class BurstBatch extends ConcurrentConsume<Runnable> {
+
+        public final int batching;
+
+        public BurstBatch() {
+            this(128);
+        }
+
+        public BurstBatch(int size) {
+            this(size, 1);
+        }
+
+        public BurstBatch(int size, int batch) {
+            super(size);
+            this.batching = Math.max(batch, 1);
+        }
+
+        public List<Runnable> consumeAllAtOnce() {
+            int size = array.size();
+            int starting = Atomic.getAndUpdate(consume, s -> size);
+            if (size == 0 || starting > size) {
+                return new ArrayList<>();
+            }
+            return new ArrayList<>(array.subList(starting, size));
+        }
+
+        public Runnable[] consumeBatch() {
+            int i = Atomic.getAndIncrement(consume, batching);
+            if (i >= array.size()) {
+                return null;
+            }
+
+            int limit = Math.min(array.size(), i + batching);
+            int size = limit - i;
+            Runnable[] runnables = new Runnable[size];
+
+            for (int j = 0; j < size;) {
+                runnables[j++] = array.get(i++);
+
+            }
+            return runnables;
+        }
+
+        @Override
+        public Runnable consume() {
+            return super.consume();
+        }
+
+        public List<Runnable> consumeAll() {
+            List<Runnable> consumed = new ArrayList<>();
+            Runnable c = consume();
+            while (c != null) {
+                consumed.add(c);
+                c = consume();
+            }
+            return consumed;
+        }
+
+    }
+
+    protected ConcurrentLinkedQueue<BurstBatch> bursts = new ConcurrentLinkedQueue<>();
+    protected BurstBatch currentBurst;
+
+    protected ThreadPool pool;
+
+    protected final int maxThreads;
+    protected final int batching;
+    protected AtomicInteger occupiedThreads = new AtomicInteger(0);
+    protected CompletableFuture awaitTermination = new CompletableFuture();
+
+    protected Consumer<Throwable> errorChannel = (err) -> {
+    };
+    
+    
+    /**
+     *
+     * @param maxThreads positive limited threads negative unlimited threads
+     * zero no threads, execute during update
+     * @param batching how many tasks to consume at once per worker. Relevant to
+     * minimize CAS congestion if tasks are small.
+     *
+     */
+    public BurstExecutor(int maxThreads, int batching) {
+        this(maxThreads, batching, createDefaultThreadPool(BurstExecutor.class));
+    }
+
+    /**
+     *
+     * @param maxThreads positive limited threads negative unlimited threads
+     * zero no threads, execute during update
+     *
+     */
+    public BurstExecutor(int maxThreads) {
+        this(maxThreads, 1);
+    }
+
+    protected BurstExecutor(int maxThreads, int batching, ThreadPool threadPool) {
+        this.pool = Nulls.requireNonNull(threadPool, "threadPool must not be null");
+        this.maxThreads = maxThreads;
+        this.batching = Math.max(batching, 1);
+        pool.setThreadsStarting(true);
+        this.currentBurst = createNewBurst();
+    }
+
+    protected BurstBatch createNewBurst() {
+        return new BurstBatch(128, batching);
+    }
+
+    public void setErrorChannel(Consumer<Throwable> channel) {
+        Nulls.requireNonNull(channel, "Error channel must not be null");
+        errorChannel = channel;
+    }
+
+    public boolean isDaemon() {
+        return pool.isThreadsDaemon();
+    }
+
+    /**
+     * Updates all active thread status and every newly spawned thread will be
+     * of newly updated status
+     *
+     * @param deamon
+     */
+    public void setDaemon(boolean deamon) {
+        pool.setThreadsDaemon(deamon);
+    }
+
+    public Consumer<Throwable> getErrorChannel() {
+        return errorChannel;
+    }
+
+    protected void execute(BurstBatch providedBurst, Runnable command) {
+        if (!open) {
+            throw new IllegalStateException("Not open");
+        }
+        Objects.requireNonNull(command, "null runnable recieved");
+        if (maxThreads == 0) {
+            executeSingle(command);
+        } else {
+            BurstBatch burst = Nulls.requireNonNullElse(providedBurst, currentBurst);
+            if (!burst.add(command)) {
+                throw new IllegalStateException("Failed to submit runnable, burst command must be in the same thread as execute");
+            }
+
+        }
+    }
+
+    @Override
+    public void execute(Runnable command) {
+        execute(null, command);
+    }
+
+    @Override
+    public int parallelism() {
+        return maxThreads;
+    }
+
+    public void burst() {
+        burst(null);
+    }
+
+    protected void burst(BurstBatch burst) {
+        if (burst == null) {
+            burst = currentBurst;
+            currentBurst = createNewBurst();
+        }
+        burst.readOnly();
+        bursts.add(burst);
+        if (maxThreads == 0) {
+            for (;;) {
+                BurstBatch poll = bursts.poll();
+                if (poll == null) {
+                    if (bursts.isEmpty()) {
+                        break;
+                    }
+
+                } else {
+                    polling(poll);
+                }
+            }
+            return;
+        }
+        int unfinished = burst.unfinished();
+        int howMany = maxThreads < 0 ? unfinished : Math.min(maxThreads, unfinished);
+        for (int i = 0; i < howMany; i++) {
+            boolean ok = maybeStartThread(burst);
+            if (!ok) {
+                return;// allready running
+            }
+        }
+    }
+
+    protected boolean polling(BurstBatch burst) {
+        if (burst.batching > 1) {
+            for (;;) {
+                Runnable[] batch = burst.consumeBatch();
+                if (batch.length == 0) {
+                    return Thread.interrupted();
+                }
+                for (Runnable run : batch) {
+                    if (run == null) {
+                        return Thread.interrupted();
+                    } else {
+                        executeSingle(run);
+                    }
+                }
+
+            }
+        } else {
+            for (;;) {
+
+                Runnable run = burst.consume();
+                if (run == null) {
+                    return Thread.interrupted();
+                } else {
+                    executeSingle(run);
+                }
+            }
+        }
+
+    }
+
+    protected final void executeSingle(Runnable run) {
+        try {
+            run.run();
+        } catch (Throwable th) {
+            try {
+                getErrorChannel().accept(th);
+            } catch (Throwable err) {// we are really screwed now
+                err.printStackTrace();
+            }
+        }
+    }
+
+    protected final Runnable threadBody(BurstBatch burst) {
+        return () -> {
+
+            boolean cancel = false;
+            try {
+                cancel = polling(burst);
+            } finally {
+                int leftRunning = occupiedThreads.decrementAndGet(); //thread no longer running (not really)
+
+                if (leftRunning == 0 && !cancel) {// if cancel, do not begin new burst
+                    BurstBatch burstFound = null;
+                    if (!bursts.isEmpty()) { //last thread, look for new burst
+
+                        for (;;) {
+                            BurstBatch poll = bursts.poll();
+                            if (poll == null) {
+                                if (bursts.isEmpty()) {
+                                    break;
+                                }
+
+                            } else {
+                                if (poll.unfinished() > 0) {
+                                    burstFound = poll;
+                                    break;
+                                }
+                            }
+                        }
+
+                    }
+                    if (burstFound != null) {
+                        burst(burstFound);
+                    } else {
+                        maybeTerminate(0);
+                    }
+                }
+            }
+        };
+    }
+
+    protected void maybeTerminate(int leftRunning) {
+        if (!open && leftRunning == 0) {
+            awaitTermination.complete(0);
+        }
+    }
+
+    protected Thread startThread(BurstBatch burst) {
+        return pool.newThread(threadBody(burst));//pool should start the thread
+    }
+
+    protected boolean maybeStartThread(BurstBatch burst) {
+        if (maxThreads > 0) {// limitedThreads
+            if (occupiedThreads.get() >= maxThreads) {//fast exit
+                return false;
+            }
+            if (occupiedThreads.incrementAndGet() > maxThreads) {
+                occupiedThreads.decrementAndGet();
+                return false;
+            }
+            startThread(burst);
+            return true;
+
+        }
+        if (maxThreads == 0) {
+            throw new IllegalArgumentException("Unsuported amount of threads 0");
+        }
+        occupiedThreads.incrementAndGet();
+        startThread(burst);
+        return true;
+
+    }
+
+    public List<Runnable> cancelAll(boolean interrupting) {
+        if (interrupting) {
+            pool.interruptAlive();
+        }
+
+        ArrayList<Runnable> unfinished = new ArrayList<>();
+
+        BurstBatch burst = currentBurst;
+        currentBurst = new BurstBatch();
+        burst.readOnly();
+        unfinished.addAll(burst.consumeAllAtOnce());
+
+        Iterator<BurstBatch> iterator = bursts.iterator();
+        while (iterator.hasNext()) {
+            BurstBatch next = iterator.next();
+            iterator.remove();
+            if (next != null) {
+                unfinished.addAll(next.consumeAllAtOnce());
+            }
+        }
+
+        return unfinished;
+    }
+
+    @Override
+    public List<Runnable> shutdownNow() {
+        shutdown();
+        List<Runnable> unfinished = cancelAll(true);
+        maybeTerminate(occupiedThreads.get());
+
+        return unfinished;
+    }
+
+    public boolean isBusy() {
+        return occupiedThreads.get() > 0;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return awaitTermination.isDone();
+    }
+
+    @Override
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        try {
+            if (isTerminated()) {
+                return true;
+            }
+            maybeTerminate(occupiedThreads.get());
+            this.awaitTermination.get(timeout, unit);
+            return true;
+        } catch (ExecutionException exe) {
+            throw new Error("Should never happen", exe);
+        } catch (TimeoutException ex) {
+            return false; // too late
+        }
+
+    }
+
+    /**
+     * Threads close automatically when all tasks are exhausted. This method
+     * ensures no more runnable`s gets submitted. Does not actually wait for
+     * threads to close.
+     */
+    @Override
+    public void shutdown() {
+        this.open = false;
+        maybeTerminate(occupiedThreads.get());
+    }
+
+    private <T> T doInvokeAny(Collection<? extends Callable<T>> tasks,
+            boolean timed, long nanos)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        if (tasks == null) {
+            throw new NullPointerException();
+        }
+        int ntasks = tasks.size();
+        if (ntasks == 0) {
+            throw new IllegalArgumentException();
+        }
+        ArrayList<Future<T>> futures = new ArrayList<>(ntasks);
+        ExecutorCompletionService<T> ecs
+                = new ExecutorCompletionService<T>(this);
+
+        // For efficiency, especially in executors with limited
+        // parallelism, check to see if previously submitted tasks are
+        // done before submitting more of them. This interleaving
+        // plus the exception mechanics account for messiness of main
+        // loop.
+        try {
+            // Record exceptions so that if we fail to obtain any
+            // result, we can throw the last exception we got.
+            ExecutionException ee = null;
+            final long deadline = timed ? System.nanoTime() + nanos : 0L;
+            Iterator<? extends Callable<T>> it = tasks.iterator();
+
+            // Start one task for sure; the rest incrementally
+            futures.add(ecs.submit(it.next()));
+            --ntasks;
+            int active = 1;
+
+            for (;;) {
+                Future<T> f = ecs.poll();
+                if (f == null) {
+                    if (ntasks > 0) {
+                        --ntasks;
+                        futures.add(ecs.submit(it.next()));
+                        ++active;
+                    } else if (active == 0) {
+                        break;
+                    } else if (timed) {
+                        burst(null);
+                        f = ecs.poll(nanos, TimeUnit.NANOSECONDS);
+                        if (f == null) {
+                            throw new TimeoutException();
+                        }
+                        nanos = deadline - System.nanoTime();
+                    } else {
+                        burst(null);
+                        f = ecs.take();
+                    }
+                }
+                if (f != null) {
+                    --active;
+                    try {
+                        return f.get();
+                    } catch (ExecutionException eex) {
+                        ee = eex;
+                    } catch (RuntimeException rex) {
+                        ee = new ExecutionException(rex);
+                    }
+                }
+            }
+
+            if (ee == null) {
+                ee = new ExecutionException(new IllegalStateException("Failed without exception"));
+            }
+            throw ee;
+
+        } finally {
+            cancelAll(futures);
+        }
+    }
+
+    /**
+     * @throws InterruptedException {@inheritDoc}
+     * @throws NullPointerException {@inheritDoc}
+     * @throws IllegalArgumentException {@inheritDoc}
+     * @throws ExecutionException {@inheritDoc}
+     * @throws RejectedExecutionException {@inheritDoc}
+     */
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
+        try {
+            return doInvokeAny(tasks, false, 0);
+        } catch (TimeoutException cannotHappen) {
+            assert false;
+            return null;
+        }
+    }
+
+    /**
+     * @throws InterruptedException {@inheritDoc}
+     * @throws NullPointerException {@inheritDoc}
+     * @throws TimeoutException {@inheritDoc}
+     * @throws ExecutionException {@inheritDoc}
+     * @throws RejectedExecutionException {@inheritDoc}
+     */
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks,
+            long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        return doInvokeAny(tasks, true, unit.toNanos(timeout));
+    }
+
+    /**
+     * @throws InterruptedException {@inheritDoc}
+     * @throws NullPointerException {@inheritDoc}
+     * @throws RejectedExecutionException {@inheritDoc}
+     */
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
+        if (tasks == null) {
+            throw new NullPointerException();
+        }
+        ArrayList<Future<T>> futures = new ArrayList<>(tasks.size());
+        BurstBatch burst = new BurstBatch(tasks.size());
+        try {
+            for (Callable<T> t : tasks) {
+                RunnableFuture<T> f = newTaskFor(t);
+                futures.add(f);
+                execute(burst, f);
+            }
+            burst(burst);
+
+            for (int i = 0, size = futures.size(); i < size; i++) {
+                Future<T> f = futures.get(i);
+                if (!f.isDone()) {
+                    try {
+                        f.get();
+                    } catch (CancellationException | ExecutionException ignore) {
+                    }
+                }
+            }
+            return futures;
+        } catch (Throwable t) {
+            cancelAll(futures);
+            throw t;
+        }
+    }
+
+    /**
+     * @throws InterruptedException {@inheritDoc}
+     * @throws NullPointerException {@inheritDoc}
+     * @throws RejectedExecutionException {@inheritDoc}
+     */
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks,
+            long timeout, TimeUnit unit)
+            throws InterruptedException {
+        if (tasks == null) {
+            throw new NullPointerException();
+        }
+        final long nanos = unit.toNanos(timeout);
+        final long deadline = System.nanoTime() + nanos;
+        ArrayList<RunnableFuture<T>> futures = new ArrayList<>(tasks.size());
+        BurstBatch burst = new BurstBatch(tasks.size());
+        int j = 0;
+        timedOut:
+        try {
+            for (Callable<T> t : tasks) {
+                futures.add(newTaskFor(t));
+            }
+
+            final int size = futures.size();
+
+            for (int i = 0; i < size; i++) {
+                execute(burst, futures.get(i));
+            }
+            burst(burst);
+
+            for (; j < size; j++) {
+                Future<T> f = futures.get(j);
+                if (!f.isDone()) {
+                    try {
+                        f.get(deadline - System.nanoTime(), TimeUnit.NANOSECONDS);
+                    } catch (CancellationException | ExecutionException ignore) {
+                    } catch (TimeoutException timedOut) {
+                        break timedOut;
+                    }
+                }
+            }
+            return F.cast(futures);
+        } catch (Throwable t) {
+            cancelAll(F.cast(futures));
+            throw t;
+        }
+        // Timed out before all the tasks could be completed; cancel remaining
+        cancelAll(F.cast(futures), j);
+        return F.cast(futures);
+    }
+
+}

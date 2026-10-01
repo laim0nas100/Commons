@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import lt.lb.commons.ArrayOp;
+import com.github.laim0nas100.commonslb.ArrayOp;
 import org.junit.Test;
 
 /**

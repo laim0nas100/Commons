@@ -1,17 +1,17 @@
 package empiric.core;
 
 import java.lang.reflect.InvocationTargetException;
-import lt.lb.commons.containers.collections.PagedList;
-import lt.lb.commons.containers.collections.PagedHashList;
-import lt.lb.commons.containers.collections.PrefillArrayMapList;
+import com.github.laim0nas100.commonslb.containers.collections.PagedList;
+import com.github.laim0nas100.commonslb.containers.collections.PagedHashList;
+import com.github.laim0nas100.commonslb.containers.collections.PrefillArrayMapList;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
-import lt.lb.commons.F;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.benchmarking.BenchmarkResult;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.benchmarking.BenchmarkResult;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.magicwerk.brownies.collections.BigList;

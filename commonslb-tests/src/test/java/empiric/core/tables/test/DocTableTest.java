@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import lt.lb.commons.containers.tables.CellTable;
-import lt.lb.commons.containers.tables.Formatters;
-import lt.lb.commons.func.Lambda;
+import com.github.laim0nas100.commonslb.containers.tables.CellTable;
+import com.github.laim0nas100.commonslb.containers.tables.Formatters;
+import com.github.laim0nas100.commonslb.func.Lambda;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 

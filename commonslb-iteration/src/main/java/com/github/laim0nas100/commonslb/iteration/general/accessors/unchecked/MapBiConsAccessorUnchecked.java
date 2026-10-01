@@ -1,0 +1,22 @@
+package com.github.laim0nas100.commonslb.iteration.general.accessors.unchecked;
+
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.iteration.general.accessors.*;
+import com.github.laim0nas100.commonslb.iteration.general.cons.IterMapBiCons;
+import com.github.laim0nas100.commonslb.iteration.general.cons.IterMapCons;
+import com.github.laim0nas100.commonslb.iteration.general.result.IterMapResult;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public class MapBiConsAccessorUnchecked extends MapBiConsAccessor {
+
+    @Override
+    public <K, V> SafeOpt<IterMapResult<K, V>> tryVisit(int index, K key, V val, IterMapCons<K, V> iter) {
+        IterMapBiCons<K, V> iterBi = F.cast(iter);
+        return AccessorImpl.visitCaught(index, key, val, iterBi);
+    }
+
+}

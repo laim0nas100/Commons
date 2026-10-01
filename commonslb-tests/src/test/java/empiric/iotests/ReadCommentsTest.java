@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.io.text.TextFileIO;
-import lt.lb.commons.io.text.CommentParser;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.io.text.TextFileIO;
+import com.github.laim0nas100.commonslb.io.text.CommentParser;
 
 /**
  *

@@ -6,18 +6,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import lt.lb.commons.ArrayOp;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.values.IntegerValue;
-import lt.lb.commons.datafill.NumberFill;
-import lt.lb.commons.iteration.For;
-import lt.lb.commons.iteration.Iter;
-import lt.lb.commons.iteration.Iter.IterNoStop;
-import lt.lb.commons.iteration.ReadOnlyIterator;
-import lt.lb.commons.iteration.general.cons.IterIterableBiCons;
-import lt.lb.commons.iteration.impl.ArrayROI;
-import lt.lb.commons.misc.rng.FastRandom;
+import com.github.laim0nas100.commonslb.ArrayOp;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.containers.values.IntegerValue;
+import com.github.laim0nas100.commonslb.datafill.NumberFill;
+import com.github.laim0nas100.commonslb.iteration.For;
+import com.github.laim0nas100.commonslb.iteration.Iter;
+import com.github.laim0nas100.commonslb.iteration.Iter.IterNoStop;
+import com.github.laim0nas100.commonslb.iteration.ReadOnlyIterator;
+import com.github.laim0nas100.commonslb.iteration.general.cons.IterIterableBiCons;
+import com.github.laim0nas100.commonslb.iteration.impl.ArrayROI;
+import com.github.laim0nas100.commonslb.misc.rng.FastRandom;
 
 /**
  *

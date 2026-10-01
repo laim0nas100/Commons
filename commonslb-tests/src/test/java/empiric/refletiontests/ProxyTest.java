@@ -12,9 +12,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.ArrayOp;
-import lt.lb.commons.F;
-import lt.lb.commons.DLog;
+import com.github.laim0nas100.commonslb.ArrayOp;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.DLog;
 import com.github.laim0nas100.uncheckedutils.Checked;
 import org.junit.Test;
 /**

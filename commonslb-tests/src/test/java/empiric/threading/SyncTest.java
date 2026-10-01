@@ -4,13 +4,13 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.DLog;
-import lt.lb.commons.threads.executors.FastExecutor;
-import lt.lb.commons.threads.executors.FastWaitingExecutor;
-import lt.lb.commons.threads.executors.scheduled.DelayedTaskExecutor;
-import lt.lb.commons.threads.service.BasicTaskExecutorQueue;
-import lt.lb.commons.threads.service.BasicTaskExecutorQueue.BasicRunInfo;
-import lt.lb.commons.threads.service.SimpleTaskExecutorQueue;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.threads.executors.FastExecutor;
+import com.github.laim0nas100.commonslb.threads.executors.FastWaitingExecutor;
+import com.github.laim0nas100.commonslb.threads.executors.scheduled.DelayedTaskExecutor;
+import com.github.laim0nas100.commonslb.threads.service.BasicTaskExecutorQueue;
+import com.github.laim0nas100.commonslb.threads.service.BasicTaskExecutorQueue.BasicRunInfo;
+import com.github.laim0nas100.commonslb.threads.service.SimpleTaskExecutorQueue;
 import com.github.laim0nas100.uncheckedutils.func.UncheckedRunnable;
 
 /**

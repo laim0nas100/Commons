@@ -1,0 +1,19 @@
+package com.github.laim0nas100.commonslb.refmodel.jparef;
+
+import javax.persistence.criteria.*;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public class JpaCollectionRef<T> extends JpaJoinRef<T> {
+
+    public <E, A> CollectionJoin<E, T> join(From<E, A> root) {
+        return this.join(root, JoinType.INNER);
+    }
+
+    public <E, A> CollectionJoin<E, T> join(From<E, A> root, JoinType jt) {
+        return this.resolveJoin(root).joinCollection(getLocal(), jt);
+    }
+
+}

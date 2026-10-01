@@ -6,10 +6,10 @@
 package empiric.core;
 
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.F;
-import lt.lb.commons.DLog;
-import lt.lb.commons.containers.values.DoubleValue;
-import lt.lb.commons.containers.values.NumberValue;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.containers.values.DoubleValue;
+import com.github.laim0nas100.commonslb.containers.values.NumberValue;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

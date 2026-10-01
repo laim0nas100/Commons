@@ -5,10 +5,10 @@
  */
 package empiric.core;
 
-import lt.lb.commons.F;
-import lt.lb.commons.Java;
-import lt.lb.commons.DLog;
-import lt.lb.commons.containers.values.IntegerValue;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.Java;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.containers.values.IntegerValue;
 import com.github.laim0nas100.uncheckedutils.Checked;
 /**
  *

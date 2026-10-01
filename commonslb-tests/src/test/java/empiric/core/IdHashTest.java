@@ -7,7 +7,7 @@ package empiric.core;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import lt.lb.commons.DLog;
+import com.github.laim0nas100.commonslb.DLog;
 
 /**
  *

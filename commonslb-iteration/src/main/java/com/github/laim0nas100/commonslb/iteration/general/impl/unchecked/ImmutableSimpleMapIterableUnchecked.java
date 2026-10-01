@@ -1,0 +1,25 @@
+package com.github.laim0nas100.commonslb.iteration.general.impl.unchecked;
+
+import java.util.Map;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
+import com.github.laim0nas100.commonslb.iteration.general.cons.unchecked.IterMapBiConsUnchecked;
+import com.github.laim0nas100.commonslb.iteration.general.impl.ImmutableImpl;
+import com.github.laim0nas100.commonslb.iteration.general.result.IterMapResult;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public class ImmutableSimpleMapIterableUnchecked extends SimpleMapIterableUnchecked {
+
+    @Override
+    protected SimpleMapIterableUnchecked me() {
+        return new SimpleMapIterableUnchecked();
+    }
+
+    @Override
+    public <K, V> SafeOpt<IterMapResult<K, V>> find(Map<K, V> map, IterMapBiConsUnchecked<K, V> iter) {
+        return ImmutableImpl.find(map, resolveAccessor(iter), iter);
+    }
+
+}

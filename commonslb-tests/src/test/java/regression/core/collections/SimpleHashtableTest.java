@@ -15,11 +15,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.benchmarking.BenchmarkResult;
-import lt.lb.commons.containers.collections.SimpleHashtable;
-import lt.lb.commons.iteration.For;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.benchmarking.BenchmarkResult;
+import com.github.laim0nas100.commonslb.containers.collections.SimpleHashtable;
+import com.github.laim0nas100.commonslb.iteration.For;
 
 /**
  *

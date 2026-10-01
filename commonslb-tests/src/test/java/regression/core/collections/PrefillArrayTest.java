@@ -1,6 +1,6 @@
 package regression.core.collections;
 
-import lt.lb.commons.containers.collections.PrefillArrayList;
+import com.github.laim0nas100.commonslb.containers.collections.PrefillArrayList;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 

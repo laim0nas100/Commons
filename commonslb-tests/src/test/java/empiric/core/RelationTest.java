@@ -6,11 +6,11 @@
 package empiric.core;
 
 import java.util.Arrays;
-import lt.lb.commons.containers.collections.RelationMap;
+import com.github.laim0nas100.commonslb.containers.collections.RelationMap;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.F;
-import lt.lb.commons.DLog;
-import lt.lb.commons.containers.tuples.Tuples;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.containers.tuples.Tuples;
 import org.junit.Test;
 
 /**

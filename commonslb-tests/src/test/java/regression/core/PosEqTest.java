@@ -6,10 +6,10 @@
 package regression.core;
 
 import java.util.Objects;
-import lt.lb.commons.Equator;
-import lt.lb.commons.PosEq;
+import com.github.laim0nas100.commonslb.Equator;
+import com.github.laim0nas100.commonslb.PosEq;
 import com.github.laim0nas100.uncheckedutils.SafeOpt;
-import lt.lb.commons.parsing.NumberParsing;
+import com.github.laim0nas100.commonslb.parsing.NumberParsing;
 import org.assertj.core.api.*;
 import org.junit.Test;
 

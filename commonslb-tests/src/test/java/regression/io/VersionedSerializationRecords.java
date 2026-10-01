@@ -2,11 +2,11 @@ package regression.io;
 
 import java.util.HashMap;
 import java.util.Map;
-import lt.lb.commons.containers.values.Value;
-import lt.lb.commons.io.serialization.VSManager;
-import lt.lb.commons.io.serialization.VersionedDeserializationContext;
-import lt.lb.commons.io.serialization.VersionedSerialization;
-import lt.lb.commons.iteration.For;
+import com.github.laim0nas100.commonslb.containers.values.Value;
+import com.github.laim0nas100.commonslb.io.serialization.VSManager;
+import com.github.laim0nas100.commonslb.io.serialization.VersionedDeserializationContext;
+import com.github.laim0nas100.commonslb.io.serialization.VersionedSerialization;
+import com.github.laim0nas100.commonslb.iteration.For;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 

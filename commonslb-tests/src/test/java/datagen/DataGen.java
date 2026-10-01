@@ -17,17 +17,17 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lt.lb.commons.ArrayOp;
+import com.github.laim0nas100.commonslb.ArrayOp;
 import com.github.laim0nas100.fastid.FastIDGen;
 import com.github.laim0nas100.fastid.FastID;
 import com.github.laim0nas100.fastid.FastUUID;
-import lt.lb.commons.LineStringBuilder;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.containers.tuples.Tuple;
-import lt.lb.commons.containers.tuples.Tuples;
-import lt.lb.commons.containers.values.LongValue;
-import lt.lb.commons.misc.rng.RandomDistribution;
+import com.github.laim0nas100.commonslb.LineStringBuilder;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.containers.tuples.Tuple;
+import com.github.laim0nas100.commonslb.containers.tuples.Tuples;
+import com.github.laim0nas100.commonslb.containers.values.LongValue;
+import com.github.laim0nas100.commonslb.misc.rng.RandomDistribution;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -395,7 +395,7 @@ public class DataGen {
             });
         }
 
-        lt.lb.commons.io.text.TextFileIO.writeToFile(fileName, list);
+        com.github.laim0nas100.commonslb.io.text.TextFileIO.writeToFile(fileName, list);
     }
 
     public static interface DataProv {

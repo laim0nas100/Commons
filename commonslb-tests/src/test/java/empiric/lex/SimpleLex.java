@@ -8,12 +8,12 @@ package empiric.lex;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.ArrayOp;
-import lt.lb.commons.DLog;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.io.text.TextFileIO;
-import lt.lb.commons.parsing.LexerWithStrings;
-import lt.lb.commons.parsing.token.Token;
+import com.github.laim0nas100.commonslb.ArrayOp;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.io.text.TextFileIO;
+import com.github.laim0nas100.commonslb.parsing.LexerWithStrings;
+import com.github.laim0nas100.commonslb.parsing.token.Token;
 import org.junit.Test;
 
 /**

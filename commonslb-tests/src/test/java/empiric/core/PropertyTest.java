@@ -7,9 +7,9 @@ package empiric.core;
 
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
-import lt.lb.commons.containers.values.BindingValue;
-import lt.lb.commons.DLog;
-import lt.lb.commons.parsing.NumberParsing;
+import com.github.laim0nas100.commonslb.containers.values.BindingValue;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.parsing.NumberParsing;
 import org.junit.Test;
 
 /**

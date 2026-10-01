@@ -9,14 +9,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import lt.lb.commons.DLog;
-import lt.lb.commons.Java;
-import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.threads.executors.BurstExecutor;
-import lt.lb.commons.threads.executors.FastExecutor;
-import lt.lb.commons.threads.executors.FastWaitingExecutor;
-import lt.lb.commons.threads.executors.InPlaceExecutor;
-import lt.lb.commons.threads.sync.WaitTime;
+import com.github.laim0nas100.commonslb.DLog;
+import com.github.laim0nas100.commonslb.Java;
+import com.github.laim0nas100.commonslb.benchmarking.Benchmark;
+import com.github.laim0nas100.commonslb.threads.executors.BurstExecutor;
+import com.github.laim0nas100.commonslb.threads.executors.FastExecutor;
+import com.github.laim0nas100.commonslb.threads.executors.FastWaitingExecutor;
+import com.github.laim0nas100.commonslb.threads.executors.InPlaceExecutor;
+import com.github.laim0nas100.commonslb.threads.sync.WaitTime;
 import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**

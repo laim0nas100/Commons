@@ -1,7 +1,7 @@
 package regression.core.caching;
 
-import lt.lb.commons.containers.caching.AutoUpdateValue;
-import lt.lb.commons.threads.executors.FastExecutor;
+import com.github.laim0nas100.commonslb.caching.AutoUpdateValue;
+import com.github.laim0nas100.commonslb.threads.executors.FastExecutor;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 

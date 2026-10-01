@@ -3,9 +3,9 @@ package experimental.jpa.lazy;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import lt.lb.commons.F;
-import lt.lb.commons.containers.collections.ImmutableCollections;
-import lt.lb.commons.iteration.For;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.containers.collections.ImmutableCollections;
+import com.github.laim0nas100.commonslb.iteration.For;
 
 /**
  *

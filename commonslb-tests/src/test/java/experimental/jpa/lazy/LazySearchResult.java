@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import lt.lb.commons.F;
-import lt.lb.commons.containers.collections.ImmutableCollections;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.containers.collections.ImmutableCollections;
 import lt.lb.prebuiltcollections.readonly.ReadOnlyList;
 
 /**

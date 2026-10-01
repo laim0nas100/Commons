@@ -1,0 +1,50 @@
+package com.github.laim0nas100.commonslb.parsing.token.match.impl;
+
+import com.github.laim0nas100.commonslb.Ins;
+import com.github.laim0nas100.commonslb.parsing.token.Token;
+import com.github.laim0nas100.commonslb.parsing.token.match.TokenMatcher;
+import com.github.laim0nas100.compare.Compare;
+import com.github.laim0nas100.compare.SimpleCompare;
+
+/**
+ *
+ * @author laim0nas100
+ */
+public class ConjuctionTokenMatcher extends CompositeTokenMatcher {
+
+    protected Class<? extends Token>[] maxTypes;
+
+    public ConjuctionTokenMatcher(String name, TokenMatcher... matchers) {
+        super(assertSameLength(matchers), name, matchers);
+
+        maxTypes = new Class[length];
+        SimpleCompare<Class> cmpTypes = Compare.of(Ins.TYPE_COMPARATOR); // broader types comes first (smaller)
+        if (length > 0) {
+            for (int pos = 0; pos < length; pos++) {
+                maxTypes[pos] = matchers[0].requiredType(pos);
+
+                for (int i = 1; i < matchers.length; i++) {
+                    maxTypes[pos] = cmpTypes.max(maxTypes[pos], matchers[i].requiredType(pos));
+                }
+            }
+
+        }
+
+    }
+
+    @Override
+    public Class<? extends Token> requiredType(int position) {
+        return maxTypes[position];
+    }
+
+    @Override
+    public boolean matches(int position, Token token) {
+        for (TokenMatcher matcher : matchers) {
+            if (!matcher.matches(position, token)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+}

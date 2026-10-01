@@ -3,8 +3,8 @@ package regression.core;
 import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
-import lt.lb.commons.Ins;
-import lt.lb.commons.misc.compare.ExtComparable;
+import com.github.laim0nas100.commonslb.Ins;
+import com.github.laim0nas100.commonslb.misc.compare.ExtComparable;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Test;
 
