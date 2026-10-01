@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>lt.lb.commons</groupId>
-        <artifactId>commons-root</artifactId>
+        <groupId>com.github.laim0nas100.commonslb</groupId>
+        <artifactId>commonslb-root</artifactId>
         <version>local-jar</version>
     </parent>
     <name>CommonsLB Tests</name>
@@ -48,13 +48,22 @@
             <scope>test</scope>
             <type>jar</type>
         </dependency>
+        <!--         Source: https://mvnrepository.com/artifact/com.lmax/disruptor 
+         Source: https://mvnrepository.com/artifact/com.lmax/disruptor 
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>4.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+        -->
         <!--        <dependency>
             <groupId>lt.lb</groupId>
             <artifactId>UncheckedUtils</artifactId>
             <version>local-jar</version>
         </dependency>-->
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-core</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -64,7 +73,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-iteration</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -74,7 +83,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-misc</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -84,7 +93,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-io</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -94,7 +103,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-collections</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -105,7 +114,7 @@
         </dependency>
         
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-lexing</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -115,7 +124,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-graphtheory</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -129,7 +138,7 @@
             <artifactId>cloning</artifactId>
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-reflection</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -139,7 +148,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-refmodel</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -149,7 +158,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-email</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -159,7 +168,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-log</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -169,7 +178,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-caching</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -179,7 +188,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-threads</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -189,7 +198,7 @@
             </exclusions>-->
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-datasync</artifactId>
             <!--            <exclusions>
                 <exclusion>
@@ -227,7 +236,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>lt.lb.commons</groupId>
+            <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-javafx</artifactId>
             <scope>test</scope>
             <exclusions>
