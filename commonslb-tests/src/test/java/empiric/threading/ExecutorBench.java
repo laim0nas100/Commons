@@ -1,6 +1,7 @@
 package empiric.threading;
 
-import lt.lb.commons.threads.executors.BurstExecutor;
+//import com.lmax.disruptor.BusySpinWaitStrategy;
+//import com.lmax.disruptor.dsl.ProducerType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -11,12 +12,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lt.lb.commons.DLog;
 import lt.lb.commons.Java;
 import lt.lb.commons.benchmarking.Benchmark;
-import lt.lb.commons.misc.numbers.Atomic;
+import lt.lb.commons.threads.executors.BurstExecutor;
 import lt.lb.commons.threads.executors.FastExecutor;
 import lt.lb.commons.threads.executors.FastWaitingExecutor;
 import lt.lb.commons.threads.executors.InPlaceExecutor;
 import lt.lb.commons.threads.sync.WaitTime;
-import lt.lb.uncheckedutils.Checked;
+import com.github.laim0nas100.uncheckedutils.Checked;
 
 /**
  *
@@ -38,8 +39,8 @@ public class ExecutorBench {
         bench.warmupTimes = 5;
         bench.useGChint = true;
 
-        int times = 50_000;
-        int t = 6;
+        int times = 25_000;
+        int t = 8;
         int b = 25;
 
         bench.executeBench(b, "IN_PLACE", () -> {
@@ -58,7 +59,7 @@ public class ExecutorBench {
             submitEmptyTasks(new FastExecutor(1), times, false);
         }).print(System.out::println);
         bench.executeBench(b, "Fast rework single ArrayLockedArena", () -> {
-            submitEmptyTasks(FastExecutor._spec(2, 1), times, false);
+            submitEmptyTasks(FastExecutor._spec(1, 1), times, false);
         }).print(System.out::println);
         bench.executeBench(b, "Fast rework ConcurrentLinkedQueue", () -> {
             submitEmptyTasks(FastExecutor._spec(t, -1), times, false);
@@ -101,7 +102,7 @@ public class ExecutorBench {
 //                    Atomic.incrementAndGet(ran);
                     if (debug) {
 //                    System.out.println(inc);
-                        DLog.print(1);
+//                        DLog.print(1);
                     }
                     return System.nanoTime() + System.currentTimeMillis() + fib(10);
                 };
