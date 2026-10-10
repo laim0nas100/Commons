@@ -1,6 +1,5 @@
 package com.github.laim0nas100.commonslb.parsing.token.match;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -12,8 +11,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import com.github.laim0nas100.commonslb.containers.values.Value;
-import com.github.laim0nas100.commonslb.misc.compare.ComparatorBuilder;
 import com.github.laim0nas100.commonslb.parsing.token.Token;
+import com.github.laim0nas100.compare.Compare;
 import com.github.laim0nas100.uncheckedutils.SafeOpt;
 
 /**
@@ -22,11 +21,9 @@ import com.github.laim0nas100.uncheckedutils.SafeOpt;
  */
 public class DefaultMatchedTokenProducer implements MatchedTokenProducer {
 
-    static final Comparator<Map.Entry<Integer, List<TokenMatcher>>> compEntry = new ComparatorBuilder<Map.Entry<Integer, List<TokenMatcher>>>()
-            .thenComparingValue(v -> v.getKey()).reverse().build();
-
-    static final Comparator<TokenMatcher> compLength = new ComparatorBuilder<TokenMatcher>().thenComparingValue(c -> c.length()).reverse().build();
-    static final Comparator<TokenMatcher> compImportance = new ComparatorBuilder<TokenMatcher>().thenComparingValue(c -> c.importance()).reverse().build();
+    static final Comparator<Map.Entry<Integer, List<TokenMatcher>>> compEntry = Compare.comparing((Map.Entry<Integer, List<TokenMatcher>> v) -> v.getKey()).reversed();
+    static final Comparator<TokenMatcher> compLength = Compare.comparingInt((TokenMatcher c)-> c.length()).reversed();
+    static final Comparator<TokenMatcher> compImportance = Compare.comparingInt((TokenMatcher c)-> c.importance()).reversed();
 
     protected List<TokenMatcher> matchers;
     protected Iterator<Token> lexer;

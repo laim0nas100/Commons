@@ -30,7 +30,7 @@ import com.github.laim0nas100.commonslb.datasync.base.NodeSync;
 import com.github.laim0nas100.commonslb.datasync.extractors.Extractors;
 import com.github.laim0nas100.commonslb.func.BiConverter;
 import com.github.laim0nas100.commonslb.javafx.FXDefs;
-import com.github.laim0nas100.commonslb.misc.compare.ComparatorBuilder;
+import com.github.laim0nas100.compare.Compare;
 import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.FuzzyScore;
@@ -224,16 +224,12 @@ public class FXSync<P, D, N extends Node> extends NodeSync<P, D, N, FXValid<P, N
             this.fuzzyScore = new FuzzyScore(locale).fuzzyScore(asString, query);
         }
 
-        private static final LazyValue<Comparator<MostMatchedString>> lazyComparator = new LazyValue<>(() -> {
-            return new ComparatorBuilder<MostMatchedString>()
-                    .thenComparingValue(f -> f.commonPrefixDistance) // big is good
-                    .thenComparingValue(f -> f.fuzzyScore) // big is good
-                    .reverseAll()
-                    .build();
-        });
+        private static final Comparator<MostMatchedString> comparator = Compare
+                .comparingReversed((MostMatchedString f) -> f.commonPrefixDistance) // big is good
+                .thenComparingReversed(f -> f.fuzzyScore);// big is good
 
         public static Comparator<MostMatchedString> compareMostMatched() {
-            return lazyComparator.get();
+            return comparator;
         }
 
     }
