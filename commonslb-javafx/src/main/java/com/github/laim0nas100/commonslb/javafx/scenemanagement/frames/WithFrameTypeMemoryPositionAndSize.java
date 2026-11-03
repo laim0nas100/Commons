@@ -2,8 +2,8 @@ package com.github.laim0nas100.commonslb.javafx.scenemanagement.frames;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import com.github.laim0nas100.commonslb.containers.collections.Props;
 import com.github.laim0nas100.commonslb.javafx.scenemanagement.Frame;
+import java.util.Map;
 
 /**
  *
@@ -11,7 +11,7 @@ import com.github.laim0nas100.commonslb.javafx.scenemanagement.Frame;
  */
 public class WithFrameTypeMemoryPositionAndSize extends FrameDecorateProps {
 
-    public HashMap<Serializable, Props<String>> typeMap = new HashMap<>();
+    public HashMap<Serializable, Map<String,Object>> typeMap = new HashMap<>();
 
     public WithFrameTypeMemoryPosition positionDecorate = new WithFrameTypeMemoryPosition();
     public WithFrameTypeMemorySize sizeDecorate = new WithFrameTypeMemorySize();

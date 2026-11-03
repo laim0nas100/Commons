@@ -8,13 +8,14 @@ import com.github.laim0nas100.commonslb.containers.collections.Props;
 import com.github.laim0nas100.commonslb.containers.collections.Props.PropGet;
 import com.github.laim0nas100.commonslb.containers.values.ValueProxy;
 import com.github.laim0nas100.commonslb.javafx.scenemanagement.Frame;
+import java.util.Map;
 
 /**
  * @author laim0nas100
  */
 public class WithFrameTypeMemorySize extends FrameDecorateProps {
 
-    public HashMap<Serializable, Props<String>> typeMap = new HashMap<>();
+    public HashMap<Serializable, Map<String,Object>> typeMap = new HashMap<>();
 
     public static final PropGet<String, Double> prop_height = PropGet.of("h");
     public static final PropGet<String, Double> prop_width = PropGet.of("w");
@@ -30,7 +31,7 @@ public class WithFrameTypeMemorySize extends FrameDecorateProps {
         Serializable type = frame.getType();
         Stage stage = frame.getStage();
 
-        Props<String> memoryProp = typeMap.computeIfAbsent(type, k -> new Props<>());
+        Map<String, Object> memoryProp = typeMap.computeIfAbsent(type, k -> new HashMap<>());
 
         ValueProxy<Double> height = prop_height.getAsValue(memoryProp);
         ValueProxy<Double> width = prop_width.getAsValue(memoryProp);

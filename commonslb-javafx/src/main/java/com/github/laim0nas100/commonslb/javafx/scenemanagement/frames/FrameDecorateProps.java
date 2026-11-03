@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import com.github.laim0nas100.commonslb.containers.collections.Props;
 import com.github.laim0nas100.commonslb.javafx.scenemanagement.Frame;
+import java.util.Map;
 
 /**
  *
@@ -11,7 +12,7 @@ import com.github.laim0nas100.commonslb.javafx.scenemanagement.Frame;
  */
 public class FrameDecorateProps extends FrameDecorate {
 
-    protected HashMap<Serializable, Props<String>> frameProps = new HashMap<>();
+    protected HashMap<Serializable, Map<String,Object>> frameProps = new HashMap<>();
 
     /**
      * Get or create Props object for given frame.
@@ -20,7 +21,7 @@ public class FrameDecorateProps extends FrameDecorate {
      * @return
      */
     public Props<String> getFrameProps(Frame frame) {
-        return frameProps.computeIfAbsent(frame.getID(), k -> new Props());
+        return Props.ofMap(frameProps.computeIfAbsent(frame.getID(), k -> new HashMap<>()));
     }
 
     /**
@@ -32,11 +33,8 @@ public class FrameDecorateProps extends FrameDecorate {
      * @return
      */
     public Props<String> removeFrameProps(Frame frame) {
-        if (frameProps.containsKey(frame.getID())) {
-            return frameProps.remove(frame.getID());
-        } else {
-            return new Props<>();
-        }
+        Map<String, Object> remove = frameProps.remove(frame.getID());
+        return remove == null ? Props.ofHashMap() : Props.ofMap(remove);
     }
 
     public void clearProps() {

@@ -1,43 +1,55 @@
 package com.github.laim0nas100.commonslb.containers.collections;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import com.github.laim0nas100.commonslb.containers.values.ValueProxy;
+import java.util.HashMap;
 import lt.lb.prebuiltcollections.DelegatingMap;
 
 /**
- * Property class that stores any value (including null).
+ * Map key-value indirection interface with typed parameters..
  *
  * @author laim0nas100
  */
-public class Props<K> implements DelegatingMap<K, Object>, Serializable {
+public interface Props<K> extends DelegatingMap<K, Object>, Serializable {
 
-    protected Map<K, Object> map;
-
-    public Props(Map<K, Object> delegated) {
-        this.map = delegated;
+    public static <K> Props<K> ofMap(Map<K, Object> map) {
+        return new SimpleProps<>(map);
     }
 
-    public Props() {
-        this(new HashMap<>());
+    public static <K> Props<K> ofHashMap() {
+        return ofMap(new HashMap<>());
+    }
+    
+    public static <K> Props<K> ofArray(){
+        return ofMap(new ArrayLinearMap<>());
     }
 
-    public Map<K, Object> getMap() {
-        return map;
+    public static class SimpleProps<K> implements Props<K> {
+
+        protected final Map<K, Object> map;
+
+        public SimpleProps(Map<K, Object> map) {
+            this.map = Objects.requireNonNull(map);
+        }
+
+        @Override
+        public Map<K, Object> delegate() {
+            return map;
+        }
     }
 
-    public static <K, T> ValueProxy<T> asValueProxy(Props<K> props, K key) {
+    public static <K, V, T> ValueProxy<T> asValueProxy(Map<K, V> props, K key) {
         return new ValueProxy<T>() {
             @Override
             public T get() {
-                return props.getCast(key);
+                return (T) props.get(key);
             }
 
             @Override
             public void set(T v) {
-                props.put(key, v);
+                props.put(key, (V) v);
             }
 
             @Override
@@ -47,14 +59,23 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
         };
     }
 
-    public <T> Props<K> with(K key, T val) {
+    public default <T> Props<K> with(K key, T val) {
         this.put(key, val);
         return this;
     }
 
-    @Override
-    public Map<K, Object> delegate() {
-        return map;
+    public static class SimplePropGet<K, T> implements PropGet<K, T> {
+
+        public final K propKey;
+
+        public SimplePropGet(K propKey) {
+            this.propKey = Objects.requireNonNull(propKey);
+        }
+
+        @Override
+        public K getKey() {
+            return propKey;
+        }
     }
 
     /**
@@ -63,7 +84,7 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
      *
      * @param <T>
      */
-    public static class PropGet<K, T> {
+    public interface PropGet<K, T> {
 
         /**
          * Construct PropGet of specified key and explicit type.
@@ -74,13 +95,7 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @return
          */
         public static <K, Type> PropGet<K, Type> of(K prop) {
-            return new PropGet<>(prop);
-        }
-
-        public final K propKey;
-
-        public PropGet(K propKey) {
-            this.propKey = Objects.requireNonNull(propKey);
+            return new SimplePropGet<>(prop);
         }
 
         /**
@@ -89,9 +104,11 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @param props
          * @return
          */
-        public boolean containsKey(Props<K> props) {
-            return props.containsKey(propKey);
+        public default <V> boolean containsKey(Map<K, V> props) {
+            return props.containsKey(getKey());
         }
+
+        public K getKey();
 
         /**
          * Gets proxy value from given Props object by his key.
@@ -99,8 +116,8 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @param props
          * @return
          */
-        public ValueProxy<T> getAsValue(Props<K> props) {
-            return asValueProxy(props, propKey);
+        public default <V> ValueProxy<T> getAsValue(Map<K, V> props) {
+            return asValueProxy(props, getKey());
         }
 
         /**
@@ -110,7 +127,7 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @param value
          * @return
          */
-        public ValueProxy<T> setOrRemoveNull(Props<K> props, T value) {
+        public default <V> ValueProxy<T> setOrRemoveNull(Map<K, V> props, T value) {
             if (value == null) {
                 return remove(props);
             } else {
@@ -126,8 +143,10 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @param value
          * @return
          */
-        public ValueProxy<T> insert(Props<K> props, T value) {
-            return props.insert(propKey, value);
+        public default <V> ValueProxy<T> insert(Map<K, V> props, T value) {
+            K key = getKey();
+            props.put(key, (V) value);
+            return asValueProxy(props, key);
         }
 
         /**
@@ -136,8 +155,8 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @param props
          * @return
          */
-        public ValueProxy<T> remove(Props<K> props) {
-            props.remove(propKey);
+        public default <V> ValueProxy<T> remove(Map<K, V> props) {
+            props.remove(getKey());
             return getAsValue(props);
         }
 
@@ -147,8 +166,8 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @param props
          * @return
          */
-        public T removeGet(Props<K> props) {
-            Object remove = props.remove(propKey);
+        public default <V> T removeGet(Map<K, V> props) {
+            Object remove = props.remove(getKey());
             if (remove == null) {
                 return null;
             }
@@ -163,8 +182,9 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @param value
          * @return
          */
-        public T insertGet(Props<K> props, T value) {
-            return (T) props.insert(propKey, value).get();
+        public default <V> T insertGet(Map<K, V> props, T value) {
+            props.put(getKey(), (V) value);
+            return value;
         }
 
         /**
@@ -173,10 +193,9 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
          * @param props
          * @return
          */
-        public T get(Props<K> props) {
-            return props.getCast(propKey);
+        public default <V> T get(Map<K, V> props) {
+            return (T) props.get(getKey());
         }
-
     }
 
     /**
@@ -187,7 +206,7 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
      * @param value
      * @return
      */
-    public <T> ValueProxy<T> insert(K key, T value) {
+    public default <T> ValueProxy<T> insert(K key, T value) {
         this.put(key, value);
         return asValueProxy(this, key);
     }
@@ -201,12 +220,12 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
      * @param val
      * @return
      */
-    public <T> T getOrDefaultCast(K key, T val) {
+    public default <V> V getOrDefaultCast(K key, V val) {
         Object get = this.get(key);
         if (get == null) {
             return val;
         }
-        return (T) get;
+        return (V) get;
     }
 
     /**
@@ -216,12 +235,12 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
      * @param key
      * @return
      */
-    public <T> T getCast(K key) {
+    public default <V> V getCast(K key) {
         Object get = this.get(key);
         if (get == null) {
             return null;
         }
-        return (T) get;
+        return (V) get;
     }
 
     /**
@@ -230,7 +249,7 @@ public class Props<K> implements DelegatingMap<K, Object>, Serializable {
      * @param key
      * @return
      */
-    public String getString(K key) {
+    public default String getString(K key) {
         Object get = this.get(key);
         if (get == null) {
             return null;

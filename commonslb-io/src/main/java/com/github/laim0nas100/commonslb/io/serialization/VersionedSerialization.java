@@ -60,7 +60,7 @@ public class VersionedSerialization {
         FIELD_NAME, TYPE, COLLECTION_TYPE, VERSION, BINARY, VALUE, REF_ID;
     }
 
-    public static final class VSTraits extends Props<VSTraitEnum> implements Serializable, CloneSupport<VSTraits> {
+    public static final class VSTraits implements Props<VSTraitEnum>, Serializable, CloneSupport<VSTraits> {
 
         /**
          * Using enum for map rather than string for instant equals performance
@@ -73,17 +73,19 @@ public class VersionedSerialization {
         public static final PropGet<VSTraitEnum, Object> VALUE = PropGet.of(VSTraitEnum.VALUE);
         public static final PropGet<VSTraitEnum, Long> REF_ID = PropGet.of(VSTraitEnum.REF_ID);
 
+        protected Map<VSTraitEnum,Object> map;
+        
         public VSTraits() {
 
 //            super(new EnumMap<>(VSTraitEnum.class));
-            super(new ArrayLinearMap<>());
+            this.map = new ArrayLinearMap<>();
             //for storing up to 4 traits, linear lookup and small memory footprint at most is 
             //TYPE, VERSION, REF_ID and FIELD_NAME at the same time
             //every value setOrRemoveNull expands inner array and value remove shrinks inner array by 2 (key,value)
         }
 
         public VSTraits(Map<VSTraitEnum, Object> delegated) {
-            super(delegated);
+            this.map = Objects.requireNonNull(delegated);
         }
 
         public static boolean traitsEqual(VSTraits me, VSTraits other) {
@@ -97,7 +99,7 @@ public class VersionedSerialization {
                 return false;
             }
             //check entries
-            Set<Entry<VSTraitEnum, Object>> entrySet = me.getMap().entrySet();
+            Set<Entry<VSTraitEnum, Object>> entrySet = me.entrySet();
             for (Entry<VSTraitEnum, Object> entry : entrySet) {
                 VSTraitEnum key = entry.getKey();
 
@@ -123,6 +125,11 @@ public class VersionedSerialization {
             VSTraits traits = new VSTraits();
             traits.putAll(this);
             return traits;
+        }
+
+        @Override
+        public Map<VSTraitEnum, Object> delegate() {
+            return map;
         }
 
     }

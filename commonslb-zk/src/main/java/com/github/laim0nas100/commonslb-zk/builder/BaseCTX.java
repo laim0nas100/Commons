@@ -11,7 +11,7 @@ import com.github.laim0nas100.commonslb.containers.collections.Props;
 public abstract class BaseCTX implements CTX {
 
     protected ArrayList<Prop> properties = new ArrayList<>();
-    protected Props data = new Props();
+    protected Props data = Props.ofHashMap();
 
     @Override
     public List<Prop> getProperties() {

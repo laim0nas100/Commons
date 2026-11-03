@@ -10,13 +10,14 @@ import com.github.laim0nas100.commonslb.containers.collections.Props.PropGet;
 import com.github.laim0nas100.commonslb.containers.values.ValueProxy;
 import com.github.laim0nas100.commonslb.javafx.scenemanagement.Frame;
 import static com.github.laim0nas100.commonslb.javafx.scenemanagement.frames.Util.listenerUpdating;
+import java.util.Map;
 
 /**
  * @author laim0nas100
  */
 public class WithFrameTypeMemoryPosition extends FrameDecorateProps {
 
-    public HashMap<Serializable, Props<String>> typeMap = new HashMap<>();
+    public HashMap<Serializable, Map<String,Object>> typeMap = new HashMap<>();
 
     public static final PropGet<String, Double> prop_y = PropGet.of("y");
     public static final PropGet<String, Double> prop_x = PropGet.of("x");
@@ -32,7 +33,7 @@ public class WithFrameTypeMemoryPosition extends FrameDecorateProps {
         Serializable type = frame.getType();
         Stage stage = frame.getStage();
 
-        Props memoryProp = typeMap.computeIfAbsent(type, k -> new Props<>());
+        Map<String, Object> memoryProp = typeMap.computeIfAbsent(type, k -> new HashMap<>());
 
         ValueProxy<Double> xProx = prop_x.getAsValue(memoryProp);
         ValueProxy<Double> yProx = prop_y.getAsValue(memoryProp);
