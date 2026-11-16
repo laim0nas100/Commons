@@ -57,81 +57,34 @@
             <scope>compile</scope>
         </dependency>
         -->
-        <!--        <dependency>
-            <groupId>lt.lb</groupId>
-            <artifactId>UncheckedUtils</artifactId>
-            <version>local-jar</version>
-        </dependency>-->
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-core</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <artifactId>UncheckedUtils</artifactId>
-                    <groupId>com.github.laim0nas100</groupId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-iteration</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-misc</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-io</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-collections</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-lexing</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-graphtheory</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>uk.com.robust-it</groupId>
@@ -140,72 +93,30 @@
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-reflection</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-refmodel</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-email</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-log</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-caching</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-threads</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-datasync</artifactId>
-            <!--            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>com.github.laim0nas100</groupId>
@@ -222,6 +133,7 @@
             <groupId>de.vandermeer</groupId>
             <artifactId>asciitable</artifactId>
             <version>0.3.2</version>
+            <scope>test</scope>
         </dependency>
         
         <dependency>
@@ -239,15 +151,6 @@
             <groupId>com.github.laim0nas100.commonslb</groupId>
             <artifactId>commonslb-javafx</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.laim0nas100</groupId>
-                    <artifactId>UncheckedUtils</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
-        
-        
-        
     </dependencies>
 </project>
